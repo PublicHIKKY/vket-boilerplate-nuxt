@@ -1,0 +1,21 @@
+@function strip-unit($number) {
+  @if meta.type-of($number) == 'number' and not math.is-unitless($number) {
+    @return $number / ($number * 0 + 1);
+  }
+
+  @return $number;
+}
+
+@function rem($px, $base: 16px) {
+  $value: $px;
+
+  // 単位がpx以外の場合は警告を出してそのまま返す
+  @if math.unit($px) != 'px' {
+    @warn 'rem()の引数にpx以外の値を指定しても計算できません';
+    @return $value;
+  }
+
+  $value: (strip-unit($px) / strip-unit($base)) * 1rem;
+
+  @return $value;
+}

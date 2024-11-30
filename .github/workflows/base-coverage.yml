@@ -1,0 +1,18 @@
+name: <Base> Coverage by Vitest
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, review_requested, ready_for_review]
+    branches: ['develop']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - run: cd layers/base && bun install
+
+      # カバレッジを、PRコメントとコミットステータスとしてポストする
+      - run: ../../.github/workflows/post-coverage.sh ${{ secrets.GITHUB_TOKEN }} ${{ github.event.pull_request.head.sha || github.sha }} ${{ github.event.pull_request.number }} $GITHUB_REPOSITORY

@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HaTag > mount component 1`] = `"<span data-v-c08b7397="" class="ha-tag -primary" disabled="false"></span>"`;

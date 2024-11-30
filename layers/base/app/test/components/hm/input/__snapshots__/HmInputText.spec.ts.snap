@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-4a548fbf="" tag="div" class="hm-input-text"><label data-v-4a548fbf="" class="label">
+    <!--v-if--><input data-v-d0a26e0a="" data-v-4a548fbf="" class="ha-base-input input" type="text" placeholder="Input Text" value="">
+  </label>
+  <!--v-if-->
+</div>"
+`;

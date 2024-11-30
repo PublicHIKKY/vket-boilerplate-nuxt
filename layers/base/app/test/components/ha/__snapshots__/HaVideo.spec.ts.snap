@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HaVideo > mount component 1`] = `"<video class="ha-video" src="" autoplay="" autopictureinpicture="false" controls="" disablepictureinpicture="false" controlslist="" crossorigin="" disableremoteplayback="false" x-webkit-airplay="false" width="" height="" playsinline="false" poster="" preload=""></video>"`;

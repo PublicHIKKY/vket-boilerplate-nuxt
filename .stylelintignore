@@ -1,0 +1,17 @@
+# default settings
+/.*
+/.*/*
+/bin/*
+/config/*
+/configs/*
+/db/*
+/lib/*
+/log/*
+/node_modules/*
+/dist/*
+/public/*
+/tmp/*
+/vendor/*
+/static/*
+/public/*
+# repository settings

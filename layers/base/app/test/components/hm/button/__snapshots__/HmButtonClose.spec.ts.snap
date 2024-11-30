@@ -1,0 +1,10 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<button data-v-0844060a="" data-v-50f49dd3="" class="ha-base-button hm-button-close" type="button"><svg data-v-50f49dd3="" xmlns="http://www.w3.org/2000/svg" width="24.121" height="24.121" viewBox="0 0 24.121 24.121" style="width: 20px; height: 20px;">
+    <g transform="translate(-953.439 -212.439)">
+      <line x2="22" y2="22" transform="translate(954.5 213.5)" fill="none" stroke="#fff" stroke-width="3"></line>
+      <line x1="22" y2="22" transform="translate(954.5 213.5)" fill="none" stroke="#fff" stroke-width="3"></line>
+    </g>
+  </svg></button>"
+`;

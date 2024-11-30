@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HmSkeletonScreen > mount component 1`] = `
+"<div data-v-f3341911="" class="hm-skeleton-screen">
+  <div data-v-f3341911="" class="skeleton-screen">
+    <!-- NOTE: brタグはテキスト1行分の高さを確保している --><br data-v-f3341911="">
+  </div>
+</div>"
+`;

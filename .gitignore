@@ -1,0 +1,63 @@
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+
+# Node dependencies
+node_modules
+
+# Logs
+logs
+*.log
+
+# Misc
+.DS_Store
+.fleet
+.idea
+
+# Local env files
+.env
+.env.*
+!.env.example
+
+# Yarn
+.yarn-integrity
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Coverage directory used by tools like istanbul
+coverage
+
+# IDE / Editor
+.idea
+.history
+
+# Service worker
+sw.*
+
+# playwright
+playwright/.cache/
+playwright-report
+playwright-output
+
+# cache
+.eslintcache
+.stylelintcache
+
+# `yarn dev:mock`
+public/mockServiceWorker.js
+
+# tasks/image-min.mjs
+tasks-assets/image-min/*
+!tasks-assets/image-min/README.md
+/test-results/
+
+# Generated files
+app/models/openapi.ts

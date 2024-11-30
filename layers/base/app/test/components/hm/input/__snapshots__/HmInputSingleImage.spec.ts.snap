@@ -1,0 +1,18 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-c9c71ad2="" class="hm-input-single-image">
+  <div data-v-c9c71ad2="" class="wrapper">
+    <!-- TODO: エラーメッセージの表示をする際に、必要に応じてHmInputTextBase.vue同様の修正(DOM構造とエラーmsgのstyle)を行う --><label data-v-8323f5e3="" data-v-c9c71ad2="" class="hm-input-file hm-single-image-uploader"><input data-v-d0a26e0a="" data-v-8323f5e3="" class="ha-base-input input" type="file" accept="image/png,image/jpeg" name="file" required="">
+      <div data-v-8323f5e3="" class="image-box">
+        <div data-v-8323f5e3="" class="inner"><span data-v-8323f5e3="" class="text"> Select file or drag it! </span></div>
+      </div>
+    </label>
+  </div>
+  <p data-v-c9c71ad2="" class="error-container">
+    <!--v-if-->
+  </p>
+  <!--v-if-->
+  <!--v-if-->
+</div>"
+`;
