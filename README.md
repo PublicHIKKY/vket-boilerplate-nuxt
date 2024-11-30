@@ -1,4 +1,4 @@
-# Vket Boilerplate Nuxt
+# Vket Boilerplate Nuxt INTERNAL (Vket App Front 2)
 
 This is a Nuxt boilerplate published by HIKKY Ltd.
 
