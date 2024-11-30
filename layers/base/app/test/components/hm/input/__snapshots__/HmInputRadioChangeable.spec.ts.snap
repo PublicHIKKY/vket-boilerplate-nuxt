@@ -1,0 +1,7 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-0195f537="" class="hm-input-radio-changeable">
+  <div data-v-0195f537="" class="radio"><input data-v-d0a26e0a="" data-v-0195f537="" id="testValue" class="ha-base-input input" type="radio" name="testName" required="" value="false"><label data-v-0195f537="" for="testValue" class="label">testLabel</label></div>
+</div>"
+`;

@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "preserve",
+    "lib": ["dom", "ES2023"],
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "sourceMap": true,
+    "strict": true,
+    "experimentalDecorators": true,
+    "noUncheckedIndexedAccess": true,
+    "jsx": "preserve",
+    "isolatedModules": true,
+    "typeRoots": ["./node_modules", "./node_modules/@types", "./@types"],
+    "types": ["@types/eslint__js", "@types/node", "@types/postcss-url"]
+  },
+  "vueCompilerOptions": {
+    "target": 3
+  },
+  "ts-node": {
+    "esm": true
+  },
+  "exclude": [
+    "node_modules",
+    ".output",
+    "dist",
+    "eslint.config.shared.mjs",
+    ".stylelintrc.shared.mjs",
+    "tsconfig.shared.json"
+  ]
+}

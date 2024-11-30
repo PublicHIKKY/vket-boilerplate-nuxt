@@ -1,0 +1,28 @@
+name: <Base> Check by lint, type-check, and test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, review_requested, ready_for_review]
+    branches: ['develop']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Check
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Setup
+        run: |
+          bun install
+          cd layers/base && bun install
+
+      - name: Lint
+        run: bun lint
+
+      - name: TypeCheck
+        run: bun typecheck
+
+      - name: Test
+        run: bun test:ut

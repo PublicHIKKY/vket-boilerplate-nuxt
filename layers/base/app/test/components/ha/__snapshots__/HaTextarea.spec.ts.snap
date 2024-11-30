@@ -1,0 +1,11 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-94d1f98e="" class="ha-textarea"><label data-v-94d1f98e="" class="label">
+    <!--v-if--><textarea data-v-94d1f98e="" type="text" placeholder="Input Text" rows="5" class="input"></textarea>
+  </label>
+  <p data-v-94d1f98e="" class="error-container">
+    <!--v-if-->
+  </p>
+</div>"
+`;

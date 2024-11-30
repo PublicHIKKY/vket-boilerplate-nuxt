@@ -1,0 +1,8 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<label data-v-16361de7="" class="hm-input-checkbox"><input data-v-d0a26e0a="" data-v-16361de7="" class="ha-base-input button" type="checkbox" name="test name" value="false">
+  <div data-v-16361de7="" class="content"></div>
+  <!--v-if-->
+</label>"
+`;

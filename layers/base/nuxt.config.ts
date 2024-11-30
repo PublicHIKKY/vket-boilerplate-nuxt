@@ -1,0 +1,127 @@
+import { defineNuxtConfig } from 'nuxt/config'
+import { FileSystemIconLoader } from 'unplugin-icons/loaders'
+import IconsResolver from 'unplugin-icons/resolver'
+import Icons from 'unplugin-icons/vite'
+import Components from 'unplugin-vue-components/vite'
+import eslintPlugin from 'vite-plugin-eslint2'
+import svgLoader from 'vite-svg-loader'
+import { readEnvType } from './config/models/EnvType'
+import { getRuntimeConfigOfEnvType } from './config/runtimeConfig'
+import { nuxtI18nOptions } from './i18n/i18n.config'
+
+const cssUrls = [`./app/assets/styles/style.scss`]
+const srcDir = 'app'
+
+/**
+ * Nuxt Config
+ * @ref https://nuxt.com/docs/api/configuration/nuxt-config
+ */
+export default defineNuxtConfig({
+  modules: ['@nuxtjs/i18n', '@nuxt/eslint', '@vueuse/nuxt'],
+  imports: {
+    dirs: ['utils/types/**'],
+    global: false,
+  },
+  devtools: { enabled: true },
+  app: {
+    head: {
+      viewport: 'width=device-width, initial-scale=1',
+      charset: 'utf-8',
+      meta: [
+        { name: 'robots', content: 'noindex, nofollow' },
+        { hid: 'og:type', property: 'og:type', content: 'website' },
+        {
+          hid: 'twitter:card',
+          name: 'twitter:card',
+          content: 'summary_large_image',
+        },
+        {
+          hid: 'note:card',
+          name: 'note:card',
+          content: 'summary_large_image',
+        },
+      ],
+      noscript: [{ children: 'Javascript is required' }],
+    },
+  },
+  css: cssUrls,
+  runtimeConfig: getRuntimeConfigOfEnvType(
+    readEnvType(process.env),
+    process.env,
+  ),
+  rootDir: __dirname,
+  srcDir: `${srcDir}/`,
+  alias: {
+    '#base': __dirname,
+  },
+  ignore: [
+    '.output',
+    '**/test/*.{js,ts,jsx,tsx}',
+    '**/*.{spec,test}.{js,ts,jsx,tsx}',
+    '**/-*.*',
+  ],
+  compatibilityDate: '2024-04-03',
+  vite: {
+    build: {
+      emptyOutDir: true,
+    },
+    plugins: [
+      eslintPlugin(),
+      svgLoader({
+        defaultImport: 'component', // 'component', 'url', 'raw'
+        svgo: false,
+      }),
+      Icons({
+        customCollections: {
+          'hikky-icons': FileSystemIconLoader(`${srcDir}/assets/icons/hikky`),
+          'sns-icons': FileSystemIconLoader(`${srcDir}/assets/icons/sns`),
+        },
+        iconCustomizer(collection, _icon, props) {
+          // customize all icons in this collection
+          if (
+            collection === 'hikky-icons'
+            || collection === 'sns-icons'
+            || collection === 'ri'
+          ) {
+            props.width = '1em'
+            props.height = '1em'
+          }
+        },
+      }),
+      Components({
+        dts: false,
+        resolvers: [
+          IconsResolver({
+            customCollections: ['hikky-icons', 'sns-icons'],
+          }),
+        ],
+      }),
+    ],
+    css: {
+      preprocessorOptions: {
+        scss: {
+          api: 'modern-compiler',
+        },
+      },
+    },
+  },
+  typescript: {
+    tsConfig: {
+      compilerOptions: {
+        verbatimModuleSyntax: false,
+      },
+    },
+    includeWorkspace: true,
+  },
+  eslint: {
+    checker: true,
+    config: {
+      stylistic: {
+        semi: false,
+        indent: 2,
+        quotes: 'single',
+      },
+    },
+  },
+  i18n: nuxtI18nOptions,
+})

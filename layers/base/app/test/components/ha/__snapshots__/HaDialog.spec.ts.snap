@@ -1,0 +1,7 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-8d2cdb80="" class="ha-dialog">
+  <div data-v-8d2cdb80="" class="dialog-window">no content.</div>
+</div>"
+`;

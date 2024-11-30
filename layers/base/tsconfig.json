@@ -1,0 +1,27 @@
+{
+  // https://nuxt.com/docs/guide/concepts/typescript
+  "extends": [
+    "./.nuxt/tsconfig.server.json",
+    "./.nuxt/tsconfig.json",
+    "../../tsconfig.shared.json"
+  ],
+  "compilerOptions": {
+    "lib": ["dom", "ES2023"],
+    "typeRoots": [
+      "../../node_modules",
+      "../../node_modules/@types",
+      "./@types"
+    ],
+    "types": [
+      "@types/uuid",
+      "vue3-toastify/global",
+      "unplugin-icons/types/vue",
+      "vite/client",
+      "vitest/globals"
+    ],
+    "paths": {
+      "#base/*": ["./*"]
+    }
+  },
+  "exclude": ["node_modules", ".output", "dist"]
+}

@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-8d2cdb80="" data-v-e875e4c1="" class="ha-dialog hm-popup">
+  <div data-v-8d2cdb80="" class="dialog-window"><span data-v-e875e4c1="" class="hm-popup-title">title</span>
+    <p data-v-e875e4c1="" class="hm-popup-description">description</p>
+    <div data-v-e875e4c1="" class="hm-popup-wrapper">
+      <div data-v-e875e4c1="" class="hm-popup-button"><button data-v-0844060a="" data-v-98a1ad68="" data-v-e875e4c1="" class="ha-base-button hm-button -warning -md item" type="button">cancel</button></div>
+      <div data-v-e875e4c1="" class="hm-popup-button"><button data-v-0844060a="" data-v-98a1ad68="" data-v-e875e4c1="" class="ha-base-button hm-button -primary -md item" type="button">confirm</button></div>
+    </div>
+  </div>
+</div>"
+`;

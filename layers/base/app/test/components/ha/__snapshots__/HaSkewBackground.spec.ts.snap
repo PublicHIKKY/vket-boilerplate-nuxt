@@ -1,0 +1,7 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HaSkewBackground > mount component 1`] = `
+"<div data-v-0570223f="" class="ha-skew" style="transform: skewX(30deg);">
+  <div data-v-0570223f="" class="content" style="transform: skewX(-30deg);"></div>
+</div>"
+`;

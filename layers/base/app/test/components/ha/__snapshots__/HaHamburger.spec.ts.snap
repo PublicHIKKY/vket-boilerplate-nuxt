@@ -1,0 +1,7 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-398903c3="" class="ha-humberger-button">
+  <div data-v-398903c3="" class="line"></div>
+</div>"
+`;
