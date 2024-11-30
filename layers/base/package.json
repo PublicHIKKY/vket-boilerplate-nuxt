@@ -28,7 +28,7 @@
   "dependencies": {
     "@gtm-support/vue-gtm": "^3.1.0",
     "@headlessui/vue": "^1.7.23",
-    "@vueuse/nuxt": "^11.3.0",
+    "@vueuse/nuxt": "^12.0.0",
     "dayjs": "^1.11.13",
     "nuxt": "^3.14.159",
     "ress": "^5.0.2",
