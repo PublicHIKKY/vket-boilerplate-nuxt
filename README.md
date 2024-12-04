@@ -23,7 +23,7 @@ The repository uses Nuxt Layers and Bun Workspaces. This provides a monolithic a
 
 ## Contribution
 
-In preparation
+In preparation.
 
 
 ## LICENSE
