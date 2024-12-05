@@ -6,8 +6,9 @@ github_token=$1
 commit_head_sha=$2
 pr_number=$3
 owner_and_repo=$4
+target_directory=$5
 
-
+cd $target_directory
 bun test:coverage | tee coverage-tmp.txt
 
 # Commit Status

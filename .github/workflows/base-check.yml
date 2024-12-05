@@ -19,10 +19,10 @@ jobs:
           cd layers/base && bun install
 
       - name: Lint
-        run: bun lint
+        run: cd layers/base && bun lint
 
       - name: TypeCheck
-        run: bun typecheck
+        run: cd layers/base && bun typecheck
 
       - name: Test
-        run: bun test:ut
+        run: cd layers/base && bun test:ut
