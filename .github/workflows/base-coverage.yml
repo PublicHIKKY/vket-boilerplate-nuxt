@@ -6,7 +6,7 @@ on:
     branches: ['develop']
 
 jobs:
-  build:
+  coverage:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,4 +15,4 @@ jobs:
       - run: cd layers/base && bun install
 
       # カバレッジを、PRコメントとコミットステータスとしてポストする
-      - run: .github/workflows/post-coverage.sh ${{ secrets.GITHUB_TOKEN }} ${{ github.event.pull_request.head.sha || github.sha }} ${{ github.event.pull_request.number }} $GITHUB_REPOSITORY
+      - run: .github/workflows/post-coverage.sh ${{ secrets.GITHUB_TOKEN }} ${{ github.event.pull_request.head.sha || github.sha }} ${{ github.event.pull_request.number }} $GITHUB_REPOSITORY layers/base
