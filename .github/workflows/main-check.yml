@@ -24,5 +24,6 @@ jobs:
       - name: TypeCheck
         run: cd layers/main && bun typecheck
 
-      - name: Test
-        run: cd layers/main && bun test:ut
+      # If you have a test, please uncomment the following line.
+      # - name: Test
+      #   run: cd layers/main && bun test:ut
