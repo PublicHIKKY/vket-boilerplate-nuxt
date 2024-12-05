@@ -1,4 +1,4 @@
-name: <Base> Reviewdog
+name: <Main> Reviewdog
 
 on: [pull_request]
 
@@ -6,12 +6,15 @@ jobs:
   eslint:
     name: runner / eslint
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: layers/main
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - run: bun install
-      - run: cd layers/base && bun install
       - uses: reviewdog/action-eslint@v1
         with:
           reporter: github-pr-review
+          workdir: layers/main/
           eslint_flags: 'app/'

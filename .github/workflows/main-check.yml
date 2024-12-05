@@ -1,4 +1,4 @@
-name: <Base> Check by lint, type-check, and test
+name: <Main> Check by lint, type-check, and test
 
 on:
   pull_request:
@@ -16,13 +16,14 @@ jobs:
       - name: Setup
         run: |
           bun install
-          cd layers/base && bun install
+          cd layers/main && bun install
 
       - name: Lint
-        run: cd layers/base && bun lint
+        run: cd layers/main && bun lint
 
       - name: TypeCheck
-        run: cd layers/base && bun typecheck
+        run: cd layers/main && bun typecheck
 
-      - name: Test
-        run: cd layers/base && bun test:ut
+      # If you have a test, please uncomment the following line.
+      # - name: Test
+      #   run: cd layers/main && bun test:ut
