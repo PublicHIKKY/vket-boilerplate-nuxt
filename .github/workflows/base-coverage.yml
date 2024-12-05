@@ -1,5 +1,9 @@
 name: <Base> Coverage by Vitest
 
+permissions:
+  contents: read
+  pull-requests: write
+
 on:
   pull_request:
     types: [opened, reopened, synchronize, review_requested, ready_for_review]
