@@ -114,8 +114,8 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/variables' as v;
-@use '@/assets/styles/mixins' as m;
+@use '#base/app/assets/styles/variables' as v;
+@use '#base/app/assets/styles/mixins' as m;
 
 .open {
   cursor: pointer;
