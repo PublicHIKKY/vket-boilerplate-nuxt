@@ -14,8 +14,8 @@ en:
   >
     <!-- 前へ -->
     <HaLink
-      :to="$route.path"
-      :query="{ page: String(currentPage - 1) }"
+      :to="route.path"
+      :query="createPageQuery(currentPage - 1)"
       :class="{ ['link-disabled']: currentPage <= 1 }"
     >
       <button
@@ -38,8 +38,8 @@ en:
       >
         <HaLink
           v-if="page !== '...'"
-          :to="$route.path"
-          :query="{ page: String(page) }"
+          :to="route.path"
+          :query="createPageQuery(Number(page))"
           :class="{ ['link-disabled']: currentPage == page }"
           @click="goToPage(Number(page))"
         >
@@ -57,8 +57,8 @@ en:
     </ul>
     <!-- 次へ -->
     <HaLink
-      :to="$route.path"
-      :query="{ page: String(currentPage + 1) }"
+      :to="route.path"
+      :query="createPageQuery(currentPage + 1)"
       :class="{ ['link-disabled']: currentPage >= totalPages }"
     >
       <button
@@ -84,6 +84,8 @@ export type PageChangedEventObject = {
 }
 
 const i18n = useI18n()
+const route = useRoute()
+
 const props = withDefaults(
   defineProps<{
     paging: Paging
@@ -107,6 +109,10 @@ const totalPages = computed(() =>
   Math.ceil(props.paging.total / props.paging.limit),
 )
 
+const createPageQuery = (page: number) => {
+  return { ...route.query, page: page.toString() }
+}
+
 const createRange = (length: number, start = 0): number[] => {
   return Array.from({ length }, (_, i) => start + i)
 }
@@ -117,6 +123,7 @@ const pages = computed(() => {
   if (
     totalPages.value <= 0
     || isNaN(totalPages.value)
+    || isNaN(currentPage.value)
     || totalPages.value > Number.MAX_SAFE_INTEGER
   )
     return []
