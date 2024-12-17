@@ -50,8 +50,8 @@ const props = withDefaults(
     required?: boolean
     modelValue?: string
     disabled?: boolean
-    min?: number
-    max?: number
+    min?: number | string
+    max?: number | string
     keyupEnter?: boolean
     validateOnMount?: boolean
   }>(),
