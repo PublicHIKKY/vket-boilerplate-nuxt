@@ -6,6 +6,7 @@ HaDialogとの違いとして、HaDialogElementは別階層の別要素のz-inde
   <!-- ダイアログを開くボタン -->
   <component
     :is="props.openButtonHtmlTag"
+    :tabindex="props.openButtonHtmlTag !== 'button' ? 0 : undefined"
     class="open"
     aria-expanded="false"
     @click.stop="openDialog"
