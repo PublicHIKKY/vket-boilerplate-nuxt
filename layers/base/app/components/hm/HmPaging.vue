@@ -6,8 +6,12 @@ en:
   next: Next
   prev: Prev
 </i18n>
+
 <template>
-  <nav aria-label="Pagination Navigation" class="pagination">
+  <nav
+    aria-label="Pagination Navigation"
+    class="pagination"
+  >
     <!-- 前へ -->
     <HaLink
       :to="$route.path"
@@ -19,13 +23,19 @@ en:
         class="pagination-prev"
         @click="goToPage(currentPage - 1)"
       >
-        <slot name="prev-icon"> &lt; </slot>
+        <slot name="prev-icon">
+          &lt;
+        </slot>
         {{ i18n.t('prev') }}
       </button>
     </HaLink>
     <!-- 各ページへのリンク表示 -->
     <ul class="pagination-list">
-      <li v-for="page in pages" :key="page" class="pagination-item">
+      <li
+        v-for="page in pages"
+        :key="page"
+        class="pagination-item"
+      >
         <HaLink
           v-if="page !== '...'"
           :to="$route.path"
@@ -37,7 +47,12 @@ en:
             {{ page }}
           </button>
         </HaLink>
-        <div v-else class="pagination-item ellipsis">...</div>
+        <div
+          v-else
+          class="pagination-item ellipsis"
+        >
+          ...
+        </div>
       </li>
     </ul>
     <!-- 次へ -->
@@ -52,7 +67,9 @@ en:
         @click="goToPage(totalPages)"
       >
         {{ i18n.t('next') }}
-        <slot name="next-icon"> &gt; </slot>
+        <slot name="next-icon">
+          &gt;
+        </slot>
       </button>
     </HaLink>
   </nav>
@@ -71,12 +88,12 @@ const props = withDefaults(
   defineProps<{
     paging: Paging
     totalVisible?: number
-    ellipsis: string
+    ellipsis?: string
   }>(),
   {
     totalVisible: 7,
     ellipsis: '...',
-  }
+  },
 )
 
 const emit = defineEmits<{
@@ -84,10 +101,10 @@ const emit = defineEmits<{
 }>()
 
 const currentPage = computed(
-  () => Math.ceil(props.paging.offset / props.paging.limit) + 1
+  () => Math.ceil(props.paging.offset / props.paging.limit) + 1,
 )
 const totalPages = computed(() =>
-  Math.ceil(props.paging.total / props.paging.limit)
+  Math.ceil(props.paging.total / props.paging.limit),
 )
 
 const createRange = (length: number, start = 0): number[] => {
@@ -98,9 +115,9 @@ const createRange = (length: number, start = 0): number[] => {
 // https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/components/VPagination/VPagination.tsx
 const pages = computed(() => {
   if (
-    totalPages.value <= 0 ||
-    isNaN(totalPages.value) ||
-    totalPages.value > Number.MAX_SAFE_INTEGER
+    totalPages.value <= 0
+    || isNaN(totalPages.value)
+    || totalPages.value > Number.MAX_SAFE_INTEGER
   )
     return []
 
@@ -124,14 +141,16 @@ const pages = computed(() => {
       props.ellipsis,
       totalPages.value,
     ]
-  } else if (currentPage.value - right >= (even ? 1 : 0)) {
+  }
+  else if (currentPage.value - right >= (even ? 1 : 0)) {
     const rangeLength = props.totalVisible - 1
     const rangeStart = totalPages.value - rangeLength + 1
     return [1, props.ellipsis, ...createRange(rangeLength, rangeStart)]
-  } else {
+  }
+  else {
     const rangeLength = Math.max(1, props.totalVisible - 3)
-    const rangeStart =
-      rangeLength === 1
+    const rangeStart
+      = rangeLength === 1
         ? currentPage.value
         : currentPage.value - Math.ceil(rangeLength / 2) + 1
     return [
@@ -172,7 +191,7 @@ const goToPage = (page: number) => {
   .pagination-prev,
   .pagination-next {
     align-items: center;
-    color: v.$textcolor-1;
+    color: v.$base-font-color;
     cursor: pointer;
     display: flex;
     height: 32px;
@@ -188,10 +207,10 @@ const goToPage = (page: number) => {
     }
 
     &:hover:not(:disabled) {
-      color: v.$blue-3;
+      color: v.$primary-button-default-color;
 
       svg path {
-        fill: v.$blue-3; // FIXME: slotでsvgを入れた時の色が変わらない...
+        fill: v.$primary-button-default-color; // FIXME: slotでsvgを入れた時の色が変わらない...
       }
     }
   }
@@ -205,9 +224,9 @@ const goToPage = (page: number) => {
     .pagination-item {
       button {
         align-items: center;
-        background: v.$white;
+        background: v.$black-undercoat;
         border-radius: 50%;
-        color: v.$textcolor-1;
+        color: v.$base-font-color;
         cursor: pointer;
         display: flex;
         height: 30px;
@@ -218,13 +237,13 @@ const goToPage = (page: number) => {
         width: 30px;
 
         &.active {
-          background-color: v.$blue-3;
+          background-color: v.$primary-button-default-color;
           color: v.$white;
           font-weight: bold;
         }
 
         &:hover:not(.active) {
-          background-color: v.$blue-3;
+          background-color: v.$primary-button-default-color;
           color: v.$white;
         }
       }
