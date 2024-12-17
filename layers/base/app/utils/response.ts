@@ -11,6 +11,7 @@ export const pagingSchema = z.object({
 })
 
 export type ResponseStatus = z.infer<typeof statusSchema>
+export type Paging = z.infer<typeof pagingSchema>
 
 export const makeResponseSchema = <
   T extends Record<string, z.ZodType<unknown>>,
