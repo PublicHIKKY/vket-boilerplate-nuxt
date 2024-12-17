@@ -170,6 +170,7 @@ declare global {
   const useCookieLocale: typeof import('#i18n')['useCookieLocale']
   const useCssModule: typeof import('vue')['useCssModule']
   const useCssVars: typeof import('vue')['useCssVars']
+  const useCustomIntersectionObserver: typeof import('../app/composables/useCustomIntersectionObserver')['default']
   const useError: typeof import('#app')['useError']
   const useExample: typeof import('../app/composables/useExample')['useExample']
   const useFetch: typeof import('#app')['useFetch']

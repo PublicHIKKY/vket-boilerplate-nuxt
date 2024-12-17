@@ -40,6 +40,7 @@
   },
   "devDependencies": {
     "@fast-check/vitest": "^0.1.4",
+    "@iconify-json/ri": "^1.2.5",
     "@nuxt/eslint": "^0.7.2",
     "@nuxt/test-utils": "^3.14.4",
     "@nuxtjs/i18n": "^9.1.0",
