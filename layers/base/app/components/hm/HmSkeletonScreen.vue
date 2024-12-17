@@ -16,9 +16,6 @@
 type Props = {
   isLoadingContent: boolean
   borderRadius?: string
-  /** 高さ指定をしない場合、高さはテキスト1行分 */
-  height?: string
-  width?: string
 }
 
 withDefaults(defineProps<Props>(), {
@@ -43,6 +40,7 @@ withDefaults(defineProps<Props>(), {
 }
 
 .hm-skeleton-screen {
+  height: inherit;
   width: 100%;
 
   /** @see https://nishinatoshiharu.com/css-skeleton-screen/#CSS の item__detail */
@@ -50,10 +48,9 @@ withDefaults(defineProps<Props>(), {
     background: v.$gray-1;
     // stylelint-disable-next-line
     border-radius: v-bind(borderRadius);
-    height: v-bind(height);
+    height: inherit;
     overflow: hidden;
     position: relative;
-    width: v-bind(width);
   }
 
   .skeleton-screen::before {
@@ -66,7 +63,7 @@ withDefaults(defineProps<Props>(), {
     );
     content: '';
     display: block;
-    height: 100%;
+    height: inherit;
     position: absolute;
     width: 100%;
   }

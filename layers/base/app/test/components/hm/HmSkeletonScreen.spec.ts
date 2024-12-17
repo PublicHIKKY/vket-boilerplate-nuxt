@@ -22,15 +22,11 @@ describe('HmSkeletonScreen', () => {
       props: {
         isLoadingContent: true,
         borderRadius: '20px',
-        width: '200px',
-        height: '100px',
       },
     })
 
     expect(wrapper.exists()).toBe(true)
     expect(wrapper.props('borderRadius')).toBe('20px')
-    expect(wrapper.props('width')).toBe('200px')
-    expect(wrapper.props('height')).toBe('100px')
   })
 
   test('Should display skeleton screen when isLoadingContent is true', () => {
