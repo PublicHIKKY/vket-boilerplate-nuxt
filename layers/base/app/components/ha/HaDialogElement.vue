@@ -4,59 +4,86 @@ HaDialogとの違いとして、HaDialogElementは別階層の別要素のz-inde
  -->
 <template>
   <!-- ダイアログを開くボタン -->
-  <button
+  <component
+    :is="props.openButtonHtmlTag"
+    :tabindex="props.openButtonHtmlTag !== 'button' ? 0 : undefined"
     class="open"
     aria-expanded="false"
-    @click="openDialog"
+    @click.stop="openDialog"
   >
     <slot name="open">
       <span class="text">ダイアログを開く</span>
     </slot>
-  </button>
+  </component>
   <!-- ダイアログ -->
-  <dialog
-    ref="dialog"
-    class="ha-dialog-element"
-  >
-    <button
-      ref="close"
-      class="close"
-      :aria-label="
-        i18n.locale.value === 'ja' ? `ダイアログを閉じる` : `Close the dialog`
-      "
-      @click="closeDialog"
+  <template v-if="isActive">
+    <dialog
+      ref="dialog"
+      class="ha-dialog-element"
+      @click.stop
     >
-      <slot name="close">
-        <RiCloseLine class="icon" />
-      </slot>
-    </button>
-    <div
-      tabindex="0"
-      class="inner"
-      role="presentation"
-    >
-      <slot name="inner" />
-    </div>
-    <div
-      tabindex="0"
-      @focus="handleEndFocus"
-    ></div>
-  </dialog>
+      <component
+        :is="props.closeButtonHtmlTag"
+        ref="close"
+        class="close"
+        :aria-label="
+          i18n.locale.value === 'ja' ? `ダイアログを閉じる` : `Close the dialog`
+        "
+        @click="closeDialog"
+      >
+        <slot name="close">
+          <!-- FIXME: アイコンライブラリが使えない。。。 -->
+          <!-- <RiCloseLine class="icon" /> -->
+          ×
+        </slot>
+      </component>
+      <div
+        tabindex="0"
+        class="inner"
+        role="presentation"
+      >
+        <slot name="inner" />
+      </div>
+      <div
+        tabindex="0"
+        @focus="handleEndFocus"
+      ></div>
+    </dialog>
+  </template>
 </template>
 
 <script lang="ts" setup>
-import RiCloseLine from '~icons/ri/close-line'
+// import RiCloseLine from '~icons/ri/close-line'
+
+type Props = {
+  openButtonHtmlTag?: string
+  closeButtonHtmlTag?: string
+}
+const props = withDefaults(defineProps<Props>(), {
+  openButtonHtmlTag: 'button',
+  closeButtonHtmlTag: 'button',
+})
+
 // aria-label用のi18n
 const i18n = useI18n()
 
 // dialog要素をrefにする
 const dialog = ref<HTMLDialogElement>()
+const isActive = ref(false)
 
 // dialogを開く関数
-const openDialog = () => {
+const openDialog = async () => {
+  isActive.value = true
+  await nextTick()
   if (!dialog.value) {
     throw new Error('dialog要素はnull')
   }
+  dialog.value.addEventListener('keydown', (e) => {
+    if (dialog.value?.open && e.key === 'Escape') {
+      e.stopPropagation()
+      closeDialog()
+    }
+  })
   dialog.value.showModal()
   // html要素とbody要素の両方にoverflowを記述
   document.body.style.overflow = 'hidden'
@@ -72,6 +99,8 @@ const closeDialog = () => {
   // html要素とbody要素の両方にoverflowを記述
   document.body.style.overflow = ''
   document.documentElement.style.overflow = ''
+
+  isActive.value = false
 }
 
 // ダイアログ内のフォーカスを制御する
@@ -80,25 +109,8 @@ const handleEndFocus = () => {
   close.value?.focus()
 }
 
-onMounted(() => {
-  // ダイアログが開いている状態でESCキーを押すとダイアログを閉じる
-  window.addEventListener('keydown', (e) => {
-    if (!dialog.value) {
-      throw new Error('dialog要素はnull')
-    }
-    else if (dialog.value.open && e.key === 'Escape') {
-      closeDialog()
-    }
-  })
-  // dialogのbackdropをクリックしたらダイアログを閉じる
-  dialog.value?.addEventListener('click', (e) => {
-    if (!dialog.value) {
-      throw new Error('dialog要素はnull')
-    }
-    else if (e.target === dialog.value) {
-      closeDialog()
-    }
-  })
+defineExpose({
+  closeDialog,
 })
 </script>
 
@@ -115,7 +127,7 @@ onMounted(() => {
     0 0 0 / 0%
   ); // dialogにデフォルトで指定される白の背景色を透明にする
 
-  height: 95%;
+  height: auto;
   left: 50%;
   max-height: initial; // dialogのデフォルトのmax-heightをリセット
   max-width: initial; // dialogのデフォルトのmax-widthをリセット
@@ -140,6 +152,10 @@ onMounted(() => {
     height: 100%;
     overflow-y: auto;
     width: 100%;
+
+    &:focus-visible {
+      outline: none;
+    }
   }
 
   > .close {
