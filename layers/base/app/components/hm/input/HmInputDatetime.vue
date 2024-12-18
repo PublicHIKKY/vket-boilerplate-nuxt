@@ -50,8 +50,10 @@ const props = withDefaults(
     required?: boolean
     modelValue?: string
     disabled?: boolean
-    min?: number
-    max?: number
+    // FIXME: 型定義をstringからyyyy-mm-ddなどinput type=dateが許容している物にする
+    min?: number | string
+    // FIXME: 型定義をstringからyyyy-mm-ddなどinput type=dateが許容している物にする
+    max?: number | string
     keyupEnter?: boolean
     validateOnMount?: boolean
   }>(),
