@@ -37,10 +37,10 @@ describe('props', () => {
     expect(wrapper.find('input[type="radio"]').attributes('name')).toBe(
       'testName',
     )
-    expect(wrapper.find('label[class="label"]').attributes('for')).toBe(
+    expect(wrapper.find('label.label').attributes('for')).toBe(
       'testValue',
     )
-    expect(wrapper.find('label[class="label"]').text()).toBe('testLabel')
+    expect(wrapper.find('label.label').text()).toBe('testLabel')
   })
 
   it(':checked', () => {
@@ -58,6 +58,25 @@ describe('props', () => {
     })
     expect(
       (wrapper.find('input[type="radio"]').element as HTMLInputElement).checked,
+    ).toBeTruthy()
+  })
+
+  it(':disabled', () => {
+    const wrapper = mount(HmInputRadioChangeable, {
+      props: {
+        name: 'testName',
+        options: [
+          {
+            label: 'testLabel',
+            value: 'testValue',
+            checked: true,
+            disabled: true,
+          },
+        ],
+      },
+    })
+    expect(
+      (wrapper.find('input[type="radio"]').element as HTMLInputElement).disabled,
     ).toBeTruthy()
   })
 })
@@ -80,8 +99,7 @@ describe('emits', () => {
     setTimeout(() => {
       expect(wrapper.emitted()).toHaveProperty('change')
       expect(wrapper.emitted()['change']).toHaveLength(1)
-      // TODO: emit時のチェックが動作しない問題。おそらく本件ではinputのvalueがfalseになる＝HaBaseInputのvaluePropがfalseを返してる挙動になるのが問題。vitest上の挙動問題。試しにHaBaseInputに:value="props.value"にすると動くが、他が壊れ全体影響でるので却下
-      // expect(wrapper.emitted()['change']).toEqual([['testValue']])
+      expect(wrapper.emitted()['change']).toEqual([['testValue']])
     }, 1)
   })
 })
