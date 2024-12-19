@@ -31,15 +31,20 @@ export default tseslint.config(
 
   // 基本設定
   {
-    files: ['**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx', '**/*.vue'],
+    files: [
+      '**/*.js',
+      '**/*.mjs',
+      '**/*.cjs',
+      '**/*.jsx',
+      '**/*.ts',
+      '**/*.mts',
+      '**/*.cts',
+      '**/*.tsx',
+    ],
     languageOptions: {
       globals: {
-        ...globals.browser,
         ...globals.es2023,
         // NOTE: eslint実行時に `error 'something' is not defined no-undef` のようなエラーが出て、'something'が既知のものだったら（例えばauto-importなどでimportされることがわかっている・標準ライブラリに載っている、など。）、ここ（もしくは下の「オーバーライド」）に `something: true` と追加してください
-        IntersectionObserverInit: true,
-        WritableComputedRef: true,
-        defineNuxtConfig: true,
       },
     },
     rules: {
@@ -74,27 +79,6 @@ export default tseslint.config(
           allow: ['error'],
         },
       ],
-      'vue/no-unused-components': 'off',
-      'vue/no-multiple-template-root': 'off',
-      'vue/no-v-model-argument': 'off',
-      'vue/no-v-html': 'error',
-      'vue/multi-word-component-names': 'off',
-      'vue/html-self-closing': 'off', // prettierと競合するため、off
-      // ERROR  Cannot use 'import.meta' outside a module                                                                                                                                                                                                                                                               9:08:45 PM
-      // asyncContext: !!__NUXT_ASYNC_CONTEXT__ && import.meta.server
-      // ^^^^
-      // `yarn fix`すると`process.server`が`import.meta.server`に置き換えられて↑が発生するので、off
-      'nuxt/prefer-import-meta': 'off',
     },
   },
-
-  {
-    files: ['**/*.vue'],
-    rules: {
-      '@typescript-eslint/no-unsafe-argument': 'off',
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off',
-    },
-  }
 )
