@@ -17,9 +17,7 @@
     "test:ui": "vitest --ui --dir ./app/test",
     "test:coverage": "vitest run --dir ./app/test --coverage"
   },
-  "dependencies": {
-    "tsx": "^4.19.2"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@fast-check/vitest": "^0.1.4",
     "@playwright/test": "^1.49.0",
