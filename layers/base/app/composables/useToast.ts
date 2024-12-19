@@ -1,6 +1,5 @@
 import { useNuxtApp } from 'nuxt/app'
 import { InjectionKey } from 'vue'
-import { ToastType } from 'vue3-toastify'
 import { z } from 'zod'
 import { ensureValueOf } from '#base/app/utils/zod'
 
@@ -12,7 +11,7 @@ export const useToast = () => {
    */
   const addToast = (
     text: string,
-    type?: ToastType,
+    type?: 'info' | 'success' | 'error' | 'warning',
     time?: number,
     isClosable = false,
   ) => {
