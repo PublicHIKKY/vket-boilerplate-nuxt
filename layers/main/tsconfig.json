@@ -3,7 +3,7 @@
   "extends": [
     "./.nuxt/tsconfig.server.json",
     "./.nuxt/tsconfig.json",
-    "../base/tsconfig.json"
+    "../../tsconfig.shared.json"
   ],
   "compilerOptions": {
     "lib": ["dom", "ES2023"],
@@ -12,11 +12,13 @@
       "../../node_modules/@types",
       "./@types"
     ],
-    "paths": {
-      "~/*": ["./app/*"],
-      "@/*": ["./app/*"],
-      "#base/*": ["../base/*"]
-    },
+    "types": [
+      "@types/uuid",
+      "vue3-toastify/global",
+      "unplugin-icons/types/vue",
+      "vite/client",
+      "vitest/globals"
+    ],
   },
   "exclude": ["node_modules", ".output", "dist"]
 }

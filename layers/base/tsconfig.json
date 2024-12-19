@@ -19,9 +19,6 @@
       "vite/client",
       "vitest/globals"
     ],
-    "paths": {
-      "#base/*": ["./*"]
-    }
   },
   "exclude": ["node_modules", ".output", "dist"]
 }

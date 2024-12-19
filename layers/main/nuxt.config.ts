@@ -39,7 +39,10 @@ const meta: MetaInfo = {
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  extends: path.resolve(__dirname, '../base'),
+  extends: [
+    path.resolve(__dirname, '../base'),
+    path.resolve(__dirname, '../showcases'),
+  ],
   ssr: isSsr,
   imports: {
     dirs: ['utils/types/**'],
@@ -98,6 +101,7 @@ export default defineNuxtConfig({
   srcDir: `${srcDir}/`,
   alias: {
     '#base': path.resolve(__dirname, '../base'),
+    '#showcases': path.resolve(__dirname, '../showcases'),
   },
   ignore: [
     '.output',
