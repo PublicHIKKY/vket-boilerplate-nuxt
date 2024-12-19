@@ -24,8 +24,6 @@ export default tseslint.config(
       'vendor/*',
       'app/components/hm/HmTsx.vue', // `Parsing error: Type expected`になるので除外
       'wc/*',
-      // Generated files
-      'app/models/openapi/*.ts',
     ],
   },
 

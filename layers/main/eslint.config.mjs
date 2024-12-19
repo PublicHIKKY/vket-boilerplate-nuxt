@@ -41,7 +41,13 @@ export default withNuxt(
 
   // tsconfigが必要なルールの設定
   {
-    files: ['**/*.ts', '**/*.vue'], // 'Parsing error: Type expected'するので.tsxは除外
+    files: [
+      '**/*.ts',
+      '**/*.mts',
+      '**/*.cts',
+      '**/*.vue',
+      // 'Parsing error: Type expected'するので.tsxは除外
+    ],
     languageOptions: {
       parserOptions: {
         project: './tsconfig.json',
