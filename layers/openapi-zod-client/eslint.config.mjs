@@ -2,6 +2,7 @@ import tseslintPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import globals from 'globals';
 import sharedConfig from '../../eslint.config.shared.mjs';
+import stylistic from '@stylistic/eslint-plugin'
 
 export default [
   ...sharedConfig,
@@ -38,4 +39,11 @@ export default [
       '@typescript-eslint/unbound-method': 'off', // テスト内でvi.fn()などを注入するために許可
     },
   },
-];
+
+  // コーディングスタイルの設定: https://eslint.style/guide/config-presets
+  stylistic.configs.customize({
+    semi: false,
+    indent: 2,
+    quotes: 'single',
+  }),
+]
