@@ -191,18 +191,27 @@ const goToPage = (page: number) => {
     display: flex;
     height: 32px;
     padding: 4px 8px;
-    transition:
-      background 0.3s,
-      color 0.3s;
     user-select: none;
     width: auto;
 
+    :deep(svg path) {
+      fill: v.$base-font-color;
+    }
+
     &.text-disabled {
       color: v.$button-disabled-color;
+
+      :deep(svg path) {
+      fill: v.$button-disabled-color;
+    }
     }
 
     &:hover {
       color: v.$primary-button-default-color;
+
+      :deep(svg path) {
+      fill: v.$primary-button-default-color;
+    }
     }
   }
 
@@ -222,9 +231,6 @@ const goToPage = (page: number) => {
         display: flex;
         height: 30px;
         justify-content: center;
-        transition:
-          background 0.3s,
-          color 0.3s;
         width: 30px;
 
         &.active {
