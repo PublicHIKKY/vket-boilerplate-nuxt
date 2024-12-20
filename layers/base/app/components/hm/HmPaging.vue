@@ -14,63 +14,51 @@ en:
   >
     <!-- 前へ -->
     <HaLink
-      :to="route.path"
-      :query="createPageQuery(currentPage - 1)"
-      :class="{ ['link-disabled']: currentPage <= 1 }"
+      :to="$route.path"
+      :query="{ page: String(currentPage - 1) }"
+      class="pagination-prev"
+      :class="{
+        ['link-disabled text-disabled']: currentPage <= 1,
+      }"
+      :aria-disabled="currentPage >= totalPages"
+      @click="goToPage(currentPage - 1)"
     >
-      <button
-        :disabled="currentPage <= 1"
-        class="pagination-prev"
-        @click="goToPage(currentPage - 1)"
-      >
-        <slot name="prev-icon">
-          &lt;
-        </slot>
-        {{ i18n.t('prev') }}
-      </button>
+      <slot name="prev-icon">
+        &lt;
+      </slot>
+      {{ i18n.t('prev') }}
     </HaLink>
     <!-- 各ページへのリンク表示 -->
     <ul class="pagination-list">
       <li
-        v-for="page in pages"
-        :key="page"
-        class="pagination-item"
+        v-for="(page, i) in pages"
+        :key="`${page}_${i}`"
+        :aria-disabled="currentPage == page"
+        @click="goToPage(Number(page))"
       >
         <HaLink
-          v-if="page !== '...'"
+          class="pagination-item"
+          :class="{ ['link-disabled active']: currentPage == page, ['link-disabled ellipsis']: page == '...' }"
           :to="route.path"
           :query="createPageQuery(Number(page))"
-          :class="{ ['link-disabled']: currentPage == page }"
-          @click="goToPage(Number(page))"
         >
-          <button :class="{ active: currentPage === page }">
-            {{ page }}
-          </button>
+          {{ page }}
         </HaLink>
-        <div
-          v-else
-          class="pagination-item ellipsis"
-        >
-          ...
-        </div>
       </li>
     </ul>
     <!-- 次へ -->
     <HaLink
       :to="route.path"
       :query="createPageQuery(currentPage + 1)"
+      class="pagination-next"
       :class="{ ['link-disabled']: currentPage >= totalPages }"
+      :aria-disabled="currentPage >= totalPages"
+      @click="goToPage(currentPage + 1)"
     >
-      <button
-        :disabled="currentPage >= totalPages"
-        class="pagination-next"
-        @click="goToPage(totalPages)"
-      >
-        {{ i18n.t('next') }}
-        <slot name="next-icon">
-          &gt;
-        </slot>
-      </button>
+      {{ i18n.t('next') }}
+      <slot name="next-icon">
+        &gt;
+      </slot>
     </HaLink>
   </nav>
 </template>
@@ -206,19 +194,15 @@ const goToPage = (page: number) => {
     transition:
       background 0.3s,
       color 0.3s;
+    user-select: none;
     width: auto;
 
-    &:disabled {
+    &.text-disabled {
       color: v.$button-disabled-color;
-      cursor: not-allowed;
     }
 
-    &:hover:not(:disabled) {
+    &:hover {
       color: v.$primary-button-default-color;
-
-      svg path {
-        fill: v.$primary-button-default-color; // FIXME: slotでsvgを入れた時の色が変わらない...
-      }
     }
   }
 
@@ -227,9 +211,9 @@ const goToPage = (page: number) => {
     gap: 4px;
     list-style: none;
     padding: 0;
+    user-select: none;
 
     .pagination-item {
-      button {
         align-items: center;
         background: v.$black-undercoat;
         border-radius: 50%;
@@ -253,15 +237,15 @@ const goToPage = (page: number) => {
           background-color: v.$primary-button-default-color;
           color: v.$white;
         }
-      }
 
-      &.ellipsis {
-        align-items: center;
-        display: flex;
-        justify-content: center;
-        pointer-events: none;
-        width: 30px;
-      }
+        &.ellipsis {
+          align-items: center;
+          background: none;
+          display: flex;
+          justify-content: center;
+          pointer-events: none;
+          width: 30px;
+        }
     }
   }
 }
