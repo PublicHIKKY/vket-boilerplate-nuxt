@@ -1,0 +1,32 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { z } from "zod";
+import { makeRecursiveSchema } from "@/utils/zod";
+
+// ファイル内で使うためのschema
+{{#each schemas}}
+const {{@key}} = {{{this}}};
+{{/each}}
+
+// フロントエンドで使うzod定義（model）
+{{#each schemas}}
+export const {{toCamelCase @key}}Schema = {{@key}} ;
+export type {{toCamelCase @key}}Type = z.infer<typeof {{toCamelCase @key}}Schema>;
+{{/each}}
+
+
+// フロントエンドで使うzod定義（api request and response）
+{{#each endpoints}}
+{{#if parameters}}
+export const {{toCamelCase alias}}RequestSchema = z.object({
+  {{#each parameters}}
+    {{toCamelCase name}}: {{{schema}}},
+  {{/each}}
+});
+export type {{toCamelCase alias}}RequestType = z.infer<typeof {{toCamelCase alias}}RequestSchema>;
+{{/if}}
+{{#if response}}
+export const {{toCamelCase alias}}ResponseSchema = {{{response}}};
+export type {{toCamelCase alias}}ResponseType = z.infer<typeof {{toCamelCase alias}}ResponseSchema>;
+{{/if}}
+{{/each}}
+
