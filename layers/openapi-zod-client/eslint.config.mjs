@@ -1,3 +1,5 @@
+// TODO: このファイルもbun fixされるようにする
+
 import tseslintPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import globals from 'globals';
@@ -6,6 +8,13 @@ import stylistic from '@stylistic/eslint-plugin'
 
 export default [
   ...sharedConfig,
+
+  // 基本設定
+  {
+    rules: {
+      'no-console': ['warn', { allow: ['info', 'error'] }],
+    }
+  },
 
   // tsconfigが必要なルールの設定
   {
@@ -40,10 +49,22 @@ export default [
     },
   },
 
-  // コーディングスタイルの設定: https://eslint.style/guide/config-presets
+  // コーディングスタイルの設定
+  // https://eslint.style/rules
+  {
+    plugins: {
+      '@stylistic': stylistic,
+    },
+    rules: {
+      '@stylistic/multiline-comment-style': ['warn', 'starred-block'],
+    }
+  },
+  // https://eslint.style/guide/config-presets
   stylistic.configs.customize({
     semi: false,
     indent: 2,
     quotes: 'single',
+    braceStyle: '1tbs',
+    multilineCommentStyle: 'starred-block',
   }),
 ]
