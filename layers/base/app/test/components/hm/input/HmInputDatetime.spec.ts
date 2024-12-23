@@ -77,7 +77,7 @@ describe('props', () => {
     ).toBe('')
   })
 
-  it(':min', () => {
+  it(':min(number)', () => {
     const wrapper = mount(HmInputDatetime, {
       props: {
         min: 2,
@@ -88,7 +88,18 @@ describe('props', () => {
     )
   })
 
-  it(':max', () => {
+  it(':min(string)', () => {
+    const wrapper = mount(HmInputDatetime, {
+      props: {
+        min: '2020-01-01',
+      },
+    })
+    expect(wrapper.get('input[type="datetime-local"]').attributes('min')).toBe(
+      '2020-01-01',
+    )
+  })
+
+  it(':max(number)', () => {
     const wrapper = mount(HmInputDatetime, {
       props: {
         max: 2,
@@ -96,6 +107,17 @@ describe('props', () => {
     })
     expect(wrapper.get('input[type="datetime-local"]').attributes('max')).toBe(
       '2',
+    )
+  })
+
+  it(':max(string)', () => {
+    const wrapper = mount(HmInputDatetime, {
+      props: {
+        max: '2020-01-01',
+      },
+    })
+    expect(wrapper.get('input[type="datetime-local"]').attributes('max')).toBe(
+      '2020-01-01',
     )
   })
 

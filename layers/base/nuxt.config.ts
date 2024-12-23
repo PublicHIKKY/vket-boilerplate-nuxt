@@ -17,7 +17,12 @@ const srcDir = 'app'
  * @ref https://nuxt.com/docs/api/configuration/nuxt-config
  */
 export default defineNuxtConfig({
-  modules: ['@nuxtjs/i18n', '@nuxt/eslint', '@vueuse/nuxt'],
+  modules: [
+    '@nuxtjs/i18n',
+    '@nuxt/eslint',
+    '@vueuse/nuxt',
+    'unplugin-icons/nuxt',
+  ],
   imports: {
     dirs: ['utils/types/**'],
     global: false,
@@ -47,7 +52,7 @@ export default defineNuxtConfig({
   css: cssUrls,
   runtimeConfig: getRuntimeConfigOfEnvType(
     readEnvType(process.env),
-    process.env,
+    process.env
   ),
   rootDir: __dirname,
   srcDir: `${srcDir}/`,
@@ -79,9 +84,9 @@ export default defineNuxtConfig({
         iconCustomizer(collection, _icon, props) {
           // customize all icons in this collection
           if (
-            collection === 'hikky-icons'
-            || collection === 'sns-icons'
-            || collection === 'ri'
+            collection === 'hikky-icons' ||
+            collection === 'sns-icons' ||
+            collection === 'ri'
           ) {
             props.width = '1em'
             props.height = '1em'
