@@ -39,9 +39,7 @@ const meta: MetaInfo = {
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  extends: [
-    path.resolve(__dirname, '../base'),
-  ],
+  extends: path.resolve(__dirname, '../base'),
   ssr: isSsr,
   imports: {
     dirs: ['utils/types/**'],
