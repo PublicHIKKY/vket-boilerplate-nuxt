@@ -41,7 +41,6 @@ const meta: MetaInfo = {
 export default defineNuxtConfig({
   extends: [
     path.resolve(__dirname, '../base'),
-    path.resolve(__dirname, '../showcases'),
   ],
   ssr: isSsr,
   imports: {
