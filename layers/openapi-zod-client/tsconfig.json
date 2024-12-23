@@ -4,6 +4,7 @@
   ],
   "compilerOptions": {
     "lib": ["dom", "ES2023"],
+    "allowImportingTsExtensions": true,
     "typeRoots": [
       "../../node_modules",
       "../../node_modules/@types",
