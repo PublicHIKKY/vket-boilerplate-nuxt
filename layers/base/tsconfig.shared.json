@@ -14,8 +14,21 @@
     "noUncheckedIndexedAccess": true,
     "jsx": "preserve",
     "isolatedModules": true,
-    "typeRoots": ["./node_modules", "./node_modules/@types", "./@types"],
-    "types": ["@types/eslint__js", "@types/node", "@types/postcss-url"]
+    "typeRoots": [
+      "../../node_modules",
+      "../../node_modules/@types",
+      "./@types"
+    ],
+    "types": [
+      "@types/eslint__js",
+      "@types/node",
+      "@types/postcss-url",
+      "@types/uuid",
+      "vue3-toastify/global",
+      "unplugin-icons/types/vue",
+      "vite/client",
+      "vitest/globals"
+    ]
   },
   "vueCompilerOptions": {
     "target": 3
