@@ -1,25 +1,29 @@
-import { z } from 'zod'
+export type Endpoint = {
+  /**
+   * The name of the API endpoint.
+   */
+  name: string
+  /**
+   * The path to the OpenAPI specification file.
+   */
+  path: string
+  /**
+   * The output file path for the generated code.
+   */
+  output: string
+}
 
-/**
- * @property name - The name of the API endpoint.
- * @property path - The path to the OpenAPI specification file.
- * @property output - The output file path for the generated code.
- */
-export const endpointSchema = z.object({
-  name: z.string(),
-  path: z.string(),
-  output: z.string(),
-})
-export type Endpoint = z.infer<typeof endpointSchema>
-
-/**
- * @property endpoints - The list of API endpoints.
- * @property prettierConfig - The path to the Prettier configuration file.
- * @property template - The path to the template file.
- */
-export const configSchema = z.object({
-  endpoints: endpointSchema.array(),
-  prettierConfig: z.string(),
-  template: z.string(),
-})
-export type Config = z.infer<typeof configSchema>
+export type Config = {
+  /**
+   * The list of API endpoints.
+   */
+  endpoints: Endpoint[]
+  /**
+   * The path to the Prettier configuration file.
+   */
+  prettierConfig: string
+  /**
+   * The path to the template file.
+   */
+  template: string
+}

@@ -1,13 +1,15 @@
 import fs, { type PathLike } from 'fs'
 import { execSync } from 'child_process'
 import path from 'path'
-import { findConfigDirectory } from './utils/file.mts'
-import { Endpoint, configSchema } from './type.mts'
-import { ensureValueOf } from '../../../base/app/utils/zod.ts'
+import { findConfigPath } from './utils.mts'
+import { Endpoint, Config } from './type.mts'
 
-const configPath = await findConfigDirectory()
-const config: unknown = JSON.parse(fs.readFileSync(configPath, 'utf8'))
-ensureValueOf(configSchema, config)
+const configPath = await findConfigPath()
+if (configPath === null) {
+  console.error('zod-config.json not found.')
+  process.exit(1)
+}
+const config: Config = JSON.parse(fs.readFileSync(configPath, 'utf8'))
 
 /**
  * Executes a shell command.
@@ -30,8 +32,6 @@ const ensureDirectoryExists = (dirPath: PathLike) => {
 
 /**
  * Combines open api files that are split into multiple files
- * @param inputFiles
- * @param outputFileName
  */
 const mergeYamlFiles = (inputFiles: string, outputFileName: string) => {
   try {
@@ -61,7 +61,7 @@ const buildZodClient = ({ name, path: openapiPath, output }: Endpoint) => {
 
   const prettierConfig = config.prettierConfig
   const template = config.template
-  const command = `yarn dlx openapi-zod-client ${mergeFilePath} -o ${output} -p ${prettierConfig} -t ${template}`
+  const command = `bunx openapi-zod-client ${mergeFilePath} -o ${output} -p ${prettierConfig} -t ${template}`
 
   // Ensure the output directory exists
   ensureDirectoryExists(path.dirname(output))

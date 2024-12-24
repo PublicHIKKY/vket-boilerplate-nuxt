@@ -1,7 +1,6 @@
 import fs from 'fs'
-import { findConfigDirectory } from './utils/file.mts'
-import { ensureValueOf } from '../../../base/app/utils/zod.ts'
-import { configSchema } from './type.mts'
+import { findConfigPath } from './utils.mts'
+import { Config } from './type.mts'
 
 /**
  * https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/String/replace#%E7%BD%AE%E6%8F%9B%E6%96%87%E5%AD%97%E5%88%97%E3%81%A8%E3%81%97%E3%81%A6%E3%81%AE%E9%96%A2%E6%95%B0%E3%81%AE%E6%8C%87%E5%AE%9A
@@ -23,12 +22,9 @@ const replacementList: Replacement[] = [
     after: (match, p1) => {
       const beforeString = match.replace(p1, '')
       const stringList = beforeString.split(':')
-      return stringList.reduce((string, value, index) => {
-        if (index === 0) {
-          return string + value
-        }
-        return string + value.charAt(0).toUpperCase() + value.slice(1)
-      }, p1)
+      return stringList.reduce((string, value, index) =>
+        index === 0 ? string + value : string + value.charAt(0).toUpperCase() + value.slice(1)
+      , p1)
     },
   },
   {
@@ -86,8 +82,12 @@ const replacementList: Replacement[] = [
   },
 ]
 
-const config: unknown = JSON.parse(fs.readFileSync(await findConfigDirectory(), 'utf8'))
-ensureValueOf(configSchema, config)
+const configPath = await findConfigPath()
+if (configPath === null) {
+  console.error('zod-config.json not found.')
+  process.exit(1)
+}
+const config: Config = JSON.parse(fs.readFileSync(configPath, 'utf8'))
 
 for (const endpoint of config.endpoints) {
   const outputPath = endpoint.output

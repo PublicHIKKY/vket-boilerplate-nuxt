@@ -7,7 +7,7 @@
     "build": "bun build-pre && tsx ./tasks/openapi/make-zod.mts && bun build-post",
     "build-pre": "git submodule update --init --recursive",
     "build-post": "tsx ./tasks/openapi/replace.mts && bun fix-models",
-    "typecheck": "tsc --noEmit ./tasks/openapi/make-zod.mts",
+    "typecheck": "tsc --noEmit --project ./tsconfig.json",
     "lint": "bun lint:eslint",
     "lint:eslint": "eslint --cache --cache-strategy content ./tasks",
     "fix": "bun fix:eslint",

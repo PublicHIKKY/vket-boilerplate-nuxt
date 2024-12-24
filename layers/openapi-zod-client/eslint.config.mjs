@@ -1,9 +1,10 @@
+// @ts-check
 // TODO: このファイルもbun fixされるようにする
 
-import tseslintPlugin from '@typescript-eslint/eslint-plugin';
-import tsParser from '@typescript-eslint/parser';
-import globals from 'globals';
-import sharedConfig from '../../eslint.config.shared.mjs';
+import tseslintPlugin from '@typescript-eslint/eslint-plugin'
+import tsParser from '@typescript-eslint/parser'
+import globals from 'globals'
+import sharedConfig from '../../eslint.config.shared.mjs'
 import stylistic from '@stylistic/eslint-plugin'
 
 export default [
@@ -32,6 +33,7 @@ export default [
       ...tseslintPlugin.configs.recommended.rules,
       ...tseslintPlugin.configs['recommended-type-checked'].rules,
       '@typescript-eslint/restrict-template-expressions': 'off', // string interpolation `${e}` のeには、任意の型の値を許す
+      '@typescript-eslint/no-unsafe-assignment': 'off', // zodがないと検証が難しいので、許す
     },
   },
 

@@ -18,3 +18,14 @@ export const findConfigDirectory = async (currenetDir: string = path.resolve('.'
     return findConfigDirectory(path.resolve(currenetDir, '..'))
   }
 }
+
+/**
+ * プロジェクトのzod-config.jsonを探します。
+ */
+export const findConfigPath = async (currenetDir: string = path.resolve('.')): Promise<string | null> => {
+  try {
+    return `${await findConfigDirectory(currenetDir)}/zod-config.json`
+  } catch (_) {
+    return null
+  }
+}
