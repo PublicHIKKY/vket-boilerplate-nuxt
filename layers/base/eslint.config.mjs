@@ -1,6 +1,6 @@
 import typescriptEslint from '@typescript-eslint/eslint-plugin'
 import globals from 'globals'
-import sharedConfig from '../../eslint.config.shared.mjs'
+import sharedConfig, { basicConfig } from '../../eslint.config.shared.mjs'
 import withNuxt from './.nuxt/eslint.config.mjs'
 
 export default withNuxt(
@@ -14,8 +14,6 @@ export default withNuxt(
         ...globals.browser,
         // NOTE: eslint実行時に `error 'something' is not defined no-undef` のようなエラーが出て、'something'が既知のものだったら（例えばauto-importなどでimportされることがわかっている・標準ライブラリに載っている、など。）、ここ（もしくは下の「オーバーライド」）に `something: true` と追加してください
         IntersectionObserverInit: true,
-        WritableComputedRef: true,
-        defineNuxtConfig: true,
       },
     },
     rules: {
@@ -30,6 +28,13 @@ export default withNuxt(
   // composablesやplugins・middlewareなども含む設定
   {
     files: ['**/*.vue', '**/*.ts'],
+    languageOptions: {
+      globals: {
+        // NOTE: eslint実行時に `error 'something' is not defined no-undef` のようなエラーが出て、'something'が既知のものだったら（例えばauto-importなどでimportされることがわかっている・標準ライブラリに載っている、など。）、ここ（もしくは下の「オーバーライド」）に `something: true` と追加してください
+        WritableComputedRef: true,
+        defineNuxtConfig: true,
+      },
+    },
     rules: {
       // ERROR  Cannot use 'import.meta' outside a module                                                                                                                                                                                                                                                               9:08:45 PM
       // asyncContext: !!__NUXT_ASYNC_CONTEXT__ && import.meta.server
@@ -56,6 +61,7 @@ export default withNuxt(
     rules: {
       ...typescriptEslint.configs.recommended.rules,
       ...typescriptEslint.configs['recommended-type-checked'].rules,
+      ...basicConfig.rules,
       '@typescript-eslint/restrict-template-expressions': 'off', // string interpolation `${e}` のeには、任意の型の値を許す
       '@typescript-eslint/no-unsafe-call': 'off', // auto-importした関数がanyに推測されるので、off
       // .vueの下記TODOコメントを参照 -- TODO: 「下記TODOコメント」はどこにいった？
