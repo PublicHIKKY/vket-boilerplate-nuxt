@@ -1,0 +1,5 @@
+{
+  "endpoints": [],
+  "prettierConfig": "./prettierrc",
+  "template": "./openapi/template.hbs"
+}

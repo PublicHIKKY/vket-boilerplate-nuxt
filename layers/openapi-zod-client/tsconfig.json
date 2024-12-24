@@ -1,0 +1,19 @@
+{
+  // ../base/tsconfig.shared.json はNuxt前提に作られているので、extendしない
+  // "extends": ["../base/tsconfig.shared.json"],
+  "compilerOptions": {
+    "target": "es2016",
+    "module": "commonjs",
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+  },
+  "exclude": ["node_modules", "submodules", "../../node_modules"],
+}

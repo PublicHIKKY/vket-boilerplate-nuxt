@@ -5,9 +5,34 @@ import withNuxt from './.nuxt/eslint.config.mjs'
 
 export default withNuxt(
   ...sharedConfig,
+
+  // VueとNuxtの基本設定
+  {
+    files: ['**/*.vue'],
+    rules: {
+      'vue/no-unused-components': 'off',
+      'vue/no-multiple-template-root': 'off',
+      'vue/no-v-model-argument': 'off',
+      'vue/no-v-html': 'error',
+      'vue/multi-word-component-names': 'off',
+      'vue/html-self-closing': 'off', // prettierと競合するため、off
+      // ERROR  Cannot use 'import.meta' outside a module                                                                                                                                                                                                                                                               9:08:45 PM
+      // asyncContext: !!__NUXT_ASYNC_CONTEXT__ && import.meta.server
+      // ^^^^
+      // `yarn fix`すると`process.server`が`import.meta.server`に置き換えられて↑が発生するので、off
+      'nuxt/prefer-import-meta': 'off',
+    },
+  },
+
   // tsconfigが必要なルールの設定
   {
-    files: ['**/*.ts', '**/*.vue'], // 'Parsing error: Type expected'するので.tsxは除外
+    files: [
+      '**/*.ts',
+      '**/*.mts',
+      '**/*.cts',
+      '**/*.vue',
+      // 'Parsing error: Type expected'するので.tsxは除外
+    ],
     languageOptions: {
       parserOptions: {
         project: './tsconfig.json',
