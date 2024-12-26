@@ -34,6 +34,7 @@ declare global {
   const getAppManifest: typeof import('#app')['getAppManifest']
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
+  const getI18nArray: typeof import('../app/utils/i18n')['getI18nArray']
   const getRouteRules: typeof import('#app')['getRouteRules']
   const h: typeof import('vue')['h']
   const inject: typeof import('vue')['inject']

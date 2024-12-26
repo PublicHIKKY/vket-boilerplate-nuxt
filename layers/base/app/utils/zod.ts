@@ -20,8 +20,7 @@ export function ensureValueOf<T>(
 }
 
 export function requireValueOf<T>(x: ZodType<T, ZodTypeDef>, y: unknown): T {
-  ensureValueOf(x, y)
-  return y
+  return x.parse(y)
 }
 
 // const language = { 0: 'ja', 1: 'en'} as const みたいなオブジェクトのValueのunion型をzodでつかえるようにするメソッド

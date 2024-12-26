@@ -1,4 +1,4 @@
-import doObserve from '#base/app/composables/useIntersectionObserver'
+import doObserve from '#base/app/composables/useCustomIntersectionObserver'
 
 /**
  * @privateRemarks
