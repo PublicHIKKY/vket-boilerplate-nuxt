@@ -97,7 +97,7 @@ export default defineNuxtConfig({
   rootDir: __dirname,
   srcDir: `${srcDir}/`,
   alias: {
-    '#base': path.resolve(__dirname, '../base'),
+    '#main': __dirname,
   },
   ignore: [
     '.output',
@@ -115,7 +115,6 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   typescript: {
     typeCheck: checkTypeCheckOnBuild,
-    includeWorkspace: true,
   },
   debug: enableDebug,
 })
