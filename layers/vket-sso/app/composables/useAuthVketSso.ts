@@ -4,7 +4,6 @@
  * @module Auth (Vket SSO)
  */
 import { InjectionKey } from 'vue'
-import { z } from 'zod'
 import { vketSsoRepository } from '#vket-sso/app/repositories/vketSsoRepository'
 import { Result, ssoJwtSchema, SsoUser } from '#vket-sso/app/models/vketSso'
 import { decodeJwt } from '#base/app/utils/token'
@@ -182,16 +181,6 @@ export const useAuthVketSso = () => {
     return readonly(ssoUser)
   }
 
-  // /**
-  //  * @remarks VketSSO: login中である場合はtrue, そうでない場合はfalseをreturnする
-  //  * @param awaitRefetch boolean default: true
-  //  * @return boolean
-  //  */
-  // const isLoggedIn = async (awaitRefetch = true) => {
-  //   const currentState = await getSsoUserState(awaitRefetch)
-  //   return currentState.value !== undefined && currentState.value !== null
-  // }
-
   /**
    * stateからtokenを取得する、stateがnullの場合、SSRの場合Cookie、CSR（SPA）の場合、sessionからjwtを取得しstateを更新
    * @returns {string | null}
@@ -252,10 +241,23 @@ export const useAuthVketSso = () => {
     }
   }
 
+
   // /**
+  //  * 必要になったら調整する
+  //  * @remarks VketSSO: login中である場合はtrue, そうでない場合はfalseをreturnする
+  //  * @param awaitRefetch boolean default: true
+  //  * @return boolean
+  //  */
+  // const isLoggedIn = async (awaitRefetch = true) => {
+  //   const currentState = await getSsoUserState(awaitRefetch)
+  //   return currentState.value !== undefined && currentState.value !== null
+  // }
+
+
+  // /**
+  //  * 必要になったら調整する
   //  * @remarks VketSSO: token検証Keyの取得
   //  */
-
   // const getJwk = async (): Promise<void> => {
   //   try {
   //     const result = await vketSsoRepository.get.fetchSsoJwk()
@@ -269,8 +271,6 @@ export const useAuthVketSso = () => {
   //   }
   // }
 
- 
-
   return {
     aliveToken: readonly(aliveToken),
     isLogout: readonly(isLogout),
@@ -281,8 +281,6 @@ export const useAuthVketSso = () => {
     resetSsoUser,
     getSsoUserState,
     getTokenOrRefresh,
-    // getJwk,
-    // isLoggedIn,
   }
 }
 
