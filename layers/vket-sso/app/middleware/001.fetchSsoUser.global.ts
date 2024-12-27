@@ -8,8 +8,9 @@ export default defineNuxtRouteMiddleware(async () => {
     const authVketSso = useAuthVketSso()
     const ssoUser = await authVketSso.getSsoUserState(false)
     if (ssoUser.value || authVketSso.isLogout.value) return
-    authVketSso.fetchSsoUser()
-  } catch (error) {
+    await authVketSso.fetchSsoUser()
+  }
+  catch (error) {
     console.error(error)
   }
 })

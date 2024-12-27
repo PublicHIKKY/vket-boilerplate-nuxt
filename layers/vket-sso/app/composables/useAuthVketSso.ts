@@ -27,27 +27,25 @@ export const useAuthVketSso = () => {
   const aliveToken = useState<string | null>(`${REPOSITORY_NAME}-ac`)
   const isLogout = useState<boolean>(`${REPOSITORY_NAME}-logout`)
 
-
   /**
    * @remarks VketSSO: token取得(Fetcher)
    */
   const _fetchToken = async () => {
-    if (import.meta.server) raiseError('SSR not supported') 
+    if (import.meta.server) raiseError('SSR not supported')
     try {
       const result = await vketSsoRepository.get.fetchSsoToken()
       const decodedToken = requireValueOf(ssoJwtSchema, decodeJwt(result.jwt))
-      
+
       setSessionStorageValue(SESSION_STORAGE_KEY_EXP, String(decodedToken.exp))
       setSessionStorageValue(SESSION_STORAGE_KEY_IAT, String(decodedToken.iat))
       setSingleCookieValue(COOKIE_KEY_JWT, result.jwt)
       aliveToken.value = result.jwt
+      return result.jwt
     }
     catch (e) {
       console.error(`${e}`)
       aliveToken.value = null
-    } 
-    finally {
-      return aliveToken.value
+      return null
     }
   }
 
@@ -66,7 +64,7 @@ export const useAuthVketSso = () => {
    * @return boolean
    */
   const _verifyTokenByExp = (exp: number) => {
-    const expiredUnixTime =  Number(exp) || 0
+    const expiredUnixTime = Number(exp) || 0
     // NOTE: 桁数が異なるので1/1000倍にする
     const currentUnixTime = new Date().getTime() / 1000
     if (currentUnixTime < expiredUnixTime) return true
@@ -80,7 +78,7 @@ export const useAuthVketSso = () => {
    */
   const login = async (): Promise<Result> => {
     const loginWindow = window.open(`${_ssoDomain}/auth/vket_account/login?redirect_uri=${_ssoDomain}/close`)
-    if (!loginWindow) { 
+    if (!loginWindow) {
       return {
         success: false,
         errorKey: 'error.popup-block',
@@ -88,19 +86,25 @@ export const useAuthVketSso = () => {
     }
 
     return new Promise<Result>((resolve) => {
-      const interval = setInterval(async () => {
+      const interval = setInterval(() => {
         if (loginWindow.closed) {
           clearInterval(interval)
-          const ssoUser = await getSsoUserState().catch(() => null) // NOTE: ログは関数内で出しているためここではnullを返却
-          if (!ssoUser || !ssoUser.value) {
-            // NOTE: タブを手動で閉じる場合もこの分岐になる
+          getSsoUserState().then((response) => {
+            if (!response || !response.value) {
+              // NOTE: タブを手動で閉じる場合もこの分岐になる
+              return resolve({
+                success: false,
+                errorKey: 'error.login',
+              })
+            }
+            resolve({
+              success: true,
+            })
+          }).catch(() => {
             return resolve({
               success: false,
               errorKey: 'error.login',
             })
-          }
-          resolve({
-            success: true,
           })
         }
       }, 1000)
@@ -118,9 +122,9 @@ export const useAuthVketSso = () => {
    * @remarks VketSSO: ログアウト
    * エラー時はi18nのキーを返却するので呼び出し元でハンドリングを行う
    */
-  const logout = (redirectUri = `${_ssoDomain}/close`) => {
+  const logout = () => {
     const logoutWindow = window.open(`${_ssoDomain}/auth/vket_account/logout?callback_url=${_ssoDomain}/close`)
-    if (!logoutWindow) { 
+    if (!logoutWindow) {
       return {
         success: false,
         errorKey: 'error.popup-block',
@@ -128,7 +132,7 @@ export const useAuthVketSso = () => {
     }
 
     return new Promise<Result>((resolve) => {
-      const interval = setInterval(async () => {
+      const interval = setInterval(() => {
         if (logoutWindow.closed) {
           clearInterval(interval)
           _removeToken()
@@ -151,7 +155,7 @@ export const useAuthVketSso = () => {
    * @remarks VketSSO: SSO User をfetchする
    */
   const fetchSsoUser = async () => {
-    if (import.meta.server) raiseError('SSR not supported') 
+    if (import.meta.server) raiseError('SSR not supported')
     try {
       const result = await vketSsoRepository.get.fetchSsoProfile()
       ssoUser.value = result.user
@@ -188,7 +192,7 @@ export const useAuthVketSso = () => {
   const _getAndStateSetJwt = (
   ): string | null => {
     if (aliveToken.value) return aliveToken.value
-    if (import.meta.client)  {
+    if (import.meta.client) {
       const token = getSessionStorageValue(COOKIE_KEY_JWT) ?? null
       if (token) aliveToken.value = token
       return token
@@ -196,10 +200,10 @@ export const useAuthVketSso = () => {
     const cookieString = useRequestHeaders(['cookie']).cookie
     if (!cookieString) return null
     const token = cookieString
-    .split(';')
-    .map(item => item.trim())
-    .find(trimmedCookie => trimmedCookie.startsWith(COOKIE_KEY_JWT + '=')) // Cookieの名前と値は「名前=値」の形式で保存されている
-    ?.substring(COOKIE_KEY_JWT.length + 1) ?? null
+      .split(';')
+      .map(item => item.trim())
+      .find(trimmedCookie => trimmedCookie.startsWith(COOKIE_KEY_JWT + '=')) // Cookieの名前と値は「名前=値」の形式で保存されている
+      ?.substring(COOKIE_KEY_JWT.length + 1) ?? null
     if (token) aliveToken.value = token
     return token
   }
@@ -232,15 +236,15 @@ export const useAuthVketSso = () => {
       const decodedToken = requireValueOf(ssoJwtSchema, decodeJwt(aliveToken.value))
       if (!_verifyTokenByExp(decodedToken.exp)) {
         if (import.meta.server) return null
-        return returnFunction(await _fetchToken()) 
+        return returnFunction(await _fetchToken())
       }
       return returnFunction(jwtString)
-    } catch (error) {
+    }
+    catch (error) {
       console.error(`${error}`)
       return null
     }
   }
-
 
   // /**
   //  * 必要になったら調整する
@@ -252,7 +256,6 @@ export const useAuthVketSso = () => {
   //   const currentState = await getSsoUserState(awaitRefetch)
   //   return currentState.value !== undefined && currentState.value !== null
   // }
-
 
   // /**
   //  * 必要になったら調整する

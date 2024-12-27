@@ -31,7 +31,7 @@ export type SsoJwt = z.infer<typeof ssoJwtSchema>
 
 export const resultSchema = z.object({
   success: z.boolean(),
-  errorKey: z.string().optional(), 
+  errorKey: z.string().optional(),
 })
 
 export type Result = z.infer<typeof resultSchema>
