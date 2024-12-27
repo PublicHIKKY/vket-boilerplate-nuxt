@@ -96,10 +96,9 @@ export const useAuthVketSso = () => {
    * @remarks VketSSO: SSO User をfetchする
    */
   const fetchSsoUser = async () => {
+    if (import.meta.server) raiseError('SSR not supported') 
     try {
       const result = await vketSsoRepository.get.fetchSsoProfile()
-      if (!result || result?.user === null)
-        throw new Error('Failed to fetch sso profile')
       _ssoUser.value = result.user
     }
     catch (e) {
@@ -108,22 +107,22 @@ export const useAuthVketSso = () => {
     }
   }
 
-  // /**
-  //  * @remarks VketSSO: SSO User をリセットする
-  //  */
-  // const resetSsoUser = () => {
-  //   _ssoUser.value = null
-  // }
+  /**
+   * @remarks VketSSO: SSO User をリセットする
+   */
+  const resetSsoUser = () => {
+    _ssoUser.value = null
+  }
 
-  // /**
-  //  * @remarks VketSSO: SSO User のをstateをreturnする
-  //  * @param awaitRefetch boolean default: true
-  //  * @return Ref<SsoUser | null>
-  //  */
-  // const getSsoUserState = async (awaitRefetch = true) => {
-  //   if (awaitRefetch) await fetchSsoUser()
-  //   return readonly(_ssoUser)
-  // }
+  /**
+   * @remarks VketSSO: SSO User のをstateをreturnする
+   * @param awaitRefetch boolean default: true
+   * @return Ref<SsoUser | null>
+   */
+  const getSsoUserState = async (awaitRefetch = true) => {
+    if (awaitRefetch) await fetchSsoUser()
+    return readonly(_ssoUser)
+  }
 
   // /**
   //  * @remarks VketSSO: login中である場合はtrue, そうでない場合はfalseをreturnする
@@ -159,7 +158,7 @@ export const useAuthVketSso = () => {
   }
 
   /**
-   * @remarks VketSSO: tokenを取得し有効期限が切れていたら更新する(SSRではtokeの更新ができないので更新フローに入るとnullを返す)
+   * @remarks VketSSO: tokenを取得し有効期限が切れていたら更新する(SSRではtokenの更新ができないので更新フローに入るとnullを返す)
    */
   const getTokenOrRefresh = async (
     returnType: 'encoded' | 'decodedObject' | 'decodedJson' = 'encoded',
@@ -218,8 +217,8 @@ export const useAuthVketSso = () => {
     // login,
     // logout,
     fetchSsoUser,
-    // resetSsoUser,
-    // getSsoUserState,
+    resetSsoUser,
+    getSsoUserState,
     getTokenOrRefresh,
     // getJwk,
     // isLoggedIn,
