@@ -1,4 +1,9 @@
 {
   "hello": "Hello!",
-  "language": "language"
+  "language": "language",
+  "error": {
+    "popup-block": "You could not log in due to pop-up blocking.",
+    "login-failed": "Login failed.",
+    "logaut-failed": "Logout failed."
+  }
 }

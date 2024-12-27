@@ -6,7 +6,7 @@
 import { InjectionKey } from 'vue'
 import { z } from 'zod'
 import { vketSsoRepository } from '#vket-sso/app/repositories/vketSsoRepository'
-import { ssoJwtSchema, SsoUser } from '#vket-sso/app/models/vketSso'
+import { Result, ssoJwtSchema, SsoUser } from '#vket-sso/app/models/vketSso'
 import { decodeJwt } from '#base/app/utils/token'
 import {
   getSessionStorageValue,
@@ -75,31 +75,78 @@ export const useAuthVketSso = () => {
     return false
   }
 
-  // /**
-  //  * @remarks VketSSO: ログイン
-  //  * @param redirectUri string default: `${ssoDomain}/close` は閉じるだけのページ
-  //  */
-  // const login = (redirectUri = `${_ssoDomain}/close`) => {
-  //   // デフォルト引数が null になることがあるので、null の場合のフォールバック指定
-  //   if (!redirectUri) {
-  //     redirectUri = `${_ssoDomain}/close`
-  //   }
-  //   const url = `${_ssoDomain}/auth/vket_account/login?redirect_uri=${redirectUri}`
-  //   return window.open(url)
-  // }
+  /**
+   * @remarks VketSSO: ログイン
+   * エラー時はi18nのキーを返却するので呼び出し元でハンドリングを行う
+   */
+  const login = async (): Promise<Result> => {
+    const loginWindow = window.open(`${_ssoDomain}/auth/vket_account/login?redirect_uri=${_ssoDomain}/close`)
+    if (!loginWindow) { 
+      return {
+        success: false,
+        errorKey: 'error.popup-block',
+      }
+    }
 
-  // /**
-  //  * @remarks VketSSO: ログアウト
-  //  * @param redirectUri string default: `${ssoDomain}/close` は閉じるだけのページ
-  //  */
-  // const logout = (redirectUri = `${_ssoDomain}/close`) => {
-  //   // デフォルト引数が null になることがあるので、null の場合のフォールバック指定
-  //   if (!redirectUri) {
-  //     redirectUri = `${_ssoDomain}/close`
-  //   }
-  //   const url = `${_ssoDomain}/auth/vket_account/logout?callback_url=${redirectUri}`
-  //   return window.open(url)
-  // }
+    return new Promise<Result>((resolve) => {
+      const interval = setInterval(async () => {
+        if (loginWindow.closed) {
+          clearInterval(interval)
+          const ssoUser = await getSsoUserState().catch(() => null) // NOTE: ログは関数内で出しているためここではnullを返却
+          if (!ssoUser || !ssoUser.value) {
+            // NOTE: タブを手動で閉じる場合もこの分岐になる
+            return resolve({
+              success: false,
+              errorKey: 'error.login',
+            })
+          }
+          resolve({
+            success: true,
+          })
+        }
+      }, 1000)
+    }).catch((error) => {
+      // NOTE: この分岐は来ない想定だが、何かあった時のために一応
+      console.error(`${error}`)
+      return {
+        success: false,
+        errorKey: 'error.login',
+      }
+    })
+  }
+
+  /**
+   * @remarks VketSSO: ログアウト
+   * エラー時はi18nのキーを返却するので呼び出し元でハンドリングを行う
+   */
+  const logout = (redirectUri = `${_ssoDomain}/close`) => {
+    const logoutWindow = window.open(`${_ssoDomain}/auth/vket_account/logout?callback_url=${_ssoDomain}/close`)
+    if (!logoutWindow) { 
+      return {
+        success: false,
+        errorKey: 'error.popup-block',
+      }
+    }
+
+    return new Promise<Result>((resolve) => {
+      const interval = setInterval(async () => {
+        if (logoutWindow.closed) {
+          clearInterval(interval)
+          _removeToken()
+          resolve({
+            success: true,
+          })
+        }
+      }, 1000)
+    }).catch((error) => {
+      // NOTE: この分岐は来ない想定だが、何かあった時のために一応
+      console.error(`${error}`)
+      return {
+        success: false,
+        errorKey: 'error.logout',
+      }
+    })
+  }
 
   /**
    * @remarks VketSSO: SSO User をfetchする
@@ -228,8 +275,8 @@ export const useAuthVketSso = () => {
     aliveToken: readonly(aliveToken),
     isLogout: readonly(isLogout),
     ssoUser: readonly(ssoUser),
-    // login,
-    // logout,
+    login,
+    logout,
     fetchSsoUser,
     resetSsoUser,
     getSsoUserState,

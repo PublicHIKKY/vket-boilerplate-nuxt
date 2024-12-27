@@ -1,4 +1,9 @@
 {
   "hello": "こんにちは！",
-  "language": "言語"
+  "language": "言語",
+  "error": {
+    "popup-block": "ポップアップブロックによりログインが行えませんでした。",
+    "login-failed": "ログインに失敗しました。",
+    "logaut-failed": "ログアウトに失敗しました。"
+  }
 }
