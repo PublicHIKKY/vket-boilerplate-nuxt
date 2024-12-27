@@ -24,7 +24,7 @@ export const useAuthVketSso = () => {
 
   const _ssoDomain
     = runtimeConfig?.public?.ssoDomain && typeof runtimeConfig?.public?.ssoDomain === 'string' ? runtimeConfig?.public?.ssoDomain : raiseError('undefined ssoDomain')
-  const _ssoUser = useState<SsoUser | null>(`${REPOSITORY_NAME}-user`)
+  const ssoUser = useState<SsoUser | null>(`${REPOSITORY_NAME}-user`)
   const aliveToken = useState<string | null>(`${REPOSITORY_NAME}-ac`)
   const isLogout = useState<boolean>(`${REPOSITORY_NAME}-logout`)
 
@@ -108,11 +108,11 @@ export const useAuthVketSso = () => {
     if (import.meta.server) raiseError('SSR not supported') 
     try {
       const result = await vketSsoRepository.get.fetchSsoProfile()
-      _ssoUser.value = result.user
+      ssoUser.value = result.user
     }
     catch (e) {
       console.error(e)
-      _ssoUser.value = null
+      ssoUser.value = null
       isLogout.value = true
       _removeToken()
     }
@@ -122,7 +122,7 @@ export const useAuthVketSso = () => {
    * @remarks VketSSO: SSO User をリセットする
    */
   const resetSsoUser = () => {
-    _ssoUser.value = null
+    ssoUser.value = null
   }
 
   /**
@@ -132,7 +132,7 @@ export const useAuthVketSso = () => {
    */
   const getSsoUserState = async (awaitRefetch = true) => {
     if (awaitRefetch) await fetchSsoUser()
-    return readonly(_ssoUser)
+    return readonly(ssoUser)
   }
 
   // /**
@@ -227,6 +227,7 @@ export const useAuthVketSso = () => {
   return {
     aliveToken: readonly(aliveToken),
     isLogout: readonly(isLogout),
+    ssoUser: readonly(ssoUser),
     // login,
     // logout,
     fetchSsoUser,
