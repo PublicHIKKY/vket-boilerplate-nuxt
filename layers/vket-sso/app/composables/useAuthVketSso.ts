@@ -26,6 +26,7 @@ export const useAuthVketSso = () => {
     = runtimeConfig?.public?.ssoDomain && typeof runtimeConfig?.public?.ssoDomain === 'string' ? runtimeConfig?.public?.ssoDomain : raiseError('undefined ssoDomain')
   const _ssoUser = useState<SsoUser | null>(`${REPOSITORY_NAME}-user`)
   const aliveToken = useState<string | null>(`${REPOSITORY_NAME}-ac`)
+  const isLogout = useState<boolean>(`${REPOSITORY_NAME}-logout`)
 
 
   /**
@@ -52,6 +53,16 @@ export const useAuthVketSso = () => {
   }
 
   /**
+   * @remarks VketSSO: token削除
+   */
+  const _removeToken = () => {
+    removeSessionStorageValue(SESSION_STORAGE_KEY_EXP)
+    removeSessionStorageValue(SESSION_STORAGE_KEY_IAT)
+    removeSingleCookieValue(COOKIE_KEY_JWT)
+    aliveToken.value = null
+  }
+
+  /**
    * @remarks VketSSO: token検証
    * @return boolean
    */
@@ -60,9 +71,7 @@ export const useAuthVketSso = () => {
     // NOTE: 桁数が異なるので1/1000倍にする
     const currentUnixTime = new Date().getTime() / 1000
     if (currentUnixTime < expiredUnixTime) return true
-    removeSessionStorageValue(SESSION_STORAGE_KEY_EXP)
-    removeSessionStorageValue(SESSION_STORAGE_KEY_IAT)
-    aliveToken.value = null
+    _removeToken()
     return false
   }
 
@@ -104,6 +113,8 @@ export const useAuthVketSso = () => {
     catch (e) {
       console.error(e)
       _ssoUser.value = null
+      isLogout.value = true
+      _removeToken()
     }
   }
 
@@ -175,8 +186,8 @@ export const useAuthVketSso = () => {
     }
     try {
       const jwtString = _getAndStateSetJwt()
-      console.log(jwtString)
       if (!jwtString) {
+        if (import.meta.server) return null
         return returnFunction(await _fetchToken())
       }
       if (!aliveToken.value) {
@@ -184,6 +195,7 @@ export const useAuthVketSso = () => {
       }
       const decodedToken = requireValueOf(ssoJwtSchema, decodeJwt(aliveToken.value))
       if (!_verifyTokenByExp(decodedToken.exp)) {
+        if (import.meta.server) return null
         return returnFunction(await _fetchToken()) 
       }
       return returnFunction(jwtString)
@@ -214,6 +226,7 @@ export const useAuthVketSso = () => {
 
   return {
     aliveToken: readonly(aliveToken),
+    isLogout: readonly(isLogout),
     // login,
     // logout,
     fetchSsoUser,
