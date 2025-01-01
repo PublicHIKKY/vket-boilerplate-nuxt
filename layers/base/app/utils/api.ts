@@ -8,10 +8,9 @@ import camelcaseKeys from 'camelcase-keys'
 import type { FetchOptions } from 'ofetch'
 import { $fetch as _oFetchApi } from 'ofetch' // not nuxt
 import snakecaseKeys from 'snakecase-keys'
-import { fetcher } from '#base/app/composables/useApi'
-import { pluginFetchApi } from '#base/app/plugins/fetch' // nuxt
-import { requireRuntimeConfig } from '#base/app/plugins/runtimeConfig'
 import { raiseError } from '#base/app/utils/error'
+import { requireRuntimeConfig } from '#base/app/plugins/runtimeConfig'
+import { pluginFetchApi } from '#base/app/plugins/fetch' // nuxt
 
 type Method =
   | 'GET'
@@ -66,8 +65,6 @@ const apiFetchFunction = (
   _path: string,
   _options?: Omit<FetchOptions, 'method'>,
 ) => {
-  // FW依存のAPI or undefined(deafult ofetch)
-  const _DEPENDED_API = fetcher
   // デフォルトのAPI(ofetch)
   const _DEFAULT_FETCH_API = pluginFetchApi().fetchApi || _oFetchApi
   // NOTE: useFetchはラップしないことにし$fetchを使うようにする。方針が変わった場合は修正する
