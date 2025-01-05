@@ -1,0 +1,43 @@
+@use 'variables' as v;
+
+@mixin xs {
+  @media screen and (max-width: v.$xs-query-width) {
+    @content;
+  }
+}
+
+@mixin sp {
+  @media screen and (max-width: v.$media-query-width) {
+    @content;
+  }
+}
+
+@mixin pc {
+  @media screen and (min-width: v.$media-query-width) {
+    @content;
+  }
+}
+
+@mixin tb {
+  @media screen and (max-width: v.$pc-content-min-width) {
+    @content;
+  }
+}
+
+@mixin splandscape {
+  @media screen and (max-width: v.$pc-content-min-width) and (max-height: v.$sp-query-width) and (orientation: landscape) {
+    @content;
+  }
+}
+
+@mixin hover {
+  @media (any-hover: hover) {
+    &:hover {
+      @content;
+    }
+
+    &:focus-within {
+      @content;
+    }
+  }
+}

@@ -1,10 +1,10 @@
 /// <reference types="vitest" />
-import path from 'path'
-import { fileURLToPath } from 'url'
 import VueI18nVitePlugin from '@intlify/unplugin-vue-i18n/vite'
 import Vue from '@vitejs/plugin-vue'
+import path from 'path'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
+import { fileURLToPath } from 'url'
 import svgLoader from 'vite-svg-loader'
 import { defineConfig } from 'vitest/config'
 
@@ -101,7 +101,7 @@ export default defineConfig({
       include: [
         path.resolve(
           path.dirname(fileURLToPath(import.meta.url)),
-          './i18n/locales/*.json',
+          './i18n/locales/*.json'
         ),
       ],
       defaultSFCLang: 'yaml',
@@ -122,10 +122,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '#base': path.resolve(__dirname),
+      '#main': path.resolve(__dirname, '../main'),
       '#app': path.resolve(__dirname, '../../node_modules/nuxt/dist/app'),
       '#i18n': path.resolve(
         __dirname,
-        '../../node_modules/@nuxtjs/i18n/dist/runtime/composables',
+        '../../node_modules/@nuxtjs/i18n/dist/runtime/composables'
       ),
     },
   },

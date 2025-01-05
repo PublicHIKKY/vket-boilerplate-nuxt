@@ -1,0 +1,99 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-7cbd279a="" class="hm-clipping">
+  <div data-v-7cbd279a="" class="cropper-container">
+    <div data-v-7cbd279a="" class="vue-advanced-cropper cropper">
+      <div class="vue-advanced-cropper__stretcher"></div>
+      <div class="vue-advanced-cropper__boundaries" style="width: auto; height: auto; transition: opacity 300ms; pointer-events: none; opacity: 0;">
+        <div class="vue-advanced-cropper__cropper-wrapper">
+          <div class="vue-advanced-cropper__background" style="width: auto; height: auto; transition: opacity 300ms; pointer-events: none; opacity: 0;"></div>
+          <div class="vue-advanced-cropper__image-wrapper"><img class="vue-advanced-cropper__image" style="height: 0px; left: 0px; top: 0px; transform: translate(NaNpx, NaNpx) rotate(0deg)  scaleX(NaN)  scaleY(NaN) ;"></div>
+          <div class="vue-advanced-cropper__foreground" style="width: auto; height: auto; transition: opacity 300ms; pointer-events: none; opacity: 0;"></div>
+          <div class="vue-rectangle-stencil vue-rectangle-stencil--movable" style="width: 0px; height: 0px; transform: translate(0px, 0px); display: none;">
+            <div class="vue-bounding-box vue-rectangle-stencil__bounding-box">
+              <div>
+                <div class="vue-preview vue-preview--fill vue-rectangle-stencil__preview">
+                  <div class="vue-preview__wrapper" style="width: 0px; height: 0px; left: calc(50% - 0px); top: calc(50% - 0px);"><img class="vue-preview__image" style="width: 0px; height: 0px; left: 0px; top: 0px; transform: translate(
+				NaNpx,NaNpx)  rotate(0deg)  scaleX(NaN)  scaleY(NaN) ; display: none;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="vue-line-wrapper vue-line-wrapper--east vue-simple-line-wrapper vue-simple-line-wrapper--east">
+                  <div class="vue-simple-line vue-simple-line--east"></div>
+                </div>
+                <div class="vue-line-wrapper vue-line-wrapper--west vue-simple-line-wrapper vue-simple-line-wrapper--west">
+                  <div class="vue-simple-line vue-simple-line--west"></div>
+                </div>
+                <div class="vue-line-wrapper vue-line-wrapper--south vue-simple-line-wrapper vue-simple-line-wrapper--south">
+                  <div class="vue-simple-line vue-simple-line--south"></div>
+                </div>
+                <div class="vue-line-wrapper vue-line-wrapper--north vue-simple-line-wrapper vue-simple-line-wrapper--north">
+                  <div class="vue-simple-line vue-simple-line--north"></div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--east-south">
+                <div class="vue-handler-wrapper vue-handler-wrapper--east-south vue-simple-handler-wrapper vue-simple-handler-wrapper--east vue-simple-handler-wrapper--south vue-simple-handler-wrapper--east-south vue-bounding-box__handler vue-bounding-box__handler--east-south">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--east vue-simple-handler--south vue-simple-handler--east-south"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--east-north">
+                <div class="vue-handler-wrapper vue-handler-wrapper--east-north vue-simple-handler-wrapper vue-simple-handler-wrapper--east vue-simple-handler-wrapper--north vue-simple-handler-wrapper--east-north vue-bounding-box__handler vue-bounding-box__handler--east-north">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--east vue-simple-handler--north vue-simple-handler--east-north"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--east">
+                <div class="vue-handler-wrapper vue-handler-wrapper--east vue-simple-handler-wrapper vue-simple-handler-wrapper--east vue-bounding-box__handler vue-bounding-box__handler--east">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--east"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--west-south">
+                <div class="vue-handler-wrapper vue-handler-wrapper--west-south vue-simple-handler-wrapper vue-simple-handler-wrapper--west vue-simple-handler-wrapper--south vue-simple-handler-wrapper--west-south vue-bounding-box__handler vue-bounding-box__handler--west-south">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--west vue-simple-handler--south vue-simple-handler--west-south"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--west-north">
+                <div class="vue-handler-wrapper vue-handler-wrapper--west-north vue-simple-handler-wrapper vue-simple-handler-wrapper--west vue-simple-handler-wrapper--north vue-simple-handler-wrapper--west-north vue-bounding-box__handler vue-bounding-box__handler--west-north">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--west vue-simple-handler--north vue-simple-handler--west-north"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--west">
+                <div class="vue-handler-wrapper vue-handler-wrapper--west vue-simple-handler-wrapper vue-simple-handler-wrapper--west vue-bounding-box__handler vue-bounding-box__handler--west">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--west"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--south">
+                <div class="vue-handler-wrapper vue-handler-wrapper--south vue-simple-handler-wrapper vue-simple-handler-wrapper--south vue-bounding-box__handler vue-bounding-box__handler--south">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--south"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--north">
+                <div class="vue-handler-wrapper vue-handler-wrapper--north vue-simple-handler-wrapper vue-simple-handler-wrapper--north vue-bounding-box__handler vue-bounding-box__handler--north">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--north"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div><canvas style="display: none;"></canvas><canvas style="display: none;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--v-if-->
+</div>"
+`;

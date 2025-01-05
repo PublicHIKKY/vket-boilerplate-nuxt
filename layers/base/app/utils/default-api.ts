@@ -8,12 +8,11 @@ import camelcaseKeys from 'camelcase-keys'
 import type { FetchOptions } from 'ofetch'
 import { $fetch as _oFetchApi } from 'ofetch' // not nuxt
 import snakecaseKeys from 'snakecase-keys'
-import { fetcher } from '#base/app/composables/useApi'
-import { pluginFetchApi } from '#base/app/plugins/fetch' // nuxt
-import { requireRuntimeConfig } from '#base/app/plugins/runtimeConfig'
 import { raiseError } from '#base/app/utils/error'
+import { requireRuntimeConfig } from '#base/app/plugins/runtimeConfig'
+import { pluginFetchApi } from '#base/app/plugins/fetch' // nuxt
 
-type Method =
+export type Method =
   | 'GET'
   | 'HEAD'
   | 'PATCH'
@@ -66,8 +65,6 @@ const apiFetchFunction = (
   _path: string,
   _options?: Omit<FetchOptions, 'method'>,
 ) => {
-  // FW依存のAPI or undefined(deafult ofetch)
-  const _DEPENDED_API = fetcher
   // デフォルトのAPI(ofetch)
   const _DEFAULT_FETCH_API = pluginFetchApi().fetchApi || _oFetchApi
   // NOTE: useFetchはラップしないことにし$fetchを使うようにする。方針が変わった場合は修正する
@@ -79,7 +76,7 @@ const apiFetchFunction = (
 }
 
 // HACK: 即時関数で返したい...
-export const api = {
+export const defaultApi = {
   get: (path: string, fetchOptions: FetchOptions = {}) => {
     const methodOptions: FetchOptions = {
       baseURL:
@@ -151,3 +148,29 @@ export const api = {
     return apiFetchFunction('DELETE', path, options)()
   },
 } as const
+
+export default (
+  method: Method,
+  path: string,
+  fetchOptions: FetchOptions = {},
+) => {
+  switch (method) {
+    case 'GET':
+    case 'get':
+      return defaultApi.get(path, fetchOptions)
+    case 'POST':
+    case 'post':
+      return defaultApi.post(path, fetchOptions)
+    case 'PUT':
+    case 'put':
+      return defaultApi.put(path, fetchOptions)
+    case 'PATCH':
+    case 'patch':
+      return defaultApi.patch(path, fetchOptions)
+    case 'DELETE':
+    case 'delete':
+      return defaultApi.delete(path, fetchOptions)
+    default:
+      return defaultApi.get(path, fetchOptions)
+  }
+}
