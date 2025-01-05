@@ -29,6 +29,7 @@ declare module 'vue' {
     HmButton: typeof import('./../app/components/hm/button/HmButton.vue')['default']
     HmButtonClose: typeof import('./../app/components/hm/button/HmButtonClose.vue')['default']
     HmButtonFavorite: typeof import('./../app/components/hm/button/HmButtonFavorite.vue')['default']
+    HmClipping: typeof import('./../app/components/hm/HmClipping.vue')['default']
     HmIconUser: typeof import('./../app/components/hm/icon/HmIconUser.vue')['default']
     HmInputCheckbox: typeof import('./../app/components/hm/input/HmInputCheckbox.vue')['default']
     HmInputDatetime: typeof import('./../app/components/hm/input/HmInputDatetime.vue')['default']

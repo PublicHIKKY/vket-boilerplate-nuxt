@@ -7,7 +7,10 @@
 import { useFetch, UseFetchOptions } from 'nuxt/app'
 import type { FetchOptions } from 'ofetch'
 import { ref } from 'vue'
-import { repositoryFactory, RepositoryKey } from '#base/app/utils/factory'
+import {
+  defaultRepositoryFactory,
+  DefaultRepositoryKey,
+} from '#base/app/utils/default-factory'
 
 export const fetcher = (
   path: string,
@@ -16,11 +19,13 @@ export const fetcher = (
   return useFetch(path, options)
 }
 
-const _getRepo = <K extends RepositoryKey>(endpoint: K) => {
-  return repositoryFactory.get(endpoint)
+const _getRepo = <K extends DefaultRepositoryKey>(endpoint: K) => {
+  return defaultRepositoryFactory.get(endpoint)
 }
 
-export default function useApi<K extends RepositoryKey>(endpoint: K) {
+export default function useDefaultApi<K extends DefaultRepositoryKey>(
+  endpoint: K,
+) {
   const repository = ref(_getRepo(endpoint))
   return {
     repository,

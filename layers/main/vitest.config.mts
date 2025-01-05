@@ -126,6 +126,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@': path.resolve(__dirname, 'app'),
       '#base': path.resolve(__dirname, '../base'),
       '#app': path.resolve(__dirname, '../../node_modules/nuxt/dist/app'),
       '#i18n': path.resolve(

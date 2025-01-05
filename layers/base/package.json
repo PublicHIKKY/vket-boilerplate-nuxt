@@ -35,6 +35,7 @@
     "universal-cookie": "^7.2.2",
     "uuid": "^11.0.3",
     "vue": "latest",
+    "vue-advanced-cropper": "^2.8.9",
     "vue-router": "latest",
     "vue3-toastify": "^0.2.5"
   },
