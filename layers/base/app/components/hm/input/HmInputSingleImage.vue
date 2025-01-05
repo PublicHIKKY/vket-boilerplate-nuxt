@@ -226,7 +226,8 @@ const openCropper = (image: File) => {
   reader.readAsDataURL(image)
   return new Promise<void>((resolve, _reject) => {
     reader.onload = () => {
-      cropImage.value = String(reader.result)
+      cropImage.value
+        = typeof reader.result === 'string' ? `${reader.result}` : ''
       showCropper.value = true
       return resolve()
     }
