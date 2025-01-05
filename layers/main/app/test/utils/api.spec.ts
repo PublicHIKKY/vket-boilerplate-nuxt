@@ -1,5 +1,5 @@
 import type { NitroFetchRequest } from 'nitropack'
-import { api } from '#base/app/utils/api'
+import api from '@/utils/api'
 
 // NOTE: mockを使う際に必要な記述
 vi.mock('#app', () => ({
@@ -54,7 +54,7 @@ describe('api', () => {
     }
     const path = '/example'
     const fetchOptions = {}
-    expect(api.get(path, fetchOptions)).toMatchObject(expectObj)
+    expect(api('get', path, fetchOptions)).toMatchObject(expectObj)
   })
   it('post', () => {
     // NOET: 以下getと同様にテストする。methodはgetではなく、相送信methodに準じた値に変化するので注意
@@ -70,7 +70,7 @@ describe('api', () => {
     }
     const path = '/example'
     const fetchOptions = {}
-    expect(api.post(path, fetchOptions)).toMatchObject(expectObj)
+    expect(api('post', path, fetchOptions)).toMatchObject(expectObj)
   })
   it('put', () => {
     const expectObj = {
@@ -85,7 +85,7 @@ describe('api', () => {
     }
     const path = '/example'
     const fetchOptions = {}
-    expect(api.put(path, fetchOptions)).toMatchObject(expectObj)
+    expect(api('put', path, fetchOptions)).toMatchObject(expectObj)
   })
   it('patch', () => {
     const expectObj = {
@@ -100,7 +100,7 @@ describe('api', () => {
     }
     const path = '/example'
     const fetchOptions = {}
-    expect(api.patch(path, fetchOptions)).toMatchObject(expectObj)
+    expect(api('patch', path, fetchOptions)).toMatchObject(expectObj)
   })
   it('delete', () => {
     const expectObj = {
@@ -115,6 +115,6 @@ describe('api', () => {
     }
     const path = '/example'
     const fetchOptions = {}
-    expect(api.delete(path, fetchOptions)).toMatchObject(expectObj)
+    expect(api('delete', path, fetchOptions)).toMatchObject(expectObj)
   })
 })

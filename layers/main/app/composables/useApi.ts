@@ -7,7 +7,7 @@
 import { useFetch, UseFetchOptions } from 'nuxt/app'
 import type { FetchOptions } from 'ofetch'
 import { ref } from 'vue'
-import { repositoryFactory, RepositoryKey } from '#base/app/utils/factory'
+import { repositoryFactory, RepositoryKey } from '#main/app/utils/factory'
 
 export const fetcher = (
   path: string,
