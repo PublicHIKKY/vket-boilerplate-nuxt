@@ -3,7 +3,7 @@ import { _AsyncData } from 'nuxt/dist/app/composables/asyncData'
 import type { Ref } from 'vue'
 import { InjectionKey, readonly, ref } from 'vue'
 import { GetExampleResponse } from '#base/app/repositories/exampleRepository'
-import useApi from '#base/app/composables/useApi'
+import useDefaultApi from '#base/app/composables/useDefaultApi'
 
 export type Example = GetExampleResponse['data']['todos']
 
@@ -11,7 +11,7 @@ export function useExample(data?: Example) {
   const exampleState = useState<Example | undefined>('example', () => data)
   const exampleRef = ref<Example | undefined>(data)
 
-  const repo = useApi('example').repository.value
+  const repo = useDefaultApi('example').repository.value
 
   /**
    * APIを実行し、stateを更新後、結果を返す
