@@ -1,4 +1,4 @@
-# Vket Boilerplate Nuxt
+# Vket Boilerplate Nuxt!
 
 This is a Nuxt boilerplate published by HIKKY Ltd.
 
