@@ -1,5 +1,5 @@
-import path from 'path'
 import { defineNuxtConfig } from 'nuxt/config'
+import path from 'path'
 import { readEnvType } from './config/models/EnvType'
 import { getRuntimeConfigOfEnvType } from './config/runtimeConfig'
 
@@ -17,7 +17,7 @@ type MetaInfo = {
 const NUXT_ENV_OUTPUT_ENV = readEnvType(process.env)
 const runtimeConfig = getRuntimeConfigOfEnvType(
   NUXT_ENV_OUTPUT_ENV,
-  process.env,
+  process.env
 )
 const cssUrls = [`@/assets/styles/style.scss`]
 const srcDir = 'app'
@@ -98,6 +98,7 @@ export default defineNuxtConfig({
   srcDir: `${srcDir}/`,
   alias: {
     '#main': __dirname,
+    '#base': `${__dirname}/../base`,
   },
   ignore: [
     '.output',
