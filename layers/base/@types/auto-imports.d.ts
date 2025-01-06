@@ -16,7 +16,6 @@ declare global {
   const abortNavigation: typeof import('#app')['abortNavigation']
   const addDateTime: typeof import('../app/utils/date-control')['addDateTime']
   const addRouteMiddleware: typeof import('#app')['addRouteMiddleware']
-  const api: typeof import('../../main/app/utils/api')['default']
   const cancelIdleCallback: typeof import('#app')['cancelIdleCallback']
   const clearError: typeof import('#app')['clearError']
   const clearNuxtData: typeof import('#app')['clearNuxtData']
@@ -134,8 +133,6 @@ declare global {
   const removeLocalStorageValue: typeof import('../app/utils/storage-control')['removeLocalStorageValue']
   const removeSessionStorageValue: typeof import('../app/utils/storage-control')['removeSessionStorageValue']
   const removeSingleCookieValue: typeof import('../app/utils/storage-control')['removeSingleCookieValue']
-  const repositories: typeof import('../../main/app/utils/factory')['repositories']
-  const repositoryFactory: typeof import('../../main/app/utils/factory')['repositoryFactory']
   const requestIdleCallback: typeof import('#app')['requestIdleCallback']
   const requireAsyncDataOf: typeof import('../app/utils/response')['requireAsyncDataOf']
   const requireValueOf: typeof import('../app/utils/zod')['requireValueOf']
@@ -164,7 +161,6 @@ declare global {
   const unreachable: typeof import('../app/utils/error')['unreachable']
   const unref: typeof import('vue')['unref']
   const updateAppConfig: typeof import('#app')['updateAppConfig']
-  const useApi: typeof import('../../main/app/composables/useApi')['default']
   const useAppConfig: typeof import('#app')['useAppConfig']
   const useAsyncData: typeof import('#app')['useAsyncData']
   const useAttrs: typeof import('vue')['useAttrs']
@@ -218,25 +214,4 @@ declare global {
   // @ts-ignore
   export type { Component, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
-  // @ts-ignore
-  export type { Example, ExampleComposable } from '../app/composables/useExample'
-  import('../app/composables/useExample')
-  // @ts-ignore
-  export type { Lang, LocaleComposable } from '../app/composables/useLocale'
-  import('../app/composables/useLocale')
-  // @ts-ignore
-  export type { ToastComposable } from '../app/composables/useToast'
-  import('../app/composables/useToast')
-  // @ts-ignore
-  export type { Method } from '../app/utils/default-api'
-  import('../app/utils/default-api')
-  // @ts-ignore
-  export type { Repository, Repositories, DefaultRepositoryKey } from '../app/utils/default-factory'
-  import('../app/utils/default-factory')
-  // @ts-ignore
-  export type { ResponseStatus, AsyncDataResponse } from '../app/utils/response'
-  import('../app/utils/response')
-  // @ts-ignore
-  export type { Nullable, ValueOf, Overwrite } from '../app/utils/types/types'
-  import('../app/utils/types/types')
 }
