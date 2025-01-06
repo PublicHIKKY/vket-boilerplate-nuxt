@@ -214,4 +214,25 @@ declare global {
   // @ts-ignore
   export type { Component, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
+  // @ts-ignore
+  export type { Example, ExampleComposable } from '../app/composables/useExample'
+  import('../app/composables/useExample')
+  // @ts-ignore
+  export type { Lang, LocaleComposable } from '../app/composables/useLocale'
+  import('../app/composables/useLocale')
+  // @ts-ignore
+  export type { ToastComposable } from '../app/composables/useToast'
+  import('../app/composables/useToast')
+  // @ts-ignore
+  export type { Method } from '../app/utils/default-api'
+  import('../app/utils/default-api')
+  // @ts-ignore
+  export type { Repository, Repositories, DefaultRepositoryKey } from '../app/utils/default-factory'
+  import('../app/utils/default-factory')
+  // @ts-ignore
+  export type { ResponseStatus, AsyncDataResponse } from '../app/utils/response'
+  import('../app/utils/response')
+  // @ts-ignore
+  export type { Nullable, ValueOf, Overwrite } from '../app/utils/types/types'
+  import('../app/utils/types/types')
 }
