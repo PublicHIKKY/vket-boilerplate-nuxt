@@ -1,7 +1,7 @@
 // NOTE: そもそももっといいテストあれば是非
 import { UseFetchOptions } from 'nuxt/app'
 import { FetchOptions } from 'ofetch'
-import useApi, { fetcher } from '#base/app/composables/useApi'
+import useApi, { fetcher } from '#base/app/composables/useDefaultApi'
 
 vi.mock('#app', () => ({
   // NOTE:  defineNuxtPluginでエラーが出るので設置

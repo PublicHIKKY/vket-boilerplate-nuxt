@@ -1,0 +1,43 @@
+// @nuxt/toastのスタイリング
+// @see nuxt.config.ts > toast
+// todo: !importantあまり使いたくないので@nuxt/toastに.scss渡せたりするなら修正
+
+@use 'variables' as v;
+@use '@/assets/styles/mixins' as m;
+
+.hv-toast {
+  margin-top: 0;
+  top: v.$header-height-pc !important;
+  width: 100%;
+  z-index: v.$zindex-toast !important;
+
+  @include m.sp {
+    top: v.$header-height-sp !important;
+  }
+
+  .hv-toast-context {
+    margin-top: 0 !important;
+    word-break: break-all !important;
+    word-wrap: break-word !important;
+
+    + .hv-toast-context {
+      margin-top: v.space(2) !important;
+    }
+
+    &.info {
+      background: v.$gray-2 !important;
+    }
+
+    &.success {
+      background: v.$primary-color !important;
+    }
+
+    &.error {
+      background: v.$red !important;
+    }
+
+    &.danger {
+      background: v.$red !important;
+    }
+  }
+}
