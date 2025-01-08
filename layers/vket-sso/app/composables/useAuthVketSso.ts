@@ -26,6 +26,7 @@ export const useAuthVketSso = () => {
   const ssoUser = useState<SsoUser | null>(`${REPOSITORY_NAME}-user`)
   const aliveToken = useState<string | null>(`${REPOSITORY_NAME}-ac`)
   const isLogout = useState<boolean>(`${REPOSITORY_NAME}-logout`)
+  const isAuthError = useState<boolean>(`${REPOSITORY_NAME}-auth-error`)
 
   /**
    * @remarks VketSSO: token取得(Fetcher)
@@ -164,6 +165,9 @@ export const useAuthVketSso = () => {
       console.error(e)
       ssoUser.value = null
       isLogout.value = true
+      if (_getAndStateSetJwt()) {
+        isAuthError.value = true
+      }
       _removeToken()
     }
   }
@@ -278,6 +282,7 @@ export const useAuthVketSso = () => {
     aliveToken: readonly(aliveToken),
     isLogout: readonly(isLogout),
     ssoUser: readonly(ssoUser),
+    isAuthError,
     login,
     logout,
     fetchSsoUser,

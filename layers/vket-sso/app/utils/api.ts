@@ -11,6 +11,11 @@ const defaultFetchOptions = async (): Promise<FetchOptions> => {
   })
   return {
     headers,
+    onResponseError: (ctx) => {
+      if (ctx.response.status === 401) {
+        authVketSso.isAuthError.value = true
+      }
+    },
   }
 }
 
