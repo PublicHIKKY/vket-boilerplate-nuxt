@@ -190,7 +190,10 @@ export const useAuthVketSso = () => {
   }
 
   /**
-   * stateからtokenを取得する、stateがnullの場合、SSRの場合Cookie、CSR（SPA）の場合、sessionからjwtを取得しstateを更新
+   * stateからtokenを取得する、stateがnullの場合以下の情報を返却する
+   * SSRの場合Cookieからtokenを取得
+   * CSR（SPA）の場合、sessionからtokenを取得
+   * いずれも取得出来た場合、stateを更新する
    * @returns {string | null}
    */
   const _getAndStateSetJwt = (
