@@ -58,7 +58,6 @@ export default defineNuxtConfig({
   srcDir: `${srcDir}/`,
   alias: {
     '#base': __dirname,
-    '#main': `${__dirname}/../main`,
   },
   ignore: [
     '.output',
