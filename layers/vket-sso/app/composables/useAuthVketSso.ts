@@ -230,7 +230,7 @@ export const useAuthVketSso = () => {
     }
     try {
       const jwtString = _getAndStateSetJwt()
-      if (!jwtString) {
+      if (!jwtString || jwtString === 'null') {
         if (import.meta.server) return null
         return returnFunction(await _fetchToken())
       }

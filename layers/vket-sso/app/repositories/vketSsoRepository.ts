@@ -7,7 +7,7 @@
  */
 import { z } from 'zod'
 import { ssoUserSchema } from '#vket-sso/app/models/vketSso'
-import { api } from '#base/app/utils/api'
+import { defaultApi } from '#base/app/utils/default-api'
 import { raiseError } from '#base/app/utils/error'
 
 const fetchSsoProfileResponseSchema = z.object({
@@ -40,7 +40,7 @@ export const vketSsoRepository = {
       const domain
         = config?.public?.ssoDomain || raiseError('undefined ssoDomain')
       if (typeof domain !== 'string') raiseError('not string ssoDomain')
-      const result = await api.get(`${domain}/profile/me`, {
+      const result = await defaultApi.get(`${domain}/profile/me`, {
         credentials: 'include',
       })
       return requireValueOf(fetchSsoProfileResponseSchema, result)
@@ -57,7 +57,7 @@ export const vketSsoRepository = {
       const audience
         = origin || (window ? window.location.origin : config?.public?.url)
       if (!audience) raiseError('undefined audience')
-      const result = await api.get(
+      const result = await defaultApi.get(
         `${domain}/auth/token?audience=${audience}`,
         {
           credentials: 'include',
@@ -74,7 +74,7 @@ export const vketSsoRepository = {
       const domain
         = config?.public?.ssoDomain || raiseError('undefined ssoDomain')
       if (typeof domain !== 'string') raiseError('not string ssoDomain')
-      const result = await api.get(`${domain}/auth/discovery/keys`)
+      const result = await defaultApi.get(`${domain}/auth/discovery/keys`)
       return requireValueOf(fetchSsoJwkResponseSchema, result)
     },
   },

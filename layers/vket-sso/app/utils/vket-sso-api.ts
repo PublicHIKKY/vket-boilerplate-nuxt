@@ -1,5 +1,6 @@
-import type { FetchOptions } from 'ofetch'
-import { api as base } from '#base/app/utils/api'
+import { FetchOptions } from 'ofetch'
+import type { Method } from '#base/app/utils/default-api'
+import { defaultApi } from '#base/app/utils/default-api'
 
 const defaultFetchOptions = async (): Promise<FetchOptions> => {
   const authVketSso = useAuthVketSso()
@@ -19,40 +20,66 @@ const defaultFetchOptions = async (): Promise<FetchOptions> => {
   }
 }
 
-export const api = {
+export const vketSsoApi = {
   get: async (path: string, fetchOptions: FetchOptions = {}) => {
     fetchOptions = {
       ...await defaultFetchOptions(),
       ...fetchOptions,
     }
-    return base.get(path, fetchOptions)
+    return defaultApi.get(path, fetchOptions)
   },
   post: async (path: string, fetchOptions: FetchOptions = {}) => {
     fetchOptions = {
       ...await defaultFetchOptions(),
       ...fetchOptions,
     }
-    return base.post(path, fetchOptions)
+    return defaultApi.post(path, fetchOptions)
   },
   put: async (path: string, fetchOptions: FetchOptions = {}) => {
     fetchOptions = {
       ...await defaultFetchOptions(),
       ...fetchOptions,
     }
-    return base.put(path, fetchOptions)
+    return defaultApi.put(path, fetchOptions)
   },
   patch: async (path: string, fetchOptions: FetchOptions = {}) => {
     fetchOptions = {
       ...await defaultFetchOptions(),
       ...fetchOptions,
     }
-    return base.patch(path, fetchOptions)
+    return defaultApi.patch(path, fetchOptions)
   },
   delete: async (path: string, fetchOptions: FetchOptions = {}) => {
     fetchOptions = {
       ...await defaultFetchOptions(),
       ...fetchOptions,
     }
-    return base.delete(path, fetchOptions)
+    return defaultApi.delete(path, fetchOptions)
   },
 } as const
+
+export default (
+  method: Method,
+  path: string,
+  fetchOptions: FetchOptions = {},
+) => {
+  switch (method) {
+    case 'GET':
+    case 'get':
+      return vketSsoApi.get(path, fetchOptions)
+    case 'POST':
+    case 'post':
+      return vketSsoApi.post(path, fetchOptions)
+    case 'PUT':
+    case 'put':
+      return vketSsoApi.put(path, fetchOptions)
+    case 'PATCH':
+    case 'patch':
+      return vketSsoApi.patch(path, fetchOptions)
+    case 'DELETE':
+    case 'delete':
+      return vketSsoApi.delete(path, fetchOptions)
+    default:
+      return vketSsoApi.get(path, fetchOptions)
+  }
+}
