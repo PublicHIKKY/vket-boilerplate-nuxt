@@ -18,7 +18,9 @@ const enableDebug = NUXT_ENV_OUTPUT_ENV === 'local'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   extends: path.resolve(__dirname, '../base'),
-
+  modules: [
+    '@nuxt/test-utils/module',
+  ],
   ssr: isSsr,
   imports: {
     dirs: ['utils/types/**'],
@@ -42,4 +44,13 @@ export default defineNuxtConfig({
     typeCheck: checkTypeCheckOnBuild,
   },
   debug: enableDebug,
+  hooks: {
+    // NOTE: テスト時にglobalのmiddlewareが動いてエラーになるので無効化する
+    'app:resolve': async (app) => {
+      const process = await import('node:process')
+      if (String(process.env?.TEST) === 'true') {
+        app.middleware = []
+      }
+    },
+  },
 })
