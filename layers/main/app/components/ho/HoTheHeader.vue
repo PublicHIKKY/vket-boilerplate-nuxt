@@ -10,14 +10,16 @@ en:
 </template>
 
 <script lang="ts" setup>
-// const props = withDefaults(
-//   defineProps<{
-//   hoge: boolean
-//   fuga?: string
-// }>(),
-// {
-//   hoge: false
-// })
+/*
+ * const props = withDefaults(
+ *   defineProps<{
+ *   hoge: boolean
+ *   fuga?: string
+ * }>(),
+ * {
+ *   hoge: false
+ * })
+ */
 </script>
 
 <style scoped lang="scss">
