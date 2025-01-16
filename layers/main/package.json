@@ -9,6 +9,7 @@
     "dev:local": "cross-env VITE_OUTPUT_ENV=local nuxt dev",
     "build": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt build",
     "build:local": "cross-env VITE_OUTPUT_ENV=local nuxt build",
+    "build:staging": "cross-env VITE_OUTPUT_ENV=staging nuxt build",
     "generate": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt generate",
     "generate:local": "cross-env VITE_OUTPUT_ENV=local nuxt generate",
     "preview": "nuxt preview",
@@ -20,10 +21,13 @@
     "fix": "bun fix:eslint && bun fix:stylelint",
     "fix:eslint": "eslint --cache --cache-strategy content --fix ./app",
     "fix:stylelint": "stylelint --cache-strategy content --fix ./app/**/*.{css,scss,sass,vue}",
-    "test:ut": "vitest run --dir ./app/test",
-    "test:watch": "vitest --dir ./app/test",
-    "test:ui": "vitest --ui --dir ./app/test",
-    "test:coverage": "vitest run --dir ./app/test --coverage"
+    "fix-openapi-models": "baseDir='./app/models/openapi' ext='\\.ts' cmd='eslint --cache --cache-strategy content --fix ./app/models/openapi' bun exec-if-file-exists",
+    "test:ut": "cmd='vitest run --dir ./app/test' bun exec-test",
+    "test:watch": "cmd='vitest --dir ./app/test' bun exec-test",
+    "test:ui": "cmd='vitest --ui --dir ./app/test' bun exec-test",
+    "test:coverage": "cmd='vitest run --dir ./app/test --coverage' bun exec-test",
+    "exec-test": "baseDir='./app/test' ext='\\.spec\\.ts' bun exec-if-file-exists",
+    "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true"
   },
   "dependencies": {
     "vket-boilerplace-nuxt-base": "workspace:*"

@@ -82,9 +82,11 @@ const cropperOptions = computed(() => {
 })
 
 const onChange = ({ canvas }: { canvas: HTMLCanvasElement }) => {
-  // this.coordinates = coordinates
-  // note: canvas to DataURI
-  // this.croppedImage = canvas.toDataURL(`image/${this.ext}`)
+  /*
+   * this.coordinates = coordinates
+   * note: canvas to DataURI
+   * this.croppedImage = canvas.toDataURL(`image/${this.ext}`)
+   */
   const data = canvas.toDataURL(`image/${props.ext}`)
   // note: DataURL to File
   const bytes = atob(data.split(',')[1] ?? raiseError('Invalid bytes'))

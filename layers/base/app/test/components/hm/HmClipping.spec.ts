@@ -78,7 +78,9 @@ describe('events', () => {
         ext: 'jpeg',
       },
     })
-    // ERROR: 発火はできるが、canvas.toDataURLが読めず、vi.importActualにてcanvas.toDataURLのみを偽装してもエラーとなったのでコメントアウトする
-    // await wrapper.find('cropper-stub').trigger('change')
+    /*
+     * ERROR: 発火はできるが、canvas.toDataURLが読めず、vi.importActualにてcanvas.toDataURLのみを偽装してもエラーとなったのでコメントアウトする
+     * await wrapper.find('cropper-stub').trigger('change')
+     */
   })
 })

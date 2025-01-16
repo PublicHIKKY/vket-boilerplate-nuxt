@@ -1,7 +1,13 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, test } from 'vitest'
 import HaImage from '#base/app/components/ha/HaImage.vue'
-import { constant } from '#base/app/utils/constant'
+
+/**
+ * @see vitest.config.mtsのalias
+ */
+const defaultNoImage = '/images/no-image.png'
+
+const customNoImage = '/images/no-image-custom.png'
 
 test('ref component', () => {
   expect(HaImage).toBeTruthy()
@@ -68,25 +74,23 @@ describe('lazy loading', () => {
 describe('fallback images', () => {
   it('no src loads "no-image.png"', () => {
     const wrapper = mount(HaImage)
-    expect(wrapper.get('img').attributes('src')).toBe(constant.images.none)
+    expect(wrapper.get('img').attributes('src')).toBe(defaultNoImage)
   })
 
   it('on error loads "no-image.png"', async () => {
     const wrapper = mount(HaImage, { props: { src: '/foo-not-found.jpg' } })
     await wrapper.get('img').trigger('error')
-    expect(wrapper.get('img').attributes('src')).toBe(constant.images.none)
+    expect(wrapper.get('img').attributes('src')).toBe(defaultNoImage)
   })
 
   it('custom on-error image', async () => {
     const wrapper = mount(HaImage, {
       props: {
         src: '/foo-not-found.jpg',
-        noImage: constant.images.noneCustom,
+        noImage: customNoImage,
       },
     })
     await wrapper.get('img').trigger('error')
-    expect(wrapper.get('img').attributes('src')).toBe(
-      constant.images.noneCustom,
-    )
+    expect(wrapper.get('img').attributes('src')).toBe(customNoImage)
   })
 })

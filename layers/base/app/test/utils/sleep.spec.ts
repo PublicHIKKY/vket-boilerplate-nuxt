@@ -14,7 +14,7 @@ describe('sleep test', () => {
      * 100ミリ秒より一割余裕をみて90ミリ秒でテストする
      * https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#timers
      * 「この API は、タイマーがスケジュールどおりに正確に実行されることを保証しません。CPU 負荷や他のタスクなどによる遅延が予想されます。」
-     **/
+     */
     expect(diffTime).toBeGreaterThanOrEqual(90)
   })
 })

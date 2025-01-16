@@ -284,8 +284,10 @@ describe('emits', () => {
     await waitEffect()
     expect(wrapper.emitted()).toHaveProperty('validate')
     expect(wrapper.emitted()['validate']).toHaveLength(1)
-    // TODO: バリデーションエラー時にZodエラーメッセージを二重否定の真偽値として送信するが、正しい値を送信しないのでコメントアウト
-    // expect(wrapper.emitted()['validate']).toStrictEqual([[true]])
+    /*
+     * TODO: バリデーションエラー時にZodエラーメッセージを二重否定の真偽値として送信するが、正しい値を送信しないのでコメントアウト
+     * expect(wrapper.emitted()['validate']).toStrictEqual([[true]])
+     */
   })
 
   it(':keyupEnter', async () => {
@@ -336,15 +338,19 @@ describe('DOM check for error display', () => {
     })
     // NOTE: input欄、v-ifで絶対に居るのが確定してないので一応getでinput見つけて、バリデートで落ちる値を代入
     await wrapper.get('input[type="text"]').setValue('12345678901')
-    // NOTE: NG例として下記。modelValueを見てそうなので、modelValueにテスト値いれてinputイベントを強制発火。これは動作せず
-    // await wrapper.setValue('12345678901', 'modelValue')
-    // await wrapper.get('input[type="text"]').trigger('input')
+    /*
+     * NOTE: NG例として下記。modelValueを見てそうなので、modelValueにテスト値いれてinputイベントを強制発火。これは動作せず
+     * await wrapper.setValue('12345678901', 'modelValue')
+     * await wrapper.get('input[type="text"]').trigger('input')
+     */
 
     // NOTE: setValueでinput欄に値を入れたのでsettimeoutのsleep関数で1ミリ秒以上で待つ。nextTickは効かない
     await waitEffect()
-    // NOTE: DOMの変化を確かめたい時は下記でターミナルに表示させて確認する
-    // console.log(wrapper.html())
-    // NOTE: <p class="error-container">が存在する確認
+    /*
+     * NOTE: DOMの変化を確かめたい時は下記でターミナルに表示させて確認する
+     * console.log(wrapper.html())
+     * NOTE: <p class="error-container">が存在する確認
+     */
     expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
     // <p class="error-container">の中の<span class="error">が存在してエラーメッセージでてること確認
     expect(

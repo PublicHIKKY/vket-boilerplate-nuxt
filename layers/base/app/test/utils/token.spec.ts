@@ -38,11 +38,13 @@ describe('decodeJwt', () => {
         foo: 'bar',
       })
     })
-    // ERROR: テストとして正しいが、ターミナルにエラーが出るためコメントアウト。
-    // test('decode failes', () => {
-    //   const jwt = '################'
-    //   const decoded = decodeJwt(jwt)
-    //   expect(decoded, '失敗してnullが返る').toBe(null)
-    // })
+    /*
+     * ERROR: テストとして正しいが、ターミナルにエラーが出るためコメントアウト。
+     * test('decode failes', () => {
+     *   const jwt = '################'
+     *   const decoded = decodeJwt(jwt)
+     *   expect(decoded, '失敗してnullが返る').toBe(null)
+     * })
+     */
   })
 })

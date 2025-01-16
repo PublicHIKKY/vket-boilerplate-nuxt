@@ -3,9 +3,9 @@
  * 内容がこれなのでユニットテストは必要ない。
  */
 export const constant = {
-  images: {
-    none: '/images/no-image.png',
-    none1x1: '/images/no-image_1x1.jpg',
-    noneCustom: '/images/no-image-custom.png',
-  },
+  /**
+   * [[constant]] を{}型にしないためのダミー。
+   * 他の項目が追加されたら、これを削除してください。
+   */
+  dummy: 'dummy',
 } as const

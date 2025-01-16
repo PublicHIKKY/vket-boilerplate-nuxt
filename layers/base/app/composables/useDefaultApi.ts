@@ -12,7 +12,7 @@ import {
   DefaultRepositoryKey,
 } from '#base/app/utils/default-factory'
 
-export const fetcher = (
+export const defaultFetcher = (
   path: string,
   options: UseFetchOptions<FetchOptions>,
 ) => {

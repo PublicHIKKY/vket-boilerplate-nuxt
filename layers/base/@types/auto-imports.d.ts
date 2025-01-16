@@ -29,6 +29,7 @@ declare global {
   const customRef: typeof import('vue')['customRef']
   const decodeJwt: typeof import('../app/utils/token')['decodeJwt']
   const defaultApi: typeof import('../app/utils/default-api')['default']
+  const defaultFetcher: typeof import('../app/composables/useDefaultApi')['defaultFetcher']
   const defaultRepositories: typeof import('../app/utils/default-factory')['defaultRepositories']
   const defaultRepositoryFactory: typeof import('../app/utils/default-factory')['defaultRepositoryFactory']
   const defineAppConfig: typeof import('#app')['defineAppConfig']
@@ -91,6 +92,7 @@ declare global {
   const loadPayload: typeof import('#app')['loadPayload']
   const localeInjectionKey: typeof import('../app/composables/useLocale')['localeInjectionKey']
   const makeAnchorElement: typeof import('../app/utils/anchor')['makeAnchorElement']
+  const makeRecursiveSchema: typeof import('../app/utils/zod')['makeRecursiveSchema']
   const makeResponseSchema: typeof import('../app/utils/response')['makeResponseSchema']
   const makeSchemaDeepReadOnly: typeof import('../app/utils/zod')['makeSchemaDeepReadOnly']
   const makeSchemaReadOnly: typeof import('../app/utils/zod')['makeSchemaReadOnly']
@@ -227,12 +229,15 @@ declare global {
   export type { Method } from '../app/utils/default-api'
   import('../app/utils/default-api')
   // @ts-ignore
-  export type { Repository, Repositories, DefaultRepositoryKey } from '../app/utils/default-factory'
+  export type { DefaultRepository, DefaultRepositories, DefaultRepositoryKey } from '../app/utils/default-factory'
   import('../app/utils/default-factory')
   // @ts-ignore
-  export type { ResponseStatus, AsyncDataResponse } from '../app/utils/response'
+  export type { ResponseStatus, Paging, AsyncDataResponse } from '../app/utils/response'
   import('../app/utils/response')
   // @ts-ignore
   export type { Nullable, ValueOf, Overwrite } from '../app/utils/types/types'
   import('../app/utils/types/types')
+  // @ts-ignore
+  export type { Self } from '../app/utils/zod'
+  import('../app/utils/zod')
 }
