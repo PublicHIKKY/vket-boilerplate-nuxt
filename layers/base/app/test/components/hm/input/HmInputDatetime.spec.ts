@@ -175,8 +175,10 @@ describe('emits', () => {
     setTimeout(() => {
       expect(wrapper.emitted()).toHaveProperty('enter')
       expect(wrapper.emitted()['enter']).toHaveLength(1)
-      // TODO: emitでcomputedで処理される送信値を正しく取得できないのでコメントアウト
-      // expect(wrapper.emitted()['enter']).toEqual([[dateValue]])
+      /*
+       * TODO: emitでcomputedで処理される送信値を正しく取得できないのでコメントアウト
+       * expect(wrapper.emitted()['enter']).toEqual([[dateValue]])
+       */
     }, 1)
   })
 
@@ -201,8 +203,10 @@ describe('emits', () => {
     setTimeout(() => {
       expect(wrapper.emitted()).toHaveProperty('validation')
       expect(wrapper.emitted()['validation']).toHaveLength(1)
-      // TODO: emitでcomputedで処理される送信値を正しく取得できないのでコメントアウト
-      // expect(wrapper.emitted()['validation']).toEqual([[true]])
+      /*
+       * TODO: emitでcomputedで処理される送信値を正しく取得できないのでコメントアウト
+       * expect(wrapper.emitted()['validation']).toEqual([[true]])
+       */
     }, 1)
   })
 })

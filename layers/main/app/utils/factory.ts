@@ -1,4 +1,3 @@
-import type { Repositories } from '#base/app/utils/default-factory'
 import { defaultRepositories } from '#base/app/utils/default-factory'
 
 export const repositories = {

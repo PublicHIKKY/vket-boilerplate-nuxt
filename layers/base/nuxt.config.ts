@@ -52,7 +52,7 @@ export default defineNuxtConfig({
   css: cssUrls,
   runtimeConfig: getRuntimeConfigOfEnvType(
     readEnvType(process.env),
-    process.env
+    process.env,
   ),
   rootDir: __dirname,
   srcDir: `${srcDir}/`,
@@ -84,9 +84,9 @@ export default defineNuxtConfig({
         iconCustomizer(collection, _icon, props) {
           // customize all icons in this collection
           if (
-            collection === 'hikky-icons' ||
-            collection === 'sns-icons' ||
-            collection === 'ri'
+            collection === 'hikky-icons'
+            || collection === 'sns-icons'
+            || collection === 'ri'
           ) {
             props.width = '1em'
             props.height = '1em'
@@ -124,6 +124,7 @@ export default defineNuxtConfig({
         semi: false,
         indent: 2,
         quotes: 'single',
+        braceStyle: '1tbs',
       },
     },
   },

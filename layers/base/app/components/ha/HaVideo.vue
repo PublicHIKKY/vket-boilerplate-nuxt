@@ -93,8 +93,7 @@ watch(props, async () => {
 
   if (props.play) {
     await haVideoRef.value.play()
-  }
-  else {
+  } else {
     haVideoRef.value.pause()
   }
 })
