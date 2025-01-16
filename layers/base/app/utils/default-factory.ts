@@ -1,22 +1,26 @@
 import exampleRepository from '#base/app/repositories/exampleRepository'
-import type { Method } from '#base/app/utils/default-api'
+import type { Method as DefaultMethods } from '#base/app/utils/default-api'
 
 /**
- * @import { Repository } from '#base/app/utils/factory'
+ * The parent type for each method of `'get' | 'post' | 'put' | 'delete'` in each repository
  */
+export type ApiAccess = (...args: unknown[]) => Promise<unknown>
 
 /**
- * NOTE:
- * [[Repository]]と区別するためにDefaultRepositoryとしている。
- * 何かのリポジトリのデフォルト型のようなネーミングだが、それは意図していない。
+ * For use when creating `#main/app/utils/factory.ts`.
+ * See [[DefaultRepository]] for usage.
  */
-export type DefaultRepository = {
-  [key in Method]?: { [key: string]: unknown }
+export type MakeRepository<Methods extends string | symbol> = {
+  [key in Methods]?: Record<string, ApiAccess>
 }
 
-export type DefaultRepositories = {
-  [key: string]: DefaultRepository
-}
+/**
+ * NOTE:.
+ * Naming of "DefaultRepository" because it is the repository type of default-factory.
+ * The name is like "default type of some repository", but it is not intended.
+ */
+export type DefaultRepository = MakeRepository<DefaultMethods>
+export type DefaultRepositories = Record<string, DefaultRepository>
 
 export const defaultRepositories = {
   example: exampleRepository,
