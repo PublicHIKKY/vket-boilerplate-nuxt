@@ -32,9 +32,7 @@ HaDialogとの違いとして、HaDialogElementは別階層の別要素のz-inde
         @click="closeDialog"
       >
         <slot name="close">
-          <!-- FIXME: アイコンライブラリが使えない。。。 -->
-          <!-- <RiCloseLine class="icon" /> -->
-          ×
+          <RiCloseLine class="icon" />
         </slot>
       </component>
       <div
@@ -53,7 +51,7 @@ HaDialogとの違いとして、HaDialogElementは別階層の別要素のz-inde
 </template>
 
 <script lang="ts" setup>
-// import RiCloseLine from '~icons/ri/close-line'
+import RiCloseLine from '~icons/ri/close-line'
 
 type Props = {
   openButtonHtmlTag?: string
