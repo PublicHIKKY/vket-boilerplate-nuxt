@@ -105,7 +105,7 @@
             : `Show previous slide`
         "
         :aria-controls="props.slidename"
-        :disabled="!props.loop && diasbledPrevious"
+        :disabled="!props.loop && disabledPrevious"
         type="button"
         @click="moveSlider('previous'), stopAutoPlay()"
       >
@@ -117,7 +117,7 @@
           i18n.locale.value === 'ja' ? `スライドを1枚進める` : `Show next slide`
         "
         :aria-controls="props.slidename"
-        :disabled="!props.loop && diasbledNext"
+        :disabled="!props.loop && disabledNext"
         type="button"
         @click="moveSlider('next'), stopAutoPlay()"
       >
@@ -198,8 +198,8 @@ const props = defineProps<{
 const i18n = useI18n()
 const slider = ref<HTMLElement | null>(null) // スライド直上の親要素
 const currentSlide = ref(0) // 現在のスライド番号
-const diasbledNext = ref(false) // ループしない場合に次へボタンをdisabledにするフラグ
-const diasbledPrevious = ref(false) // ループしない場合に前へボタンをdisabledにするフラグ
+const disabledNext = ref(false) // ループしない場合に次へボタンをdisabledにするフラグ
+const disabledPrevious = ref(false) // ループしない場合に前へボタンをdisabledにするフラグ
 const previousX = ref(0) // アニメーションタイムラインのスライド開始位置
 const nextX = ref(0) // アニメーションタイムラインのスライド終了位置
 const clonedSlideBefore = ref<HTMLElement | null>(null) // ループする場合の前のスライド
@@ -249,18 +249,18 @@ const controlButton = () => {
   }
   if (currentSlide.value === 0) {
     // 1枚目表示中は戻るボタンをdisabledにする
-    diasbledNext.value = false
-    diasbledPrevious.value = true
+    disabledNext.value = false
+    disabledPrevious.value = true
   }
   else if (currentSlide.value * -1 === props.amount - 1) {
     // 最後のスライド表示中は進むボタンをdisabledにする
-    diasbledNext.value = true
-    diasbledPrevious.value = false
+    disabledNext.value = true
+    disabledPrevious.value = false
   }
   else {
     // それ以外はdisabledを解除する
-    diasbledNext.value = false
-    diasbledPrevious.value = false
+    disabledNext.value = false
+    disabledPrevious.value = false
   }
 }
 
