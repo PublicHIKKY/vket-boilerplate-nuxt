@@ -43,6 +43,7 @@
         </template>
         <div
           :id="props.slidename"
+          ref="receivedSlideItemsContainer"
           class="slider"
           :class="{
             '-center': props.center,
@@ -124,7 +125,8 @@
       </button>
     </template>
     <template v-if="props.page">
-      <p
+      <div
+        role="progressbar"
         class="slider-page"
         aria-valuemin="1"
         :aria-valuemax="props.amount"
@@ -142,7 +144,7 @@
         >{{
           props.amount
         }}</span>
-      </p>
+      </div>
     </template>
     <template v-if="props.autoplay">
       <button
@@ -191,6 +193,7 @@ const props = defineProps<{
   widthSp: string
   duration: number
   easing: 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'linear'
+  draggable: boolean
 }>()
 const i18n = useI18n()
 const slider = ref<HTMLElement | null>(null) // スライド直上の親要素
@@ -201,6 +204,7 @@ const previousX = ref(0) // アニメーションタイムラインのスライ�
 const nextX = ref(0) // アニメーションタイムラインのスライド終了位置
 const clonedSlideBefore = ref<HTMLElement | null>(null) // ループする場合の前のスライド
 const clonedSlideAfter = ref<HTMLElement | null>(null) // ループする場合の後のスライド
+const receivedSlideItemsContainer = ref<HTMLElement | null>(null) // アクティブなスライドを判定するために受け取ったスライド要素を全て格納
 
 // 矢印でスライドを移動させる関数
 const moveSlider = async (direction: 'previous' | 'next') => {
@@ -360,17 +364,18 @@ const updateCurrentSlide = (
 
 // アクティブなスライドに-activeクラスを付与し、それ以外のスライドをアクセシビリティツリーから除外する関数
 const setActiveSlide = () => {
-  const sliderItems = document.querySelectorAll('.slider-item')
-  const normalization = props.loop ? props.amount : 0
-  sliderItems.forEach((item, index) => {
-    if (index === Math.abs(currentSlide.value) + normalization) {
-      item.classList.add('-active')
-      item.removeAttribute('inert')
-    } else {
-      item.classList.remove('-active')
-      item.setAttribute('inert', 'inert')
-    }
-  })
+  const sliderItems = receivedSlideItemsContainer.value?.querySelectorAll<HTMLElement>('.slider-item')
+  if (sliderItems) {
+    sliderItems.forEach((item: HTMLElement, index: number) => {
+      if (index === Math.abs(currentSlide.value)) {
+        item.classList.add('-active')
+        item.removeAttribute('inert')
+      } else {
+        item.classList.remove('-active')
+        item.setAttribute('inert', 'inert')
+      }
+    })
+  }
 }
 
 // 複製されたスライドからid属性を除去する関数
@@ -379,19 +384,19 @@ const removeId = () => {
     throw new Error('clonedSlideBefore要素はnull')
   }
   if (!clonedSlideAfter.value) {
-    throw new Error('clonedSlideAfter要素はnull')
+    throw new Error('clonedSlideBefore要素はnull')
   }
   if (props.loop) {
     // clonedSlideBefore.valueの子要素の,slider-item全てからid属性を除去する
     const clonedSlideBeforeItems
-      = clonedSlideBefore.value.querySelectorAll('.slider-item')
-    clonedSlideBeforeItems.forEach((item) => {
+      = clonedSlideBefore.value.querySelectorAll<HTMLElement>('.slider-item')
+    clonedSlideBeforeItems.forEach((item: HTMLElement) => {
       item.removeAttribute('id')
     })
     // clonedSlideBefore.valueの子要素の.slider-item全てからid属性を除去する
     const clonedSlideAfterItems
-      = clonedSlideAfter.value.querySelectorAll('.slider-item')
-    clonedSlideAfterItems.forEach((item) => {
+      = clonedSlideAfter.value.querySelectorAll<HTMLElement>('.slider-item')
+    clonedSlideAfterItems.forEach((item: HTMLElement) => {
       item.removeAttribute('id')
     })
   }
@@ -405,7 +410,11 @@ let movingRight = false
 
 // ドラッグとスワイプ開始時の処理
 const startDragging = (event: MouseEvent | TouchEvent) => {
-  event.preventDefault()
+  // タッチデバイスでない場合はevent.preventDefault()を実行 (タッチデバイス時にはスクロールを防げる + スライドが<a>だった場合に遷移できないため)
+  if (event instanceof MouseEvent) {
+    event.preventDefault()
+  }
+  if (!props.draggable) return
   // ドラッグ開始地点を保存
   if (event instanceof MouseEvent) {
     startX = event.pageX
@@ -419,8 +428,12 @@ const startDragging = (event: MouseEvent | TouchEvent) => {
 
 // ドラッグ中の処理
 const inDragging = (event: MouseEvent | TouchEvent) => {
+  // タッチデバイスでない場合はevent.preventDefault()を実行 (タッチデバイス時にはスクロールを防げる + スライドが<a>だった場合に遷移できないため)
+  if (event instanceof MouseEvent) {
+    event.preventDefault()
+  }
+  if (!props.draggable) return
   if (!isDragging) return
-  event.preventDefault()
   // 移動距離を計算
   if (event instanceof MouseEvent) {
     moveX = (startX - event.pageX) * -1
@@ -440,8 +453,12 @@ const inDragging = (event: MouseEvent | TouchEvent) => {
 
 // ドラッグ終了時の処理
 const endDragging = async (event: MouseEvent | TouchEvent) => {
+  // タッチデバイスでない場合はevent.preventDefault()を実行 (タッチデバイス時にはスクロールを防げる + スライドが<a>だった場合に遷移できないため)
+  if (event instanceof MouseEvent) {
+    event.preventDefault()
+  }
+  if (!props.draggable) return
   if (!isDragging) return
-  event.preventDefault()
   isDragging = false
 
   if (movingRight && moveX < -50) {
@@ -494,7 +511,6 @@ onMounted(() => {
   setActiveSlide()
   removeId()
   controlButton()
-
   if (props.autoplay) {
     startAutoPlay()
   }
@@ -510,6 +526,7 @@ onMounted(() => {
   --slide-amount: var(--slide-amount);
 
   height: 100%;
+  position: relative;
   width: 100%;
 
   @include m.sp {
@@ -518,53 +535,48 @@ onMounted(() => {
 
   .slider-body {
     container-type: inline-size;
-    height: 100%;
     overflow: clip;
     position: relative;
     width: 100%;
 
     .slider-inner {
-      height: 100%;
-      left: 0;
-      position: absolute;
-      top: 0;
+      position: relative;
       width: calc(var(--slide-item-width) * var(--slide-amount) * 1%);
 
       .slider {
+        align-items: stretch;
         display: flex;
         height: 100%;
-        left: 0;
-        position: absolute;
-        top: 0;
-        transform: translateX(0%);
-        width: calc(var(--slide-item-width) * var(--slide-amount) * 1cqi);
+        width: 100%;
 
         &.-center {
-          translate: calc((100 - var(--slide-item-width)) / 2 * 1cqi);
+          transform: translateX(
+            calc((100 - var(--slide-item-width)) / 2 * 1cqi)
+          );
         }
 
         &.-before {
-          transform: translateX(-100%);
+          left: 0;
+          position: absolute;
+          top: 0;
+          translate: -100% 0;
         }
 
         &.-after {
-          transform: translateX(100%);
+          left: 0;
+          position: absolute;
+          top: 0;
+          translate: 100% 0;
         }
       }
 
       :deep(.slider-item) {
         flex-shrink: 0;
-        height: 100%;
         padding-inline: calc(var(--gap-pc) * 0.5);
         width: calc(100% / var(--slide-amount));
 
         @include m.sp {
           padding-inline: calc(var(--gap-sp) * 0.5);
-        }
-
-        .slider-content {
-          height: 100%;
-          width: 100%;
         }
       }
     }

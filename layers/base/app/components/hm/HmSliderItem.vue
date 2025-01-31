@@ -18,3 +18,10 @@ const props = defineProps<{
   id: string
 }>()
 </script>
+
+<style lang="scss" scoped>
+.slider-content {
+  height: 100%;
+  width: 100%;
+}
+</style>
