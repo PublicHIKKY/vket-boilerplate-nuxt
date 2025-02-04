@@ -63,7 +63,7 @@ const direction = computed(() => {
     display: flex;
     flex-direction:column;
     flex-shrink: 0;
-    transform:translateX(-100%);
+    transform:translateY(-100%);
     height: max-content;
     }
   }
