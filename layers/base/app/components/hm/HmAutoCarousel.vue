@@ -64,7 +64,7 @@ const direction = computed(() => {
     flex-direction:column;
     flex-shrink: 0;
     transform:translateX(-100%);
-    width: max-content;
+    height: max-content;
     }
   }
 }
