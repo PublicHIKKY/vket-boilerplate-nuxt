@@ -1,9 +1,9 @@
 <template>
   <div
-    class="auto-carousel"
+    :class="['hm-auto-carousel', `-${props.orientation}`]"
     role="presentation"
     :style="{
-      '--direction': props.direction === 'right' ? 1 : -1,
+      '--direction': direction,
       '--duration': props.duration,
     }"
   >
@@ -27,37 +27,63 @@
 
 <script lang="ts" setup>
 const props = defineProps<{
-  direction: 'right' | 'left'
+  orientation: 'horizontal-left' | 'horizontal-right' | 'vertical-top' | 'vertical-bottom'
   duration: string
 }>()
+
+const direction = computed(() => {
+  return ['horizontal-left', 'vertical-top'].includes(props.orientation) ? -1 : 1
+})
 </script>
 
 <style lang="scss" scoped>
 @use '#base/app/assets/styles/variables' as v;
 @use '#base/app/assets/styles/mixins' as m;
 
-.auto-carousel {
+.hm-auto-carousel {
   display: flex;
   overflow: clip;
   position: relative;
-  width: 100%;
-
-  > .list {
-    animation: slide var(--duration) linear infinite;
+  &.-horizontal-left,
+  &.-horizontal-right{
+    flex-direction:row;
+    >.list {
+    animation: horizontal var(--duration) linear infinite;
     display: flex;
     flex-shrink: 0;
-    translate: -100% 0;
+    transform:translateX(-100%);
     width: max-content;
+    }
+  }
+  &.-vertical-top,
+  &.-vertical-bottom{
+    flex-direction:column;
+    >.list {
+    animation: vertical var(--duration) linear infinite;
+    display: flex;
+    flex-direction:column;
+    flex-shrink: 0;
+    transform:translateX(-100%);
+    width: max-content;
+    }
   }
 }
 
-@keyframes slide {
+@keyframes horizontal {
   0% {
-    transform: translateX(0%);
+    transform: translateX(-100%);
   }
-
   100% {
-    transform: translateX(calc(100% * var(--direction)));
+    transform: translateX(calc(-100% + (100% * var(--direction))));
+  }
+}
+
+@keyframes vertical {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(calc(-100% + (100% * var(--direction))));
   }
 }
 </style>
