@@ -4,7 +4,7 @@
     role="presentation"
     :style="{
       '--direction': direction,
-      '--duration': props.duration,
+      '--duration': `${props.duration}s`,
     }"
   >
     <ul
@@ -26,10 +26,16 @@
 </template>
 
 <script lang="ts" setup>
-const props = defineProps<{
-  orientation: 'horizontal-left' | 'horizontal-right' | 'vertical-top' | 'vertical-bottom'
-  duration: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    orientation?: 'horizontal-left' | 'horizontal-right' | 'vertical-top' | 'vertical-bottom'
+    duration?: number
+  }>(),
+  {
+    orientation: 'horizontal-left',
+    duration: 30,
+  },
+)
 
 const direction = computed(() => {
   return ['horizontal-left', 'vertical-top'].includes(props.orientation) ? -1 : 1
