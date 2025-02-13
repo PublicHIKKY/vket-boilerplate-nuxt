@@ -12,6 +12,7 @@
 
 <script setup lang="ts">
 import { LocationQuery, stringifyQuery } from 'vue-router'
+import { isExternalLinkInjectionKey } from '#base/app/models/link'
 
 const props = withDefaults(
   defineProps<{
@@ -37,7 +38,12 @@ const props = withDefaults(
     hash: undefined,
   },
 )
-const isExternalReference = computed(() => !!props.to?.match(/^https?:\/\//))
+// 同一 Nuxt インスタンスかどうかの判定を外から注入したい
+const isExternalLinkTestFunction = inject(isExternalLinkInjectionKey, () => false)
+const isExternalReference = computed(() =>
+  // https:// 等から始まっている場合は test function を無視して外部リンクとして扱う
+  !!props.to?.match(/^https?:\/\//) || isExternalLinkTestFunction(props.to),
+)
 const isNuxtLink = computed(
   // FIXME: isNuxtEnvironment() が壊れている
   () =>

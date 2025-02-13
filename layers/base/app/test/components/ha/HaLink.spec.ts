@@ -3,6 +3,7 @@ import { describe, expect, test, vi } from 'vitest'
 import HaLink from '#base/app/components/ha/HaLink.vue'
 
 import { isNuxtEnvironment } from '#base/app/utils/environment'
+import { isExternalLinkInjectionKey } from '#base/app/models/link'
 
 // useLocalePath のモック関数を定義
 beforeEach(() => {
@@ -111,6 +112,56 @@ describe(':forceAnchorLink', () => {
       props: { to: '/internal', forceAnchorLink: true },
     })
     expect(wrapper.find('a').exists()).toBe(true)
+  })
+})
+
+describe('provide isExternalLink test function', () => {
+  const isInternal = (to: string) => to === '/foo'
+  const nuxtLinkStubOption
+    = {
+      global: {
+        stubs: {
+          'nuxt-link': {
+            template: '<a><slot /></a>',
+          },
+        },
+      },
+    }
+
+  it('internal link when test function returns false', () => {
+    const wrapper = mount(
+      {
+        template: '<HaLink to="/foo"></HaLink>',
+        components: { HaLink },
+        provide: { [isExternalLinkInjectionKey]: (to: string) => !isInternal(to) },
+      },
+      nuxtLinkStubOption,
+    )
+    expect(wrapper.get('a').attributes('to')).toBe('/mocked-path')
+  })
+  it('external link even if it starts with /', () => {
+    const wrapper = mount(
+      {
+        template: '<HaLink to="/bar"></HaLink>',
+        components: { HaLink },
+        provide: { [isExternalLinkInjectionKey]: (to: string) => !isInternal(to) },
+      },
+      nuxtLinkStubOption,
+    )
+    expect(wrapper.get('a').attributes('href')).toBe('/bar')
+    expect(wrapper.get('a').attributes('to')).toBeFalsy()
+  })
+  it('"https://~~" is external link even if test function returns always false', () => {
+    const wrapper = mount(
+      {
+        template: '<HaLink to="https://example.com/"></HaLink>',
+        components: { HaLink },
+        provide: { [isExternalLinkInjectionKey]: (_to: string) => false },
+      },
+      nuxtLinkStubOption,
+    )
+    expect(wrapper.get('a').attributes('href')).toBe('https://example.com/')
+    expect(wrapper.get('a').attributes('to')).toBeFalsy()
   })
 })
 
