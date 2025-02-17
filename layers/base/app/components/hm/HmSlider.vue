@@ -380,13 +380,13 @@ const setActiveSlide = () => {
 
 // 複製されたスライドからid属性を除去する関数
 const removeId = () => {
-  if (!clonedSlideBefore.value) {
-    throw new Error('clonedSlideBefore要素はnull')
-  }
-  if (!clonedSlideAfter.value) {
-    throw new Error('clonedSlideBefore要素はnull')
-  }
   if (props.loop) {
+    if (!clonedSlideBefore.value) {
+      throw new Error('clonedSlideBefore要素はnull')
+    }
+    if (!clonedSlideAfter.value) {
+      throw new Error('clonedSlideBefore要素はnull')
+    }
     // clonedSlideBefore.valueの子要素の,slider-item全てからid属性を除去する
     const clonedSlideBeforeItems
       = clonedSlideBefore.value.querySelectorAll<HTMLElement>('.slider-item')
