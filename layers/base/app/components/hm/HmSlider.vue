@@ -36,7 +36,7 @@
               '-center': props.center ? true : false,
             }"
             role="presentation"
-            inert
+            aria-hidden="true"
           >
             <slot name="item"></slot>
           </div>
@@ -60,7 +60,7 @@
               '-center': props.center,
             }"
             role="presentation"
-            inert
+            aria-hidden="true"
           >
             <slot name="item"></slot>
           </div>
@@ -369,10 +369,10 @@ const setActiveSlide = () => {
     sliderItems.forEach((item: HTMLElement, index: number) => {
       if (index === Math.abs(currentSlide.value)) {
         item.classList.add('-active')
-        item.removeAttribute('inert')
+        item.removeAttribute('aria-hidden')
       } else {
         item.classList.remove('-active')
-        item.setAttribute('inert', 'inert')
+        item.setAttribute('aria-hidden', 'true')
       }
     })
   }
