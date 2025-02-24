@@ -7,30 +7,13 @@
     "layers/*"
   ],
   "scripts": {
-    "prepare": "corepack enable; bunx --quiet husky"
+    "prepare": "bun husky"
   },
   "devDependencies": {
-    "@eslint/js": "^9.16.0",
-    "@total-typescript/ts-reset": "^0.6.1",
-    "@types/eslint__js": "^8.42.3",
-    "@types/node": "^22.10.1",
-    "@types/postcss-url": "^10.0.4",
-    "cross-env": "^7.0.3",
-    "eslint": "^9.16.0",
-    "globals": "^15.13.0",
+    "eslint": "^9.21.0",
     "husky": "^9.1.7",
-    "lint-staged": "^15.2.10",
-    "postcss-html": "^1.7.0",
-    "postcss-import": "^16.1.0",
-    "postcss-url": "^10.1.3",
-    "sass-embedded": "^1.82.0",
-    "stylelint": "^16.11.0",
-    "stylelint-config-standard-scss": "^14.0.0",
-    "stylelint-order": "^6.0.4",
-    "stylelint-rscss": "^0.4.0",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2",
-    "typescript-eslint": "^8.17.0"
+    "lint-staged": "^15.4.3",
+    "stylelint": "^16.14.1"
   },
   "lint-staged": {
     "layers/**/*.+(js|ts|vue)": [
@@ -38,7 +21,6 @@
     ]
   },
   "resolutions": {
-    "eslint": "9.14.0",
-    "typescript": "5.6.3"
+    "eslint": "9.14.0"
   }
 }
