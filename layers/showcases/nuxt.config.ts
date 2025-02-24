@@ -31,7 +31,10 @@ export default defineNuxtConfig({
   rootDir: __dirname,
   srcDir: `${srcDir}/`,
   alias: {
+    '~': path.resolve(__dirname, '../main/app'),
+    '@': path.resolve(__dirname, '../main/app'),
     '#base': path.resolve(__dirname, '../base'),
+    '#main': path.resolve(__dirname, '../main'),
     '#showcases': __dirname,
   },
   ignore: [
