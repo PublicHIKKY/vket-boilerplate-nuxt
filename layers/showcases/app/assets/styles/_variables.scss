@@ -89,10 +89,11 @@ $mypage-header-height-pc: 72px;
 $mypage-header-height-sp: 72px;
 
 /* space-settings */
-$space-base: 4px;
+$space-base: 16px;
+$space-unit: 4px;
 
 @function space($value) {
-  @return $value * $space-base;
+  @return $value * $space-unit;
 }
 
 /* z-index-settings */
