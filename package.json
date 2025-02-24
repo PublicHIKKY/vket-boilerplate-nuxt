@@ -16,7 +16,7 @@
     "stylelint": "^16.14.1"
   },
   "lint-staged": {
-    "layers/**/*.+(js|ts|vue)": [
+    "layers/**/*.+(js|ts|tsx|vue)": [
       "eslint --cache --cache-strategy content"
     ]
   },
