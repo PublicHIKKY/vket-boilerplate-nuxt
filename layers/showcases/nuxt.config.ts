@@ -28,6 +28,9 @@ export default defineNuxtConfig({
   },
   css: cssUrls,
   runtimeConfig,
+  dir: {
+    public: path.resolve(__dirname, './public'),
+  },
   rootDir: __dirname,
   srcDir: `${srcDir}/`,
   alias: {
