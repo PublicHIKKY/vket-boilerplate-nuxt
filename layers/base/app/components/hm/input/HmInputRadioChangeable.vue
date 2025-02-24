@@ -52,12 +52,12 @@ watch(toRef(props.options), (_next, _prev) => {
   // チェックされているオブジェクトを探す
   const checkedOptions
     = props.options.find(element => element.checked)
-    ?? raiseError('HmInputRadioChangeable: watch: checkedOptions')
+      ?? raiseError('HmInputRadioChangeable: watch: checkedOptions')
 
   // チェック対象を探す
   const buttons
     = radiobuttons.value
-    ?? raiseError('HmInputRadioChangeable: watch: radiobuttons')
+      ?? raiseError('HmInputRadioChangeable: watch: radiobuttons')
   const checkTarget
     = buttons.find(
       // チェックされているオブジェクトとidが同じものがチェック対象

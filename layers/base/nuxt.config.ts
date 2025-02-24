@@ -22,6 +22,7 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@vueuse/nuxt',
     'unplugin-icons/nuxt',
+    '@nuxtjs/robots',
   ],
   imports: {
     dirs: ['utils/types/**'],
@@ -33,7 +34,6 @@ export default defineNuxtConfig({
       viewport: 'width=device-width, initial-scale=1',
       charset: 'utf-8',
       meta: [
-        { name: 'robots', content: 'noindex, nofollow' },
         { hid: 'og:type', property: 'og:type', content: 'website' },
         {
           hid: 'twitter:card',

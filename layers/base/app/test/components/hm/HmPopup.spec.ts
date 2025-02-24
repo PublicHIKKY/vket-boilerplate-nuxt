@@ -45,7 +45,7 @@ describe('emits', () => {
 
     const cancelButton
       = wrapper.findAll('.hm-popup-button > button')[0]
-      ?? raiseError('cancelButton is not found')
+        ?? raiseError('cancelButton is not found')
     await cancelButton.trigger('click')
     expect(wrapper.emitted()).toHaveProperty('cancel')
   })
@@ -62,7 +62,7 @@ describe('emits', () => {
 
     const confirmButton
       = wrapper.findAll('.hm-popup-button > button')[1]
-      ?? raiseError('confirmButton is not found')
+        ?? raiseError('confirmButton is not found')
     await confirmButton.trigger('click')
     expect(wrapper.emitted()).toHaveProperty('confirm')
   })

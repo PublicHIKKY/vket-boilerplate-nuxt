@@ -22,9 +22,9 @@ const useSocialShareLink = () => {
   const getShareUrl = (target: string, props?: ShareProps) => {
     const shareText
       = props?.text
-      ?? (i18n.locale.value === 'ja'
-        ? encodeURIComponent(`${currentPath.value} をシェア`)
-        : encodeURIComponent(`Share ${currentPath.value}`))
+        ?? (i18n.locale.value === 'ja'
+          ? encodeURIComponent(`${currentPath.value} をシェア`)
+          : encodeURIComponent(`Share ${currentPath.value}`))
 
     const xUrlSearchParam = new URLSearchParams({
       url: props?.shareUrl ? props?.shareUrl : currentPath.value,
