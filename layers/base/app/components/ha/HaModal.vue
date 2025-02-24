@@ -74,8 +74,7 @@ const togglePopup = () => {
   if (popupVisibility.value) {
     document.body.style.overflow = 'hidden'
     document.documentElement.style.overflow = 'hidden'
-  }
-  else {
+  } else {
     document.body.style.overflow = ''
     document.documentElement.style.overflow = ''
   }

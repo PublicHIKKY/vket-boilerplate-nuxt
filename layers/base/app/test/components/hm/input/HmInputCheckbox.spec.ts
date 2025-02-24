@@ -128,8 +128,10 @@ describe('emits', () => {
     setTimeout(() => {
       expect(wrapper.emitted()).toHaveProperty('validate')
       expect(wrapper.emitted()['validate']).toHaveLength(1)
-      // TODO: バリデーションエラー時にZodエラーメッセージを二重否定の真偽値として送信するが、正しい値を送信しないのでコメントアウト
-      // expect(wrapper.emitted()['validate']).toEqual([[true]])
+      /*
+       * TODO: バリデーションエラー時にZodエラーメッセージを二重否定の真偽値として送信するが、正しい値を送信しないのでコメントアウト
+       * expect(wrapper.emitted()['validate']).toEqual([[true]])
+       */
     }, 1)
   })
 })

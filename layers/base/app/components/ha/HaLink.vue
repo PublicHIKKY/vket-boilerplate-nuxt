@@ -22,8 +22,10 @@ const props = withDefaults(
     noLocale?: boolean
     // toにqueryパラメータを入れてしまうと、localePathで消えるため、こちらのパラメータを使用してリンクを生成
     query?: LocationQuery
-    // toにhashパラメータを入れてしまうと、localePathで消えるため、こちらのパラメータを使用してリンクを生成
-    // 使う場合は「#」を先頭につけること
+    /*
+     * toにhashパラメータを入れてしまうと、localePathで消えるため、こちらのパラメータを使用してリンクを生成
+     * 使う場合は「#」を先頭につけること
+     */
     hash?: string
   }>(),
   {

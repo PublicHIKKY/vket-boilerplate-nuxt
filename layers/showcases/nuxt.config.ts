@@ -28,10 +28,16 @@ export default defineNuxtConfig({
   },
   css: cssUrls,
   runtimeConfig,
+  dir: {
+    public: path.resolve(__dirname, './public'),
+  },
   rootDir: __dirname,
   srcDir: `${srcDir}/`,
   alias: {
+    '~': path.resolve(__dirname, '../main/app'),
+    '@': path.resolve(__dirname, '../main/app'),
     '#base': path.resolve(__dirname, '../base'),
+    '#main': path.resolve(__dirname, '../main'),
     '#showcases': __dirname,
   },
   ignore: [

@@ -28,8 +28,7 @@ const doObserve = (
               inAction?.()
               item.target.classList.add(intersectingClass || '-intersecting')
             }, delayParam)
-          }
-          else {
+          } else {
             outAction?.()
             item.target.classList.remove(intersectingClass || '-intersecting')
           }

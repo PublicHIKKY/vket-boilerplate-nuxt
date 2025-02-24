@@ -147,8 +147,8 @@ const emit = defineEmits<{
  */
 const validateOnMount
   = props.validateOnMount
-  && typeof props.modelValue?.toString() === 'string'
-  && props.modelValue.toString().length > 0
+    && typeof props.modelValue?.toString() === 'string'
+    && props.modelValue.toString().length > 0
 
 const { value, errorMessage } = useField<FieldInput>(
   toRef(props, 'validatorName'),
@@ -318,5 +318,6 @@ input[type='number']::-webkit-inner-spin-button {
 
 input[type='number'] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 </style>

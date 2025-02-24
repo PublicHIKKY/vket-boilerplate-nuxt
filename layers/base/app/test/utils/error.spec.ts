@@ -4,8 +4,7 @@ test('unreachable', () => {
   const x: number = 10
   if (typeof x === 'number') {
     // ここにしか来ない
-  }
-  else {
+  } else {
     unreachable(x)
   }
 })

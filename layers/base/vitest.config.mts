@@ -128,6 +128,7 @@ export default defineConfig({
         __dirname,
         '../../node_modules/@nuxtjs/i18n/dist/runtime/composables'
       ),
+      '@@/public/images/no-image.png': '/images/no-image.png',
     },
   },
 })

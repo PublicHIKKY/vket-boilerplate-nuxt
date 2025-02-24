@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { constant } from '#base/app/utils/constant'
+import defaultNoImage from '@@/public/images/no-image.png'
 
 const props = withDefaults(
   defineProps<{
@@ -47,10 +47,9 @@ const onError = () => {
 }
 
 // SP用の画像URL
-const imageUrlSp = computed(() => {
-  if (hasError.value) {
-    return props.noImage || constant.images.none
-  }
-  return props.srcSp || constant.images.none
-})
+const imageUrlSp = computed(() =>
+  hasError.value
+    ? props.noImage || defaultNoImage
+    : props.srcSp || defaultNoImage,
+)
 </script>

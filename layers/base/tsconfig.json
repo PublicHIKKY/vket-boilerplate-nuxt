@@ -5,5 +5,4 @@
     "./.nuxt/tsconfig.json",
     "./tsconfig.shared.json"
   ],
-  "exclude": ["../main/**/*"]
 }

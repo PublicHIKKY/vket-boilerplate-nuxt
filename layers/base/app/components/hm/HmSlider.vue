@@ -36,7 +36,7 @@
               '-center': props.center ? true : false,
             }"
             role="presentation"
-            inert
+            aria-hidden="true"
           >
             <slot name="item"></slot>
           </div>
@@ -60,7 +60,7 @@
               '-center': props.center,
             }"
             role="presentation"
-            inert
+            aria-hidden="true"
           >
             <slot name="item"></slot>
           </div>
@@ -213,8 +213,7 @@ const moveSlider = async (direction: 'previous' | 'next') => {
   }
   if (direction === 'previous') {
     updateCurrentSlide('previous')
-  }
-  else if (direction === 'next') {
+  } else if (direction === 'next') {
     updateCurrentSlide('next')
   }
   // loopがfalseのとき、currentIndex次第でボタンのdisabledを制御する
@@ -251,13 +250,11 @@ const controlButton = () => {
     // 1枚目表示中は戻るボタンをdisabledにする
     disabledNext.value = false
     disabledPrevious.value = true
-  }
-  else if (currentSlide.value * -1 === props.amount - 1) {
+  } else if (currentSlide.value * -1 === props.amount - 1) {
     // 最後のスライド表示中は進むボタンをdisabledにする
     disabledNext.value = true
     disabledPrevious.value = false
-  }
-  else {
+  } else {
     // それ以外はdisabledを解除する
     disabledNext.value = false
     disabledPrevious.value = false
@@ -298,8 +295,7 @@ const updateCurrentSlide = (
       previousX.value = 100 / props.amount
       currentSlide.value = 0
       nextX.value = 0
-    }
-    else {
+    } else {
       previousX.value = (100 / props.amount) * currentSlide.value
       currentSlide.value -= 1
       nextX.value = (100 / props.amount) * currentSlide.value
@@ -317,8 +313,7 @@ const updateCurrentSlide = (
       previousX.value = (100 / props.amount) * props.amount * -1
       currentSlide.value = props.amount * -1 + 1
       nextX.value = (100 / props.amount) * currentSlide.value
-    }
-    else {
+    } else {
       previousX.value = (100 / props.amount) * currentSlide.value
       currentSlide.value += 1
       nextX.value = (100 / props.amount) * currentSlide.value
@@ -374,11 +369,10 @@ const setActiveSlide = () => {
     sliderItems.forEach((item: HTMLElement, index: number) => {
       if (index === Math.abs(currentSlide.value)) {
         item.classList.add('-active')
-        item.removeAttribute('inert')
-      }
-      else {
+        item.removeAttribute('aria-hidden')
+      } else {
         item.classList.remove('-active')
-        item.setAttribute('inert', 'inert')
+        item.setAttribute('aria-hidden', 'true')
       }
     })
   }
@@ -386,13 +380,13 @@ const setActiveSlide = () => {
 
 // 複製されたスライドからid属性を除去する関数
 const removeId = () => {
-  if (!clonedSlideBefore.value) {
-    throw new Error('clonedSlideBefore要素はnull')
-  }
-  if (!clonedSlideAfter.value) {
-    throw new Error('clonedSlideBefore要素はnull')
-  }
   if (props.loop) {
+    if (!clonedSlideBefore.value) {
+      throw new Error('clonedSlideBefore要素はnull')
+    }
+    if (!clonedSlideAfter.value) {
+      throw new Error('clonedSlideBefore要素はnull')
+    }
     // clonedSlideBefore.valueの子要素の,slider-item全てからid属性を除去する
     const clonedSlideBeforeItems
       = clonedSlideBefore.value.querySelectorAll<HTMLElement>('.slider-item')
@@ -424,11 +418,9 @@ const startDragging = (event: MouseEvent | TouchEvent) => {
   // ドラッグ開始地点を保存
   if (event instanceof MouseEvent) {
     startX = event.pageX
-  }
-  else if (event instanceof TouchEvent && event.touches[0]) {
+  } else if (event instanceof TouchEvent && event.touches[0]) {
     startX = event.touches[0].pageX
-  }
-  else {
+  } else {
     return
   }
   isDragging = true
@@ -445,11 +437,9 @@ const inDragging = (event: MouseEvent | TouchEvent) => {
   // 移動距離を計算
   if (event instanceof MouseEvent) {
     moveX = (startX - event.pageX) * -1
-  }
-  else if (event instanceof TouchEvent && event.touches[0]) {
+  } else if (event instanceof TouchEvent && event.touches[0]) {
     moveX = (startX - event.touches[0].pageX) * -1
-  }
-  else {
+  } else {
     // 未知のイベント型に対するエラー処理
     return
   }
@@ -481,8 +471,7 @@ const endDragging = async (event: MouseEvent | TouchEvent) => {
       return
     }
     await moveSlider('next')
-  }
-  else if (movingRight === false && moveX > 50) {
+  } else if (movingRight === false && moveX > 50) {
     // 現在のスライドが最初のスライドの場合はreturn
     if (props.loop === false && currentSlide.value === 0) {
       if (!slider.value) {

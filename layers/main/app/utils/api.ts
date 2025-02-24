@@ -2,6 +2,8 @@ import { FetchOptions } from 'ofetch'
 import type { Method } from '#base/app/utils/default-api'
 import { defaultApi } from '#base/app/utils/default-api'
 
+export type { Method }
+
 export default (
   method: Method,
   path: string,
