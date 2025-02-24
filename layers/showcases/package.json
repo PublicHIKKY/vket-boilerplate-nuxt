@@ -1,5 +1,5 @@
 {
-  "name": "vket-boilerplace-nuxt-showcases",
+  "name": "vket-boilerplate-nuxt-showcases",
   "private": true,
   "type": "module",
   "version": "0.1.0",
@@ -26,6 +26,6 @@
     "test:coverage": "vitest run --dir ./app/test --coverage"
   },
   "dependencies": {
-    "vket-boilerplace-nuxt-base": "workspace:*"
+    "vket-boilerplate-nuxt-base": "workspace:*"
   }
 }

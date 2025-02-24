@@ -1,5 +1,5 @@
 {
-  "name": "vket-boilerplace-nuxt-main",
+  "name": "vket-boilerplate-nuxt-main",
   "private": true,
   "type": "module",
   "version": "0.1.0",
@@ -30,6 +30,6 @@
     "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true"
   },
   "dependencies": {
-    "vket-boilerplace-nuxt-base": "workspace:*"
+    "vket-boilerplate-nuxt-base": "workspace:*"
   }
 }

@@ -20,7 +20,6 @@
       "./@types"
     ],
     "types": [
-      "@types/eslint__js",
       "@types/node",
       "@types/postcss-url",
       "@types/uuid",

@@ -229,7 +229,7 @@ declare global {
   export type { Method } from '../app/utils/default-api'
   import('../app/utils/default-api')
   // @ts-ignore
-  export type { DefaultRepository, DefaultRepositories, DefaultRepositoryKey } from '../app/utils/default-factory'
+  export type { ApiAccess, MakeRepository, DefaultRepository, DefaultRepositories, DefaultRepositoryKey } from '../app/utils/default-factory'
   import('../app/utils/default-factory')
   // @ts-ignore
   export type { ResponseStatus, Paging, AsyncDataResponse } from '../app/utils/response'
