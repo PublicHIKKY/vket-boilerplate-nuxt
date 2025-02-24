@@ -42,8 +42,7 @@ export const useAuthVketSso = () => {
       setSingleCookieValue(COOKIE_KEY_JWT, result.jwt)
       aliveToken.value = result.jwt
       return result.jwt
-    }
-    catch (e) {
+    } catch (e) {
       console.error(`${e}`)
       aliveToken.value = null
       return null
@@ -160,8 +159,7 @@ export const useAuthVketSso = () => {
     try {
       const result = await vketSsoRepository.get.fetchSsoProfile()
       ssoUser.value = result.user
-    }
-    catch (e) {
+    } catch (e) {
       console.error(e)
       ssoUser.value = null
       isLogout.value = true
@@ -246,8 +244,7 @@ export const useAuthVketSso = () => {
         return returnFunction(await _fetchToken())
       }
       return returnFunction(jwtString)
-    }
-    catch (error) {
+    } catch (error) {
       console.error(`${error}`)
       return null
     }
