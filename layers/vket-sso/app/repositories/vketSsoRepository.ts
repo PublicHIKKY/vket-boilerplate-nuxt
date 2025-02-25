@@ -6,9 +6,9 @@
  * @ref https://hikky.atlassian.net/wiki/spaces/ACCOUNT/pages/462258411/JS+ID
  */
 import { z } from 'zod'
-import { ssoUserSchema } from '#vket-sso/app/models/vketSso'
 import { defaultApi } from '#base/app/utils/default-api'
 import { raiseError } from '#base/app/utils/error'
+import { ssoUserSchema } from '#vket-sso/app/models/vketSso'
 
 const fetchSsoProfileResponseSchema = z.object({
   user: ssoUserSchema,
@@ -35,7 +35,7 @@ export const vketSsoRepository = {
      * @remarks VketSSO: 自分のプロフィールを取得する
      * @ref https://hikky.atlassian.net/wiki/spaces/BKS/pages/668240004/VketSSO
      */
-    async fetchSsoProfile() {
+    fetchSsoProfile: async () => {
       const config = useRuntimeConfig()
       const domain
         = config?.public?.ssoDomain || raiseError('undefined ssoDomain')
@@ -49,7 +49,7 @@ export const vketSsoRepository = {
      * @remarks VketSSO: 自分のトークンを取得する
      * @ref https://hikky.atlassian.net/wiki/spaces/BKS/pages/668240004/VketSSO
      */
-    async fetchSsoToken(origin = '') {
+    fetchSsoToken: async (origin = '') => {
       const config = useRuntimeConfig()
       const domain
         = config?.public?.ssoDomain || raiseError('undefined ssoDomain')
@@ -69,7 +69,7 @@ export const vketSsoRepository = {
      * @remarks VketSSO: 自分のJWKを取得する
      * @ref https://hikky.atlassian.net/wiki/spaces/BKS/pages/668240004/VketSSO
      */
-    async fetchSsoJwk() {
+    fetchSsoJwk: async () => {
       const config = useRuntimeConfig()
       const domain
         = config?.public?.ssoDomain || raiseError('undefined ssoDomain')

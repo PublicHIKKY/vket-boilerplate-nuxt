@@ -62,7 +62,7 @@
     "@vitejs/plugin-vue": "^5.2.1",
     "@vitejs/plugin-vue-jsx": "^4.1.1",
     "@vitest/coverage-v8": "^3.0.6",
-    "@vitest/ui": "^3.0.6",
+    "@vitest/ui": "^3.0.7",
     "@vue/runtime-dom": "^3.5.13",
     "@vue/test-utils": "^2.4.6",
     "camelcase-keys": "^9.1.3",
