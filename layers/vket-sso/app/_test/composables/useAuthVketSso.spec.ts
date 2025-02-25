@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { useAuthVketSso } from '#vket-sso/app/composables/useAuthVketSso'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getSessionStorageValue } from '#base/app/utils/storage-control'
 import { decodeJwt } from '#base/app/utils/token'
+import { useAuthVketSso } from '#vket-sso/app/composables/useAuthVketSso'
 import { vketSsoRepository } from '#vket-sso/app/repositories/vketSsoRepository'
 
 // FIXME: import.meta.serverのモック化ができないのでそこの分岐テストは出来てない

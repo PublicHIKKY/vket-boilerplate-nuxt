@@ -1,5 +1,6 @@
 import typescriptEslint from '@typescript-eslint/eslint-plugin'
 import globals from 'globals'
+import stylistic from '@stylistic/eslint-plugin'
 import sharedConfig, { basicConfig } from '../../eslint.config.shared.mjs'
 import withNuxt from './.nuxt/eslint.config.mjs'
 
@@ -36,10 +37,12 @@ export default withNuxt(
       },
     },
     rules: {
-      // ERROR  Cannot use 'import.meta' outside a module                                                                                                                                                                                                                                                               9:08:45 PM
-      // asyncContext: !!__NUXT_ASYNC_CONTEXT__ && import.meta.server
-      // ^^^^
-      // `yarn fix`すると`process.server`が`import.meta.server`に置き換えられて↑が発生するので、off
+      /*
+       * ERROR  Cannot use 'import.meta' outside a module                                                                                                                                                                                                                                                               9:08:45 PM
+       * asyncContext: !!__NUXT_ASYNC_CONTEXT__ && import.meta.server
+       * ^^^^
+       * `yarn fix`すると`process.server`が`import.meta.server`に置き換えられて↑が発生するので、off
+       */
       'nuxt/prefer-import-meta': 'off',
     },
   },
@@ -71,6 +74,20 @@ export default withNuxt(
       '@typescript-eslint/no-unsafe-return': 'off',
     },
   },
+
+  /*
+   * コーディングスタイルの設定（そのうちnuxt.config.tsに書けないもの）
+   * https://eslint.style/rules
+   */
+  {
+    plugins: {
+      '@stylistic': stylistic,
+    },
+    rules: {
+      '@stylistic/multiline-comment-style': ['warn', 'starred-block'],
+    },
+  },
+
   // その他オーバーライド
   {
     files: ['**/test/**/*.ts'],

@@ -1,4 +1,4 @@
 {
-  "layers/*/app/**/*.+(js|jsx|ts|tsx|vue)": ["eslint"],
-  "layers/*/app/**/*.+(css|scss|sass|vue)": ["stylelint --allow-empty-input"]
+  "layers/**/*.+(js|jsx|ts|tsx|vue)": ["eslint --cache --cache-strategy content"],
+  "layers/**/*.+(css|scss|sass|vue)": ["stylelint --allow-empty-input"]
 }

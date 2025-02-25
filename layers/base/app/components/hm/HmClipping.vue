@@ -82,15 +82,17 @@ const cropperOptions = computed(() => {
 })
 
 const onChange = ({ canvas }: { canvas: HTMLCanvasElement }) => {
-  // this.coordinates = coordinates
-  // note: canvas to DataURI
-  // this.croppedImage = canvas.toDataURL(`image/${this.ext}`)
+  /*
+   * this.coordinates = coordinates
+   * note: canvas to DataURI
+   * this.croppedImage = canvas.toDataURL(`image/${this.ext}`)
+   */
   const data = canvas.toDataURL(`image/${props.ext}`)
   // note: DataURL to File
   const bytes = atob(data.split(',')[1] ?? raiseError('Invalid bytes'))
   const mime
     = data.split(',')[0]?.split(':')[1]?.split(';')[0]
-    ?? raiseError('Invalid mime')
+      ?? raiseError('Invalid mime')
   const name = `tmp-${new Date().getTime()}.${mime.split('/')[1]}`
   const writer = new Uint8Array(new ArrayBuffer(bytes.length))
   for (let i = 0; i < bytes.length; i++) {

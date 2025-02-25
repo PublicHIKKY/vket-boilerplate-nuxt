@@ -116,8 +116,10 @@ const onChange = (event: Event) => {
 }
 
 const valueProp = computed(() => {
-  // props.value の型にbooleanが含まれているからかflagとして解釈されている？
-  // 指定しない時のデフォルト値がundefinedでなくfalseになってつらいので対処
+  /*
+   * props.value の型にbooleanが含まれているからかflagとして解釈されている？
+   * 指定しない時のデフォルト値がundefinedでなくfalseになってつらいので対処
+   */
   if (props.type === 'file' && props.value === false) return {}
   if (props.modelValue !== undefined) return { value: props.modelValue }
   return {

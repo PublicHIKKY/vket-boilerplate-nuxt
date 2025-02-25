@@ -39,8 +39,7 @@ const isOpen = ref(false)
 onMounted(() => {
   if (accordionBody.value && !props.open) {
     accordionBody.value.setAttribute('hidden', 'until-found')
-  }
-  else {
+  } else {
     isOpen.value = true
   }
   const observer = new MutationObserver((mutationsList) => {
@@ -70,8 +69,7 @@ const changeExpanded = () => {
   isOpen.value = !isOpen.value
   if (accordionBody.value && isOpen.value) {
     accordionBody.value.removeAttribute('hidden')
-  }
-  else if (isOpen.value) {
+  } else if (isOpen.value) {
     setTimeout(() => {
       if (accordionBody.value) {
         accordionBody.value.setAttribute('hidden', 'until-found')
@@ -79,6 +77,17 @@ const changeExpanded = () => {
     }, 300)
   }
 }
+
+const closeAccordion = () => {
+  isOpen.value = false
+  setTimeout(() => {
+    if (accordionBody.value) {
+      accordionBody.value.setAttribute('hidden', 'until-found')
+    }
+  }, 300)
+}
+
+defineExpose({ closeAccordion })
 </script>
 
 <style scoped lang="scss">

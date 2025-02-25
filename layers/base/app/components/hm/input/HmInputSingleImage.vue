@@ -168,8 +168,10 @@ const changeImage = async (images: FileList | null) => {
     return
   }
 
-  // note: Cropサイズが指定されている場合、画像がそのサイズと同じならクロッパーを表示しない
-  // note: Cropサイズが指定されている場合、画像がそのサイズより小さいならアラートを表示
+  /*
+   * note: Cropサイズが指定されている場合、画像がそのサイズと同じならクロッパーを表示しない
+   * note: Cropサイズが指定されている場合、画像がそのサイズより小さいならアラートを表示
+   */
   const imgEl = new Image()
   imgEl.src = URL.createObjectURL(image)
   imgEl.onload = async () => {
@@ -180,8 +182,7 @@ const changeImage = async (images: FileList | null) => {
       ) {
         await returnImage(image)
         return
-      }
-      else if (
+      } else if (
         imgEl.width < props.cropWidth
         || imgEl.height < props.cropHeight
       ) {
@@ -198,8 +199,7 @@ const changeImage = async (images: FileList | null) => {
       if (imgEl.width === props.cropWidth) {
         await returnImage(image)
         return
-      }
-      else if (imgEl.width < props.cropWidth) {
+      } else if (imgEl.width < props.cropWidth) {
         alert(`幅${props.cropWidth}px以上の画像を指定してください`)
         return
       }
@@ -211,8 +211,7 @@ const changeImage = async (images: FileList | null) => {
       if (imgEl.height === props.cropHeight) {
         await returnImage(image)
         return
-      }
-      else if (imgEl.height < props.cropHeight) {
+      } else if (imgEl.height < props.cropHeight) {
         alert(`高さ${props.cropHeight}px以上の画像を指定してください`)
         return
       }

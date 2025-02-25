@@ -7,8 +7,7 @@ export default defineNuxtRouteMiddleware(async () => {
     const authVketSso = useAuthVketSso()
     if (authVketSso.isLogout.value) return
     await authVketSso.getTokenOrRefresh()
-  }
-  catch (error) {
+  } catch (error) {
     console.error(error)
   }
 })

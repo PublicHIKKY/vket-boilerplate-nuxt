@@ -38,7 +38,10 @@ en:
       >
         <HaLink
           class="pagination-item"
-          :class="{ ['link-disabled active']: currentPage == page, ['link-disabled ellipsis']: page == '...' }"
+          :class="{
+            ['link-disabled active']: currentPage == page,
+            ['link-disabled ellipsis']: page == '...',
+          }"
           :to="route.path"
           :query="createPageQuery(Number(page))"
         >
@@ -105,8 +108,10 @@ const createRange = (length: number, start = 0): number[] => {
   return Array.from({ length }, (_, i) => start + i)
 }
 
-// 表示すべきページ番号の配列を作成 ( ロジックの大元はVuetifyライブラリのPaginationコンポーネント参考 )
-// https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/components/VPagination/VPagination.tsx
+/*
+ * 表示すべきページ番号の配列を作成 ( ロジックの大元はVuetifyライブラリのPaginationコンポーネント参考 )
+ * https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/components/VPagination/VPagination.tsx
+ */
 const pages = computed(() => {
   if (
     totalPages.value <= 0
@@ -136,13 +141,11 @@ const pages = computed(() => {
       props.ellipsis,
       totalPages.value,
     ]
-  }
-  else if (currentPage.value - right >= (even ? 1 : 0)) {
+  } else if (currentPage.value - right >= (even ? 1 : 0)) {
     const rangeLength = props.totalVisible - 1
     const rangeStart = totalPages.value - rangeLength + 1
     return [1, props.ellipsis, ...createRange(rangeLength, rangeStart)]
-  }
-  else {
+  } else {
     const rangeLength = Math.max(1, props.totalVisible - 3)
     const rangeStart
       = rangeLength === 1
@@ -202,16 +205,16 @@ const goToPage = (page: number) => {
       color: v.$button-disabled-color;
 
       :deep(svg path) {
-      fill: v.$button-disabled-color;
-    }
+        fill: v.$button-disabled-color;
+      }
     }
 
     &:hover {
       color: v.$primary-button-default-color;
 
       :deep(svg path) {
-      fill: v.$primary-button-default-color;
-    }
+        fill: v.$primary-button-default-color;
+      }
     }
   }
 
@@ -223,35 +226,35 @@ const goToPage = (page: number) => {
     user-select: none;
 
     .pagination-item {
+      align-items: center;
+      background: v.$white;
+      border-radius: 50%;
+      color: v.$base-font-color;
+      cursor: pointer;
+      display: flex;
+      height: 30px;
+      justify-content: center;
+      width: 30px;
+
+      &.active {
+        background-color: v.$primary-button-default-color;
+        color: v.$white;
+        font-weight: bold;
+      }
+
+      &:hover:not(.active) {
+        background-color: v.$primary-button-default-color;
+        color: v.$white;
+      }
+
+      &.ellipsis {
         align-items: center;
-        background: v.$black-undercoat;
-        border-radius: 50%;
-        color: v.$base-font-color;
-        cursor: pointer;
+        background: none;
         display: flex;
-        height: 30px;
         justify-content: center;
+        pointer-events: none;
         width: 30px;
-
-        &.active {
-          background-color: v.$primary-button-default-color;
-          color: v.$white;
-          font-weight: bold;
-        }
-
-        &:hover:not(.active) {
-          background-color: v.$primary-button-default-color;
-          color: v.$white;
-        }
-
-        &.ellipsis {
-          align-items: center;
-          background: none;
-          display: flex;
-          justify-content: center;
-          pointer-events: none;
-          width: 30px;
-        }
+      }
     }
   }
 }

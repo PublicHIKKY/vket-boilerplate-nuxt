@@ -76,8 +76,7 @@ const useValidationRules = () => {
           })
           .parse(value)
         return true
-      }
-      catch (_e) {
+      } catch (_e) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: i18n.t('validation.url'),

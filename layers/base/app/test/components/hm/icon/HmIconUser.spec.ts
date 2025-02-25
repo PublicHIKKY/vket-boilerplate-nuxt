@@ -1,6 +1,10 @@
 import { mount } from '@vue/test-utils'
 import HmIconUser from '#base/app/components/hm/icon/HmIconUser.vue'
-import { constant } from '#base/app/utils/constant'
+
+/**
+ * @see vitest.config.mtsのalias
+ */
+const defaultNoImage = '/images/no-image.png'
 
 test('ref component', () => {
   expect(HmIconUser).toBeTruthy()
@@ -36,7 +40,7 @@ describe('if src empty, set no image', () => {
         src: '',
       },
     })
-    expect(wrapper.get('img').attributes('src')).toBe(constant.images.none)
+    expect(wrapper.get('img').attributes('src')).toBe(defaultNoImage)
   })
 })
 
