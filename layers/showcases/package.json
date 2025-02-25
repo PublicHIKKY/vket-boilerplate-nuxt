@@ -1,0 +1,31 @@
+{
+  "name": "vket-boilerplate-nuxt-showcases",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "postinstall": "nuxt prepare",
+    "dev": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt dev",
+    "dev:local": "cross-env VITE_OUTPUT_ENV=local nuxt dev",
+    "build": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt build",
+    "build:local": "cross-env VITE_OUTPUT_ENV=local nuxt build",
+    "generate": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt generate",
+    "generate:local": "cross-env VITE_OUTPUT_ENV=local nuxt generate",
+    "preview": "nuxt preview",
+    "typecheck": "cross-env VITE_OUTPUT_ENV=local nuxt typecheck",
+    "analyze": "cross-env VITE_OUTPUT_ENV=local nuxt analyze",
+    "lint": "bun lint:eslint && bun lint:stylelint",
+    "lint:eslint": "eslint --cache --cache-strategy content ./app",
+    "lint:stylelint": "stylelint --cache --cache-strategy content ./app/**/*.{css,scss,sass,vue}",
+    "fix": "bun fix:eslint && bun fix:stylelint",
+    "fix:eslint": "eslint --cache --cache-strategy content --fix ./app",
+    "fix:stylelint": "stylelint --cache-strategy content --fix ./app/**/*.{css,scss,sass,vue}",
+    "test:ut": "vitest run --dir ./app/test",
+    "test:watch": "vitest --dir ./app/test",
+    "test:ui": "vitest --ui --dir ./app/test",
+    "test:coverage": "vitest run --dir ./app/test --coverage"
+  },
+  "dependencies": {
+    "vket-boilerplate-nuxt-base": "workspace:*"
+  }
+}

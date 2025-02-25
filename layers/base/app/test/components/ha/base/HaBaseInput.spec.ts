@@ -392,36 +392,48 @@ describe('props', () => {
       }
       const _file = new File([''], 'test.png')
       const _file2 = new File([''], 'test2.png')
-      // TODO: fileListは使用されておらず、ESlintのErrorに引っかかったのでコメントアウトしてます。 by saga
-      // const fileList: FileList = createDummyFileList([file, file2])
-      // FileListダミー作成ここまで
+      /*
+       * TODO: fileListは使用されておらず、ESlintのErrorに引っかかったのでコメントアウトしてます。 by saga
+       * const fileList: FileList = createDummyFileList([file, file2])
+       * FileListダミー作成ここまで
+       */
 
-      // NOTE: 問題点、上記で作成したfileListをセットするとテストも通り、yarn devやvs codeでエラーも出ないが、yarn test:watchを表示しているターミナルで
-      // [Vue warn]: Failed setting prop "files" on <input>: value [object Object] is invalid. TypeError: Failed to set the 'files' property on 'HTMLInputElement': The provided value is not of type 'FileList'.
-      // が白文字で表示されるのでコメントアウトなどを以下の一部の行で行っている。
+      /*
+       * NOTE: 問題点、上記で作成したfileListをセットするとテストも通り、yarn devやvs codeでエラーも出ないが、yarn test:watchを表示しているターミナルで
+       * [Vue warn]: Failed setting prop "files" on <input>: value [object Object] is invalid. TypeError: Failed to set the 'files' property on 'HTMLInputElement': The provided value is not of type 'FileList'.
+       * が白文字で表示されるのでコメントアウトなどを以下の一部の行で行っている。
+       */
 
       const _wrapper = mount(HaBaseInput, {
         props: {
           type: 'file',
           multiple: true,
-          // NOTE: 下記にてfilesにfilelistを設定すると、テストはとおるが[Vue warn]が表示される
-          // files: fileList,
+          /*
+           * NOTE: 下記にてfilesにfilelistを設定すると、テストはとおるが[Vue warn]が表示される
+           * files: fileList,
+           */
         },
       })
-      // NOTE: 上記mount時ではなく、下記にてfilesにfilelistを設定すると、テストはとおるが[Vue warn]が表示される
-      // await wrapper.setProps({ files: fileList })
+      /*
+       * NOTE: 上記mount時ではなく、下記にてfilesにfilelistを設定すると、テストはとおるが[Vue warn]が表示される
+       * await wrapper.setProps({ files: fileList })
+       */
 
-      // NOTE: 下記にてfilesにfilelistを設定すると、セットされないのかテストに落ちる。
-      // Object.defineProperty(wrapper, 'files', {
-      //   value: fileList,
-      // })
-      // https://blog.unsweets.net/entries/set-filelist-to-htmlinputelement-files/
-      // 上記参照サイトでObject.definePropertyを使うことで
-      // 「TypeError: Failed to set the 'files' property on 'HTMLInputElement': The provided value is not of type 'FileList
-      // が発生しないと記載されているが、本件ではfileListがセットされずそもそも通らない
+      /*
+       * NOTE: 下記にてfilesにfilelistを設定すると、セットされないのかテストに落ちる。
+       * Object.defineProperty(wrapper, 'files', {
+       *   value: fileList,
+       * })
+       * https://blog.unsweets.net/entries/set-filelist-to-htmlinputelement-files/
+       * 上記参照サイトでObject.definePropertyを使うことで
+       * 「TypeError: Failed to set the 'files' property on 'HTMLInputElement': The provided value is not of type 'FileList
+       * が発生しないと記載されているが、本件ではfileListがセットされずそもそも通らない
+       */
 
-      // NOTE: fileListをセットしてテストすると下記が通るが、[Vue warn]がターミナルに白文字で出るのでコメントアウト。
-      // expect(wrapper.props('files')).toStrictEqual(fileList)
+      /*
+       * NOTE: fileListをセットしてテストすると下記が通るが、[Vue warn]がターミナルに白文字で出るのでコメントアウト。
+       * expect(wrapper.props('files')).toStrictEqual(fileList)
+       */
     })
   })
 })
@@ -478,8 +490,10 @@ describe('emits', () => {
           type: 'text',
         },
       })
-      // NOTE: setValueではupdate:modelValueのみ更新されupdate:valueにfalseが入るので、文字列をupdate:valueでもテストしたいのであれば、setPropsしtriggerで発火する
-      // await wrapper.setValue('test')
+      /*
+       * NOTE: setValueではupdate:modelValueのみ更新されupdate:valueにfalseが入るので、文字列をupdate:valueでもテストしたいのであれば、setPropsしtriggerで発火する
+       * await wrapper.setValue('test')
+       */
       await wrapper.setProps({ modelValue: 'test' })
       // onInput発火
       await wrapper.trigger('input')

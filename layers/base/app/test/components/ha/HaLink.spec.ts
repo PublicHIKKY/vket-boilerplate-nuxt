@@ -134,60 +134,74 @@ describe('slot', () => {
 // 以下、NuxtLink系のテスト
 vi.mock('#base/app/utils/environment')
 
-// TODO: Nuxt依存部分のtoLocalePathをモックしている関係で、戻り値がmocked-pathにしかならずqueryのテストが出来ない
-// describe(':query', () => {
-//   it('appends query parameters to internal links', async () => {
-//     // 環境をNuxtとしてモック
-//     vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+/*
+ * TODO: Nuxt依存部分のtoLocalePathをモックしている関係で、戻り値がmocked-pathにしかならずqueryのテストが出来ない
+ * describe(':query', () => {
+ *   it('appends query parameters to internal links', async () => {
+ *     // 環境をNuxtとしてモック
+ *     vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+ */
 
-//     const wrapper = mount(HaLink, {
-//       props: { to: '/intenal', query: { id: '123' } },
-//     })
+/*
+ *     const wrapper = mount(HaLink, {
+ *       props: { to: '/intenal', query: { id: '123' } },
+ *     })
+ */
 
-//     await nextTick()
-//     // NuxtLinkを探す
-//     const nuxtLink = wrapper.find('nuxt-link');
-//     expect(nuxtLink.exists()).toBe(true);
-//     // NuxtLinkがクエリパラメータを含む適切なパスでレンダリングされているか検証
-//     expect(nuxtLink.attributes('to')).toBe('/internal?id=123');
-//     // モック関数が正しく呼び出されたことを確認
-//     expect(useLocalePath).toHaveBeenCalled()
-//   })
-// })
+/*
+ *     await nextTick()
+ *     // NuxtLinkを探す
+ *     const nuxtLink = wrapper.find('nuxt-link');
+ *     expect(nuxtLink.exists()).toBe(true);
+ *     // NuxtLinkがクエリパラメータを含む適切なパスでレンダリングされているか検証
+ *     expect(nuxtLink.attributes('to')).toBe('/internal?id=123');
+ *     // モック関数が正しく呼び出されたことを確認
+ *     expect(useLocalePath).toHaveBeenCalled()
+ *   })
+ * })
+ */
 
-// TODO: Nuxt依存部分のtoLocalePathをモックしている関係で、戻り値がmocked-pathにしかならずhashのテストが出来ない
-// describe(':hash', () => {
-//   it('appends hash parameters to internal links', async () => {
-//     // 環境をNuxtとしてモック
-//     vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+/*
+ * TODO: Nuxt依存部分のtoLocalePathをモックしている関係で、戻り値がmocked-pathにしかならずhashのテストが出来ない
+ * describe(':hash', () => {
+ *   it('appends hash parameters to internal links', async () => {
+ *     // 環境をNuxtとしてモック
+ *     vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+ */
 
-//     const wrapper = mount(HaLink, {
-//       props: { to: '/intenal', hash: '#hash'},
-//     })
+/*
+ *     const wrapper = mount(HaLink, {
+ *       props: { to: '/intenal', hash: '#hash'},
+ *     })
+ */
 
-//     await nextTick()
-//     // NuxtLinkを探す
-//     const nuxtLink = wrapper.find('nuxt-link');
-//     expect(nuxtLink.exists()).toBe(true);
-//     // NuxtLinkがクエリパラメータを含む適切なパスでレンダリングされているか検証
-//     expect(nuxtLink.attributes('to')).toBe('/internal#hash');
-//     // モック関数が正しく呼び出されたことを確認
-//     expect(useLocalePath).toHaveBeenCalled()
-//   })
-// })
+/*
+ *     await nextTick()
+ *     // NuxtLinkを探す
+ *     const nuxtLink = wrapper.find('nuxt-link');
+ *     expect(nuxtLink.exists()).toBe(true);
+ *     // NuxtLinkがクエリパラメータを含む適切なパスでレンダリングされているか検証
+ *     expect(nuxtLink.attributes('to')).toBe('/internal#hash');
+ *     // モック関数が正しく呼び出されたことを確認
+ *     expect(useLocalePath).toHaveBeenCalled()
+ *   })
+ * })
+ */
 
 describe('<nuxt-link>', () => {
-  // TODO : テスト自体は通るが[Vue warn]: Failed to resolve component: nuxt-link のWARNが出るのでコメントアウト
-  // it('use router-link', async () => {
-  //   vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
-  //   const wrapper = mount(HaLink, {
-  //     props: {
-  //       to: '/link',
-  //     },
-  //   })
-  //   const nuxtLink = wrapper.find('nuxt-link')
-  //   expect(nuxtLink.exists()).toBe(true)
-  // })
+  /*
+   * TODO : テスト自体は通るが[Vue warn]: Failed to resolve component: nuxt-link のWARNが出るのでコメントアウト
+   * it('use router-link', async () => {
+   *   vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+   *   const wrapper = mount(HaLink, {
+   *     props: {
+   *       to: '/link',
+   *     },
+   *   })
+   *   const nuxtLink = wrapper.find('nuxt-link')
+   *   expect(nuxtLink.exists()).toBe(true)
+   * })
+   */
   it('external link must be <a>', () => {
     vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
     const wrapper = mount(HaLink, {

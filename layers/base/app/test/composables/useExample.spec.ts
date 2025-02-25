@@ -127,22 +127,24 @@ describe('useExample', () => {
     expect(exampleRef.value).toEqual(checkObject)
   })
 
-  // TODO: このテストはしたいけど、現状はuseStateモックのテストになってしまっているので、コメントアウトしておく。うまい方法があればコメントアウトを解除して、実装して、このコメントを削除してください
-  // it("should share example's latest state", () => {
-  //   const { example } = useExample()
-  //   expect(example.value).toEqual([
-  //     {
-  //       userId: 0,
-  //       id: 0,
-  //       title: 'Do something!',
-  //       completed: true,
-  //     },
-  //     {
-  //       userId: '1',
-  //       id: '1',
-  //       title: 'Say hello',
-  //       completed: false,
-  //     },
-  //   ])
-  // })
+  /*
+   * TODO: このテストはしたいけど、現状はuseStateモックのテストになってしまっているので、コメントアウトしておく。うまい方法があればコメントアウトを解除して、実装して、このコメントを削除してください
+   * it("should share example's latest state", () => {
+   *   const { example } = useExample()
+   *   expect(example.value).toEqual([
+   *     {
+   *       userId: 0,
+   *       id: 0,
+   *       title: 'Do something!',
+   *       completed: true,
+   *     },
+   *     {
+   *       userId: '1',
+   *       id: '1',
+   *       title: 'Say hello',
+   *       completed: false,
+   *     },
+   *   ])
+   * })
+   */
 })

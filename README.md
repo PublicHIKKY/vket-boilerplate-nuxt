@@ -18,12 +18,12 @@ The repository uses Nuxt Layers and Bun Workspaces. This provides a monolithic a
 
 4. Move to `/layers/main/`
 
-5. You can start developing the MAIN LAYER with ZERO CONFIGS.
+5. You can start developing MAIN LAYER with ZERO CONFIGS.
 
 
 ## Contribution
 
-In preparation
+In preparation...
 
 
 ## LICENSE

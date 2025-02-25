@@ -46,8 +46,7 @@ const currentLang = ref(i18n.locale.value)
 const currentJaFullPath = computed(() => {
   if (currentLang.value === 'ja') {
     return currentFullPath.value
-  }
-  else {
+  } else {
     return currentFullPath.value
       .replace(/\/en(\/|$)/, '/')
       .replace(/\/{2,}/, '/')
@@ -57,8 +56,7 @@ const currentJaFullPath = computed(() => {
 const currentEnFullPath = computed(() => {
   if (currentLang.value === 'en') {
     return currentFullPath.value
-  }
-  else {
+  } else {
     const path = route.fullPath.endsWith('/')
       ? route.fullPath
       : `${route.fullPath}/`

@@ -1,7 +1,7 @@
 <template>
   <div class="hm-input-radio-changeable">
     <div
-      v-for="option in props.options"
+      v-for="(option, index) in props.options"
       :key="option.value"
       ref="radiobuttons"
       class="radio"
@@ -12,13 +12,16 @@
         type="radio"
         :name="props.name"
         :value="option.value"
+        :model-value="option.value"
         :checked="option.checked"
+        :disabled="option.disabled"
         required
         @change="onChange($event)"
       />
       <label
         :for="option.value"
         class="label"
+        :class="`option-${index}`"
       >
         {{ option.label }}
       </label>
@@ -33,6 +36,7 @@ type Radio = {
   label: string
   value: string
   checked?: boolean
+  disabled?: boolean
 }
 
 type Props = {
@@ -44,16 +48,16 @@ const props = defineProps<Props>()
 const radiobuttons = ref<HTMLDivElement[]>()
 
 /** props.optionsを監視し、親コンポーネントでの変更をラジオボタンに反映する */
-watch(props.options, (_next, _prev) => {
+watch(toRef(props.options), (_next, _prev) => {
   // チェックされているオブジェクトを探す
   const checkedOptions
     = props.options.find(element => element.checked)
-    ?? raiseError('HmInputRadioChangeable: watch: checkedOptions')
+      ?? raiseError('HmInputRadioChangeable: watch: checkedOptions')
 
   // チェック対象を探す
   const buttons
     = radiobuttons.value
-    ?? raiseError('HmInputRadioChangeable: watch: radiobuttons')
+      ?? raiseError('HmInputRadioChangeable: watch: radiobuttons')
   const checkTarget
     = buttons.find(
       // チェックされているオブジェクトとidが同じものがチェック対象
@@ -97,6 +101,7 @@ const onChange = (e: Event) => {
       padding: v.space(2) 0;
       text-align: center;
       user-select: none;
+      white-space: pre-wrap;
 
       &:hover {
         background-color: v.$green-4;
@@ -108,7 +113,9 @@ const onChange = (e: Event) => {
 .input {
   display: none;
 
-  &:checked {
+  &:checked,
+  &:hover,
+  &:focus {
     + .label {
       background-color: v.$green-4;
       border-color: v.$blue;

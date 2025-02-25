@@ -9,6 +9,7 @@ declare global {
   const EffectScope: typeof import('vue')['EffectScope']
   const abortNavigation: typeof import('#app')['abortNavigation']
   const addRouteMiddleware: typeof import('#app')['addRouteMiddleware']
+  const api: typeof import('../app/utils/api')['default']
   const cancelIdleCallback: typeof import('#app')['cancelIdleCallback']
   const clearError: typeof import('#app')['clearError']
   const clearNuxtData: typeof import('#app')['clearNuxtData']
@@ -31,9 +32,11 @@ declare global {
   const definePayloadReducer: typeof import('#app')['definePayloadReducer']
   const definePayloadReviver: typeof import('#app')['definePayloadReviver']
   const effectScope: typeof import('vue')['effectScope']
+  const fetcher: typeof import('../app/composables/useApi')['fetcher']
   const getAppManifest: typeof import('#app')['getAppManifest']
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
+  const getI18nArray: typeof import('../app/utils/i18n')['getI18nArray']
   const getRouteRules: typeof import('#app')['getRouteRules']
   const h: typeof import('vue')['h']
   const inject: typeof import('vue')['inject']
@@ -75,6 +78,8 @@ declare global {
   const ref: typeof import('vue')['ref']
   const refreshNuxtData: typeof import('#app')['refreshNuxtData']
   const reloadNuxtApp: typeof import('#app')['reloadNuxtApp']
+  const repositories: typeof import('../app/utils/factory')['repositories']
+  const repositoryFactory: typeof import('../app/utils/factory')['repositoryFactory']
   const requestIdleCallback: typeof import('#app')['requestIdleCallback']
   const resolveComponent: typeof import('vue')['resolveComponent']
   const setPageLayout: typeof import('#app')['setPageLayout']
@@ -90,6 +95,7 @@ declare global {
   const triggerRef: typeof import('vue')['triggerRef']
   const unref: typeof import('vue')['unref']
   const updateAppConfig: typeof import('#app')['updateAppConfig']
+  const useApi: typeof import('../app/composables/useApi')['default']
   const useAppConfig: typeof import('#app')['useAppConfig']
   const useAsyncData: typeof import('#app')['useAsyncData']
   const useAttrs: typeof import('vue')['useAttrs']
@@ -132,4 +138,10 @@ declare global {
   // @ts-ignore
   export type { Component, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
+  // @ts-ignore
+  export type { RepositoryKey } from '../app/utils/factory'
+  import('../app/utils/factory')
+  // @ts-ignore
+  export type { UseI18nReturnType } from '../app/utils/i18n'
+  import('../app/utils/i18n')
 }

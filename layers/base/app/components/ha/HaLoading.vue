@@ -45,8 +45,10 @@ const props = withDefaults(
   },
 )
 
-// ここでの `manual` とは auto start の意味であり、Nuxtのloading機能を使わず
-// 自前で（外側からv-ifを使って）loadingを出すためのもの
+/*
+ * ここでの `manual` とは auto start の意味であり、Nuxtのloading機能を使わず
+ * 自前で（外側からv-ifを使って）loadingを出すためのもの
+ */
 const loading = ref(props.manual)
 </script>
 

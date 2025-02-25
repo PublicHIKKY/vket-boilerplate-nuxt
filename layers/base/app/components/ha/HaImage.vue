@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { constant } from '#base/app/utils/constant'
+import defaultNoImage from '@@/public/images/no-image.png'
 
 const props = withDefaults(
   defineProps<{
@@ -46,12 +46,11 @@ const onError = () => {
   hasError.value = true
 }
 
-const imageUrl = computed(() => {
-  if (hasError.value) {
-    return props.noImage || constant.images.none
-  }
-  return props.src || constant.images.none
-})
+const imageUrl = computed(() =>
+  hasError.value
+    ? props.noImage || defaultNoImage
+    : props.src || defaultNoImage,
+)
 
 // imgにwidthとheightを自動付与する
 const imageElement = ref<HTMLImageElement | null>(null)

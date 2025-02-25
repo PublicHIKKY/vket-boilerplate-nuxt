@@ -3,20 +3,7 @@
   "extends": [
     "./.nuxt/tsconfig.server.json",
     "./.nuxt/tsconfig.json",
-    "../base/tsconfig.json"
+    "../base/tsconfig.shared.json"
   ],
-  "compilerOptions": {
-    "lib": ["dom", "ES2023"],
-    "typeRoots": [
-      "../../node_modules",
-      "../../node_modules/@types",
-      "./@types"
-    ],
-    "paths": {
-      "~/*": ["./app/*"],
-      "@/*": ["./app/*"],
-      "#base/*": ["../base/*"]
-    },
-  },
-  "exclude": ["node_modules", ".output", "dist"]
+  "exclude": ["../base/**/*"]
 }

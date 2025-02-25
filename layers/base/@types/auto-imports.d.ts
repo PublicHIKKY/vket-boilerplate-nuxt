@@ -16,7 +16,6 @@ declare global {
   const abortNavigation: typeof import('#app')['abortNavigation']
   const addDateTime: typeof import('../app/utils/date-control')['addDateTime']
   const addRouteMiddleware: typeof import('#app')['addRouteMiddleware']
-  const api: typeof import('../app/utils/api')['api']
   const cancelIdleCallback: typeof import('#app')['cancelIdleCallback']
   const clearError: typeof import('#app')['clearError']
   const clearNuxtData: typeof import('#app')['clearNuxtData']
@@ -29,6 +28,10 @@ declare global {
   const createUuidV4: typeof import('../app/utils/uuid')['createUuidV4']
   const customRef: typeof import('vue')['customRef']
   const decodeJwt: typeof import('../app/utils/token')['decodeJwt']
+  const defaultApi: typeof import('../app/utils/default-api')['default']
+  const defaultFetcher: typeof import('../app/composables/useDefaultApi')['defaultFetcher']
+  const defaultRepositories: typeof import('../app/utils/default-factory')['defaultRepositories']
+  const defaultRepositoryFactory: typeof import('../app/utils/default-factory')['defaultRepositoryFactory']
   const defineAppConfig: typeof import('#app')['defineAppConfig']
   const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
   const defineComponent: typeof import('vue')['defineComponent']
@@ -49,7 +52,7 @@ declare global {
   const equal: typeof import('../app/utils/array')['equal']
   const exampleInjectionKey: typeof import('../app/composables/useExample')['exampleInjectionKey']
   const fetchErrorSchema: typeof import('../app/utils/response')['fetchErrorSchema']
-  const fetcher: typeof import('../app/composables/useApi')['fetcher']
+  const fetcher: typeof import('../app/composables/useDefaultApi')['fetcher']
   const formatDate: typeof import('../app/utils/date-control')['formatDate']
   const formatDateUnixTime: typeof import('../app/utils/date-control')['formatDateUnixTime']
   const formatEnglishDate: typeof import('../app/utils/date-control')['formatEnglishDate']
@@ -89,6 +92,7 @@ declare global {
   const loadPayload: typeof import('#app')['loadPayload']
   const localeInjectionKey: typeof import('../app/composables/useLocale')['localeInjectionKey']
   const makeAnchorElement: typeof import('../app/utils/anchor')['makeAnchorElement']
+  const makeRecursiveSchema: typeof import('../app/utils/zod')['makeRecursiveSchema']
   const makeResponseSchema: typeof import('../app/utils/response')['makeResponseSchema']
   const makeSchemaDeepReadOnly: typeof import('../app/utils/zod')['makeSchemaDeepReadOnly']
   const makeSchemaReadOnly: typeof import('../app/utils/zod')['makeSchemaReadOnly']
@@ -131,8 +135,6 @@ declare global {
   const removeLocalStorageValue: typeof import('../app/utils/storage-control')['removeLocalStorageValue']
   const removeSessionStorageValue: typeof import('../app/utils/storage-control')['removeSessionStorageValue']
   const removeSingleCookieValue: typeof import('../app/utils/storage-control')['removeSingleCookieValue']
-  const repositories: typeof import('../app/utils/factory')['repositories']
-  const repositoryFactory: typeof import('../app/utils/factory')['repositoryFactory']
   const requestIdleCallback: typeof import('#app')['requestIdleCallback']
   const requireAsyncDataOf: typeof import('../app/utils/response')['requireAsyncDataOf']
   const requireValueOf: typeof import('../app/utils/zod')['requireValueOf']
@@ -161,7 +163,6 @@ declare global {
   const unreachable: typeof import('../app/utils/error')['unreachable']
   const unref: typeof import('vue')['unref']
   const updateAppConfig: typeof import('#app')['updateAppConfig']
-  const useApi: typeof import('../app/composables/useApi')['default']
   const useAppConfig: typeof import('#app')['useAppConfig']
   const useAsyncData: typeof import('#app')['useAsyncData']
   const useAttrs: typeof import('vue')['useAttrs']
@@ -170,6 +171,8 @@ declare global {
   const useCookieLocale: typeof import('#i18n')['useCookieLocale']
   const useCssModule: typeof import('vue')['useCssModule']
   const useCssVars: typeof import('vue')['useCssVars']
+  const useCustomIntersectionObserver: typeof import('../app/composables/useCustomIntersectionObserver')['default']
+  const useDefaultApi: typeof import('../app/composables/useDefaultApi')['default']
   const useError: typeof import('#app')['useError']
   const useExample: typeof import('../app/composables/useExample')['useExample']
   const useFetch: typeof import('#app')['useFetch']
@@ -213,4 +216,28 @@ declare global {
   // @ts-ignore
   export type { Component, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
+  // @ts-ignore
+  export type { Example, ExampleComposable } from '../app/composables/useExample'
+  import('../app/composables/useExample')
+  // @ts-ignore
+  export type { Lang, LocaleComposable } from '../app/composables/useLocale'
+  import('../app/composables/useLocale')
+  // @ts-ignore
+  export type { ToastComposable } from '../app/composables/useToast'
+  import('../app/composables/useToast')
+  // @ts-ignore
+  export type { Method } from '../app/utils/default-api'
+  import('../app/utils/default-api')
+  // @ts-ignore
+  export type { ApiAccess, MakeRepository, DefaultRepository, DefaultRepositories, DefaultRepositoryKey } from '../app/utils/default-factory'
+  import('../app/utils/default-factory')
+  // @ts-ignore
+  export type { ResponseStatus, Paging, AsyncDataResponse } from '../app/utils/response'
+  import('../app/utils/response')
+  // @ts-ignore
+  export type { Nullable, ValueOf, Overwrite } from '../app/utils/types/types'
+  import('../app/utils/types/types')
+  // @ts-ignore
+  export type { Self } from '../app/utils/zod'
+  import('../app/utils/zod')
 }

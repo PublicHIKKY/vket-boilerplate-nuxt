@@ -28,8 +28,7 @@ export default defineNuxtRouteMiddleware((to, _from) => {
         setSingleCookieValue(cookieKey, jaLanguage)
         return navigateTo(toFullPath.replace(`/${enLanguage}/`, '/'))
       }
-    }
-    else {
+    } else {
       if (globalI18n.locale.value === jaLanguage) {
         setSingleCookieValue(cookieKey, jaLanguage)
       }
@@ -40,8 +39,7 @@ export default defineNuxtRouteMiddleware((to, _from) => {
       }
     }
     // pathにlocaleが含まれるかのみで判定。i18nとcookieの両方を確認して言語設定に齟齬がないように調整する。リダイレクトはさせない。
-  }
-  else {
+  } else {
     if (toFullPath.includes(`/${enLanguage}/`)) {
       if (globalI18n.locale.value !== enLanguage) {
         globalI18n.locale.value = enLanguage

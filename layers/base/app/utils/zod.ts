@@ -20,8 +20,7 @@ export function ensureValueOf<T>(
 }
 
 export function requireValueOf<T>(x: ZodType<T, ZodTypeDef>, y: unknown): T {
-  ensureValueOf(x, y)
-  return y
+  return x.parse(y)
 }
 
 // const language = { 0: 'ja', 1: 'en'} as const みたいなオブジェクトのValueのunion型をzodでつかえるようにするメソッド
@@ -100,4 +99,80 @@ export const getMax = (def: ZodTypeDef | undefined): number | undefined => {
     )
 
   return undefined
+}
+
+/**
+ * @see {@link Self}
+ * 意図的にexportしていない。
+ * Self型に具体的にアクセスされたくないため。
+ */
+const selfKey = Symbol()
+
+/**
+ * 疑似的に自己参照を表現するための型。
+ * （これ自体は自己参照ではない。示しているだけ。）
+ */
+export type Self = { [selfKey]: string }
+
+/**
+ * Tの中のSelfをTT[0]で置き換える。
+ * ```ts
+ * type T = ReplaceSelf<{ a: { b: Self } }, [number]> // { a: { b: number } }
+ * ```
+ */
+/*
+ * TTが直接型を受け取るのではなく、1次元タプルとして受け取るのは、TypeScriptの再帰型を許すためです。
+ * ```ts
+ * type F<_> = number
+ * type X = F<X> // これはTypeScriptではできない
+ * type X = F<[X]> // これはTypeScriptではできる
+ * ```
+ */
+type ReplaceSelf<T, TT extends [unknown]> = T extends Self
+  ? TT[0]
+  : T extends Record<string, unknown>
+    ? { [K in keyof T]: ReplaceSelf<T[K], TT> }
+    : T
+
+/**
+ * 再帰的なスキーマを作成する。
+ * https://zenn.dev/odiak/articles/0b963664a4f8cd
+ *
+ * @example
+ * ```ts
+ * const treeSchema = makeRecursiveSchema((self) =>
+ *   z.union([
+ *     z.object({ type: z.literal('leaf'), value: z.string() }),
+ *     z.object({ type: z.literal('branch'), children: self.array() })
+ *   ])
+ * )
+ * ```
+ *
+ * さらなる使い方はテストを見てください。
+ */
+export function makeRecursiveSchema<T>(
+  builder: (self: ZodType<Self>) => ZodType<T>,
+) {
+  /*
+   * type Item = {
+   *   name: string
+   *   addtionalItems: Self[]
+   * }
+   * みたいなやつを
+   * type Item = {
+   *   name: string
+   *   addtionalItems: Item[]
+   * }
+   * みたいなやつに置き換えている。
+   * つまり疑似的な再帰型（T）を、実際の再帰型（R）に変換している。
+   */
+  type R = ReplaceSelf<T, [R]>
+
+  // 疑似的な再帰型スキーマビルダー（builder）を、実際の再帰型スキーマビルダー（builder_）に変換している。
+  const builder_ = builder as (self: ZodType<R>) => ZodType<T>
+
+  // 再帰をぶん回して
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rec = (): ZodType<R> => builder_(z.lazy(rec)) as any
+  return rec()
 }

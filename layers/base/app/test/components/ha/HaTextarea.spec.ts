@@ -82,8 +82,10 @@ describe('emit', () => {
         counter: false,
       },
     })
-    // wrapper.vm.$emit('update:modelValue', 'testModelValue')
-    // await wrapper.setValue('testModelValue', 'modelValue')
+    /*
+     * wrapper.vm.$emit('update:modelValue', 'testModelValue')
+     * await wrapper.setValue('testModelValue', 'modelValue')
+     */
     await wrapper.find('textarea').setValue('1234567890')
     // NOTE: update:modelValue
     expect(wrapper.emitted()).toHaveProperty('update:modelValue')
@@ -116,8 +118,10 @@ describe('emit', () => {
     await wrapper.find('textarea').setValue('12345678901')
     expect(wrapper.emitted()).toHaveProperty('validate')
     expect(wrapper.emitted()['validate']).toHaveLength(1)
-    // TODO: emitでcomputedで処理される送信値を正しく取得できないのでコメントアウト
-    // expect(wrapper.emitted()['validate']).toEqual([[true]])
+    /*
+     * TODO: emitでcomputedで処理される送信値を正しく取得できないのでコメントアウト
+     * expect(wrapper.emitted()['validate']).toEqual([[true]])
+     */
   })
 })
 

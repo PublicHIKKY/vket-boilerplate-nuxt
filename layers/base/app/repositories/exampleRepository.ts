@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { todoSchema } from '#base/app/models/todo'
 import { requireRuntimeConfig } from '#base/app/plugins/runtimeConfig'
-import { api } from '#base/app/utils/api'
+import defaultApi from '#base/app/utils/default-api'
 import { raiseError } from '#base/app/utils/error'
 import { requireValueOf } from '#base/app/utils/zod'
 
@@ -20,7 +20,7 @@ export default {
     async getExample() {
       const prefix
         = requireRuntimeConfig().public?.apiPrefix ?? raiseError('getExample()')
-      const response = await api.get(`${prefix}/example`)
+      const response = await defaultApi('get', `${prefix}/example`)
       return requireValueOf(getExampleResponseSchema, response)
     },
   } as const,

@@ -17,7 +17,13 @@ const srcDir = 'app'
  * @ref https://nuxt.com/docs/api/configuration/nuxt-config
  */
 export default defineNuxtConfig({
-  modules: ['@nuxtjs/i18n', '@nuxt/eslint', '@vueuse/nuxt'],
+  modules: [
+    '@nuxtjs/i18n',
+    '@nuxt/eslint',
+    '@vueuse/nuxt',
+    'unplugin-icons/nuxt',
+    '@nuxtjs/robots',
+  ],
   imports: {
     dirs: ['utils/types/**'],
     global: false,
@@ -28,7 +34,6 @@ export default defineNuxtConfig({
       viewport: 'width=device-width, initial-scale=1',
       charset: 'utf-8',
       meta: [
-        { name: 'robots', content: 'noindex, nofollow' },
         { hid: 'og:type', property: 'og:type', content: 'website' },
         {
           hid: 'twitter:card',
@@ -111,7 +116,6 @@ export default defineNuxtConfig({
         verbatimModuleSyntax: false,
       },
     },
-    includeWorkspace: true,
   },
   eslint: {
     checker: true,
@@ -120,6 +124,7 @@ export default defineNuxtConfig({
         semi: false,
         indent: 2,
         quotes: 'single',
+        braceStyle: '1tbs',
       },
     },
   },

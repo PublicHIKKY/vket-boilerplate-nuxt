@@ -15,8 +15,7 @@ export const decodeJwt = (jwt: string): unknown => {
         .join(''),
     )
     return JSON.parse(jsonPayload)
-  }
-  catch (e) {
+  } catch (e) {
     console.error(`${e}`)
     return null
   }
