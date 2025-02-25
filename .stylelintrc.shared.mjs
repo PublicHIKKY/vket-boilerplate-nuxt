@@ -1,6 +1,5 @@
 export default {
-  extends: ['stylelint-config-standard-scss', 'stylelint-rscss'],
-  plugins: ['stylelint-order'],
+  extends: ['stylelint-config-standard-scss', 'stylelint-rscss', 'stylelint-config-clean-order'],
   rules: {
     'at-rule-no-unknown': [
       true,
@@ -16,7 +15,6 @@ export default {
       },
     ],
     'max-nesting-depth': null,
-    'order/order': null,
     'property-no-vendor-prefix': null,
     'selector-pseudo-element-no-unknown': null,
     'no-descending-specificity': null,
@@ -28,15 +26,8 @@ export default {
       },
     ],
     'value-no-vendor-prefix': null,
-    'order/properties-alphabetical-order': [
-      true,
-      {
-        severity: 'warning',
-      },
-    ],
     'selector-max-compound-selectors': 5,
     'function-no-unknown': null,
-    'scss/function-no-unknown': null,
     'declaration-property-value-disallowed-list': [
       {
         '// noneを許可する': '',
