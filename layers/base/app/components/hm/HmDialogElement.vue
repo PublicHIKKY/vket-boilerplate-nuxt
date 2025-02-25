@@ -109,6 +109,11 @@ const handleEndFocus = () => {
   close.value?.focus()
 }
 
+onUnmounted(() => {
+  document.body.style.overflow = ''
+  document.documentElement.style.overflow = ''
+})
+
 defineExpose({
   closeDialog,
 })
