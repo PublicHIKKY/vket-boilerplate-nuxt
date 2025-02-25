@@ -5,7 +5,6 @@ export default defineNuxtPlugin(() => {
     provide: {
       toast: {
         success: (message: string) => {
-          // eslint-disable-next-line no-console
           console.warn(`[toast success]: ${message}`)
         },
         error: (message: string) => {
