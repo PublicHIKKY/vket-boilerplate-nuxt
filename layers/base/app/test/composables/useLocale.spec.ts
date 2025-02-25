@@ -44,6 +44,6 @@ test('localPath', () => {
   expect(locale.localePath('/path')).toBe('/path')
 
   locale.changeLocale('en')
-  expect(locale.localePath('')).toBe('en')
-  expect(locale.localePath('/path')).toBe('en/path')
+  expect(locale.localePath('')).toBe('/en')
+  expect(locale.localePath('/path')).toBe('/en/path')
 })
