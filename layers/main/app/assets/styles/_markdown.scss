@@ -15,8 +15,8 @@
   }
 
   h2 {
-    font-size: 28px;
     margin-bottom: 24px;
+    font-size: 28px;
   }
 
   h3 {
@@ -34,8 +34,8 @@
   h3,
   h4,
   h5 {
-    font-weight: 400;
     margin-bottom: 16px;
+    font-weight: 400;
   }
 
   ul,
@@ -63,13 +63,13 @@
 
     ol {
       counter-reset: ol-item;
-      list-style: none;
       margin: 16px 0;
       padding-left: 28px;
+      list-style: none;
 
       > li {
-        padding-left: 1.5em;
         position: relative;
+        padding-left: 1.5em;
         text-indent: 0;
 
         // list-style: none だけで消えないので
@@ -81,10 +81,13 @@
           // インデントした数値は 「1)」の表示にする
           content: counter(ol-item) ')  ';
           counter-increment: ol-item 1;
-          display: block;
-          left: 0;
+
           position: absolute; // 数値の桁数が違う場合の見た目に対応
           top: 0;
+          left: 0;
+
+          display: block;
+
           width: 100px;
         }
       }
@@ -119,29 +122,30 @@
   }
 
   p {
-    line-height: 1.6;
     margin-bottom: 24px;
+    line-height: 1.6;
   }
 
   img {
     display: block;
-    margin: 24px auto;
-    max-width: 100%;
     width: fit-content;
+    max-width: 100%;
+    margin: 24px auto;
   }
 
   table {
-    border-collapse: collapse;
     border-spacing: 0;
-    margin: 24px auto;
-    max-width: 100%;
-    min-width: 50%;
+    border-collapse: collapse;
+
     width: fit-content;
+    min-width: 50%;
+    max-width: 100%;
+    margin: 24px auto;
   }
 
   code {
-    background-color: v.$violet;
     padding: 2px 5px;
+    background-color: v.$violet;
   }
 
   table th,
