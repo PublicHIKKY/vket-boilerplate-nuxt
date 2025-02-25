@@ -47,8 +47,13 @@ export const useLocale = () => {
     i18n.locale.value = target
   }
 
+  /**
+   * 現在のi18n localeに基づいてlocale固有のパスを返却します。
+   * @param to - '/'から始まる宛先パス
+   * @returns '/'から始まるパス
+   */
   const localePath = (to: string) =>
-    i18n.locale.value === JA ? to : `${i18n.locale.value}${to}`
+    i18n.locale.value === JA ? to : `/${i18n.locale.value}${to}`
 
   return {
     getDefaultLanguage,
