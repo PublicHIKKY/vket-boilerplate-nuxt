@@ -19,7 +19,7 @@ HaDialogとの違いとして、HmDialogElementは別階層の別要素のz-inde
   <template v-if="isActive">
     <dialog
       ref="dialog"
-      class="ha-dialog-element"
+      class="hm-dialog-element"
       @click.stop
     >
       <component
@@ -127,12 +127,12 @@ defineExpose({
   cursor: pointer;
 }
 
-.ha-dialog-element {
+.hm-dialog-element {
   background-color: rgb(
     0 0 0 / 0%
   ); // dialogにデフォルトで指定される白の背景色を透明にする
 
-  height: auto;
+  height: max-content; // autoにすると、十分に画面縦幅がある場合でもダイアログに縦スクロールが生まれる場合がある
   left: 50%;
   max-height: initial; // dialogのデフォルトのmax-heightをリセット
   max-width: initial; // dialogのデフォルトのmax-widthをリセット
@@ -154,7 +154,8 @@ defineExpose({
 
   > .inner {
     background-color: #fff;
-    height: 100%;
+    height: max-content;
+    max-height: 100vh; // 先祖要素にmax-contentを指定した場合、その子孫要素の単位に%を使うとwebkitで値が0になる場合があるためvhを使用
     overflow-y: auto;
     width: 100%;
 
