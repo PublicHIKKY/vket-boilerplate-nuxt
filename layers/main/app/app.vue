@@ -63,4 +63,15 @@ const currentEnFullPath = computed(() => {
     return `${useRuntimeConfig().public.url}/en${path}`
   }
 })
+
+useHeadSafe({
+  htmlAttrs: {
+    lang: currentLang.value,
+  },
+  titleTemplate: (titleChunk) => {
+    return titleChunk
+      ? i18n.t('site.title_template', { title: titleChunk })
+      : i18n.t('site.title')
+  },
+})
 </script>
