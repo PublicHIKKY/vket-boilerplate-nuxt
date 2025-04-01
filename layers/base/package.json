@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
-    "@fast-check/vitest": "^0.1.5",
+    "@fast-check/vitest": "^0.2.0",
     "@iconify-json/ri": "^1.2.5",
     "@nuxt/eslint": "^1.1.0",
     "@nuxt/test-utils": "^3.17.0",
