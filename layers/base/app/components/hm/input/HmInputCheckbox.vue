@@ -36,7 +36,7 @@ const props = withDefaults(
       | ZodType<boolean, ZodTypeDef, boolean>
       | ZodEffects<ZodType<boolean, ZodTypeDef, boolean>>
     name: string
-    modelValue: boolean
+    modelValue?: boolean
     required?: boolean
     disabled?: boolean
   }>(),

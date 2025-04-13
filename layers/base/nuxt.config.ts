@@ -34,19 +34,17 @@ export default defineNuxtConfig({
       viewport: 'width=device-width, initial-scale=1',
       charset: 'utf-8',
       meta: [
-        { hid: 'og:type', property: 'og:type', content: 'website' },
+        { property: 'og:type', content: 'website' },
         {
-          hid: 'twitter:card',
           name: 'twitter:card',
           content: 'summary_large_image',
         },
         {
-          hid: 'note:card',
           name: 'note:card',
           content: 'summary_large_image',
         },
       ],
-      noscript: [{ children: 'Javascript is required' }],
+      noscript: [{ innerHTML: 'JavaScript is required' }],
     },
   },
   css: cssUrls,

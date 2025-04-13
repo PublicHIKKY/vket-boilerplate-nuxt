@@ -25,24 +25,24 @@
 const props = withDefaults(
   defineProps<{
     src: string
-    height: string
-    width: string
-    play: boolean
-    autoplay: boolean
+    height?: string
+    width?: string
+    play?: boolean
+    autoplay?: boolean
     autopictureinpicture?: boolean
-    controls: boolean
+    controls?: boolean
     disablepictureinpicture?: boolean
     disableremoteplayback?: boolean
     loop?: boolean
-    muted: boolean
-    playsinline: boolean
+    muted?: boolean
+    playsinline?: boolean
     poster?: string
     // nodownload, nofullscreen, noremoteplayback
     controlslist?: string
     // anonymous, use-credentials
     crossorigin?: string
     // none, metadata, auto
-    preload: string
+    preload?: string
   }>(),
   {
     height: '',
