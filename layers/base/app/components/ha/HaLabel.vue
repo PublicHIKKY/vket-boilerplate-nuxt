@@ -17,7 +17,7 @@ export type BackgroundColorMap = Record<string, string>
  */
 const props = withDefaults(
   defineProps<{
-    text: string
+    text?: string
     colorMap?: BackgroundColorMap
     fallbackColor?: string
   }>(),
