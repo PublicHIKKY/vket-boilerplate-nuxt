@@ -43,6 +43,7 @@ en:
     </p>
     <template v-if="imageUrl && isRemovable">
       <button
+        type="button"
         class="remove"
         @click="removeImage"
       />
