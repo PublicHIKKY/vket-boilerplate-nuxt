@@ -12,7 +12,7 @@
   "devDependencies": {
     "eslint": "^9.21.0",
     "husky": "^9.1.7",
-    "lint-staged": "^15.4.3",
+    "lint-staged": "^16.1.0",
     "stylelint": "^16.14.1"
   },
   "lint-staged": {
