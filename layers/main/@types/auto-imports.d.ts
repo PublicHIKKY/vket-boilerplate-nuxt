@@ -136,10 +136,13 @@ declare global {
 // for type re-export
 declare global {
   // @ts-ignore
-  export type { Component, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
+  export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
   // @ts-ignore
-  export type { RepositoryKey } from '../app/utils/factory'
+  export type { Method } from '../app/utils/api'
+  import('../app/utils/api')
+  // @ts-ignore
+  export type { Repository, Repositories, RepositoryKey } from '../app/utils/factory'
   import('../app/utils/factory')
   // @ts-ignore
   export type { UseI18nReturnType } from '../app/utils/i18n'

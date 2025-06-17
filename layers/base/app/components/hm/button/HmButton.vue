@@ -56,26 +56,26 @@ function onClick(): void {
 @use '#base/app/assets/styles/variables' as v;
 
 .hm-button {
-  border-radius: 6px;
   cursor: pointer;
-  line-height: 1;
   min-width: 96px;
+  border-radius: 6px;
+  line-height: 1;
 
   &.-md {
-    font-size: 16px;
     height: 48px;
     padding: 0 36px;
+    font-size: 16px;
   }
 
   &.-sm {
-    font-size: 12px;
     height: 30px;
     padding: 0 12px;
+    font-size: 12px;
   }
 
   &.-primary:not(.-outline) {
-    background-color: v.$primary-button-default-color;
     color: v.$white;
+    background-color: v.$primary-button-default-color;
     transition: 0.2s opacity;
 
     &:hover,
@@ -86,22 +86,22 @@ function onClick(): void {
   }
 
   &.-primary.-outline {
-    background-color: v.$white;
     border: 2px solid v.$primary-button-default-color;
     color: v.$primary-button-default-color;
+    background-color: v.$white;
     transition: 0.2s background-color, 0.2s color;
 
     &:hover,
     &:focus,
     &:active {
-      background-color: v.$primary-button-default-color;
       color: v.$white;
+      background-color: v.$primary-button-default-color;
     }
   }
 
   &.-secondary:not(.-outline) {
-    background-color: v.$secondary-button-default-color;
     color: v.$white;
+    background-color: v.$secondary-button-default-color;
     transition: 0.2s opacity;
 
     &:hover,
@@ -112,22 +112,22 @@ function onClick(): void {
   }
 
   &.-secondary.-outline {
-    background-color: v.$white;
     border: 2px solid v.$secondary-button-default-color;
     color: v.$secondary-button-default-color;
+    background-color: v.$white;
     transition: 0.2s background-color, 0.2s color;
 
     &:hover,
     &:focus,
     &:active {
-      background-color: v.$secondary-button-default-color;
       color: v.$white;
+      background-color: v.$secondary-button-default-color;
     }
   }
 
   &.-danger:not(.-outline) {
-    background-color: v.$red;
     color: v.$white;
+    background-color: v.$red;
     transition: 0.2s opacity;
 
     &:hover,
@@ -138,22 +138,22 @@ function onClick(): void {
   }
 
   &.-danger.-outline {
-    background-color: v.$white;
     border: 2px solid v.$red;
     color: v.$red;
+    background-color: v.$white;
     transition: 0.2s background-color, 0.2s color;
 
     &:hover,
     &:focus,
     &:active {
-      background-color: v.$red;
       color: v.$white;
+      background-color: v.$red;
     }
   }
 
   &.-warning:not(.-outline) {
-    background: #a18d0a;
     color: v.$white;
+    background: #a18d0a;
     transition: 0.2s opacity;
 
     &:hover,
@@ -164,22 +164,22 @@ function onClick(): void {
   }
 
   &.-warning.-outline {
-    background-color: v.$white;
     border: 2px solid #a18d0a;
     color: #a18d0a;
+    background-color: v.$white;
     transition: 0.2s background-color, 0.2s color;
 
     &:hover,
     &:focus,
     &:active {
-      background: #a18d0a;
       color: v.$white;
+      background: #a18d0a;
     }
   }
 
   &.-success:not(.-outline) {
-    background: v.$green;
     color: v.$white;
+    background: v.$green;
     transition: 0.2s opacity;
 
     &:hover,
@@ -190,22 +190,22 @@ function onClick(): void {
   }
 
   &.-success.-outline {
-    background-color: v.$white;
     border: 2px solid v.$green;
     color: v.$green;
+    background-color: v.$white;
     transition: 0.2s background-color, 0.2s color;
 
     &:hover,
     &:focus,
     &:active {
-      background: v.$green;
       color: v.$white;
+      background: v.$green;
     }
   }
 
   &.-info:not(.-outline) {
-    background-color: v.$blue-1;
     color: v.$white;
+    background-color: v.$blue-1;
     transition: 0.2s opacity;
 
     &:hover,
@@ -216,16 +216,16 @@ function onClick(): void {
   }
 
   &.-info.-outline {
-    background-color: v.$white;
     border: 2px solid v.$blue-1;
     color: v.$blue-1;
+    background-color: v.$white;
     transition: 0.2s background-color, 0.2s color;
 
     &:hover,
     &:focus,
     &:active {
-      background-color: v.$blue-1;
       color: v.$white;
+      background-color: v.$blue-1;
     }
   }
 
@@ -235,11 +235,14 @@ function onClick(): void {
   &.-warning.-disabled,
   &.-success.-disabled,
   &.-info.-disabled {
-    background-color: v.$button-disabled-color;
-    border-color: v.$button-disabled-color;
-    color: v.$white;
-    opacity: 0.5;
     pointer-events: none;
+
+    border-color: v.$button-disabled-color;
+
+    color: v.$white;
+
+    opacity: 0.5;
+    background-color: v.$button-disabled-color;
   }
 }
 </style>

@@ -137,10 +137,10 @@ const onClick = () => {
 @use '#base/app/assets/styles/variables' as v;
 
 .hm-input-file {
-  align-items: center;
   cursor: pointer;
-  height: 100%;
+  align-items: center;
   width: 100%;
+  height: 100%;
 
   &.-dragover {
     cursor: pointer;
@@ -163,34 +163,39 @@ const onClick = () => {
 
   > .input {
     display: none;
+    width: 0;
     height: 0;
     visibility: hidden;
-    width: 0;
   }
 
   > .error {
-    color: v.$red;
     display: block;
+
+    width: fit-content;
+
     font-size: 10px;
     font-weight: 400;
-    width: fit-content;
+    color: v.$red;
   }
 }
 
 .image-box {
-  align-items: center;
   display: flex;
-  height: 100%;
+  align-items: center;
   justify-content: center;
+
   width: 100%;
+  height: 100%;
 
   > .inner {
-    align-items: center;
-    background-color: #d5d5d5;
     display: flex;
-    height: 100%;
+    align-items: center;
     justify-content: center;
+
     width: 100%;
+    height: 100%;
+
+    background-color: #d5d5d5;
   }
 
   > .inner > .text {

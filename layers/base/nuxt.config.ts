@@ -23,6 +23,7 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     'unplugin-icons/nuxt',
     '@nuxtjs/robots',
+    '@nuxtjs/device',
   ],
   imports: {
     dirs: ['utils/types/**'],

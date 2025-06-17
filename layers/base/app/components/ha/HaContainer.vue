@@ -9,17 +9,17 @@
 @use '#base/app/assets/styles/mixins' as m;
 
 .ha-container {
-  margin: 0 auto;
-  max-width: v.$pc-content-max-width;
   min-width: v.$pc-content-min-width;
+  max-width: v.$pc-content-max-width;
+  margin: 0 auto;
   padding: 0 40px;
 
   @include m.sp {
-    margin: 0;
-    max-width: 100%;
-    min-width: 100%;
-    padding: 0;
     width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
   }
 }
 </style>

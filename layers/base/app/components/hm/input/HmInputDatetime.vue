@@ -115,14 +115,17 @@ const enter = () => {
 
 .hm-input-datetime {
   &__label {
-    background-color: v.$white;
-    border: 1px solid #d5d5d5;
-    border-radius: 3px;
+    position: relative;
+
     display: block;
+
+    width: 100%;
     height: 44px;
     padding: 9px 12px 11px;
-    position: relative;
-    width: 100%;
+    border: 1px solid #d5d5d5;
+    border-radius: 3px;
+
+    background-color: v.$white;
 
     &:disabled {
       border-color: rgb(0 0 0 / 12%);
@@ -153,41 +156,45 @@ const enter = () => {
   }
 
   &__counter {
-    display: block;
-    font-size: 11px;
     position: absolute;
-    right: 0;
-    text-align: right;
     top: -18px;
+    right: 0;
+
+    display: block;
+
+    font-size: 11px;
+    text-align: right;
   }
 
   &__input {
+    width: 100%;
     font-size: 16px;
     line-height: 24px;
-    width: 100%;
 
     &::placeholder {
       color: v.$gray-1;
     }
 
     &::selection {
-      background-color: v.$primary-color;
       color: v.$white;
+      background-color: v.$primary-color;
     }
   }
 }
 
 .error-container {
   display: block;
-  margin-top: 8px;
   min-height: 20px;
+  margin-top: 8px;
 
   > .error {
-    color: v.$red;
     display: block;
+
+    width: fit-content;
+
     font-size: 12px;
     font-weight: 400;
-    width: fit-content;
+    color: v.$red;
   }
 }
 </style>

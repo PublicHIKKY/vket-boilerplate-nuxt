@@ -176,26 +176,29 @@ const goToPage = (page: number) => {
 @use '@/assets/styles/mixins' as m;
 
 .pagination {
-  align-items: center;
   display: flex;
   gap: 8px;
+  align-items: center;
   justify-content: center;
 
   .link-disabled {
-    cursor: default;
     pointer-events: none;
+    cursor: default;
   }
 
   .pagination-prev,
   .pagination-next {
-    align-items: center;
-    color: v.$base-font-color;
     cursor: pointer;
+    user-select: none;
+
     display: flex;
+    align-items: center;
+
+    width: auto;
     height: 32px;
     padding: 4px 8px;
-    user-select: none;
-    width: auto;
+
+    color: v.$base-font-color;
 
     :deep(svg path) {
       fill: v.$base-font-color;
@@ -219,41 +222,51 @@ const goToPage = (page: number) => {
   }
 
   .pagination-list {
-    display: flex;
-    gap: 4px;
-    list-style: none;
-    padding: 0;
     user-select: none;
 
+    display: flex;
+    gap: 4px;
+
+    padding: 0;
+
+    list-style: none;
+
     .pagination-item {
-      align-items: center;
-      background: v.$white;
-      border-radius: 50%;
-      color: v.$base-font-color;
       cursor: pointer;
+
       display: flex;
-      height: 30px;
+      align-items: center;
       justify-content: center;
+
       width: 30px;
+      height: 30px;
+      border-radius: 50%;
+
+      color: v.$base-font-color;
+
+      background: v.$white;
 
       &.active {
-        background-color: v.$primary-button-default-color;
-        color: v.$white;
         font-weight: bold;
+        color: v.$white;
+        background-color: v.$primary-button-default-color;
       }
 
       &:hover:not(.active) {
-        background-color: v.$primary-button-default-color;
         color: v.$white;
+        background-color: v.$primary-button-default-color;
       }
 
       &.ellipsis {
-        align-items: center;
-        background: none;
-        display: flex;
-        justify-content: center;
         pointer-events: none;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
         width: 30px;
+
+        background: none;
       }
     }
   }
