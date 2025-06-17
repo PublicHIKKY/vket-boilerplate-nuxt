@@ -12,7 +12,7 @@
     },
     "layers/base": {
       "name": "vket-boilerplate-nuxt-base",
-      "version": "0.1.0",
+      "version": "1.0.1",
       "dependencies": {
         "@gtm-support/vue-gtm": "^3.1.0",
         "@headlessui/vue": "^1.7.23",
@@ -92,7 +92,7 @@
     },
     "layers/main": {
       "name": "vket-boilerplate-nuxt-main",
-      "version": "0.1.0",
+      "version": "1.0.1",
       "dependencies": {
         "vket-boilerplate-nuxt-base": "workspace:*",
       },
@@ -111,7 +111,14 @@
     },
     "layers/showcases": {
       "name": "vket-boilerplate-nuxt-showcases",
-      "version": "0.1.0",
+      "version": "1.0.1",
+      "dependencies": {
+        "vket-boilerplate-nuxt-base": "workspace:*",
+      },
+    },
+    "layers/vket-sso": {
+      "name": "vket-boilerplate-nuxt-vket-sso",
+      "version": "1.0.1",
       "dependencies": {
         "vket-boilerplate-nuxt-base": "workspace:*",
       },
@@ -2456,6 +2463,8 @@
     "vket-boilerplate-nuxt-open-api": ["vket-boilerplate-nuxt-open-api@workspace:layers/open-api"],
 
     "vket-boilerplate-nuxt-showcases": ["vket-boilerplate-nuxt-showcases@workspace:layers/showcases"],
+
+    "vket-boilerplate-nuxt-vket-sso": ["vket-boilerplate-nuxt-vket-sso@workspace:layers/vket-sso"],
 
     "vscode-uri": ["vscode-uri@3.1.0", "", {}, "sha512-/BpdSx+yCQGnCvecbyXdxHDkuk55/G3xwnC0GqY4gmQ3j+A+g8kzzgB4Nk/SINjqn6+waqw3EgbVF2QKExkRxQ=="],
 

@@ -23,7 +23,7 @@ describe('props', () => {
     await wrapper.setProps({ type: 'date' })
     expect(wrapper.get('input').attributes('type')).toBe('date')
     await wrapper.setProps({ type: 'time' })
-    expect(wrapper.get('input').attributes('type')).toBe('time'
+    expect(wrapper.get('input').attributes('type')).toBe('time',
     )
   })
 
