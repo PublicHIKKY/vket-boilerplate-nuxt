@@ -23,7 +23,8 @@ describe('props', () => {
     await wrapper.setProps({ type: 'date' })
     expect(wrapper.get('input').attributes('type')).toBe('date')
     await wrapper.setProps({ type: 'time' })
-    expect(wrapper.get('input').attributes('type')).toBe('time')
+    expect(wrapper.get('input').attributes('type')).toBe('time'
+    )
   })
 
   it(':validatorName', () => {
@@ -43,6 +44,43 @@ describe('props', () => {
       },
     })
     expect(wrapper.props('validatorRules')).toStrictEqual(testValidatorRules)
+  })
+
+  it(':hideDetails', async () => {
+    const wrapper = mount(HmInputDatetime, {
+      props: {
+        hideDetails: false,
+      },
+    })
+
+    const errorContainer = wrapper.find('.error-container')
+    expect(errorContainer.exists()).toBe(true)
+    expect(errorContainer.classes()).not.toContain('-hide')
+
+    await wrapper.setProps({ hideDetails: true })
+    expect(errorContainer.classes()).toContain('-hide')
+  })
+
+  it(':error', async () => {
+    const customError = 'Custom error message'
+    const wrapper = mount(HmInputDatetime, {
+      props: {
+        error: customError,
+      },
+    })
+
+    const errorSpan = wrapper.find('.error')
+    expect(errorSpan.exists()).toBe(true)
+    expect(errorSpan.text()).toBe(customError)
+
+    // error prop が設定されている場合、validation エラーより優先されることをテスト
+    await wrapper.setProps({
+      error: customError,
+      validatorRules: z.string().min(10, 'Validation error'),
+      modelValue: 'short',
+    })
+
+    expect(errorSpan.text()).toBe(customError)
   })
 
   it(':required', () => {
