@@ -22,24 +22,29 @@ const handleCloseDialog = () => emit('close')
 @use '#base/app/assets/styles/mixins' as m;
 
 .ha-dialog {
-  align-items: center;
-  background: v.$black-undercoat;
-  display: flex;
-  height: 100vh;
-  justify-content: center;
-  left: 0;
   position: fixed;
-  top: 0;
-  width: 100vw;
   z-index: v.$zindex-dialog;
+  top: 0;
+  left: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100vw;
+  height: 100vh;
+
+  background: v.$black-undercoat;
 
   > .dialog-window {
-    background-color: v.$white;
-    max-height: 100%;
-    max-width: 100%;
     overflow: auto;
-    padding: 10px;
+
     width: auto;
+    max-width: 100%;
+    max-height: 100%;
+    padding: 10px;
+
+    background-color: v.$white;
   }
 }
 </style>

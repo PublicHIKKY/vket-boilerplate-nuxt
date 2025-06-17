@@ -39,46 +39,53 @@ function onChange(e: Event): void {
 @use '#base/app/assets/styles/variables' as v;
 
 .hm-input-radio {
-  align-items: center;
   cursor: pointer;
   display: inline-flex;
+  align-items: center;
 
   > .button {
     display: none;
   }
 
   > .content {
-    align-items: center;
+    position: relative;
+
     display: flex;
     flex-direction: column;
-    padding-left: 34px;
-    position: relative;
+    align-items: center;
+
     width: 100%;
+    padding-left: 34px;
 
     &::before,
     &::after {
-      border-radius: 50%;
       content: '';
       position: absolute;
       top: 50%;
+      border-radius: 50%;
     }
 
     &::before {
-      background-color: v.$white;
-      border: 2px solid v.$blue;
-      height: 24px;
       left: 0;
       transform: translateY(-50%);
+
       width: 24px;
+      height: 24px;
+      border: 2px solid v.$blue;
+
+      background-color: v.$white;
     }
 
     &::after {
-      background-color: v.$primary-color;
-      display: none;
-      height: 14px;
       left: 12px;
       transform: translate(-50%, -50%);
+
+      display: none;
+
       width: 14px;
+      height: 14px;
+
+      background-color: v.$primary-color;
     }
   }
 

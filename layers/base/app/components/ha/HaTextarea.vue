@@ -109,12 +109,15 @@ const count = computed((): string | number => {
 
 .ha-textarea {
   > .label {
-    background-color: v.$white;
+    position: relative;
+
+    display: block;
+
+    width: 100%;
     border: 1px solid #d5d5d5;
     border-radius: 3px;
-    display: block;
-    position: relative;
-    width: 100%;
+
+    background-color: v.$white;
 
     &:disabled {
       border-color: rgb(0 0 0 / 12%);
@@ -143,48 +146,53 @@ const count = computed((): string | number => {
   }
 
   > .label > .counter {
-    display: block;
-    font-size: 11px;
     position: absolute;
-    right: 0;
-    text-align: right;
     top: -18px;
+    right: 0;
+
+    display: block;
+
+    font-size: 11px;
+    text-align: right;
   }
 
   > .label > .input {
-    color: v.$black;
+    width: 100%;
+    padding: 9px 12px 11px;
+
     font-size: 16px;
     line-height: 24px;
-    padding: 9px 12px 11px;
-    width: 100%;
+    color: v.$black;
 
     &::placeholder {
       color: v.$gray-1;
     }
 
     &::selection {
-      background-color: v.$primary-color;
       color: v.$white;
+      background-color: v.$primary-color;
     }
   }
 
   > .error-container {
     display: block;
-    margin-top: 8px;
     min-height: 20px;
+    margin-top: 8px;
 
     > .error {
-      color: v.$red;
       display: block;
+
+      width: fit-content;
+
       font-size: 12px;
       font-weight: 400;
-      width: fit-content;
+      color: v.$red;
     }
 
     &.-hide {
       display: none;
-      margin-top: 0;
       min-height: auto;
+      margin-top: 0;
     }
   }
 }

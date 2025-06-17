@@ -1,12 +1,9 @@
-/// <reference types="vitest" />
-import VueI18nVitePlugin from '@intlify/unplugin-vue-i18n/vite'
-import Vue from '@vitejs/plugin-vue'
 import path from 'path'
+import Vue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
-import { fileURLToPath } from 'url'
-import svgLoader from 'vite-svg-loader'
 import { defineConfig } from 'vitest/config'
+import svgLoader from 'vite-svg-loader'
 
 export default defineConfig({
   plugins: [
@@ -19,8 +16,10 @@ export default defineConfig({
         'vue-i18n',
         {
           '#app': [
-            // NOTE: 自動生成される.nuxt/imports.d.tsから手動移植 https://tech.andpad.co.jp/entry/2023/03/16/100000
-            // export { // .nuxt/imports.d.ts 参照
+            /*
+             * NOTE: 自動生成される.nuxt/imports.d.tsから手動移植 https://tech.andpad.co.jp/entry/2023/03/16/100000
+             * export { // .nuxt/imports.d.ts 参照
+             */
             'useAsyncData',
             'useLazyAsyncData',
             'useNuxtData',
@@ -97,16 +96,6 @@ export default defineConfig({
       dirs: ['app/components'],
       dts: './@types/components.d.ts',
     }),
-    VueI18nVitePlugin({
-      include: [
-        path.resolve(
-          path.dirname(fileURLToPath(import.meta.url)),
-          './i18n/locales/*.json'
-        ),
-      ],
-      defaultSFCLang: 'yaml',
-      runtimeOnly: false,
-    }),
     svgLoader({
       defaultImport: 'component', // 'component', 'url', 'raw'
       svgo: false,
@@ -126,7 +115,7 @@ export default defineConfig({
       '#app': path.resolve(__dirname, '../../node_modules/nuxt/dist/app'),
       '#i18n': path.resolve(
         __dirname,
-        '../../node_modules/@nuxtjs/i18n/dist/runtime/composables'
+        '../../node_modules/@nuxtjs/i18n/dist/runtime/composables',
       ),
       '@@/public/images/no-image.png': '/images/no-image.png',
     },

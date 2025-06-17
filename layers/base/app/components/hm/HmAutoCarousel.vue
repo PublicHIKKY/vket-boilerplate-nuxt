@@ -47,30 +47,40 @@ const direction = computed(() => {
 @use '#base/app/assets/styles/mixins' as m;
 
 .hm-auto-carousel {
-  display: flex;
-  overflow: clip;
   position: relative;
+  overflow: clip;
+  display: flex;
+
   &.-horizontal-left,
   &.-horizontal-right{
     flex-direction:row;
+
     >.list {
-    animation: horizontal var(--duration) linear infinite;
+    transform:translateX(-100%);
+
     display: flex;
     flex-shrink: 0;
-    transform:translateX(-100%);
+
     width: max-content;
+
+    animation: horizontal var(--duration) linear infinite;
     }
   }
+
   &.-vertical-top,
   &.-vertical-bottom{
     flex-direction:column;
+
     >.list {
-    animation: vertical var(--duration) linear infinite;
+    transform:translateY(-100%);
+
     display: flex;
     flex-direction:column;
     flex-shrink: 0;
-    transform:translateY(-100%);
+
     height: max-content;
+
+    animation: vertical var(--duration) linear infinite;
     }
   }
 }
@@ -79,6 +89,7 @@ const direction = computed(() => {
   0% {
     transform: translateX(-100%);
   }
+
   100% {
     transform: translateX(calc(-100% + (100% * var(--direction))));
   }
@@ -88,6 +99,7 @@ const direction = computed(() => {
   0% {
     transform: translateY(-100%);
   }
+
   100% {
     transform: translateY(calc(-100% + (100% * var(--direction))));
   }

@@ -108,53 +108,56 @@ onMounted(() => {
 
 .open {
   display: block;
-  max-width: 100%;
   width: max-content;
+  max-width: 100%;
 }
 
 .ha-modal {
-  inset: 0;
   position: fixed;
   z-index: 2147483647;
+  inset: 0;
 
   &[aria-hidden='true'] {
+    visibility: hidden;
     opacity: 0;
     transition: visibility 0.4s, opacity 0.4s;
-    visibility: hidden;
   }
 
   &[aria-hidden='false'] {
+    visibility: visible;
     opacity: 1;
     transition: visibility 0.4s, opacity 0.4s;
-    visibility: visible;
   }
 
   > .inner {
-    inset: 0;
     position: absolute;
+    inset: 0;
 
     > .background {
-      inset: 0;
       position: absolute;
+      inset: 0;
     }
 
     > .modal {
-      height: 90vh;
-      left: 50%;
-      overflow-y: auto; /* モーダルの中身はスクロール可能に */
       position: absolute;
       top: 50%;
+      left: 50%;
       translate: -50% -50%;
+
+      overflow-y: auto; /* モーダルの中身はスクロール可能に */
+
       width: 90%;
+      height: 90vh;
     }
   }
 
   > .close {
-    aspect-ratio: 1/1;
     position: absolute;
-    right: 2%;
-    top: 2%;
     z-index: 2;
+    top: 2%;
+    right: 2%;
+
+    aspect-ratio: 1/1;
 
     > .icon {
       font-size: 24px;

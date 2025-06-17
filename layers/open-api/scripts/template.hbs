@@ -1,0 +1,72 @@
+{{!-- OpenAPI から Zod スキーマ生成用テンプレート --}}
+import { z } from 'zod'
+
+{{#each operations}}
+{{#each responses}}
+{{#if content}}
+/**
+ * {{../summary}}
+ * {{../description}}
+ */
+export const {{toCamelCase ../operationId}}ResponseSchema = z.object({
+{{#each content}}
+  {{#each schema.properties}}
+  {{toCamelCase @key}}: {{{zodType this}}},{{#if description}} // {{description}}{{/if}}
+  {{/each}}
+{{/each}}
+})
+
+export type {{toCamelCase ../operationId}}ResponseType = z.infer<typeof {{toCamelCase ../operationId}}ResponseSchema>
+
+{{/each}}
+{{/if}}
+{{/each}}
+
+{{#if requestBody}}
+/**
+ * Request schema for {{summary}}
+ */
+export const {{toCamelCase operationId}}RequestSchema = z.object({
+{{#each requestBody.content}}
+  {{#each schema.properties}}
+  {{toCamelCase @key}}: {{{zodType this}}},{{#if description}} // {{description}}{{/if}}
+  {{/each}}
+{{/each}}
+})
+
+export type {{toCamelCase operationId}}RequestType = z.infer<typeof {{toCamelCase operationId}}RequestSchema>
+
+{{/if}}
+
+{{#if parameters}}
+/**
+ * Parameters schema for {{summary}}
+ */
+export const {{toCamelCase operationId}}ParametersSchema = z.object({
+{{#each parameters}}
+  {{toCamelCase name}}: {{{zodType schema}}},{{#if description}} // {{description}}{{/if}}
+{{/each}}
+})
+
+export type {{toCamelCase operationId}}ParametersType = z.infer<typeof {{toCamelCase operationId}}ParametersSchema>
+
+{{/if}}
+{{/each}}
+
+/**
+ * API client functions
+ */
+{{#each operations}}
+export const {{toCamelCase operationId}} = async (
+{{#if requestBody}}
+  data: {{toCamelCase operationId}}RequestType,
+{{/if}}
+{{#if parameters}}
+  params: {{toCamelCase operationId}}ParametersType,
+{{/if}}
+) => {
+  // TODO: Implement API call logic using fetcher from api-enhanced.ts
+  throw new Error('API call not implemented yet')
+}
+
+{{/each}}

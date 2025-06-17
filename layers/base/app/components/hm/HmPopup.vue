@@ -1,7 +1,7 @@
 <template>
   <HaDialog
     class="hm-popup"
-    @close-dialog="closeDislog"
+    @closeDialog="closeDislog"
   >
     <template v-if="title">
       <span class="hm-popup-title">
@@ -77,40 +77,42 @@ const onConfirm = () => {
 
 .hm-popup {
   &:deep(.dialog-window) {
-    height: auto;
-    max-width: 90%;
     width: fit-content;
+    max-width: 90%;
+    height: auto;
   }
 }
 
 .hm-popup-title {
-  color: v.$black-1;
   font-size: 20px;
   font-weight: 700;
-  letter-spacing: 0.01em;
   line-height: 150%;
+  color: v.$black-1;
+  letter-spacing: 0.01em;
 }
 
 .hm-popup-description {
-  color: v.$black-1;
+  width: 100%;
+  height: fit-content;
+  margin-top: 32px;
+
   font-size: 16px;
   font-weight: 400;
-  height: fit-content;
   line-height: 125%;
-  margin-top: 32px;
-  width: 100%;
+  color: v.$black-1;
 }
 
 .hm-popup-wrapper {
-  align-items: center;
   display: flex;
+  align-items: center;
   justify-content: center;
-  margin-top: 32px;
+
   width: 100%;
+  margin-top: 32px;
 }
 
 .hm-popup-button {
-  margin: 0 12px;
   width: fit-content;
+  margin: 0 12px;
 }
 </style>

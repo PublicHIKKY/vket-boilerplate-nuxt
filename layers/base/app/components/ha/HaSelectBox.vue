@@ -113,28 +113,31 @@ const innerValue = computed({
   position: relative;
 
   > .select {
-    background-color: v.$white;
+    cursor: pointer;
+
+    width: 100%;
+    height: 44px;
+    padding: 8px 16px;
     border: 1px solid v.$primary-color;
     border-radius: 4px;
-    color: v.$black;
-    cursor: pointer;
+
     font-size: 15px;
-    height: 44px;
     line-height: 1;
-    outline: none;
-    padding: 8px 16px;
+    color: v.$black;
     text-overflow: ellipsis;
-    width: 100%;
+
+    background-color: v.$white;
+    outline: none;
 
     &::placeholder {
       color: v.$gray;
     }
 
     &:disabled {
-      background-color: v.$gray-2;
       border-color: rgb(0 0 0 / 12%);
       color: v.$gray;
       opacity: 0.5;
+      background-color: v.$gray-2;
     }
 
     &:focus {
@@ -156,13 +159,15 @@ const innerValue = computed({
   }
 
   > .error {
-    color: v.$red;
     display: block;
+
+    width: fit-content;
+    min-height: 20px;
+    margin-top: 8px;
+
     font-size: 10px;
     font-weight: 400;
-    margin-top: 8px;
-    min-height: 20px;
-    width: fit-content;
+    color: v.$red;
   }
 
   @include m.sp {

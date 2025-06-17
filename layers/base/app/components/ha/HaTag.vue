@@ -62,22 +62,25 @@ const onClick = () => {
 @use 'sass:color';
 
 .ha-tag {
-  border-radius: 4px;
   display: inline-block;
+
+  width: fit-content;
+  padding: v.space(1) v.space(2);
+  border-radius: 4px;
+
   font-size: 12px;
   line-height: 1;
-  padding: v.space(1) v.space(2);
+
   transition: color 0.2s ease, background-color 0.2s ease;
-  width: fit-content;
 
   &.-clickable {
     cursor: pointer;
   }
 
   &.-primary {
-    background-color: v.$primary-color;
-    color: v.$white;
     font-weight: 600;
+    color: v.$white;
+    background-color: v.$primary-color;
 
     &.-clickable:hover {
       background-color: v.$yellow;
@@ -85,14 +88,14 @@ const onClick = () => {
     }
 
     &.-disabled {
-      background-color: v.$button-disabled-color;
       color: v.$gray-3;
+      background-color: v.$button-disabled-color;
     }
   }
 
   &.-pink {
-    background-color: v.$pink;
     color: v.$white;
+    background-color: v.$pink;
 
     &.-clickable:hover {
       background-color: color.adjust(
@@ -104,30 +107,30 @@ const onClick = () => {
     }
 
     &.-disabled {
-      background-color: v.$button-disabled-color;
       color: v.$gray-3;
+      background-color: v.$button-disabled-color;
     }
   }
 
   &.-outline {
-    background-color: transparent;
     border: v.$pink 1px solid;
     color: v.$pink;
+    background-color: transparent;
 
     &.-clickable:hover {
-      background-color: v.$pink;
       color: v.$white;
+      background-color: v.$pink;
     }
 
     &.-disabled {
-      background-color: v.$button-disabled-color;
       color: v.$gray-3;
+      background-color: v.$button-disabled-color;
     }
   }
 
   &.-gray {
-    background-color: v.$gray;
     color: v.$white;
+    background-color: v.$gray;
 
     &.-clickable:hover {
       background-color: color.adjust(
@@ -138,22 +141,22 @@ const onClick = () => {
     }
 
     &.-disabled {
-      background-color: v.$button-disabled-color;
       color: v.$gray-3;
+      background-color: v.$button-disabled-color;
     }
   }
 
   &.-danger {
-    background-color: v.$red;
     color: v.$white;
+    background-color: v.$red;
 
     &.-clickable:hover {
       background-color: color.adjust(v.$red, $saturation: 10%, $lightness: 10%);
     }
 
     &.-disabled {
-      background-color: v.$button-disabled-color;
       color: v.$gray-3;
+      background-color: v.$button-disabled-color;
     }
   }
 }

@@ -7,7 +7,7 @@
       @error="onError"
     />
     <HaImage
-      :is-lazy="isLazy"
+      :isLazy="isLazy"
       :fetchpriority="fetchPriority"
       :src="srcPc"
       :alt="alt ? alt : ''"

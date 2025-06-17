@@ -65,13 +65,17 @@ const changeTab = (index: number): void => {
 .tabpanel {
   display: none;
   grid-area: 1 / 1 / 2 / 2;
+
   opacity: 0;
+
   transition: opacity 0.3s, display 0.3s;
+
   transition-behavior: allow-discrete; // display:block -> noneにdurationを効かせる(transitionのショートハンドで上書きされないようにtransitionより下に書く)
   &[aria-hidden='false'] {
     display: block;
     opacity: 1;
     transition: opacity 0.3s, display 0.3s;
+
     transition-behavior: allow-discrete; // display:block -> noneにdurationを効かせる(transitionのショートハンドで上書きされないようにtransitionより下に書く)
   }
 }
