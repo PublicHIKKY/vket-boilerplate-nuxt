@@ -263,9 +263,6 @@ declare global {
   export type { ToastComposable } from '../app/composables/useToast'
   import('../app/composables/useToast')
   // @ts-ignore
-  export type { RepositoryKey } from '../app/utils/api-enhanced'
-  import('../app/utils/api-enhanced')
-  // @ts-ignore
   export type { LogLevel, ConsoleMethod } from '../app/utils/console'
   import('../app/utils/console')
   // @ts-ignore
