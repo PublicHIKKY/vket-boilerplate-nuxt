@@ -1,0 +1,18 @@
+{
+  "name": "vket-boilerplate-nuxt-open-api",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "generate": "bun run scripts/make-zod.ts",
+    "clean": "rm -rf app/models/openapi/*"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "openapi-zod-client": "^1.18.1",
+    "js-yaml": "^4.1.0",
+    "@types/js-yaml": "^4.0.9"
+  }
+}

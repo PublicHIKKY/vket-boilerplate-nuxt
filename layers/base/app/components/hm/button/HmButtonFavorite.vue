@@ -43,8 +43,8 @@ const onClick = () => {
 .hm-button-favorite {
   > .button {
     cursor: pointer;
-    height: 24px;
     width: 24px;
+    height: 24px;
   }
 
   &.-disabled {

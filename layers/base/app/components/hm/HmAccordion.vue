@@ -60,7 +60,7 @@ onMounted(() => {
     subtree: false, // 全ての子孫要素の変更を監視
     characterData: false, // テキストの変更を監視
   }
-  if (accordionBody.value) {
+  if (accordionBody.value && accordionBody.value instanceof HTMLElement) {
     observer.observe(accordionBody.value, config)
   }
 })
@@ -77,17 +77,6 @@ const changeExpanded = () => {
     }, 300)
   }
 }
-
-const closeAccordion = () => {
-  isOpen.value = false
-  setTimeout(() => {
-    if (accordionBody.value) {
-      accordionBody.value.setAttribute('hidden', 'until-found')
-    }
-  }, 300)
-}
-
-defineExpose({ closeAccordion })
 </script>
 
 <style scoped lang="scss">

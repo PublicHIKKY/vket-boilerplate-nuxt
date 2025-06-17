@@ -36,7 +36,7 @@ const props = withDefaults(
       | ZodType<boolean, ZodTypeDef, boolean>
       | ZodEffects<ZodType<boolean, ZodTypeDef, boolean>>
     name: string
-    modelValue: boolean
+    modelValue?: boolean
     required?: boolean
     disabled?: boolean
   }>(),
@@ -78,14 +78,14 @@ const innerValue = computed({
 @use '#base/app/assets/styles/variables' as v;
 
 .hm-input-checkbox {
-  align-items: center;
   cursor: pointer;
   display: inline-flex;
   flex-direction: column;
+  align-items: center;
 
   &.-disabled {
-    color: v.$gray-1;
     cursor: default;
+    color: v.$gray-1;
   }
 
   > .button {
@@ -99,46 +99,56 @@ const innerValue = computed({
   }
 
   > .error {
-    color: v.$red;
     display: block;
+
+    width: 100%;
+    margin-top: 8px;
+
     font-size: 10px;
     font-weight: 400;
-    margin-top: 8px;
-    width: 100%;
+    color: v.$red;
   }
 
   > .content {
-    align-items: center;
+    position: relative;
+
     display: flex;
     flex-direction: column;
-    padding-left: 34px;
-    position: relative;
+    align-items: center;
+
     width: 100%;
+    padding-left: 34px;
 
     &::before {
-      background-color: v.$white;
-      border: 1px solid v.$primary-color;
-      border-radius: 20%;
       content: '';
-      height: 24px;
-      left: 0;
+
       position: absolute;
       top: 50%;
+      left: 0;
       transform: translateY(-50%);
+
       width: 24px;
+      height: 24px;
+      border: 1px solid v.$primary-color;
+      border-radius: 20%;
+
+      background-color: v.$white;
     }
 
     &::after {
-      border-left: 4px solid v.$primary-color;
-      border-top: 4px solid v.$primary-color;
       content: '';
-      display: none;
-      height: 14px;
-      left: 11px;
+
       position: absolute;
       top: 50%;
+      left: 11px;
       transform: translate(-50%, -50%) rotate(-140deg);
+
+      display: none;
+
       width: 10px;
+      height: 14px;
+      border-top: 4px solid v.$primary-color;
+      border-left: 4px solid v.$primary-color;
     }
   }
 
@@ -148,8 +158,8 @@ const innerValue = computed({
     }
 
     &::after {
-      border-left: 4px solid v.$gray-1;
       border-top: 4px solid v.$gray-1;
+      border-left: 4px solid v.$gray-1;
     }
   }
 
@@ -159,15 +169,15 @@ const innerValue = computed({
       padding-left: 28px;
 
       &::before {
-        background-color: transparent;
-        border: 3px solid v.$gray-2;
-        height: 20px;
         width: 20px;
+        height: 20px;
+        border: 3px solid v.$gray-2;
+        background-color: transparent;
       }
 
       &::after {
-        left: 10px;
         top: 45%;
+        left: 10px;
       }
     }
 

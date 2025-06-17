@@ -12,7 +12,7 @@
         type="radio"
         :name="props.name"
         :value="option.value"
-        :model-value="option.value"
+        :modelValue="option.value"
         :checked="option.checked"
         :disabled="option.disabled"
         required
@@ -93,15 +93,19 @@ const onChange = (e: Event) => {
     flex: 1;
 
     > .label {
-      background-color: v.$navy-1;
-      border: solid 1px v.$navy-2;
       cursor: pointer;
+      user-select: none;
+
       display: block;
+
       height: 100%;
       padding: v.space(2) 0;
+      border: solid 1px v.$navy-2;
+
       text-align: center;
-      user-select: none;
       white-space: pre-wrap;
+
+      background-color: v.$navy-1;
 
       &:hover {
         background-color: v.$green-4;
@@ -117,8 +121,8 @@ const onChange = (e: Event) => {
   &:hover,
   &:focus {
     + .label {
-      background-color: v.$green-4;
       border-color: v.$blue;
+      background-color: v.$green-4;
     }
   }
 }

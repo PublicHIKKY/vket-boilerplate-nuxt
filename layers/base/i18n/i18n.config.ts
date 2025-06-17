@@ -1,5 +1,7 @@
-// note: i18n by nuxt-i18n i18nの不具合があればこのファイルから参照する
-// ref: https://v8.i18n.nuxtjs.org/
+/*
+ * note: i18n by nuxt-i18n i18nの不具合があればこのファイルから参照する
+ * ref: https://v8.i18n.nuxtjs.org/
+ */
 import type { NuxtI18nOptions } from '@nuxtjs/i18n/dist/module'
 import Cookies from 'universal-cookie'
 import en from './locales/en.json'
@@ -59,7 +61,7 @@ export const nuxtI18nOptions: NuxtI18nOptions = {
     cookieCrossOrigin: true,
     fallbackLocale: defaultLanguage,
   },
-  vueI18n: './i18n/i18n.config.ts',
+  vueI18n: '#base/i18n/i18n.config.ts',
 }
 
 export default {

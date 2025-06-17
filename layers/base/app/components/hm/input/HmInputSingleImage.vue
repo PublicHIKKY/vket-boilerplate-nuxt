@@ -1,8 +1,8 @@
 <i18n lang="yaml">
 ja:
-  explain: 画像を切り抜く範囲を指定して、「切り抜く」ボタンをクリックしてください。マウスホイールで拡大・縮小できます。
+  explain: "画像を切り抜く範囲を指定して、「切り抜く」ボタンをクリックしてください。マウスホイールで拡大・縮小できます。"
 en:
-  explain: Please adjust the crop area and click the 'Crop' button. Scroll the mouse wheel to zoom in and out.
+  explain: "Please adjust the crop area and click the 'Crop' button. Scroll the mouse wheel to zoom in and out."
 </i18n>
 
 <template>
@@ -17,7 +17,7 @@ en:
         :accept="accept"
         class="hm-single-image-uploader"
         :class="{ '-rounded': previewRounded }"
-        :prop-files="fileList"
+        :propFiles="fileList"
         @input:single="changeImage"
         @cancel="cancel"
       >
@@ -43,6 +43,7 @@ en:
     </p>
     <template v-if="imageUrl && isRemovable">
       <button
+        type="button"
         class="remove"
         @click="removeImage"
       />
@@ -61,7 +62,7 @@ en:
             :width="cropWidth"
             :height="cropHeight"
             :ext="cropExt"
-            :auto-zoom="true"
+            :autoZoom="true"
             class="main"
             @clipped="onClipped"
           />
@@ -272,79 +273,91 @@ const cancel = () => {
 @use '#base/app/assets/styles/mixins' as m;
 
 .hm-input-single-image {
-  display: block;
-  height: fit-content;
-  margin: auto;
-  max-height: 100%;
-  max-width: 100%;
   position: relative;
+
+  display: block;
+
   width: fit-content;
+  max-width: 100%;
+  height: fit-content;
+  max-height: 100%;
+  margin: auto;
 
   > .wrapper {
-    align-items: center;
-    display: flex;
-    height: calc(100% - 28px);
-    justify-content: center;
-    margin: 0 auto;
     position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
     width: calc(100% - 28px);
+    height: calc(100% - 28px);
+    margin: 0 auto;
   }
 
   > .wrapper > .uploader {
     display: block;
-    height: 100%;
     width: 100%;
+    height: 100%;
   }
 
   > .remove {
-    background-color: v.$black;
-    border-radius: 50%;
-    display: block;
-    height: 32px;
     position: absolute;
-    right: 0;
     top: 0;
+    right: 0;
+
+    display: block;
+
     width: 32px;
+    height: 32px;
+    border-radius: 50%;
+
+    background-color: v.$black;
 
     &::before,
     &::after {
-      border-top: 3px solid v.$white;
       content: '';
-      display: block;
+
       position: relative;
+
+      display: block;
+
       width: 30px;
+      border-top: 3px solid v.$white;
     }
 
     &::before {
-      height: 1px;
-      left: 1px;
       top: 1px;
+      left: 1px;
       transform: rotate(45deg);
+      height: 1px;
     }
 
     &::after {
-      height: 2px;
-      right: -1px;
       top: -1px;
+      right: -1px;
       transform: rotate(-45deg);
+      height: 2px;
     }
   }
 
   .error-container {
-    color: v.$red;
     display: block;
+
+    min-height: 20px;
+    margin-top: 8px;
+
     font-size: 12px;
     font-weight: 400;
-    margin-top: 8px;
-    min-height: 20px;
+    color: v.$red;
   }
 }
 
 .crop-message {
-  color: v.$base-font-color;
+  margin-bottom: 16px;
   font-size: 12px;
   line-height: 16px;
-  margin-bottom: 16px;
+  color: v.$base-font-color;
 }
 
 .crop-container {

@@ -172,7 +172,6 @@ export function makeRecursiveSchema<T>(
   const builder_ = builder as (self: ZodType<R>) => ZodType<T>
 
   // 再帰をぶん回して
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rec = (): ZodType<R> => builder_(z.lazy(rec)) as any
+  const rec = (): ZodType<R> => builder_(z.lazy(rec)) as unknown as ZodType<R>
   return rec()
 }

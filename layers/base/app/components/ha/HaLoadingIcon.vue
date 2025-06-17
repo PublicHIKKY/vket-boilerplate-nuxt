@@ -6,15 +6,17 @@
 @use '#base/app/assets/styles/variables' as v;
 
 .ha-loading-icon {
-  animation: ha-loading-icon 0.7s infinite linear;
+  position: absolute;
+  inset: 0;
+
+  width: 36px;
+  height: 36px;
+  margin: auto;
   border: 2px solid v.$white;
   border-bottom-color: transparent;
   border-radius: 9999px;
-  height: 36px;
-  inset: 0;
-  margin: auto;
-  position: absolute;
-  width: 36px;
+
+  animation: ha-loading-icon 0.7s infinite linear;
 }
 
 @keyframes ha-loading-icon {

@@ -24,6 +24,8 @@ export default withNuxt(
       'vue/no-v-html': 'error',
       'vue/multi-word-component-names': 'off',
       'vue/html-self-closing': 'off', // prettierと競合するため、off
+      'vue/attribute-hyphenation': ['error', 'never'], // camelCase属性を強制
+      'vue/v-on-event-hyphenation': ['error', 'never', { autofix: true }], // camelCaseイベントを強制
     },
   },
   // composablesやplugins・middlewareなども含む設定

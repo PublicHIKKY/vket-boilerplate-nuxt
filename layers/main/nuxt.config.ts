@@ -2,6 +2,7 @@ import path from 'path'
 import { defineNuxtConfig } from 'nuxt/config'
 import { readEnvType } from './config/models/EnvType'
 import { getRuntimeConfigOfEnvType } from './config/runtimeConfig'
+import { nuxtI18nOptions } from './i18n/i18n.config'
 
 type MetaInfo = {
   title: string
@@ -26,6 +27,7 @@ const checkTypeCheckOnBuild = true
 const needAnalyze = NUXT_ENV_OUTPUT_ENV === 'local'
 const needSourcemap = NUXT_ENV_OUTPUT_ENV !== 'production'
 const enableDebug = NUXT_ENV_OUTPUT_ENV === 'local'
+
 const meta: MetaInfo = {
   title: '',
   description: '',
@@ -40,6 +42,9 @@ const meta: MetaInfo = {
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   extends: path.resolve(__dirname, '../base'),
+  modules: [
+    '@nuxtjs/google-fonts',
+  ],
   ssr: isSsr,
 
   imports: {
@@ -52,44 +57,43 @@ export default defineNuxtConfig({
       meta: [
         { name: 'robots', content: meta.robots },
         {
-          hid: 'description',
           name: 'description',
           content: meta.description,
         },
         {
-          hid: 'og:site_name',
           property: 'og:site_name',
           content: meta.siteName,
         },
         {
-          hid: 'og:url',
           property: 'og:url',
           content: meta.ogUrl,
         },
         {
-          hid: 'og:title',
           property: 'og:title',
           content: meta.title,
         },
         {
-          hid: 'og:description',
           property: 'og:description',
           content: meta.description,
         },
         {
-          hid: 'og:image',
           property: 'og:image',
           content: meta.ogImageUrl,
         },
         {
-          hid: 'twitter:site',
           name: 'twitter:site',
           content: meta.twitterSite,
         },
         {
-          hid: 'twitter:creator',
           name: 'twitter:creator',
           content: meta.twitterCreator,
+        },
+      ],
+      link: [
+        {
+          rel: 'icon',
+          type: 'image/x-icon',
+          href: `${runtimeConfig.public.url}/favicon.ico`,
         },
       ],
     },
@@ -105,6 +109,7 @@ export default defineNuxtConfig({
 
   alias: {
     '#main': __dirname,
+    '@': path.resolve(__dirname, './app'),
   },
 
   ignore: [
@@ -130,4 +135,13 @@ export default defineNuxtConfig({
   },
 
   debug: enableDebug,
+
+  googleFonts: {
+    families: {
+      'Noto+Sans+JP': [100, 300, 400, 500, 700, 900],
+    },
+    display: 'swap',
+  },
+
+  i18n: nuxtI18nOptions,
 })

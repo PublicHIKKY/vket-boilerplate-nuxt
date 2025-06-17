@@ -33,7 +33,7 @@ const onClick = (event: MouseEvent): void => {
 
 <style lang="scss" scoped>
 .ha-base-button {
-  max-height: 100%;
   max-width: 100%;
+  max-height: 100%;
 }
 </style>

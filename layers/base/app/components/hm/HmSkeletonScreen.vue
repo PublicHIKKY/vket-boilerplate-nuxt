@@ -40,32 +40,41 @@ withDefaults(defineProps<Props>(), {
 }
 
 .hm-skeleton-screen {
-  height: inherit;
   width: 100%;
+  height: inherit;
 
   /** @see https://nishinatoshiharu.com/css-skeleton-screen/#CSS の item__detail */
   > .skeleton-screen {
-    background: v.$gray-1;
+    position: relative;
+
+    overflow: hidden;
+
+    width: 100%;
+    height: inherit;
     // stylelint-disable-next-line
     border-radius: v-bind(borderRadius);
-    height: inherit;
-    overflow: hidden;
-    position: relative;
+
+    background: v.$gray-1;
   }
 
   .skeleton-screen::before {
-    animation: loading 1s linear infinite;
+    content: '';
+
+    position: absolute;
+
+    display: block;
+
+    width: 100%;
+    height: inherit;
+
     background: linear-gradient(
       90deg,
       transparent,
       rgb(255 255 255 / 50%),
       transparent
     );
-    content: '';
-    display: block;
-    height: inherit;
-    position: absolute;
-    width: 100%;
+
+    animation: loading 1s linear infinite;
   }
 }
 </style>
