@@ -1,3 +1,16 @@
+<i18n lang="yaml">
+  ja:
+    site:
+      title: Vket Boilerplate Nuxt
+      title_template: "{title} - HIKKY Web Frontend"
+      description: Vketのサイト開発で活用しているボイラープレート
+  en:
+    site:
+      title: Vket Boilerplate Nuxt
+      title_template: "{title} - HIKKY Web Frontend"
+      description: A boilerplate used for Vket site development
+</i18n>
+
 <template>
   <Head>
     <Link
@@ -73,5 +86,19 @@ useHeadSafe({
       ? i18n.t('site.title_template', { title: titleChunk })
       : i18n.t('site.title')
   },
+  meta: [
+    {
+      name: 'description',
+      content: i18n.t('site.description'),
+    },
+    {
+      property: 'og:description',
+      content: i18n.t('site.description'),
+    },
+    {
+      property: 'og:site_name',
+      content: i18n.t('site.title'),
+    },
+  ],
 })
 </script>
