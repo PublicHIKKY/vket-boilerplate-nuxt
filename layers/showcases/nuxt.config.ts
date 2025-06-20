@@ -1,5 +1,5 @@
-import path from 'path'
 import { defineNuxtConfig } from 'nuxt/config'
+import path from 'path'
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 import IconsResolver from 'unplugin-icons/resolver'
 import Icons from 'unplugin-icons/vite'
@@ -46,10 +46,11 @@ const meta: MetaInfo = {
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   extends: [
-    path.resolve(__dirname, '../main'),
+    path.resolve(__dirname, '../base'),
   ],
   modules: [
     'unplugin-icons/nuxt',
+    '@nuxtjs/google-fonts',
   ],
   ssr: isSsr,
   imports: {
@@ -167,5 +168,12 @@ export default defineNuxtConfig({
     typeCheck: checkTypeCheckOnBuild,
   },
   debug: enableDebug,
+
+  googleFonts: {
+    families: {
+      'Noto+Sans+JP': [100, 300, 400, 500, 700, 900],
+    },
+    display: 'swap',
+  },
   i18n: nuxtI18nOptions,
 })

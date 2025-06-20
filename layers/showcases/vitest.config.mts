@@ -1,10 +1,10 @@
 /// <reference types="vitest" />
-import path from 'path'
-import { fileURLToPath } from 'url'
 import VueI18nVitePlugin from '@intlify/unplugin-vue-i18n/vite'
 import Vue from '@vitejs/plugin-vue'
+import path from 'path'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
+import { fileURLToPath } from 'url'
 import svgLoader from 'vite-svg-loader'
 import { defineConfig } from 'vitest/config'
 
@@ -132,6 +132,8 @@ export default defineConfig({
         __dirname,
         '../../node_modules/@nuxtjs/i18n/dist/runtime/composables',
       ),
+      '@': path.resolve(__dirname, '../main/app'),
+      '#showcases': path.resolve(__dirname, './'),
     },
   },
 })
