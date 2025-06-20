@@ -6,7 +6,7 @@ en:
 </i18n>
 
 <template>
-  <div class="ht-top"></div>
+  <div class="ht-top" />
 </template>
 
 <script setup lang="ts">
@@ -14,8 +14,8 @@ en:
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/variables' as v;
-@use '@/assets/styles/mixins' as m;
+@use '#showcases/app/assets/styles/variables' as v;
+@use '#showcases/app/assets/styles/mixins' as m;
 
 .ht-top {
   width: 100%;

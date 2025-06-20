@@ -1,5 +1,5 @@
 <template>
-  <div class="layout -default">
+  <div class="layout -top">
     <HoTheHeader />
     <slot />
     <HoTheFooter />
@@ -7,7 +7,7 @@
 </template>
 
 <style lang="scss" scoped>
-.layout.-default {
+.layout.-top {
   overflow-x: hidden;
 }
 </style>
