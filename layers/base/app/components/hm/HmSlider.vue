@@ -507,14 +507,16 @@ const stopAutoPlay = () => {
 }
 
 // スライダーを初期化
-onMounted(() => {
+onMounted(async () => {
   setActiveSlide()
   removeId()
   controlButton()
   if (props.autoplay) {
+    await nextTick()
     startAutoPlay()
   }
 })
+onBeforeUnmount(() => stopAutoPlay())
 </script>
 
 <style lang="scss" scoped>
