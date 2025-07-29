@@ -21,7 +21,10 @@
         @keyup.enter="enter"
       />
     </label>
-    <p class="error-container">
+    <p
+      class="error-container"
+      :class="{ '-hide': hideDetails }"
+    >
       <template v-if="errorMessage">
         <span class="error">{{ errorMessage }}</span>
       </template>
@@ -37,26 +40,30 @@ import { z, ZodEffects, ZodType, ZodTypeDef } from 'zod'
 export default defineComponent({
   name: 'HmInputDatetime',
 })
+
+export type Props = {
+  type?: 'datetime-local' | 'date' | 'time'
+  validatorName?: string
+  validatorRules?:
+    | ZodType<string, ZodTypeDef, string>
+    | ZodEffects<ZodType<string, ZodTypeDef, string>>
+  required?: boolean
+  modelValue?: string
+  disabled?: boolean
+  // FIXME: 型定義をstringからyyyy-mm-ddなどinput type=dateが許容している物にする
+  min?: number | string
+  // FIXME: 型定義をstringからyyyy-mm-ddなどinput type=dateが許容している物にする
+  max?: number | string
+  keyupEnter?: boolean
+  validateOnMount?: boolean
+  hideDetails?: boolean
+  error?: string | undefined
+}
 </script>
 
 <script setup lang="ts">
 const props = withDefaults(
-  defineProps<{
-    type?: 'datetime-local' | 'date' | 'time'
-    validatorName?: string
-    validatorRules?:
-      | ZodType<string, ZodTypeDef, string>
-      | ZodEffects<ZodType<string, ZodTypeDef, string>>
-    required?: boolean
-    modelValue?: string
-    disabled?: boolean
-    // FIXME: 型定義をstringからyyyy-mm-ddなどinput type=dateが許容している物にする
-    min?: number | string
-    // FIXME: 型定義をstringからyyyy-mm-ddなどinput type=dateが許容している物にする
-    max?: number | string
-    keyupEnter?: boolean
-    validateOnMount?: boolean
-  }>(),
+  defineProps<Props>(),
   {
     type: 'datetime-local',
     validatorName: 'dateLocal',
@@ -77,7 +84,7 @@ const emit = defineEmits<{
   (e: 'enter'): void
 }>()
 
-const { value: fieldValue, errorMessage } = useField<string>(
+const { value: fieldValue, errorMessage: _errorMessage } = useField<string>(
   toRef(props, 'validatorName'),
   props.validatorRules
     ? toTypedSchema(props.validatorRules)
@@ -101,6 +108,11 @@ const date = computed({
     fieldValue.value = date
     emit('validation', !!errorMessage.value)
   },
+})
+
+const errorMessage = computed(() => {
+  if (props.error) return props.error
+  return _errorMessage.value
 })
 
 const enter = () => {
@@ -186,6 +198,10 @@ const enter = () => {
   display: block;
   min-height: 20px;
   margin-top: 8px;
+
+  &.-hide {
+    display: none;
+  }
 
   > .error {
     display: block;
