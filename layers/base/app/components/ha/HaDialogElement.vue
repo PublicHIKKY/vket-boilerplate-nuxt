@@ -6,6 +6,7 @@ HaDialogとの違いとして、HaDialogElementは別階層の別要素のz-inde
   <dialog
     ref="dialog"
     class="ha-dialog-element"
+    :closedby
     @click.stop
   >
     <component
@@ -40,8 +41,9 @@ HaDialogとの違いとして、HaDialogElementは別階層の別要素のz-inde
 <script lang="ts" setup>
 // import RiCloseLine from '~icons/ri/close-line'
 
-type Props = {
+export type Props = {
   closeButtonHtmlTag?: string
+  closedby: 'any' | 'closerequest' | 'none' | undefined
 }
 const props = withDefaults(defineProps<Props>(), {
   closeButtonHtmlTag: 'button',
@@ -53,6 +55,10 @@ const i18n = useI18n()
 // dialog要素をrefにする
 const dialog = ref<HTMLDialogElement>()
 const isActive = ref(false)
+
+const emit = defineEmits<{
+  (e: 'open' | 'close'): void
+}>()
 
 // dialogを開く関数
 const openDialog = () => {
@@ -67,9 +73,8 @@ const openDialog = () => {
     }
   })
   dialog.value.showModal()
-  // html要素とbody要素の両方にoverflowを記述
-  document.body.style.overflow = 'hidden'
-  document.documentElement.style.overflow = 'hidden'
+  dialog.value.addEventListener('close', resetPageScrolling)
+  onOpen()
 }
 
 // dialogを閉じる関数
@@ -78,11 +83,30 @@ const closeDialog = () => {
     throw new Error('dialog要素はnull (HaDialogElement closeDialog)')
   }
   dialog.value.close()
+  onClose()
+  isActive.value = false
+}
+
+const stopPageScrolling = () => {
   // html要素とbody要素の両方にoverflowを記述
+  document.body.style.overflow = 'hidden'
+  document.documentElement.style.overflow = 'hidden'
+}
+
+const resetPageScrolling = () => {
+  // html要素とbody要素の両方のoverflowを元に戻す
   document.body.style.overflow = ''
   document.documentElement.style.overflow = ''
+}
 
-  isActive.value = false
+const onOpen = () => {
+  stopPageScrolling()
+  emit('open')
+}
+
+const onClose = () => {
+  resetPageScrolling()
+  emit('close')
 }
 
 // ダイアログ内のフォーカスを制御する
@@ -90,6 +114,8 @@ const close = ref<HTMLElement>()
 const handleEndFocus = () => {
   close.value?.focus()
 }
+
+onBeforeUnmount(resetPageScrolling)
 
 defineExpose({
   openDialog,
