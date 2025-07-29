@@ -43,29 +43,31 @@ export type Option = {
   disabled?: boolean
 }
 
+type FieldInput = string | number | null
+
+export type Props = {
+  modelValue?: number | string | null
+  validatorName: string
+  validatorRules?:
+    | ZodType<string, ZodTypeDef, FieldInput>
+    | ZodEffects<ZodType<string, ZodTypeDef, FieldInput>>
+  options: readonly Option[]
+  placeholder?: string
+  disabledPlaceholder?: boolean
+  disabled?: boolean
+  required?: boolean
+  small?: boolean
+  keepValueOnUnmount?: boolean
+}
+
 export default defineComponent({
   name: 'HaSelectBox',
 })
 </script>
 
 <script setup lang="ts">
-type FieldInput = string | number | null
-
 const props = withDefaults(
-  defineProps<{
-    modelValue?: number | string | null
-    validatorName: string
-    validatorRules?:
-      | ZodType<string, ZodTypeDef, FieldInput>
-      | ZodEffects<ZodType<string, ZodTypeDef, FieldInput>>
-    options: readonly Option[]
-    placeholder?: string
-    disabledPlaceholder?: boolean
-    disabled?: boolean
-    required?: boolean
-    small?: boolean
-    keepValueOnUnmount?: boolean
-  }>(),
+  defineProps<Props>(),
   {
     modelValue: null,
     validatorRules: undefined,
@@ -90,12 +92,13 @@ const { value: fieldValue, errorMessage } = useField<FieldInput>(
   {
     initialValue: props.modelValue,
     keepValueOnUnmount: props.keepValueOnUnmount,
+    syncVModel: true,
   },
 )
 
 const innerValue = computed({
   get(): number | string | null {
-    return props.modelValue
+    return fieldValue.value
   },
   set(value: number | string | null): void {
     emit('update:modelValue', value)
