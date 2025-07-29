@@ -14,8 +14,8 @@ en:
   >
     <!-- 前へ -->
     <HaLink
-      :to="$route.path"
-      :query="{ page: String(currentPage - 1) }"
+      :to="route.path"
+      :query="createPageQuery(currentPage - 1)"
       class="pagination-prev"
       :class="{
         ['link-disabled text-disabled']: currentPage <= 1,
