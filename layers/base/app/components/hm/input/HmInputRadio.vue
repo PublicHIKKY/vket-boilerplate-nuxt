@@ -3,7 +3,7 @@
     <HaBaseInput
       type="radio"
       class="button"
-      :value="value"
+      :modelValue="value"
       :name="name"
       :checked="checked"
       @change="onChange"
