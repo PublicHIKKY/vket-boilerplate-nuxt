@@ -510,9 +510,9 @@ const stopAutoPlay = () => {
 onMounted(async () => {
   setActiveSlide()
   removeId()
+  await nextTick()
   controlButton()
   if (props.autoplay) {
-    await nextTick()
     startAutoPlay()
   }
 })
