@@ -22,6 +22,7 @@ HaDialogとの違いとして、HmDialogElementは別階層の別要素のz-inde
     <HaDialogElement
       ref="dialog"
       :closeButtonHtmlTag="props.closeButtonHtmlTag"
+      :closedby="props.closedby"
     >
       <template
         v-if="$slots.close"
@@ -40,9 +41,10 @@ HaDialogとの違いとして、HmDialogElementは別階層の別要素のz-inde
 import HaDialogElement from '#base/app/components/ha/HaDialogElement.vue'
 // import RiCloseLine from '~icons/ri/close-line'
 
-type Props = {
+export type Props = {
   openButtonHtmlTag?: string
   closeButtonHtmlTag?: string
+  closedby: 'any' | 'closerequest' | 'none' | undefined
 }
 const props = withDefaults(defineProps<Props>(), {
   openButtonHtmlTag: 'button',
@@ -74,11 +76,6 @@ const closeDialog = () => {
   dialog.value.closeDialog()
   isActive.value = false
 }
-
-onUnmounted(() => {
-  document.body.style.overflow = ''
-  document.documentElement.style.overflow = ''
-})
 
 defineExpose({
   openDialog,
