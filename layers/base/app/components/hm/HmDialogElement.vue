@@ -12,52 +12,39 @@ HaDialogとの違いとして、HmDialogElementは別階層の別要素のz-inde
     @click.stop="openDialog"
   >
     <slot name="open">
-      <span class="text">ダイアログを開く</span>
+      <span class="text">{{
+        i18n.locale.value === 'ja' ? 'ダイアログを開く' : 'Open the dialog'
+      }}</span>
     </slot>
   </component>
   <!-- ダイアログ -->
   <template v-if="isActive">
-    <dialog
+    <HaDialogElement
       ref="dialog"
-      class="hm-dialog-element"
-      @click.stop
+      :closeButtonHtmlTag="props.closeButtonHtmlTag"
+      :closedby="props.closedby"
     >
-      <component
-        :is="props.closeButtonHtmlTag"
-        ref="close"
-        class="close"
-        :aria-label="
-          i18n.locale.value === 'ja' ? `ダイアログを閉じる` : `Close the dialog`
-        "
-        @click="closeDialog"
+      <template
+        v-if="$slots.close"
+        #close
       >
-        <slot name="close">
-          <!-- FIXME: アイコンライブラリが使えない。。。 -->
-          <!-- <RiCloseLine class="icon" /> -->
-          ×
-        </slot>
-      </component>
-      <div
-        tabindex="0"
-        class="inner"
-        role="presentation"
-      >
-        <slot name="inner" />
-      </div>
-      <div
-        tabindex="0"
-        @focus="handleEndFocus"
-      ></div>
-    </dialog>
+        <slot name="close"></slot>
+      </template>
+      <template #inner>
+        <slot name="inner"></slot>
+      </template>
+    </HaDialogElement>
   </template>
 </template>
 
 <script lang="ts" setup>
+import HaDialogElement from '#base/app/components/ha/HaDialogElement.vue'
 // import RiCloseLine from '~icons/ri/close-line'
 
-type Props = {
+export type Props = {
   openButtonHtmlTag?: string
   closeButtonHtmlTag?: string
+  closedby: 'any' | 'closerequest' | 'none' | undefined
 }
 const props = withDefaults(defineProps<Props>(), {
   openButtonHtmlTag: 'button',
@@ -68,7 +55,7 @@ const props = withDefaults(defineProps<Props>(), {
 const i18n = useI18n()
 
 // dialog要素をrefにする
-const dialog = ref<HTMLDialogElement>()
+const dialog = ref<InstanceType<typeof HaDialogElement>>()
 const isActive = ref(false)
 
 // dialogを開く関数
@@ -76,124 +63,29 @@ const openDialog = async () => {
   isActive.value = true
   await nextTick()
   if (!dialog.value) {
-    throw new Error('dialog要素はnull')
+    throw new Error('dialogコンポーネントはnull (HmDialogElement openDialog)')
   }
-  dialog.value.addEventListener('keydown', (e) => {
-    if (dialog.value?.open && e.key === 'Escape') {
-      e.stopPropagation()
-      closeDialog()
-    }
-  })
-  dialog.value.showModal()
-  // html要素とbody要素の両方にoverflowを記述
-  document.body.style.overflow = 'hidden'
-  document.documentElement.style.overflow = 'hidden'
+  dialog.value.openDialog()
 }
 
 // dialogを閉じる関数
 const closeDialog = () => {
   if (!dialog.value) {
-    throw new Error('dialog要素はnull')
+    throw new Error('dialogコンポーネントはnull (HmDialogElement closeDialog)')
   }
-  dialog.value.close()
-  // html要素とbody要素の両方にoverflowを記述
-  document.body.style.overflow = ''
-  document.documentElement.style.overflow = ''
-
+  dialog.value.closeDialog()
   isActive.value = false
 }
 
-// ダイアログ内のフォーカスを制御する
-const close = ref<HTMLElement>()
-const handleEndFocus = () => {
-  close.value?.focus()
-}
-
-onUnmounted(() => {
-  document.body.style.overflow = ''
-  document.documentElement.style.overflow = ''
-})
-
 defineExpose({
+  openDialog,
   closeDialog,
+  isActive,
 })
 </script>
 
 <style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-@use '#base/app/assets/styles/mixins' as m;
-
 .open {
   cursor: pointer;
-}
-
-.hm-dialog-element {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  translate: -50% -50%;
-
-  width: 90%;
-  max-width: initial; // dialogのデフォルトのmax-widthをリセット
-  height: max-content; // autoにすると、十分に画面縦幅がある場合でもダイアログに縦スクロールが生まれる場合がある
-  max-height: initial; // dialogのデフォルトのmax-heightをリセット
-  padding: 0; // dialogのデフォルトのpaddingをリセット
-
-  opacity: 0;
-  background-color: rgb(
-    0 0 0 / 0%
-  ); // dialogにデフォルトで指定される白の背景色を透明にする
-
-  &::backdrop {
-    cursor: pointer;
-    background-color: rgb(0 0 0 / 80%);
-  }
-
-  &[open] {
-    animation: fade-in 0.3s forwards;
-  }
-
-  > .inner {
-    overflow-y: auto;
-
-    width: 100%;
-    height: max-content;
-    max-height: 100vh; // 先祖要素にmax-contentを指定した場合、その子孫要素の単位に%を使うとwebkitで値が0になる場合があるためvhを使用
-
-    background-color: #fff;
-
-    &:focus-visible {
-      outline: none;
-    }
-  }
-
-  > .close {
-    cursor: pointer;
-
-    position: absolute;
-    top: 2%;
-    right: 2%;
-
-    aspect-ratio: 1;
-    width: 20px;
-
-    > .icon {
-      font-size: 24px;
-
-      &:deep(path) {
-        fill: v.$black;
-      }
-    }
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
 }
 </style>
