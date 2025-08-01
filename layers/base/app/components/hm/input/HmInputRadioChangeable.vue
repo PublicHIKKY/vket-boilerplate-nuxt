@@ -23,7 +23,23 @@
         class="label"
         :class="`option-${index}`"
       >
+        <template v-if="option.before">
+          <ClientOnly>
+            <component
+              :is="option.before"
+              class="before"
+            />
+          </ClientOnly>
+        </template>
         {{ option.label }}
+        <template v-if="option.after">
+          <ClientOnly>
+            <component
+              :is="option.after"
+              class="after"
+            />
+          </ClientOnly>
+        </template>
       </label>
     </div>
   </div>
@@ -37,6 +53,8 @@ type Radio = {
   value: string
   checked?: boolean
   disabled?: boolean
+  before?: Component
+  after?: Component
 }
 
 type Props = {
