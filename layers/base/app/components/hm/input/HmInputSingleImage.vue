@@ -79,7 +79,7 @@ import { z, ZodEffects, ZodOptional, ZodType, ZodTypeDef } from 'zod'
 
 const i18n = useI18n()
 
-type Props = {
+export type Props = {
   validatorName?: string
   imageAlt?: string
   optionalAccept?: string
@@ -115,18 +115,19 @@ const props = withDefaults(defineProps<Props>(), {
 
 type Emits = {
   (e: 'update:model-value', image?: File): void
+  (e: 'remove'): void
 }
 const emit = defineEmits<Emits>()
 
 const fileList = computed(() => {
-  if (!props.modelValue) return undefined
+  if (!value.value) return undefined
   const dt = new DataTransfer()
-  dt.items.add(props.modelValue)
+  dt.items.add(value.value)
   return dt.files
 })
 
 const imageUrl = computed(() =>
-  props.modelValue ? readFileAsBlob(props.modelValue) : props.defaultImageUrl,
+  value.value ? readFileAsBlob(value.value) : props.defaultImageUrl,
 )
 
 const showCropper = ref(false)
@@ -175,6 +176,9 @@ const changeImage = async (images: FileList | null) => {
    */
   const imgEl = new Image()
   imgEl.src = URL.createObjectURL(image)
+  imgEl.onerror = () => {
+    alert('image loading failed / 画像の読み込みに失敗しました')
+  }
   imgEl.onload = async () => {
     if (props.cropWidth && props.cropHeight) {
       if (
@@ -254,6 +258,7 @@ const returnImage = (image: File) => {
 }
 
 const removeImage = async () => {
+  emit('remove')
   await emitImage()
 }
 
