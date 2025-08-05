@@ -44,11 +44,12 @@ import HaDialogElement from '#base/app/components/ha/HaDialogElement.vue'
 export type Props = {
   openButtonHtmlTag?: string
   closeButtonHtmlTag?: string
-  closedby: 'any' | 'closerequest' | 'none' | undefined
+  closedby?: 'any' | 'closerequest' | 'none' | undefined
 }
 const props = withDefaults(defineProps<Props>(), {
   openButtonHtmlTag: 'button',
   closeButtonHtmlTag: 'button',
+  closedby: 'any',
 })
 
 // aria-label用のi18n
