@@ -36,7 +36,7 @@
     "@nuxtjs/google-fonts": "^3.2.0",
     "@vueuse/nuxt": "^13.3.0",
     "dayjs": "^1.11.13",
-    "nuxt": "3.17.5",
+    "nuxt": "4.0.3",
     "ress": "^5.0.2",
     "universal-cookie": "^8.0.1",
     "uuid": "^11.1.0",
