@@ -4,7 +4,8 @@ import type { Method as DefaultMethods } from '#base/app/utils/default-api'
 /**
  * The parent type for each method of `'get' | 'post' | 'put' | 'delete'` in each repository
  */
-export type ApiAccess = (...args: unknown[]) => Promise<unknown>
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+export type ApiAccess = Function
 
 /**
  * For use when creating `#main/app/utils/factory.ts`.
