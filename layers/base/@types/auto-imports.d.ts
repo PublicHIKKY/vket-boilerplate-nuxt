@@ -76,9 +76,11 @@ declare global {
   const getCurrentDate: typeof import('../app/utils/date-control')['getCurrentDate']
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
+  const getCurrentWatcher: typeof import('vue')['getCurrentWatcher']
   const getDateRouteQuery: typeof import('../app/utils/url')['getDateRouteQuery']
   const getDiffTimeByUnit: typeof import('../app/utils/date-control')['getDiffTimeByUnit']
   const getEnumRouteQuery: typeof import('../app/utils/url')['getEnumRouteQuery']
+  const getFileByBase64: typeof import('../app/utils/file-control')['getFileByBase64']
   const getImageUrl: typeof import('../app/utils/image')['getImageUrl']
   const getLocalStorageValue: typeof import('../app/utils/storage-control')['getLocalStorageValue']
   const getLocalTimezone: typeof import('../app/utils/date-control')['getLocalTimezone']
@@ -107,6 +109,7 @@ declare global {
   const isReactive: typeof import('vue')['isReactive']
   const isReadonly: typeof import('vue')['isReadonly']
   const isRef: typeof import('vue')['isRef']
+  const isShallow: typeof import('vue')['isShallow']
   const isValueOf: typeof import('../app/utils/zod')['isValueOf']
   const linkViaElement: typeof import('../app/utils/anchor')['linkViaElement']
   const loadPayload: typeof import('#app')['loadPayload']
@@ -159,6 +162,8 @@ declare global {
   const removeSingleCookieValue: typeof import('../app/utils/storage-control')['removeSingleCookieValue']
   const requestIdleCallback: typeof import('#app')['requestIdleCallback']
   const requireAsyncDataOf: typeof import('../app/utils/response')['requireAsyncDataOf']
+  const requireNumberRouteQuery: typeof import('../app/utils/url')['requireNumberRouteQuery']
+  const requireRouteQuery: typeof import('../app/utils/url')['requireRouteQuery']
   const requireValueOf: typeof import('../app/utils/zod')['requireValueOf']
   const resolveComponent: typeof import('vue')['resolveComponent']
   const reversed: typeof import('../app/utils/array')['reversed']
@@ -244,7 +249,7 @@ declare global {
 // for type re-export
 declare global {
   // @ts-ignore
-  export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
+  export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, ShallowRef, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
   // @ts-ignore
   export type { I18nTKeyMissingError } from '../app/composables/use-strict-i18n'
