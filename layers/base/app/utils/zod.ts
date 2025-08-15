@@ -6,7 +6,7 @@ import {
   ZodType,
   ZodTypeDef,
   ZodUnionDef,
-} from 'zod'
+} from 'zod/v3'
 
 export function isValueOf<T>(x: ZodType<T, ZodTypeDef>, y: unknown): y is T {
   return x.safeParse(y).success

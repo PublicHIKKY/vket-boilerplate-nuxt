@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/v3'
 import { integral } from '#base/app/utils/zod'
 
 export const todoSchema = z.object({

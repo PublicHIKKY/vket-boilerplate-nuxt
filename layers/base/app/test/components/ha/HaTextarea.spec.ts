@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { z } from 'zod'
+import { z } from 'zod/v3'
 import HaTextarea from '#base/app/components/ha/HaTextarea.vue'
 import { waitEffect } from '#base/app/utils/sleep'
 

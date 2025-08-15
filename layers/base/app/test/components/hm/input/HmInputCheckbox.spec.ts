@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import z from 'zod'
+import z from 'zod/v3'
 import HmInputCheckbox from '#base/app/components/hm/input/HmInputCheckbox.vue'
 
 const checkboxSchema = z.boolean().refine(value => value, {

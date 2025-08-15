@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import z from 'zod'
+import z from 'zod/v3'
 import HmInputText from '#base/app/components/hm/input/HmInputText.vue'
 import useValidationRules from '#base/app/composables/useValidationRules'
 import { waitEffect } from '#base/app/utils/sleep'
