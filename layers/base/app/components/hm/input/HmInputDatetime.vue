@@ -33,7 +33,6 @@
 </template>
 
 <script lang="ts">
-import { toTypedSchema } from '@vee-validate/zod'
 import { useField } from 'vee-validate'
 import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
 
@@ -87,7 +86,7 @@ const emit = defineEmits<{
 const { value: fieldValue, errorMessage: _errorMessage } = useField(
   toRef(props, 'validatorName'),
   // @ts-expect-error Type instantiation is excessively deep - Zod union type issue
-  props.validatorRules ? toTypedSchema(props.validatorRules) : undefined,
+  props.validatorRules,
   { initialValue: props.modelValue, validateOnMount: props.validateOnMount },
 )
 
