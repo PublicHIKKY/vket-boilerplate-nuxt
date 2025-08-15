@@ -75,7 +75,7 @@ en:
 <script lang="ts" setup>
 import { toTypedSchema } from '@vee-validate/zod'
 import { useField } from 'vee-validate'
-import { z, ZodEffects, ZodOptional, ZodType, ZodTypeDef } from 'zod'
+import { ZodEffects, ZodOptional, ZodType, ZodTypeDef } from 'zod/v3'
 
 const i18n = useI18n()
 
@@ -133,11 +133,10 @@ const imageUrl = computed(() =>
 const showCropper = ref(false)
 const cropImage = ref<string>()
 
-const { value, errorMessage, validate } = useField<File | undefined>(
+const { value, errorMessage, validate } = useField(
   toRef(props, 'validatorName'),
-  props.validatorRules
-    ? toTypedSchema(props.validatorRules)
-    : toTypedSchema(z.unknown()),
+  // @ts-expect-error Type instantiation is excessively deep - Zod union type issue
+  props.validatorRules ? toTypedSchema(props.validatorRules) : undefined,
   { initialValue: props.modelValue, syncVModel: false },
 )
 

@@ -35,7 +35,7 @@
 <script lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
 import { useField } from 'vee-validate'
-import { z, ZodEffects, ZodType, ZodTypeDef } from 'zod'
+import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
 
 export default defineComponent({
   name: 'HmInputDatetime',
@@ -84,11 +84,10 @@ const emit = defineEmits<{
   (e: 'enter'): void
 }>()
 
-const { value: fieldValue, errorMessage: _errorMessage } = useField<string>(
+const { value: fieldValue, errorMessage: _errorMessage } = useField(
   toRef(props, 'validatorName'),
-  props.validatorRules
-    ? toTypedSchema(props.validatorRules)
-    : toTypedSchema(z.unknown()),
+  // @ts-expect-error Type instantiation is excessively deep - Zod union type issue
+  props.validatorRules ? toTypedSchema(props.validatorRules) : undefined,
   { initialValue: props.modelValue, validateOnMount: props.validateOnMount },
 )
 
