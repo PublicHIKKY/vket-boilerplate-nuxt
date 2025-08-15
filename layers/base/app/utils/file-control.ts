@@ -32,8 +32,7 @@ export const getFileByBase64 = (base64: string, fileName = 'file'): File | null 
       u8arr[n] = bstr.charCodeAt(n)
     }
     return new File([u8arr], fileName, { type: mime })
-  }
-  catch (error) {
+  } catch (error) {
     console.error(error)
     return null
   }

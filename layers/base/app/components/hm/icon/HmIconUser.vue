@@ -11,6 +11,7 @@
 
 <script lang="ts" setup>
 import noImage from '#base/public/images/no-image_1x1.jpg'
+
 type Props = {
   src: string
 }

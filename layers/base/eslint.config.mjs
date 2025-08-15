@@ -1,6 +1,6 @@
+import stylistic from '@stylistic/eslint-plugin'
 import typescriptEslint from '@typescript-eslint/eslint-plugin'
 import globals from 'globals'
-import stylistic from '@stylistic/eslint-plugin'
 import sharedConfig, { basicConfig } from '../../eslint.config.shared.mjs'
 import withNuxt from './.nuxt/eslint.config.mjs'
 
