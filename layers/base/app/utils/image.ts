@@ -25,14 +25,22 @@ export function getImageUrl(blob: File | Blob): string {
 export function toImage(blob: File | Blob): Promise<HTMLImageElement> {
   const imageElement = new Image()
   return new Promise((resolve, reject) => {
-    imageElement.addEventListener('load', () => {
+    const loadHandler = () => {
+      imageElement.removeEventListener('load', loadHandler)
+      imageElement.removeEventListener('error', errorHandler)
       URL.revokeObjectURL(imageElement.src)
       resolve(imageElement)
-    })
-    imageElement.addEventListener('error', (event: ErrorEvent) => {
+    }
+
+    const errorHandler = (_event: Event) => {
+      imageElement.removeEventListener('load', loadHandler)
+      imageElement.removeEventListener('error', errorHandler)
       URL.revokeObjectURL(imageElement.src)
-      reject(new Error(event.error))
-    })
+      reject(new Error('Image load failed'))
+    }
+
+    imageElement.addEventListener('load', loadHandler)
+    imageElement.addEventListener('error', errorHandler)
     imageElement.src = URL.createObjectURL(blob)
   })
 }

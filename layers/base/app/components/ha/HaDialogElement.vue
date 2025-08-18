@@ -1,7 +1,7 @@
 <!--
 HaDialogとの違いとして、HaDialogElementは別階層の別要素のz-indexの影響により、それよりも下に表示されてしまう
 と言った現象が起きません(dialog要素は常に最前面に表示される)。
- -->
+-->
 <template>
   <dialog
     ref="dialog"
@@ -70,7 +70,11 @@ const openDialog = () => {
       closeDialog()
     }
   })
-  dialog.value.showModal()
+  if (typeof dialog.value.showModal === 'function') {
+    dialog.value.showModal()
+  } else {
+    console.error('dialog要素はHTMLDialogElementではありません (HaDialogElement openDialog)')
+  }
   dialog.value.addEventListener('close', resetPageScrolling)
   onOpen()
 }

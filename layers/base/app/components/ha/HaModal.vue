@@ -15,7 +15,7 @@
   <section
     :id="'popup' + props.index.toString()"
     class="ha-modal"
-    :aria-hidden="popupVisibility"
+    :aria-hidden="!popupVisibility"
   >
     <button
       ref="close"
@@ -68,10 +68,10 @@ const props = defineProps<Props>()
 const i18n = useI18n()
 
 /* ポップアップの開閉はrefで制御 */
-const popupVisibility = ref(true)
+const popupVisibility = ref(false)
 const togglePopup = () => {
   // html要素とbody要素の両方にoverflowを記述
-  if (popupVisibility.value) {
+  if (!popupVisibility.value) {
     document.body.style.overflow = 'hidden'
     document.documentElement.style.overflow = 'hidden'
   } else {
@@ -84,7 +84,7 @@ const togglePopup = () => {
 const close = ref<HTMLElement | null>(null)
 // modal-endにフォーカスが当たったらcloseにフォーカスを移す(ポップアップを開いている最中にポップアップの外にアクセスさせない)
 const handleEndFocus = () => {
-  if (!close.value) {
+  if (close.value === null) {
     throw new Error('close要素はnull')
   }
   close.value.focus()
@@ -93,12 +93,19 @@ const handleEndFocus = () => {
 /* モーダルが開いている状態でESCキーを押すとモーダルを閉じる */
 onMounted(() => {
   window.addEventListener('keydown', (e) => {
-    if (popupVisibility.value === false && e.key === 'Escape') {
-      popupVisibility.value = true
+    if (popupVisibility.value === true && e.key === 'Escape') {
+      popupVisibility.value = false
       document.body.style.overflow = ''
       document.documentElement.style.overflow = ''
     }
   })
+})
+
+defineExpose({
+  close,
+  handleEndFocus,
+  togglePopup,
+  popupVisibility,
 })
 </script>
 
