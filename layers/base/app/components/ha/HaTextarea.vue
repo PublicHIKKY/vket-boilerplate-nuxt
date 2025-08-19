@@ -74,7 +74,6 @@ const fieldOptions = {
 }
 
 const { value: fieldValue, errorMessage } = useField(
-  // @ts-expect-error Type instantiation is excessively deep - Zod union type issue
   toRef(props, 'validatorName'), props.validatorRules, fieldOptions,
 )
 

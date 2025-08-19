@@ -54,7 +54,6 @@ const emit = defineEmits<{
 
 const { value: fieldValue, errorMessage } = useField(
   toRef(props, 'validatorName'),
-  // @ts-expect-error Type instantiation is excessively deep - Zod union type issue
   props.validatorRules,
   { initialValue: props.modelValue },
 )

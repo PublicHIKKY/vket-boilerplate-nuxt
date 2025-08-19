@@ -134,7 +134,6 @@ const cropImage = ref<string>()
 
 const { value, errorMessage, validate } = useField<File | undefined>(
   toRef(props, 'validatorName'),
-  // @ts-expect-error Type instantiation is excessively deep - Zod union type issue
   props.validatorRules,
   { initialValue: props.modelValue, syncVModel: false },
 )
