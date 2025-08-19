@@ -9,7 +9,7 @@ let runtimeConfig: RuntimeConfig | undefined
 
 export default defineNuxtPlugin(({ $config }) => {
   if ($config === undefined) {
-    throw new TypeError('@/plugins/runtimeConfig failed.')
+    throw new TypeError('#showcases/app/plugins/runtimeConfig failed.')
   }
   runtimeConfig = $config
 })
@@ -31,5 +31,5 @@ export const requireRuntimeConfig: () => ProcessEnv | RuntimeConfig = () => {
     return process.env
   }
 
-  throw new TypeError('@/plugins/runtimeConfig: Not satisfied.')
+  throw new TypeError('#showcases/app/plugins/runtimeConfig: Not satisfied.')
 }

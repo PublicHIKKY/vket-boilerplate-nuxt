@@ -44,9 +44,9 @@ import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 <style lang="scss" scoped>
 .menu-container {
   > .button {
+    padding: 4px;
     border: solid 1px;
     border-radius: 8px;
-    padding: 4px;
   }
 
   > .menu-items {
@@ -58,9 +58,9 @@ import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 
 .menu-items {
   > .item {
+    padding: 4px;
     border: solid;
     border-color: #0ff;
-    padding: 4px;
 
     &.-active {
       border-color: #00f;

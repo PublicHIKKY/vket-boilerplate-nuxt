@@ -29,28 +29,12 @@ const onClick = () => emits('click')
 @use '#base/app/assets/styles/mixins' as m;
 
 .ha-humberger-button {
-  cursor: pointer;
-  height: 20px;
-  position: relative;
-  width: 30px;
-
   $height: 2px;
 
-  .line,
-  &::before,
-  &::after {
-    background: v.$white;
-    content: '';
-    display: block;
-    height: $height;
-    position: absolute;
-    transition: transform ease 0.1s;
-    width: 100%;
-  }
-
-  .line {
-    top: 50%;
-  }
+  cursor: pointer;
+  position: relative;
+  width: 30px;
+  height: 20px;
 
   &::before {
     top: 0;
@@ -60,11 +44,28 @@ const onClick = () => emits('click')
     bottom: 0;
   }
 
-  &.-open {
-    .line {
-      display: none;
-    }
+  .line,
+  &::before,
+  &::after {
+    content: '';
 
+    position: absolute;
+
+    display: block;
+
+    width: 100%;
+    height: $height;
+
+    background: v.$white;
+
+    transition: transform ease 0.1s;
+  }
+
+  .line {
+    top: 50%;
+  }
+
+  &.-open {
     &::before {
       top: 50%;
       transform: rotateZ(45deg);
@@ -73,6 +74,10 @@ const onClick = () => emits('click')
     &::after {
       top: 50%;
       transform: rotateZ(-45deg);
+    }
+
+    .line {
+      display: none;
     }
   }
 }

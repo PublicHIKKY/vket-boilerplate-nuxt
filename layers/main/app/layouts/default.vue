@@ -7,5 +7,7 @@
 </template>
 
 <style lang="scss" scoped>
-// .layout.-default {}
+.layout.-default {
+  overflow-x: hidden;
+}
 </style>

@@ -35,12 +35,24 @@ export const fetchErrorSchema = z.custom(isFetchError)
 
 export function ensureAsyncDataOf<T>(
   responseSchema: ZodType<T, ZodTypeDef>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  y: any,
+  y: unknown,
 ): asserts y is AsyncDataResponse<T> {
+  // 型ガードでオブジェクトかチェック
+  if (typeof y !== 'object' || y === null) {
+    throw new Error('Expected object with data and error properties')
+  }
+
+  const obj = y as Record<string, unknown>
+  if (typeof obj.data !== 'object' || obj.data === null
+    || typeof obj.error !== 'object' || obj.error === null) {
+    throw new Error('Expected object with data and error properties')
+  }
+
+  const data = obj.data as Record<string, unknown>
+  const error = obj.error as Record<string, unknown>
   // デバッグの便利のため型のどこが不整合になっているか情報を上げたいのでparse直接使用
-  responseSchema.nullable().parse(y.data.value)
-  fetchErrorSchema.nullable().parse(y.error.value)
+  responseSchema.nullable().parse(data.value)
+  fetchErrorSchema.nullable().parse(error.value)
 }
 export function requireAsyncDataOf<T>(
   x: ZodType<T, ZodTypeDef>,

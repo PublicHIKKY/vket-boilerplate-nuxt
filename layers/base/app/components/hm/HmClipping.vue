@@ -5,14 +5,14 @@
         ref="cropper"
         class="cropper"
         :src="src"
-        :auto-zoom="autoZoom"
-        :stencil-size="{
+        :autoZoom="autoZoom"
+        :stencilSize="{
           width: width,
           height: height,
         }"
         v-bind="cropperOptions"
-        default-boundaries="fit"
-        :image-restriction="imageRestriction"
+        defaultBoundaries="fit"
+        :imageRestriction="imageRestriction"
         :style="forceStyle"
         @change="onChange"
       />
@@ -112,27 +112,28 @@ const clip = () => {
 @use '@/assets/styles/mixins' as m;
 
 .hm-clipping {
-  height: 100%;
   width: 100%;
+  height: 100%;
 
   > .cropper-container {
-    background: #000;
     height: calc(100% - 70px);
-    margin-bottom: 20px;
     min-height: 300px;
+    margin-bottom: 20px;
     padding: v.space(2);
+
+    background: #000;
   }
 
   > .cropper-container > .cropper {
-    background: #000;
     height: 100%;
+    background: #000;
   }
 
   > .button {
-    background-color: v.$primary-button-default-color;
-    color: v.$white;
-    padding: v.$space-small;
     width: 100%;
+    padding: v.$space-small;
+    color: v.$white;
+    background-color: v.$primary-button-default-color;
 
     :hover {
       background-color: v.$primary-button-active-color;

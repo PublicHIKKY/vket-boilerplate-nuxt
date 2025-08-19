@@ -220,6 +220,9 @@ const moveSlider = async (direction: 'previous' | 'next') => {
   if (!props.loop) {
     controlButton()
   }
+  if (slider.value instanceof HTMLElement === false) {
+    throw new Error('slider要素はHTMLElementではありません')
+  }
   await slideX(slider.value, previousX.value, nextX.value)
   // アクティブなスライドを更新
   setActiveSlide()
@@ -266,11 +269,16 @@ const jumpSlider = async (index: number) => {
   if (!slider.value) {
     throw new Error('slider要素はnull')
   }
+  if (slider.value instanceof HTMLElement === false) {
+    throw new Error('slider要素はHTMLElementではありません')
+  }
   updateCurrentSlide('pagination', index)
   controlButton()
-  await slideX(slider.value, previousX.value, nextX.value)
-  // アクティブなスライドを更新
-  setActiveSlide()
+  if (slider.value instanceof HTMLElement) {
+    await slideX(slider.value, previousX.value, nextX.value)
+    // アクティブなスライドを更新
+    setActiveSlide()
+  }
 }
 
 // currentSlideを更新する関数
@@ -527,18 +535,18 @@ onBeforeUnmount(() => stopAutoPlay())
   --slide-item-width: var(--width-pc);
   --slide-amount: var(--slide-amount);
 
-  height: 100%;
   position: relative;
   width: 100%;
+  height: 100%;
 
   @include m.sp {
     --slide-item-width: var(--width-sp);
   }
 
   .slider-body {
+    position: relative;
     container-type: inline-size;
     overflow: clip;
-    position: relative;
     width: 100%;
 
     .slider-inner {
@@ -546,10 +554,10 @@ onBeforeUnmount(() => stopAutoPlay())
       width: calc(var(--slide-item-width) * var(--slide-amount) * 1%);
 
       .slider {
-        align-items: stretch;
         display: flex;
-        height: 100%;
+        align-items: stretch;
         width: 100%;
+        height: 100%;
 
         &.-center {
           transform: translateX(
@@ -558,24 +566,24 @@ onBeforeUnmount(() => stopAutoPlay())
         }
 
         &.-before {
-          left: 0;
           position: absolute;
           top: 0;
+          left: 0;
           translate: -100% 0;
         }
 
         &.-after {
-          left: 0;
           position: absolute;
           top: 0;
+          left: 0;
           translate: 100% 0;
         }
       }
 
       :deep(.slider-item) {
         flex-shrink: 0;
-        padding-inline: calc(var(--gap-pc) * 0.5);
         width: calc(100% / var(--slide-amount));
+        padding-inline: calc(var(--gap-pc) * 0.5);
 
         @include m.sp {
           padding-inline: calc(var(--gap-sp) * 0.5);

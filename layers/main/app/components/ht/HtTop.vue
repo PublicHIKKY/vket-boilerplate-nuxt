@@ -16,5 +16,9 @@ en:
 <style lang="scss" scoped>
 @use '@/assets/styles/variables' as v;
 @use '@/assets/styles/mixins' as m;
-// .ht-top {}
+
+.ht-top {
+  width: 100%;
+  height: 100%;
+}
 </style>

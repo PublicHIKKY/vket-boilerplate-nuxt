@@ -3,13 +3,13 @@
 // todo: !importantあまり使いたくないので@nuxt/toastに.scss渡せたりするなら修正
 
 @use 'variables' as v;
-@use '@/assets/styles/mixins' as m;
+@use 'mixins' as m;
 
 .hv-toast {
-  margin-top: 0;
+  z-index: v.$zindex-toast !important;
   top: v.$header-height-pc !important;
   width: 100%;
-  z-index: v.$zindex-toast !important;
+  margin-top: 0;
 
   @include m.sp {
     top: v.$header-height-sp !important;

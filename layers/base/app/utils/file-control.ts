@@ -28,8 +28,7 @@ export const getFileByURL = async (url: string): Promise<File | null> => {
 
     const file = new File([blob], 'newFile' + ext, { type: blob.type })
     return file
-  }
-  catch (e) {
+  } catch (e) {
     console.error(e)
     return null
   }
@@ -85,8 +84,7 @@ export const getFileByBase64 = (base64: string, fileName = 'file'): File | null 
       u8arr[n] = bstr.charCodeAt(n)
     }
     return new File([u8arr], fileName, { type: mime })
-  } catch (e) {
+  } catch (_e) {
     return null
   }
 }
-

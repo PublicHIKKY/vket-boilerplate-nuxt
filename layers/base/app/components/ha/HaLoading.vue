@@ -56,39 +56,44 @@ const loading = ref(props.manual)
 @use '#base/app/assets/styles/variables' as v;
 
 .ha-loading {
-  align-items: center;
-  background: rgb(0 0 0 / 70%);
-  display: flex;
-  height: 100vh;
-  inset: 0;
-  justify-content: center;
   position: fixed;
-  width: 100vw;
   z-index: v.$zindex-loading;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100vw;
+  height: 100vh;
+
+  background: rgb(0 0 0 / 70%);
 
   > .cover {
-    background-color: v.$white;
-    height: 100vh;
     position: absolute;
     width: 100vw;
+    height: 100vh;
+    background-color: v.$white;
   }
 }
 
 .spinner-container {
-  align-items: center;
   display: flex;
-  height: 120px;
+  align-items: center;
   justify-content: center;
-  margin: auto;
+
   width: 120px;
+  height: 120px;
+  margin: auto;
 
   > .spinner {
     display: block;
-    height: 120px;
-    margin: auto;
-    max-height: 50%;
-    max-width: 50%;
+
     width: 120px;
+    max-width: 50%;
+    height: 120px;
+    max-height: 50%;
+    margin: auto;
   }
 }
 </style>

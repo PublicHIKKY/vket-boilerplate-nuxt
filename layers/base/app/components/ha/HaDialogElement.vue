@@ -121,35 +121,36 @@ defineExpose({
 }
 
 .ha-dialog-element {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+
+  width: 90%;
+  max-width: initial; // dialogのデフォルトのmax-widthをリセット
+  height: auto;
+  max-height: initial; // dialogのデフォルトのmax-heightをリセット
+  padding: 0; // dialogのデフォルトのpaddingをリセット
+
+  opacity: 0;
   background-color: rgb(
     0 0 0 / 0%
   ); // dialogにデフォルトで指定される白の背景色を透明にする
 
-  height: auto;
-  left: 50%;
-  max-height: initial; // dialogのデフォルトのmax-heightをリセット
-  max-width: initial; // dialogのデフォルトのmax-widthをリセット
-  opacity: 0;
-  padding: 0; // dialogのデフォルトのpaddingをリセット
-  position: fixed;
-  top: 50%;
-  translate: -50% -50%;
-  width: 90%;
+  &::backdrop {
+    cursor: pointer;
+    background-color: rgb(0 0 0 / 80%);
+  }
 
   &[open] {
     animation: fade-in 0.3s forwards;
   }
 
-  &::backdrop {
-    background-color: rgb(0 0 0 / 80%);
-    cursor: pointer;
-  }
-
   > .inner {
-    background-color: #fff;
-    height: 100%;
     overflow-y: auto;
     width: 100%;
+    height: 100%;
+    background-color: #fff;
 
     &:focus-visible {
       outline: none;
@@ -157,11 +158,13 @@ defineExpose({
   }
 
   > .close {
-    aspect-ratio: 1;
     cursor: pointer;
+
     position: absolute;
-    right: 2%;
     top: 2%;
+    right: 2%;
+
+    aspect-ratio: 1;
     width: 20px;
 
     > .icon {

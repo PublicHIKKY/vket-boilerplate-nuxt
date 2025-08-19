@@ -144,7 +144,7 @@ const capture_ = computed<'user' | 'environment' | true | undefined>(() => {
 <style lang="scss" scoped>
 .ha-base-input {
   display: block;
-  max-height: 100%;
   max-width: 100%;
+  max-height: 100%;
 }
 </style>

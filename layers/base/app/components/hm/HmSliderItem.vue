@@ -21,7 +21,7 @@ const props = defineProps<{
 
 <style lang="scss" scoped>
 .slider-content {
-  height: 100%;
   width: 100%;
+  height: 100%;
 }
 </style>

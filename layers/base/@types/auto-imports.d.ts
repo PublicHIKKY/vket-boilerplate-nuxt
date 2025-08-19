@@ -12,23 +12,31 @@ declare global {
   const HaSelectBox: typeof import('../app/components/ha/HaSelectBox.vue')['default']
   const HmButton: typeof import('../app/components/hm/button/HmButton.vue')['default']
   const HmInputDatetime: typeof import('../app/components/hm/input/HmInputDatetime.vue')['default']
+  const I18nTKeyMissingError: typeof import('../app/composables/use-strict-i18n')['I18nTKeyMissingError']
   const JA: typeof import('../app/composables/useLocale')['JA']
   const abortNavigation: typeof import('#app')['abortNavigation']
   const addDateTime: typeof import('../app/utils/date-control')['addDateTime']
   const addRouteMiddleware: typeof import('#app')['addRouteMiddleware']
+  const apiEnhanced: typeof import('../app/utils/api-enhanced')['default']
   const cancelIdleCallback: typeof import('#app')['cancelIdleCallback']
   const clearError: typeof import('#app')['clearError']
   const clearNuxtData: typeof import('#app')['clearNuxtData']
   const clearNuxtState: typeof import('#app')['clearNuxtState']
   const computed: typeof import('vue')['computed']
+  const conditionalReactive: typeof import('../app/utils/vue-reactive')['conditionalReactive']
+  const configureLogger: typeof import('../app/utils/console')['configureLogger']
+  const configureLoggerForEnvironment: typeof import('../app/utils/console')['configureLoggerForEnvironment']
   const constant: typeof import('../app/utils/constant')['constant']
   const convertTimeToUtc: typeof import('../app/utils/date-control')['convertTimeToUtc']
   const createApp: typeof import('vue')['createApp']
   const createError: typeof import('#app')['createError']
   const createUuidV4: typeof import('../app/utils/uuid')['createUuidV4']
   const customRef: typeof import('vue')['customRef']
+  const debug: typeof import('../app/utils/console')['debug']
   const decodeJwt: typeof import('../app/utils/token')['decodeJwt']
+  const deepCloneReactive: typeof import('../app/utils/vue-reactive')['deepCloneReactive']
   const defaultApi: typeof import('../app/utils/default-api')['default']
+  const defaultFetchOptions: typeof import('../app/utils/api-enhanced')['defaultFetchOptions']
   const defaultFetcher: typeof import('../app/composables/useDefaultApi')['defaultFetcher']
   const defaultRepositories: typeof import('../app/utils/default-factory')['defaultRepositories']
   const defaultRepositoryFactory: typeof import('../app/utils/default-factory')['defaultRepositoryFactory']
@@ -50,9 +58,10 @@ declare global {
   const ensureAsyncDataOf: typeof import('../app/utils/response')['ensureAsyncDataOf']
   const ensureValueOf: typeof import('../app/utils/zod')['ensureValueOf']
   const equal: typeof import('../app/utils/array')['equal']
+  const error: typeof import('../app/utils/console')['error']
   const exampleInjectionKey: typeof import('../app/composables/useExample')['exampleInjectionKey']
   const fetchErrorSchema: typeof import('../app/utils/response')['fetchErrorSchema']
-  const fetcher: typeof import('../app/composables/useDefaultApi')['fetcher']
+  const fetcher: typeof import('../app/utils/api-enhanced')['fetcher']
   const formatDate: typeof import('../app/utils/date-control')['formatDate']
   const formatDateUnixTime: typeof import('../app/utils/date-control')['formatDateUnixTime']
   const formatEnglishDate: typeof import('../app/utils/date-control')['formatEnglishDate']
@@ -62,22 +71,33 @@ declare global {
   const formatJapaneseDateTime: typeof import('../app/utils/date-control')['formatJapaneseDateTime']
   const formatLocalTimezoneToJST: typeof import('../app/utils/date-control')['formatLocalTimezoneToJST']
   const getAppManifest: typeof import('#app')['getAppManifest']
+  const getArrayRouteQuery: typeof import('../app/utils/url')['getArrayRouteQuery']
   const getBase64ByFile: typeof import('../app/utils/file-control')['getBase64ByFile']
+  const getBooleanRouteQuery: typeof import('../app/utils/url')['getBooleanRouteQuery']
   const getCurrentDate: typeof import('../app/utils/date-control')['getCurrentDate']
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
+  const getDateRouteQuery: typeof import('../app/utils/url')['getDateRouteQuery']
   const getDiffTimeByUnit: typeof import('../app/utils/date-control')['getDiffTimeByUnit']
+  const getEnumRouteQuery: typeof import('../app/utils/url')['getEnumRouteQuery']
   const getExtFromType: typeof import('../app/utils/file-control')['getExtFromType']
   const getFileByBase64: typeof import('../app/utils/file-control')['getFileByBase64']
   const getFileByURL: typeof import('../app/utils/file-control')['getFileByURL']
   const getImageUrl: typeof import('../app/utils/image')['getImageUrl']
   const getLocalStorageValue: typeof import('../app/utils/storage-control')['getLocalStorageValue']
   const getLocalTimezone: typeof import('../app/utils/date-control')['getLocalTimezone']
+  const getLoggerConfig: typeof import('../app/utils/console')['getLoggerConfig']
   const getMax: typeof import('../app/utils/zod')['getMax']
+  const getNumberRouteQuery: typeof import('../app/utils/url')['getNumberRouteQuery']
+  const getRouteQueries: typeof import('../app/utils/url')['getRouteQueries']
   const getRouteRules: typeof import('#app')['getRouteRules']
   const getSessionStorageValue: typeof import('../app/utils/storage-control')['getSessionStorageValue']
   const getSingleCookieValue: typeof import('../app/utils/storage-control')['getSingleCookieValue']
+  const getStringRouteQuery: typeof import('../app/utils/url')['getStringRouteQuery']
+  const group: typeof import('../app/utils/console')['group']
+  const groupEnd: typeof import('../app/utils/console')['groupEnd']
   const h: typeof import('vue')['h']
+  const info: typeof import('../app/utils/console')['info']
   const inject: typeof import('vue')['inject']
   const integral: typeof import('../app/utils/zod')['integral']
   const isAfterTargetDate: typeof import('../app/utils/date-control')['isAfterTargetDate']
@@ -95,6 +115,8 @@ declare global {
   const linkViaElement: typeof import('../app/utils/anchor')['linkViaElement']
   const loadPayload: typeof import('#app')['loadPayload']
   const localeInjectionKey: typeof import('../app/composables/useLocale')['localeInjectionKey']
+  const log: typeof import('../app/utils/console')['log']
+  const logIf: typeof import('../app/utils/console')['logIf']
   const makeAnchorElement: typeof import('../app/utils/anchor')['makeAnchorElement']
   const makeRecursiveSchema: typeof import('../app/utils/zod')['makeRecursiveSchema']
   const makeResponseSchema: typeof import('../app/utils/response')['makeResponseSchema']
@@ -155,8 +177,12 @@ declare global {
   const showError: typeof import('#app')['showError']
   const sleep: typeof import('../app/utils/sleep')['sleep']
   const statusSchema: typeof import('../app/utils/response')['statusSchema']
+  const table: typeof import('../app/utils/console')['table']
+  const timeEnd: typeof import('../app/utils/console')['timeEnd']
+  const timeStart: typeof import('../app/utils/console')['timeStart']
   const toImage: typeof import('../app/utils/image')['toImage']
   const toRaw: typeof import('vue')['toRaw']
+  const toRawDeep: typeof import('../app/utils/vue-reactive')['toRawDeep']
   const toRef: typeof import('vue')['toRef']
   const toRefs: typeof import('vue')['toRefs']
   const toValue: typeof import('vue')['toValue']
@@ -165,6 +191,7 @@ declare global {
   const triggerRef: typeof import('vue')['triggerRef']
   const tupleWideningDo: typeof import('../app/utils/tuple')['tupleWideningDo']
   const unreachable: typeof import('../app/utils/error')['unreachable']
+  const unreadonly: typeof import('../app/utils/vue-reactive')['unreadonly']
   const unref: typeof import('vue')['unref']
   const updateAppConfig: typeof import('#app')['updateAppConfig']
   const useAppConfig: typeof import('#app')['useAppConfig']
@@ -203,23 +230,29 @@ declare global {
   const useSlots: typeof import('vue')['useSlots']
   const useSocialShareLink: typeof import('../app/composables/useSocialShareLink')['default']
   const useState: typeof import('#app')['useState']
+  const useStrictI18n: typeof import('../app/composables/use-strict-i18n')['useStrictI18n']
   const useSwitchLocalePath: typeof import('#i18n')['useSwitchLocalePath']
   const useTemplateRef: typeof import('vue')['useTemplateRef']
   const useToast: typeof import('../app/composables/useToast')['default']
   const useValidationRules: typeof import('../app/composables/useValidationRules')['default']
   const waitEffect: typeof import('../app/utils/sleep')['waitEffect']
+  const warn: typeof import('../app/utils/console')['warn']
   const watch: typeof import('vue')['watch']
   const watchEffect: typeof import('vue')['watchEffect']
   const watchPostEffect: typeof import('vue')['watchPostEffect']
   const watchSyncEffect: typeof import('vue')['watchSyncEffect']
+  const withLogging: typeof import('../app/utils/console')['withLogging']
   const writableClone: typeof import('../app/utils/object')['writableClone']
   const zip: typeof import('../app/utils/array')['zip']
 }
 // for type re-export
 declare global {
   // @ts-ignore
-  export type { Component, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
+  export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
+  // @ts-ignore
+  export type { I18nTKeyMissingError } from '../app/composables/use-strict-i18n'
+  import('../app/composables/use-strict-i18n')
   // @ts-ignore
   export type { Example, ExampleComposable } from '../app/composables/useExample'
   import('../app/composables/useExample')
@@ -229,6 +262,9 @@ declare global {
   // @ts-ignore
   export type { ToastComposable } from '../app/composables/useToast'
   import('../app/composables/useToast')
+  // @ts-ignore
+  export type { LogLevel, ConsoleMethod } from '../app/utils/console'
+  import('../app/utils/console')
   // @ts-ignore
   export type { Method } from '../app/utils/default-api'
   import('../app/utils/default-api')

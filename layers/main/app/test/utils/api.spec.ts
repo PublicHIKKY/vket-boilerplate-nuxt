@@ -41,7 +41,7 @@ vi.mock('ofetch', () => {
 
 describe('api', () => {
   // NOTE: api.getの返却値のテストとして、引数のpathやfetchOptionを入力して、返却値として期待するexpectObjと同等かテストする。その際、onRequestとonResponseは複雑化するので、空オブジェクトで省略としてtoMatchObjectで合格するか検査する。
-  it('get', () => {
+  it('get', async () => {
     const expectObj = {
       options: {
         baseURL: '/test-api',
@@ -54,9 +54,10 @@ describe('api', () => {
     }
     const path = '/example'
     const fetchOptions = {}
-    expect(api('get', path, fetchOptions)).toMatchObject(expectObj)
+    const result = await api('get', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
   })
-  it('post', () => {
+  it('post', async () => {
     // NOET: 以下getと同様にテストする。methodはgetではなく、相送信methodに準じた値に変化するので注意
     const expectObj = {
       options: {
@@ -70,9 +71,10 @@ describe('api', () => {
     }
     const path = '/example'
     const fetchOptions = {}
-    expect(api('post', path, fetchOptions)).toMatchObject(expectObj)
+    const result = await api('post', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
   })
-  it('put', () => {
+  it('put', async () => {
     const expectObj = {
       options: {
         baseURL: '/test-api',
@@ -85,9 +87,10 @@ describe('api', () => {
     }
     const path = '/example'
     const fetchOptions = {}
-    expect(api('put', path, fetchOptions)).toMatchObject(expectObj)
+    const result = await api('put', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
   })
-  it('patch', () => {
+  it('patch', async () => {
     const expectObj = {
       options: {
         baseURL: '/test-api',
@@ -100,9 +103,10 @@ describe('api', () => {
     }
     const path = '/example'
     const fetchOptions = {}
-    expect(api('patch', path, fetchOptions)).toMatchObject(expectObj)
+    const result = await api('patch', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
   })
-  it('delete', () => {
+  it('delete', async () => {
     const expectObj = {
       options: {
         baseURL: '/test-api',
@@ -115,6 +119,7 @@ describe('api', () => {
     }
     const path = '/example'
     const fetchOptions = {}
-    expect(api('delete', path, fetchOptions)).toMatchObject(expectObj)
+    const result = await api('delete', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
   })
 })
