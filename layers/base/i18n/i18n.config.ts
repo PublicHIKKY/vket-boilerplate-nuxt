@@ -2,7 +2,7 @@
  * note: i18n by nuxt-i18n i18nの不具合があればこのファイルから参照する
  * ref: https://v8.i18n.nuxtjs.org/
  */
-import type { NuxtI18nOptions } from '@nuxtjs/i18n/dist/module'
+import type { NuxtI18nOptions } from '@nuxtjs/i18n'
 import Cookies from 'universal-cookie'
 import en from './locales/en.json'
 import ja from './locales/ja.json'

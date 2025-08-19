@@ -41,7 +41,7 @@ const props = defineProps<{
   amount: number
 }>()
 // タブのindexと開閉状態を表すbooleanを格納するオブジェクトのためのrefで、props.amountの数だけオブジェクトを作る
-const tabStatus = ref(range(0, props.amount - 1).map((_, i) => i === 1))
+const tabStatus = ref(range(0, props.amount - 1).map((_, i) => i === 0))
 
 // タブをクリックしたとき、クリックしたタブのindexと一致するパネルの表示状態がtrueになるようにする
 const changeTab = (index: number): void => {

@@ -1,5 +1,5 @@
 import { useI18n } from 'vue-i18n'
-import { z } from 'zod'
+import { z } from 'zod/v3'
 
 const useValidationRules = () => {
   const i18n = useI18n()

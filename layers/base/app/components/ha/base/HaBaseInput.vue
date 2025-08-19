@@ -28,21 +28,21 @@
 </template>
 
 <script setup lang="ts">
-export type InputType =
-  | 'button'
-  | 'checkbox'
-  | 'email'
-  | 'file'
-  | 'number'
-  | 'password'
-  | 'radio'
-  | 'search'
-  | 'tel'
-  | 'text'
-  | 'url'
-  | 'date'
-  | 'datetime-local'
-  | 'time'
+export type InputType
+  = | 'button'
+    | 'checkbox'
+    | 'email'
+    | 'file'
+    | 'number'
+    | 'password'
+    | 'radio'
+    | 'search'
+    | 'tel'
+    | 'text'
+    | 'url'
+    | 'date'
+    | 'datetime-local'
+    | 'time'
 
 type Props = {
   type: InputType

@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { z } from 'zod'
+import { z } from 'zod/v3'
 import HaSelectBox from '#base/app/components/ha/HaSelectBox.vue'
 
 test('ref component', () => {
