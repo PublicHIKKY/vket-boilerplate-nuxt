@@ -61,3 +61,6 @@ tasks-assets/image-min/*
 
 # Generated files
 app/models/openapi.ts
+
+# AI tools
+.serena

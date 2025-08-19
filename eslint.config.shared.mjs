@@ -52,7 +52,7 @@ export const basicConfig = {
     'no-console': [
       'warn',
       {
-        allow: ['warn', 'error', 'info', 'debug', 'table'],
+        allow: ['warn', 'error', 'info', 'debug', 'table', 'time', 'timeEnd', 'group', 'groupCollapsed', 'groupEnd', 'groupCollapsedEnd', 'trace'],
       },
     ],
   },

@@ -19,5 +19,5 @@ export type ValueOf<T> = T[keyof T]
 export type Overwrite<T, U extends { [Key in keyof T]?: unknown }> = Omit<
   T,
   keyof U
-> &
-U
+>
+& U

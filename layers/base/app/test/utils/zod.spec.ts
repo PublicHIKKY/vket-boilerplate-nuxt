@@ -1,5 +1,5 @@
 import { fc, test } from '@fast-check/vitest'
-import { z } from 'zod'
+import { z } from 'zod/v3'
 import { ensureValueOf, getMax, isValueOf, makeRecursiveSchema } from '#base/app/utils/zod'
 
 describe('isValueOf', () => {

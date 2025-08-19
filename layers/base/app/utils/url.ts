@@ -25,6 +25,62 @@ export const getNumberRouteQuery = (
 }
 
 /**
+ * route.queryから、stringのクエリを取得します。
+ * この関数は対象の名前のクエリが存在しないか、対象の名前のクエリが複数ある場合は、エラーを投げます。
+ * クエリが存在しない場合にエラーを投げたい場合は、getAltValueでエラーを投げてください。
+ *
+ * @example
+ * ```ts
+ * const route = useRoute() // http://example.com?page=1
+ * const page = requireRouteQuery(route.query, 'page', () => '100', 'Invalid URL') // 1
+ * ```
+ *
+ * @example
+ * ```ts
+ * const route = useRoute() // http://example.com
+ * const page = requireRouteQuery(route.query, 'page', () => '1', 'Invalid URL') // 1
+ * ```
+ *
+ * @example
+ * ```ts
+ * const route = useRoute() // http://example.com?page=1
+ * const page = requireRouteQuery(route.query, 'page', () => raiseError('page query is not specified'), '') // throws Error
+ * ```
+ *
+ * @see テスト
+ */
+export const requireRouteQuery = (
+  query: ReturnType<typeof useRoute>['query'],
+  name: string,
+  getAltValue: () => string,
+  errorMessage: string,
+): string => {
+  const value = query[name] ?? getAltValue()
+  if (typeof value !== 'string') {
+    throw new Error(errorMessage)
+  }
+  return value
+}
+
+/**
+ * NOTE: getAltValueが戻り値をnumberでなくstring要求しているのが気になるが、今はそのままにしておく。（TODOという程でもないのでNOTE。）
+ */
+export const requireNumberRouteQuery = (
+  query: ReturnType<typeof useRoute>['query'],
+  name: string,
+  getAltValue: () => string,
+  errorMessage: string,
+  errorMessageIfNotNumber: string = errorMessage,
+): number => {
+  const value = requireRouteQuery(query, name, getAltValue, errorMessage)
+  const number = Number(value)
+  if (isNaN(number)) {
+    throw new Error(errorMessageIfNotNumber)
+  }
+  return number
+}
+
+/**
  * 文字列クエリパラメータを安全に取得
  * 配列の場合は最初の要素を返す
  */

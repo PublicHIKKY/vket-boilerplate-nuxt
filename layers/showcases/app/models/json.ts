@@ -5,7 +5,7 @@
  * @reference https://zod.dev/?id=json-type
  */
 
-import { z } from 'zod'
+import { z } from 'zod/v3'
 
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()])
 type Literal = z.infer<typeof literalSchema>

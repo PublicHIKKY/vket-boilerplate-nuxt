@@ -54,7 +54,7 @@ describe('if src error, set placeholder image', () => {
     })
     await wrapper.get('img').trigger('error')
     expect(wrapper.get('img').attributes('src')).toBe(
-      'https://via.placeholder.com/150',
+      '/public/images/no-image_1x1.jpg',
     )
   })
 })

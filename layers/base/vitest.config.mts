@@ -2,12 +2,21 @@ import path from 'path'
 import Vue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
+import Icons from 'unplugin-icons/vite'
 import { defineConfig } from 'vitest/config'
 import svgLoader from 'vite-svg-loader'
 
 export default defineConfig({
   plugins: [
     Vue(),
+    {
+      name: 'mock-svg-icons',
+      transform(_, id) {
+        if (id.includes('~icons/')) {
+          return 'export default { name: "MockIcon", template: "<svg><path /></svg>", props: ["class"] }';
+        }
+      },
+    },
     AutoImport({
       exclude: ['/test/', '/test-e2e/'],
       include: [/\.[tj]s?$/, /\.[tj]sx?$/, /\.vue$/, /\.vue\?vue/],
@@ -100,13 +109,24 @@ export default defineConfig({
       defaultImport: 'component', // 'component', 'url', 'raw'
       svgo: false,
     }),
+    Icons({
+      autoInstall: true,
+      compiler: 'vue3',
+    }),
   ],
   test: {
     globals: true,
     environment: 'jsdom',
     coverage: {
       include: ['app/**/*.{vue,ts}'],
+      exclude: [
+        'app/plugins/**',
+        'app/middleware/**',
+        'app/layouts/**',
+        'app/test/**'
+      ],
     },
+    setupFiles: ['./app/test/setup.ts'],
   },
   resolve: {
     alias: {
@@ -117,6 +137,7 @@ export default defineConfig({
         __dirname,
         '../../node_modules/@nuxtjs/i18n/dist/runtime/composables',
       ),
+      '#imports': path.resolve(__dirname, 'app/test/mocks/imports.ts'),
       '@@/public/images/no-image.png': '/images/no-image.png',
     },
   },

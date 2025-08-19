@@ -7,13 +7,15 @@
     "layers/*"
   ],
   "scripts": {
-    "prepare": "bun husky"
+    "prepare": "bun husky",
+    "package-update": "bunx npm-check-updates -i",
+    "repomix": "bunx repomix@latest --style markdown"
   },
   "devDependencies": {
-    "eslint": "^9.29.0",
+    "eslint": "^9.33.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.1.2",
-    "stylelint": "^16.20.0"
+    "lint-staged": "^16.1.5",
+    "stylelint": "^16.23.1"
   },
   "lint-staged": {
     "layers/**/*.+(js|ts|tsx|vue)": [
@@ -21,6 +23,6 @@
     ]
   },
   "resolutions": {
-    "eslint": "9.14.0"
+    "eslint": "9.33.0"
   }
 }

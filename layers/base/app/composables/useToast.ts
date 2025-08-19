@@ -13,10 +13,13 @@ export const useToast = () => {
     time?: number,
     isClosable = false,
   ) => {
-    $toast[type ?? 'info'](text, {
-      delay: time,
-      closeButton: isClosable,
-    })
+    const safeType = (type && ['info', 'success', 'error', 'warning'].includes(type)) ? type : 'info'
+    if ($toast && $toast[safeType]) {
+      $toast[safeType](text, {
+        delay: time,
+        closeButton: isClosable,
+      })
+    }
   }
 
   return {

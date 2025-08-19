@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import z from 'zod'
+import z from 'zod/v3'
 import HmInputDatetime from '#base/app/components/hm/input/HmInputDatetime.vue'
 
 test('ref component', () => {
