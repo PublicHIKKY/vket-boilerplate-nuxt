@@ -5,10 +5,10 @@
  * @remarks Vket SSO Repository
  * @ref https://hikky.atlassian.net/wiki/spaces/ACCOUNT/pages/462258411/JS+ID
  */
-import { z } from 'zod'
 import { defaultApi } from '#base/app/utils/default-api'
 import { raiseError } from '#base/app/utils/error'
 import { ssoUserSchema } from '#vket-sso/app/models/vketSso'
+import { z } from 'zod/v3'
 
 const fetchSsoProfileResponseSchema = z.object({
   user: ssoUserSchema,

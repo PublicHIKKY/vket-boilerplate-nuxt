@@ -4,7 +4,7 @@
  * @module Auth
  */
 
-import { z } from 'zod'
+import { z } from 'zod/v3'
 
 // zod
 export const ssoUserSchema = z.object({
