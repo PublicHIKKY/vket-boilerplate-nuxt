@@ -1,5 +1,5 @@
-import { mount } from '@vue/test-utils'
 import HmInputFile from '#base/app/components/hm/input/HmInputFile.vue'
+import { mount } from '@vue/test-utils'
 
 /*
  * NOTE: 下準備としてFileList型のダミーを作成する
@@ -131,7 +131,7 @@ describe('emits', () => {
      * // NOTE: flushPromisesにてtoriggerイベントの非同期を解決する
      * await flushPromises()
      * // NOTE: attachToが動作していないように見える
-     * console.log(wrapper.html())
+     * console.info(wrapper.html())
      * // NOTE: .toHavePropertyの時点で取れない。emitが発生していない
      * expect(wrapper.emitted()).toHaveProperty('cancel')
      * expect(wrapper.emitted()['cancel']).toHaveLength(1)

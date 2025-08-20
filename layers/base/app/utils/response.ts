@@ -1,6 +1,6 @@
 import type { useFetch } from 'nuxt/dist/app/composables/fetch'
 import type { FetchError } from 'ofetch'
-import { z, ZodType, ZodTypeDef } from 'zod'
+import { z, ZodType, ZodTypeDef } from 'zod/v3'
 
 export const statusSchema = z.union([z.literal('ok'), z.literal('ng')])
 

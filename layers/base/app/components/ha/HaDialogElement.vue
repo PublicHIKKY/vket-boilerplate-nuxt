@@ -1,64 +1,49 @@
 <!--
 HaDialogとの違いとして、HaDialogElementは別階層の別要素のz-indexの影響により、それよりも下に表示されてしまう
 と言った現象が起きません(dialog要素は常に最前面に表示される)。
- -->
+-->
 <template>
-  <!-- ダイアログを開くボタン -->
-  <component
-    :is="props.openButtonHtmlTag"
-    :tabindex="props.openButtonHtmlTag !== 'button' ? 0 : undefined"
-    class="open"
-    aria-expanded="false"
-    @click.stop="openDialog"
+  <dialog
+    ref="dialog"
+    class="ha-dialog-element"
+    :closedby
+    @click.stop
   >
-    <slot name="open">
-      <span class="text">ダイアログを開く</span>
-    </slot>
-  </component>
-  <!-- ダイアログ -->
-  <template v-if="isActive">
-    <dialog
-      ref="dialog"
-      class="ha-dialog-element"
-      @click.stop
+    <component
+      :is="props.closeButtonHtmlTag"
+      ref="close"
+      class="close"
+      :aria-label="
+        i18n.locale.value === 'ja' ? `ダイアログを閉じる` : `Close the dialog`
+      "
+      @click="closeDialog"
     >
-      <component
-        :is="props.closeButtonHtmlTag"
-        ref="close"
-        class="close"
-        :aria-label="
-          i18n.locale.value === 'ja' ? `ダイアログを閉じる` : `Close the dialog`
-        "
-        @click="closeDialog"
-      >
-        <slot name="close">
-          <RiCloseLine class="icon" />
-        </slot>
-      </component>
-      <div
-        tabindex="0"
-        class="inner"
-        role="presentation"
-      >
-        <slot name="inner" />
-      </div>
-      <div
-        tabindex="0"
-        @focus="handleEndFocus"
-      ></div>
-    </dialog>
-  </template>
+      <slot name="close">
+        <RiCloseLine class="icon" />
+      </slot>
+    </component>
+    <div
+      tabindex="0"
+      class="inner"
+      role="presentation"
+    >
+      <slot name="inner" />
+    </div>
+    <div
+      tabindex="0"
+      @focus="handleEndFocus"
+    ></div>
+  </dialog>
 </template>
 
 <script lang="ts" setup>
 import RiCloseLine from '~icons/ri/close-line'
 
-type Props = {
-  openButtonHtmlTag?: string
+export type Props = {
   closeButtonHtmlTag?: string
+  closedby: 'any' | 'closerequest' | 'none' | undefined
 }
 const props = withDefaults(defineProps<Props>(), {
-  openButtonHtmlTag: 'button',
   closeButtonHtmlTag: 'button',
 })
 
@@ -69,12 +54,15 @@ const i18n = useI18n()
 const dialog = ref<HTMLDialogElement>()
 const isActive = ref(false)
 
+const emit = defineEmits<{
+  (e: 'open' | 'close'): void
+}>()
+
 // dialogを開く関数
-const openDialog = async () => {
+const openDialog = () => {
   isActive.value = true
-  await nextTick()
   if (!dialog.value) {
-    throw new Error('dialog要素はnull')
+    throw new Error('dialog要素はnull (HaDialogElement openDialog)')
   }
   dialog.value.addEventListener('keydown', (e) => {
     if (dialog.value?.open && e.key === 'Escape') {
@@ -82,23 +70,45 @@ const openDialog = async () => {
       closeDialog()
     }
   })
-  dialog.value.showModal()
-  // html要素とbody要素の両方にoverflowを記述
-  document.body.style.overflow = 'hidden'
-  document.documentElement.style.overflow = 'hidden'
+  if (typeof dialog.value.showModal === 'function') {
+    dialog.value.showModal()
+  } else {
+    console.error('dialog要素はHTMLDialogElementではありません (HaDialogElement openDialog)')
+  }
+  dialog.value.addEventListener('close', resetPageScrolling)
+  onOpen()
 }
 
 // dialogを閉じる関数
 const closeDialog = () => {
   if (!dialog.value) {
-    throw new Error('dialog要素はnull')
+    throw new Error('dialog要素はnull (HaDialogElement closeDialog)')
   }
   dialog.value.close()
+  onClose()
+  isActive.value = false
+}
+
+const stopPageScrolling = () => {
   // html要素とbody要素の両方にoverflowを記述
+  document.body.style.overflow = 'hidden'
+  document.documentElement.style.overflow = 'hidden'
+}
+
+const resetPageScrolling = () => {
+  // html要素とbody要素の両方のoverflowを元に戻す
   document.body.style.overflow = ''
   document.documentElement.style.overflow = ''
+}
 
-  isActive.value = false
+const onOpen = () => {
+  stopPageScrolling()
+  emit('open')
+}
+
+const onClose = () => {
+  resetPageScrolling()
+  emit('close')
 }
 
 // ダイアログ内のフォーカスを制御する
@@ -107,8 +117,12 @@ const handleEndFocus = () => {
   close.value?.focus()
 }
 
+onBeforeUnmount(resetPageScrolling)
+
 defineExpose({
+  openDialog,
   closeDialog,
+  isActive,
 })
 </script>
 
@@ -128,7 +142,7 @@ defineExpose({
 
   width: 90%;
   max-width: initial; // dialogのデフォルトのmax-widthをリセット
-  height: auto;
+  height: max-content; // autoにすると、十分に画面縦幅がある場合でもダイアログに縦スクロールが生まれる場合がある
   max-height: initial; // dialogのデフォルトのmax-heightをリセット
   padding: 0; // dialogのデフォルトのpaddingをリセット
 
@@ -148,8 +162,11 @@ defineExpose({
 
   > .inner {
     overflow-y: auto;
+
     width: 100%;
-    height: 100%;
+    height: max-content;
+    max-height: 100vh; // 先祖要素にmax-contentを指定した場合、その子孫要素の単位に%を使うとwebkitで値が0になる場合があるためvhを使用
+
     background-color: #fff;
 
     &:focus-visible {

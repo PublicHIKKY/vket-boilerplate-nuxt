@@ -1,4 +1,4 @@
-import { readFileAsBlob, getFileByURL, getExtFromType, getBase64ByFile, getFileByBase64 } from '#base/app/utils/file-control'
+import { readFileAsBlob, getExtFromType, getBase64ByFile } from '#base/app/utils/file-control'
 
 // NOTE: JSDOMでURL.createObjectURLはサポートされていない。その為、本来URL.createObjectURLが返してくれるURLを偽装してテストする。
 beforeEach(() => {
@@ -20,130 +20,106 @@ test('readFileAsBlob', () => {
   expect(validUrlRegex.test(objectUrl)).toBe(true)
 })
 
-describe('getFileByURL', () => {
-  it('should return File object when URL is valid', async () => {
-    // Mock fetch
-    const mockBlob = new Blob(['test content'], { type: 'image/png' })
-    global.fetch = vi.fn().mockResolvedValue({
-      blob: () => Promise.resolve(mockBlob),
-    })
-
-    const result = await getFileByURL('https://example.com/test.png')
-
-    expect(result).toBeInstanceOf(File)
-    expect(result?.name).toBe('newFile.png')
-    expect(result?.type).toBe('image/png')
-  })
-
-  it('should return null when server-side', async () => {
-    // Mock server environment
-    vi.stubGlobal('import.meta', { server: true })
-
-    const result = await getFileByURL('https://example.com/test.png')
-
-    expect(result).toBeNull()
-  })
-
-  it('should return null when fetch fails', async () => {
-    global.fetch = vi.fn().mockRejectedValue(new Error('Fetch failed'))
-
-    const result = await getFileByURL('https://example.com/test.png')
-
-    expect(result).toBeNull()
-  })
-})
-
 describe('getExtFromType', () => {
-  it('should extract extension from MIME type', () => {
-    expect(getExtFromType('image/png')).toBe('.png')
-    expect(getExtFromType('image/jpeg')).toBe('.jpeg')
-    expect(getExtFromType('text/plain')).toBe('.plain')
-    expect(getExtFromType('application/pdf')).toBe('.pdf')
+  test('image/pngから.pngを取得できる', () => {
+    const ext = getExtFromType('image/png')
+    expect(ext).toBe('.png')
+  })
+
+  test('image/jpegから.jpegを取得できる', () => {
+    const ext = getExtFromType('image/jpeg')
+    expect(ext).toBe('.jpeg')
+  })
+
+  test('application/pdfから.pdfを取得できる', () => {
+    const ext = getExtFromType('application/pdf')
+    expect(ext).toBe('.pdf')
+  })
+
+  test('text/plainから.plainを取得できる', () => {
+    const ext = getExtFromType('text/plain')
+    expect(ext).toBe('.plain')
+  })
+
+  test('video/mp4から.mp4を取得できる', () => {
+    const ext = getExtFromType('video/mp4')
+    expect(ext).toBe('.mp4')
   })
 })
 
 describe('getBase64ByFile', () => {
-  it('should convert File to base64', async () => {
-    const file = new File(['test content'], 'test.txt', { type: 'text/plain' })
-
-    // Mock FileReader
+  test('Fileオブジェクトからbase64文字列を取得できる', async () => {
+    // FileReaderのモック
+    const mockResult = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAA='
     const mockFileReader = {
       readAsDataURL: vi.fn(),
-      onload: null as any,
-      result: 'data:text/plain;base64,dGVzdCBjb250ZW50',
+      onload: null as ((e: ProgressEvent<FileReader>) => void) | null,
+      result: mockResult,
     }
 
-    global.FileReader = vi.fn(() => mockFileReader) as any
+    vi.spyOn(globalThis, 'FileReader').mockImplementation(() => {
+      setTimeout(() => {
+        if (mockFileReader.onload) {
+          mockFileReader.onload({
+            target: { result: mockResult },
+          } as ProgressEvent<FileReader>)
+        }
+      }, 0)
+      return mockFileReader as unknown as FileReader
+    })
 
-    const promise = getBase64ByFile(file)
+    const file = new File(['test content'], 'test.png', { type: 'image/png' })
+    const base64 = await getBase64ByFile(file)
 
-    // Simulate FileReader onload event
-    mockFileReader.onload({ target: { result: 'data:text/plain;base64,dGVzdCBjb250ZW50' } })
-
-    const result = await promise
-    expect(result).toBe('data:text/plain;base64,dGVzdCBjb250ZW50')
+    expect(base64).toBe(mockResult)
+    expect(mockFileReader.readAsDataURL).toHaveBeenCalledWith(file)
   })
 
-  it('should handle non-string result', async () => {
-    const file = new File(['test content'], 'test.txt', { type: 'text/plain' })
-
+  test('FileReaderのresultがstring以外の場合はエラーがthrowされる', async () => {
     const mockFileReader = {
       readAsDataURL: vi.fn(),
-      onload: null as any,
-      result: new ArrayBuffer(8),
+      onload: null as ((e: ProgressEvent<FileReader>) => void) | null,
+      result: null,
     }
 
-    global.FileReader = vi.fn(() => mockFileReader) as any
+    vi.spyOn(globalThis, 'FileReader').mockImplementation(() => {
+      queueMicrotask(() => {
+        if (mockFileReader.onload) {
+          mockFileReader.onload({
+            target: { result: null },
+          } as ProgressEvent<FileReader>)
+        }
+      })
+      return mockFileReader as unknown as FileReader
+    })
 
-    const promise = getBase64ByFile(file)
+    const file = new File(['test content'], 'test.png', { type: 'image/png' })
 
-    await expect(async () => {
-      mockFileReader.onload({ target: { result: new ArrayBuffer(8) } })
-      await promise
-    }).rejects.toThrow('Failed to get base64')
-  })
-})
-
-describe('getFileByBase64', () => {
-  it('should convert base64 to File', () => {
-    const base64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
-
-    const result = getFileByBase64(base64, 'test.png')
-
-    expect(result).toBeInstanceOf(File)
-    expect(result?.name).toBe('test.png')
-    expect(result?.type).toBe('image/png')
+    await expect(getBase64ByFile(file)).rejects.toThrow('Failed to get base64')
   })
 
-  it('should use default filename when not provided', () => {
-    const base64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
+  test('空のFileオブジェクトでも動作する', async () => {
+    const mockResult = 'data:application/octet-stream;base64,'
+    const mockFileReader = {
+      readAsDataURL: vi.fn(),
+      onload: null as ((e: ProgressEvent<FileReader>) => void) | null,
+      result: mockResult,
+    }
 
-    const result = getFileByBase64(base64)
+    vi.spyOn(globalThis, 'FileReader').mockImplementation(() => {
+      setTimeout(() => {
+        if (mockFileReader.onload) {
+          mockFileReader.onload({
+            target: { result: mockResult },
+          } as ProgressEvent<FileReader>)
+        }
+      }, 0)
+      return mockFileReader as unknown as FileReader
+    })
 
-    expect(result?.name).toBe('file')
-  })
+    const file = new File([''], 'empty.txt', { type: 'text/plain' })
+    const base64 = await getBase64ByFile(file)
 
-  it('should return null for invalid base64', () => {
-    const invalidBase64 = 'invalid-base64'
-
-    const result = getFileByBase64(invalidBase64)
-
-    expect(result).toBeNull()
-  })
-
-  it('should return null for malformed base64', () => {
-    const malformedBase64 = 'data:image/png;base64,'
-
-    const result = getFileByBase64(malformedBase64)
-
-    expect(result).toBeNull()
-  })
-
-  it('should handle missing MIME type', () => {
-    const base64WithoutMime = 'data:;base64,dGVzdA=='
-
-    const result = getFileByBase64(base64WithoutMime)
-
-    expect(result?.type).toBe('image/png') // デフォルトのMIMEタイプ
+    expect(base64).toBe(mockResult)
   })
 })

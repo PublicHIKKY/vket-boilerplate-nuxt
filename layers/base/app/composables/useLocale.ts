@@ -1,9 +1,9 @@
+import { getSingleCookieValue } from '#base/app/utils/storage-control'
 import { setLocale } from '@vee-validate/i18n'
 import { useRequestHeaders } from 'nuxt/app'
 import type { InjectionKey } from 'vue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getSingleCookieValue } from '#base/app/utils/storage-control'
 
 export const COOKIE_KEY = 'VUEI18N_MANUAL_LOCALE'
 export const JA = 'ja'
@@ -21,9 +21,9 @@ export const useLocale = () => {
       'accept-language'
     ]?.split(',')[0]
     const locale = ref(
-      process.server && reqLocale
+      import.meta.server && reqLocale
         ? reqLocale // サーバーサイドでの判定
-        : process.client && navigator.language
+        : import.meta.client && navigator.language
           ? navigator.language // クライアントでの判定
           : JA,
     )

@@ -33,14 +33,30 @@
 </template>
 
 <script lang="ts">
-import { toTypedSchema } from '@vee-validate/zod'
 import { useField } from 'vee-validate'
-import { z, ZodEffects, ZodType, ZodTypeDef } from 'zod'
+import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
 
 export type Option = {
   value: number | string | null
   text: string
   disabled?: boolean
+}
+
+type FieldInput = string | number | null
+
+export type Props = {
+  modelValue?: number | string | null
+  validatorName: string
+  validatorRules?:
+    | ZodType<string, ZodTypeDef, FieldInput>
+    | ZodEffects<ZodType<string, ZodTypeDef, FieldInput>>
+  options: readonly Option[]
+  placeholder?: string
+  disabledPlaceholder?: boolean
+  disabled?: boolean
+  required?: boolean
+  small?: boolean
+  keepValueOnUnmount?: boolean
 }
 
 export default defineComponent({
@@ -49,23 +65,8 @@ export default defineComponent({
 </script>
 
 <script setup lang="ts">
-type FieldInput = string | number | null
-
 const props = withDefaults(
-  defineProps<{
-    modelValue?: number | string | null
-    validatorName: string
-    validatorRules?:
-      | ZodType<string, ZodTypeDef, FieldInput>
-      | ZodEffects<ZodType<string, ZodTypeDef, FieldInput>>
-    options: readonly Option[]
-    placeholder?: string
-    disabledPlaceholder?: boolean
-    disabled?: boolean
-    required?: boolean
-    small?: boolean
-    keepValueOnUnmount?: boolean
-  }>(),
+  defineProps<Props>(),
   {
     modelValue: null,
     validatorRules: undefined,
@@ -82,20 +83,19 @@ const emit = defineEmits<{
   (e: 'update:modelValue' | 'input', value: number | string | null): void
 }>()
 
-const { value: fieldValue, errorMessage } = useField<FieldInput>(
+const { value: fieldValue, errorMessage } = useField(
   toRef(props, 'validatorName'),
-  props.validatorRules
-    ? toTypedSchema(props.validatorRules)
-    : toTypedSchema(z.unknown()),
+  props.validatorRules,
   {
     initialValue: props.modelValue,
     keepValueOnUnmount: props.keepValueOnUnmount,
+    syncVModel: true,
   },
 )
 
 const innerValue = computed({
   get(): number | string | null {
-    return props.modelValue
+    return fieldValue.value
   },
   set(value: number | string | null): void {
     emit('update:modelValue', value)

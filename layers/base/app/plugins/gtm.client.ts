@@ -5,9 +5,5 @@ export default defineNuxtPlugin(({ vueApp }) => {
   const config = useRuntimeConfig()
   const gtm = createGtm({ id: config.public.gtmId })
   vueApp.use(gtm)
-  return {
-    provide: {
-      gtm,
-    },
-  }
+  return {} // `provide: { gtm }` is not needed here (is in gtm plugin)
 })

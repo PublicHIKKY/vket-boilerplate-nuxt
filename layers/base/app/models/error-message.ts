@@ -114,9 +114,9 @@ export class TypedError<T extends string = string> extends Error {
 /**
  * 結果型 - 成功またはエラーを表現
  */
-export type Result<T, E extends string = string> =
-  | { success: true, data: T }
-  | { success: false, error: ErrorMessage<E> }
+export type Result<T, E extends string = string>
+  = | { success: true, data: T }
+    | { success: false, error: ErrorMessage<E> }
 
 /**
  * 成功結果を作成

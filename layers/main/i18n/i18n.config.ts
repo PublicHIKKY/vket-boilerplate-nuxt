@@ -2,7 +2,7 @@
  * note: i18n by nuxt-i18n i18nの不具合があればこのファイルから参照する
  * ref: https://v8.i18n.nuxtjs.org/
  */
-import type { NuxtI18nOptions } from '@nuxtjs/i18n/dist/module'
+import type { NuxtI18nOptions } from '@nuxtjs/i18n'
 import Cookies from 'universal-cookie'
 import en from './locales/en.json'
 import ja from './locales/ja.json'
@@ -11,13 +11,13 @@ const cookie = new Cookies()
 const jaLanguage = 'ja'
 const enLanguage = 'en'
 const cookieKey = 'VUEI18N_MANUAL_LOCALE'
-const isBrowserLanguageJa = process.client
+const isBrowserLanguageJa = import.meta.client
   ? navigator?.language?.startsWith(jaLanguage)
   : false
-const isBrowserLanguageEn = process.client
+const isBrowserLanguageEn = import.meta.client
   ? navigator?.language?.startsWith(enLanguage)
   : false
-const defaultLanguageFromCookie = process.client
+const defaultLanguageFromCookie = import.meta.client
   ? cookie.get(cookieKey) ?? null
   : ''
 const defaultLanguage
@@ -61,7 +61,7 @@ export const nuxtI18nOptions: NuxtI18nOptions = {
     cookieCrossOrigin: true,
     fallbackLocale: defaultLanguage,
   },
-  vueI18n: '#main/i18n/i18n.config.ts',
+  vueI18n: '#showcases/i18n/i18n.config.ts',
 }
 
 export default {

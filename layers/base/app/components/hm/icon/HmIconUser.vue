@@ -3,13 +3,15 @@
     <HaImage
       class="image"
       :src="props.src"
-      noImage="https://via.placeholder.com/150"
+      :noImage="noImage"
       :draggable="false"
     />
   </span>
 </template>
 
 <script lang="ts" setup>
+import noImage from '#base/public/images/no-image_1x1.jpg'
+
 type Props = {
   src: string
 }
