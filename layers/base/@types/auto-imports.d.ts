@@ -90,6 +90,7 @@ declare global {
   const getEndOfMonth: typeof import('../app/utils/date-control')['getEndOfMonth']
   const getEndOfYear: typeof import('../app/utils/date-control')['getEndOfYear']
   const getEnumRouteQuery: typeof import('../app/utils/url')['getEnumRouteQuery']
+  const getExtFromType: typeof import('../app/utils/file-control')['getExtFromType']
   const getFileByBase64: typeof import('../app/utils/file-control')['getFileByBase64']
   const getImageUrl: typeof import('../app/utils/image')['getImageUrl']
   const getLocalStorageValue: typeof import('../app/utils/storage-control')['getLocalStorageValue']

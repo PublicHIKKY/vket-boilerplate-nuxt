@@ -1,8 +1,8 @@
-import { mount } from '@vue/test-utils'
-import z from 'zod/v3'
 import HmInputText from '#base/app/components/hm/input/HmInputText.vue'
 import useValidationRules from '#base/app/composables/useValidationRules'
 import { waitEffect } from '#base/app/utils/sleep'
+import { mount } from '@vue/test-utils'
+import z from 'zod/v3'
 
 const rules = useValidationRules()
 
@@ -348,7 +348,7 @@ describe('DOM check for error display', () => {
     await waitEffect()
     /*
      * NOTE: DOMの変化を確かめたい時は下記でターミナルに表示させて確認する
-     * console.log(wrapper.html())
+     * console.info(wrapper.html())
      * NOTE: <p class="error-container">が存在する確認
      */
     expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
