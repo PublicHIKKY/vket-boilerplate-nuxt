@@ -7,6 +7,9 @@
     "layers/*"
   ],
   "scripts": {
+    "update-project": "bun update && bun upgrade && bun clean-install",
+    "clean-install": "rm -rf node_modules && bun install",
+    "check_upstream": "git pull upstream develop",
     "prepare": "bun husky",
     "package-update": "bunx npm-check-updates -i",
     "repomix": "bunx repomix@latest --style markdown"
