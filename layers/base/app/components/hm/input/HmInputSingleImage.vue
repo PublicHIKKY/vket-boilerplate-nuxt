@@ -73,9 +73,8 @@ en:
 </template>
 
 <script lang="ts" setup>
-import { toTypedSchema } from '@vee-validate/zod'
 import { useField } from 'vee-validate'
-import { z, ZodEffects, ZodOptional, ZodType, ZodTypeDef } from 'zod'
+import { ZodEffects, ZodOptional, ZodType, ZodTypeDef } from 'zod/v3'
 
 const i18n = useI18n()
 
@@ -135,9 +134,7 @@ const cropImage = ref<string>()
 
 const { value, errorMessage, validate } = useField<File | undefined>(
   toRef(props, 'validatorName'),
-  props.validatorRules
-    ? toTypedSchema(props.validatorRules)
-    : toTypedSchema(z.unknown()),
+  props.validatorRules,
   { initialValue: props.modelValue, syncVModel: false },
 )
 

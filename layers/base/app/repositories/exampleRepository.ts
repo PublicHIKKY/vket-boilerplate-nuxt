@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/v3'
 import { todoSchema } from '#base/app/models/todo'
 import { requireRuntimeConfig } from '#base/app/plugins/runtimeConfig'
 import defaultApi from '#base/app/utils/default-api'

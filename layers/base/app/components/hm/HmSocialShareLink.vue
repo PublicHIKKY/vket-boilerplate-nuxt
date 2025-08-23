@@ -24,8 +24,8 @@ const _shareTargetServices = {
   1: 'facebook',
   2: 'line',
 } as const
-type SharedTarget =
-  (typeof _shareTargetServices)[keyof typeof _shareTargetServices]
+type SharedTarget
+  = (typeof _shareTargetServices)[keyof typeof _shareTargetServices]
 
 const props = defineProps<{
   name: SharedTarget | null

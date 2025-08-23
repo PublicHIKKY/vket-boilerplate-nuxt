@@ -2,7 +2,7 @@
   <div
     :id="props.id"
     class="slider-item"
-    role="tabpalel"
+    role="tabpanel"
   >
     <div
       class="slider-content"

@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts" setup>
-import IconFavorite from '#base/app/assets/icons/icon-heart.svg?component'
+import IconFavorite from '#base/app/assets/icons/icon-heart.svg'
 
 const props = withDefaults(
   defineProps<{

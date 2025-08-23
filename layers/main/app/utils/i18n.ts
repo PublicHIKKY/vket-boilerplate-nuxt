@@ -4,8 +4,8 @@ import { VueMessageType, Composer, UseI18nOptions } from 'vue-i18n'
  * 引数未指定にすると、普通に`const i18n = useI18n()`とすると入ってくる型になる。
  * 型引数の使い方については、そのままuseI18nの型引数の指定方法を参照のこと。
  */
-export type UseI18nReturnType<Options extends UseI18nOptions = UseI18nOptions> =
-  Composer<
+export type UseI18nReturnType<Options extends UseI18nOptions = UseI18nOptions>
+  = Composer<
     NonNullable<Options['messages']>,
     NonNullable<Options['datetimeFormats']>,
     NonNullable<Options['numberFormats']>,
