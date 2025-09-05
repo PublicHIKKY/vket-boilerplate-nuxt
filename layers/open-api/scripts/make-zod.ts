@@ -159,6 +159,6 @@ const main = (): void => {
 }
 
 // スクリプトとして実行された場合のみメイン処理を実行
-if (import.meta.main) {
+if (process.argv[1] === import.meta.url) {
   main()
 }
