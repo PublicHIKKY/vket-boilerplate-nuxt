@@ -12,9 +12,10 @@
     "repomix": "bunx repomix@latest --style markdown"
   },
   "devDependencies": {
-    "eslint": "^9.33.0",
+    "@types/bun": "^1.2.21",
+    "eslint": "^9.34.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.1.5",
+    "lint-staged": "^16.1.6",
     "stylelint": "^16.23.1"
   },
   "lint-staged": {
@@ -23,6 +24,6 @@
     ]
   },
   "resolutions": {
-    "eslint": "9.33.0"
+    "eslint": "9.34.0"
   }
 }

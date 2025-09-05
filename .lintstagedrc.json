@@ -1,4 +1,7 @@
 {
-  "layers/**/*.+(js|jsx|ts|tsx|vue)": ["eslint --cache --cache-strategy content"],
+  "layers/base/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/base && eslint --cache --cache-strategy content"],
+  "layers/main/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/main && eslint --cache --cache-strategy content"],
+  "layers/open-api/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/open-api && eslint --cache --cache-strategy content"],
+  "layers/showcases/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/showcases && eslint --cache --cache-strategy content"],
   "layers/**/*.+(css|scss|sass|vue)": ["stylelint --allow-empty-input"]
 }
