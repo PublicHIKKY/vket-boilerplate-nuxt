@@ -25,12 +25,14 @@ Use this file to understand existing patterns before creating new components or 
 - Use `cd layers/base` to work on base components and utilities
 - Use `cd layers/main` to develop the main application
 - Use `cd layers/showcases` to create component showcases
+- Use `cd layers/vket-sso` to work on SSO (Single Sign-On) functionality
 - Run `bun install` at the root to install all workspace dependencies
 
 ### Layer Architecture Commands
 - `bun --filter vket-boilerplate-nuxt-base dev` - Start base layer dev server
 - `bun --filter vket-boilerplate-nuxt-main dev` - Start main layer dev server
 - `bun --filter vket-boilerplate-nuxt-showcases dev` - Start showcases dev server
+- `bun --filter vket-boilerplate-nuxt-vket-sso dev` - Start SSO layer dev server
 - `bun --filter vket-boilerplate-nuxt-open-api generate` - Generate OpenAPI models
 
 ## Development Guidelines
@@ -105,6 +107,10 @@ Examples:
     /i18n/     # Internationalization files
   /main/     # Main application
   /showcases/ # Component documentation
+  /vket-sso/ # SSO (Single Sign-On) functionality layer
+    /app/      # SSO application code
+    /config/   # SSO-specific configuration
+    /i18n/     # SSO internationalization
   /open-api/ # API schema definitions & Zod generation
     /openapi/  # OpenAPI specification files
     /scripts/  # Generation scripts

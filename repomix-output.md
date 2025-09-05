@@ -772,14 +772,6 @@ jobs:
 -
 ````
 
-## File: .husky/pre-commit
-````
-#!/bin/sh
-bunx lint-staged
-bun run repomix
-git add repomix-output.md
-````
-
 ## File: layers/base/@types/nuxt-i18n.d.ts
 ````typescript
 import type { NuxtI18nInstance } from '@nuxtjs/i18n'
@@ -5105,6 +5097,59 @@ describe('useExample', () => {
 })
 ````
 
+## File: layers/base/app/test/composables/useLocale.spec.ts
+````typescript
+import { useLocale } from '#base/app/composables/useLocale'
+
+let globalLocale: string | null = null
+
+beforeEach(() => {
+  vi.mock('nuxt/app', () => ({
+    useRequestHeaders: vi.fn(() => 'ja'),
+  }))
+
+  vi.mock('vue-i18n', () => ({
+    useI18n: vi.fn(() => ({
+      locale: ref('ja') as WritableComputedRef<string>,
+    })),
+  }))
+
+  vi.mock('@vee-validate/i18n', () => ({
+    setLocale: vi.fn((locale: string) => {
+      globalLocale = locale
+    }),
+  }))
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  globalLocale = null
+})
+
+test('getDefaultLanguage', () => {
+  const locale = useLocale()
+  const result = locale.getDefaultLanguage()
+  expect(result).oneOf(['ja', 'en'])
+})
+
+test('changeLocale', () => {
+  const locale = useLocale()
+  locale.changeLocale('en')
+  expect(globalLocale).toBe('en')
+})
+
+test('localPath', () => {
+  const locale = useLocale()
+
+  expect(locale.localePath('')).toBe('')
+  expect(locale.localePath('/path')).toBe('/path')
+
+  locale.changeLocale('en')
+  expect(locale.localePath('')).toBe('/en')
+  expect(locale.localePath('/path')).toBe('/en/path')
+})
+````
+
 ## File: layers/base/app/test/composables/useSocialShareLink.spec.ts
 ````typescript
 import useSocialShareLink from '#base/app/composables/useSocialShareLink'
@@ -8041,42 +8086,6 @@ export default withNuxt(
 }
 ````
 
-## File: layers/open-api/tsconfig.json
-````json
-{
-  "compilerOptions": {
-    "lib": [
-      "ESNext",
-      "DOM"
-    ],
-    "module": "esnext",
-    "target": "esnext",
-    "moduleResolution": "bundler",
-    "moduleDetection": "force",
-    "allowImportingTsExtensions": true,
-    "noEmit": true,
-    "composite": true,
-    "strict": true,
-    "downlevelIteration": true,
-    "skipLibCheck": true,
-    "jsx": "preserve",
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowJs": true,
-    "types": [
-      "bun-types",
-      "node"
-    ]
-  },
-  "include": [
-    "scripts/**/*"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
-}
-````
-
 ## File: layers/showcases/@types/components.d.ts
 ````typescript
 /* eslint-disable */
@@ -8430,6 +8439,307 @@ export default withNuxt(
 }
 ````
 
+## File: layers/vket-sso/app/composables/useAuthVketSso.ts
+````typescript
+/**
+ * @group Feature List
+ * @category Composables
+ * @module Auth (Vket SSO)
+ */
+import { InjectionKey } from 'vue'
+import { vketSsoRepository } from '#vket-sso/app/repositories/vketSsoRepository'
+import { Result, ssoJwtSchema, SsoUser } from '#vket-sso/app/models/vketSso'
+import { decodeJwt } from '#base/app/utils/token'
+import {
+  getSessionStorageValue,
+  setSessionStorageValue,
+  removeSessionStorageValue,
+} from '#base/app/utils/storage-control'
+import { raiseError } from '#base/app/utils/error'
+
+export const useAuthVketSso = () => {
+  const REPOSITORY_NAME = 'vketsso'
+  const COOKIE_KEY_JWT = 'sso-token-jwt'
+  const SESSION_STORAGE_KEY_EXP = 'sso-token-expires-in'
+  const SESSION_STORAGE_KEY_IAT = 'sso-token-created-at'
+  const runtimeConfig = useRuntimeConfig()
+
+  const _ssoDomain
+    = runtimeConfig?.public?.ssoDomain && typeof runtimeConfig?.public?.ssoDomain === 'string' ? runtimeConfig?.public?.ssoDomain : raiseError('undefined ssoDomain')
+  const ssoUser = useState<SsoUser | null>(`${REPOSITORY_NAME}-user`)
+  const aliveToken = useState<string | null>(`${REPOSITORY_NAME}-ac`)
+  const isLogout = useState<boolean>(`${REPOSITORY_NAME}-logout`)
+  const isAuthError = useState<boolean>(`${REPOSITORY_NAME}-auth-error`)
+
+  /**
+   * @remarks VketSSO: token取得(Fetcher)
+   */
+  const _fetchToken = async () => {
+    if (import.meta.server) raiseError('SSR not supported')
+    try {
+      const result = await vketSsoRepository.get.fetchSsoToken()
+      const decodedToken = requireValueOf(ssoJwtSchema, decodeJwt(result.jwt))
+
+      setSessionStorageValue(SESSION_STORAGE_KEY_EXP, String(decodedToken.exp))
+      setSessionStorageValue(SESSION_STORAGE_KEY_IAT, String(decodedToken.iat))
+      setSingleCookieValue(COOKIE_KEY_JWT, result.jwt)
+      aliveToken.value = result.jwt
+      return result.jwt
+    } catch (e) {
+      console.error(`${e}`)
+      aliveToken.value = null
+      return null
+    }
+  }
+
+  /**
+   * @remarks VketSSO: token削除
+   */
+  const _removeToken = () => {
+    removeSessionStorageValue(SESSION_STORAGE_KEY_EXP)
+    removeSessionStorageValue(SESSION_STORAGE_KEY_IAT)
+    removeSingleCookieValue(COOKIE_KEY_JWT)
+    aliveToken.value = null
+  }
+
+  /**
+   * @remarks VketSSO: token検証
+   * @return boolean
+   */
+  const _verifyTokenByExp = (exp: number) => {
+    const expiredUnixTime = Number(exp) || 0
+    // NOTE: 桁数が異なるので1/1000倍にする
+    const currentUnixTime = new Date().getTime() / 1000
+    if (currentUnixTime < expiredUnixTime) return true
+    _removeToken()
+    return false
+  }
+
+  /**
+   * @remarks VketSSO: ログイン
+   * エラー時はi18nのキーを返却するので呼び出し元でハンドリングを行う
+   */
+  const login = async (): Promise<Result> => {
+    const loginWindow = window.open(`${_ssoDomain}/auth/vket_account/login?redirect_uri=${_ssoDomain}/close`)
+    if (!loginWindow) {
+      return {
+        success: false,
+        errorKey: 'error.popup-block',
+      }
+    }
+
+    return new Promise<Result>((resolve) => {
+      const interval = setInterval(() => {
+        if (loginWindow.closed) {
+          clearInterval(interval)
+          getSsoUserState().then((response) => {
+            if (!response || !response.value) {
+              // NOTE: タブを手動で閉じる場合もこの分岐になる
+              return resolve({
+                success: false,
+                errorKey: 'error.login',
+              })
+            }
+            resolve({
+              success: true,
+            })
+          }).catch(() => {
+            return resolve({
+              success: false,
+              errorKey: 'error.login',
+            })
+          })
+        }
+      }, 1000)
+    }).catch((error) => {
+      // NOTE: この分岐は来ない想定だが、何かあった時のために一応
+      console.error(`${error}`)
+      return {
+        success: false,
+        errorKey: 'error.login',
+      }
+    })
+  }
+
+  /**
+   * @remarks VketSSO: ログアウト
+   * エラー時はi18nのキーを返却するので呼び出し元でハンドリングを行う
+   */
+  const logout = () => {
+    const logoutWindow = window.open(`${_ssoDomain}/auth/vket_account/logout?callback_url=${_ssoDomain}/close`)
+    if (!logoutWindow) {
+      return {
+        success: false,
+        errorKey: 'error.popup-block',
+      }
+    }
+
+    return new Promise<Result>((resolve) => {
+      const interval = setInterval(() => {
+        if (logoutWindow.closed) {
+          clearInterval(interval)
+          _removeToken()
+          resolve({
+            success: true,
+          })
+        }
+      }, 1000)
+    }).catch((error) => {
+      // NOTE: この分岐は来ない想定だが、何かあった時のために一応
+      console.error(`${error}`)
+      return {
+        success: false,
+        errorKey: 'error.logout',
+      }
+    })
+  }
+
+  /**
+   * @remarks VketSSO: SSO User をfetchする
+   */
+  const fetchSsoUser = async () => {
+    if (import.meta.server) raiseError('SSR not supported')
+    try {
+      const result = await vketSsoRepository.get.fetchSsoProfile()
+      ssoUser.value = result.user
+    } catch (e) {
+      console.error(e)
+      ssoUser.value = null
+      isLogout.value = true
+      if (_getAndStateSetJwt()) {
+        isAuthError.value = true
+      }
+      _removeToken()
+    }
+  }
+
+  /**
+   * @remarks VketSSO: SSO User をリセットする
+   */
+  const resetSsoUser = () => {
+    ssoUser.value = null
+  }
+
+  /**
+   * @remarks VketSSO: SSO User のをstateをreturnする
+   * @param awaitRefetch boolean default: true
+   * @return Ref<SsoUser | null>
+   */
+  const getSsoUserState = async (awaitRefetch = true) => {
+    if (awaitRefetch) await fetchSsoUser()
+    return readonly(ssoUser)
+  }
+
+  /**
+   * stateからtokenを取得する、stateがnullの場合以下の情報を返却する
+   * SSRの場合Cookieからtokenを取得
+   * CSR（SPA）の場合、sessionからtokenを取得
+   * いずれも取得出来た場合、stateを更新する
+   * @returns {string | null}
+   */
+  const _getAndStateSetJwt = (
+  ): string | null => {
+    if (aliveToken.value) return aliveToken.value
+    if (import.meta.client) {
+      const token = getSessionStorageValue(COOKIE_KEY_JWT) ?? null
+      if (token) aliveToken.value = token
+      return token
+    }
+    const cookieString = useRequestHeaders(['cookie']).cookie
+    if (!cookieString) return null
+    const token = cookieString
+      .split(';')
+      .map(item => item.trim())
+      .find(trimmedCookie => trimmedCookie.startsWith(COOKIE_KEY_JWT + '=')) // Cookieの名前と値は「名前=値」の形式で保存されている
+      ?.substring(COOKIE_KEY_JWT.length + 1) ?? null
+    if (token) aliveToken.value = token
+    return token
+  }
+
+  /**
+   * @remarks VketSSO: tokenを取得し有効期限が切れていたら更新する(SSRではtokenの更新ができないので更新フローに入るとnullを返す)
+   */
+  const getTokenOrRefresh = async (
+    returnType: 'encoded' | 'decodedObject' | 'decodedJson' = 'encoded',
+  ) => {
+    const returnFunction = (token: string | null) => {
+      if (!token) return null
+      const decodedToken = requireValueOf(ssoJwtSchema, decodeJwt(token))
+      // note: returnType = 'decodedObject' はデコードして返す
+      if (returnType === 'decodedObject') return decodedToken
+      // note: returnType = 'decodedJson' はデコードした結果をJSONとして返す
+      if (returnType === 'decodedJson') return JSON.stringify(decodedToken)
+      // note: デフォルトはそのまま返す
+      return aliveToken.value
+    }
+    try {
+      const jwtString = _getAndStateSetJwt()
+      if (!jwtString || jwtString === 'null') {
+        if (import.meta.server) return null
+        return returnFunction(await _fetchToken())
+      }
+      if (!aliveToken.value) {
+        return null
+      }
+      const decodedToken = requireValueOf(ssoJwtSchema, decodeJwt(aliveToken.value))
+      if (!_verifyTokenByExp(decodedToken.exp)) {
+        if (import.meta.server) return null
+        return returnFunction(await _fetchToken())
+      }
+      return returnFunction(jwtString)
+    } catch (error) {
+      console.error(`${error}`)
+      return null
+    }
+  }
+
+  // /**
+  //  * 必要になったら調整する
+  //  * @remarks VketSSO: login中である場合はtrue, そうでない場合はfalseをreturnする
+  //  * @param awaitRefetch boolean default: true
+  //  * @return boolean
+  //  */
+  // const isLoggedIn = async (awaitRefetch = true) => {
+  //   const currentState = await getSsoUserState(awaitRefetch)
+  //   return currentState.value !== undefined && currentState.value !== null
+  // }
+
+  // /**
+  //  * 必要になったら調整する
+  //  * @remarks VketSSO: token検証Keyの取得
+  //  */
+  // const getJwk = async (): Promise<void> => {
+  //   try {
+  //     const result = await vketSsoRepository.get.fetchSsoJwk()
+  //     if (!result) throw new Error('Failed to get jwk')
+  //     // TODO: jwkの使用タイミングで追加実装。現在はheliportからもheliscriptからも使わないはず
+  //     // eslint-disable-next-line
+  //     console.info(`${result}`)
+  //   }
+  //   catch (e) {
+  //     console.error(`${e}`)
+  //   }
+  // }
+
+  return {
+    aliveToken: readonly(aliveToken),
+    isLogout: readonly(isLogout),
+    ssoUser: readonly(ssoUser),
+    isAuthError,
+    login,
+    logout,
+    fetchSsoUser,
+    resetSsoUser,
+    getSsoUserState,
+    getTokenOrRefresh,
+  }
+}
+
+export type UseAuthVketSso = ReturnType<typeof useAuthVketSso>
+export const UseAuthVketSsoInjectionKey: InjectionKey<UseAuthVketSso>
+  = Symbol('auth-vket-sso')
+````
+
 ## File: layers/vket-sso/app/layouts/default.vue
 ````vue
 <template>
@@ -8446,6 +8756,42 @@ export default withNuxt(
   overflow-x: hidden;
 }
 </style>
+````
+
+## File: layers/vket-sso/app/middleware/001.fetchSsoUser.global.ts
+````typescript
+/**
+ * CSRでSSOユーザー情報を取得するmiddleware
+ * エラーハンドリングはmainアプリケーションlayerで行うとし、ここではログを出力するのみとする
+ */
+export default defineNuxtRouteMiddleware(async () => {
+  if (import.meta.server) return
+  try {
+    const authVketSso = useAuthVketSso()
+    const ssoUser = await authVketSso.getSsoUserState(false)
+    if (ssoUser.value || authVketSso.isLogout.value) return
+    await authVketSso.fetchSsoUser()
+  } catch (error) {
+    console.error(error)
+  }
+})
+````
+
+## File: layers/vket-sso/app/middleware/002.tokenRefresh.global.ts
+````typescript
+/**
+ * SSR/CSRともにページ遷移時にトークンの情報を最新化するmiddleware
+ * エラーハンドリングはmainアプリケーションlayerで行うとし、ここではログを出力するのみとする
+ */
+export default defineNuxtRouteMiddleware(async () => {
+  try {
+    const authVketSso = useAuthVketSso()
+    if (authVketSso.isLogout.value) return
+    await authVketSso.getTokenOrRefresh()
+  } catch (error) {
+    console.error(error)
+  }
+})
 ````
 
 ## File: layers/vket-sso/app/middleware/003.authErrorRefresh.global.ts
@@ -9115,17 +9461,6 @@ trim_trailing_whitespace = false
 * text=auto eol=lf encoding=utf-8
 ````
 
-## File: .lintstagedrc.json
-````json
-{
-  "layers/base/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/base && eslint --cache --cache-strategy content"],
-  "layers/main/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/main && eslint --cache --cache-strategy content"],
-  "layers/open-api/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/open-api && eslint --cache --cache-strategy content"],
-  "layers/showcases/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/showcases && eslint --cache --cache-strategy content"],
-  "layers/**/*.+(css|scss|sass|vue)": ["stylelint --allow-empty-input"]
-}
-````
-
 ## File: .prettierignore
 ````
 **/*
@@ -9161,235 +9496,6 @@ trim_trailing_whitespace = false
 # repository settings
 ````
 
-## File: AGENTS.md
-````markdown
-# Vket Boilerplate Nuxt - AI Agent Configuration
-
-## About This File
-
-This AGENTS.md file follows the standard format for AI agent coordination in software development. AGENTS.md is a simple, open format for guiding coding agents - think of it as a README for AI agents.
-
-For more information about the AGENTS.md format and best practices, visit: https://agents.md/
-
-## Project Overview
-Nuxt4-based monorepo boilerplate using Layer Architecture, developed by HIKKY Ltd. for building scalable VR/metaverse-related web applications.
-
-### Understanding Project Structure
-Before starting development, AI agents should read `./repomix-output.md` to understand the complete project structure and codebase. This file contains:
-- Complete directory structure
-- All source code files and their contents
-- Configuration files and their relationships
-- Testing patterns and examples
-- Component implementations and naming conventions
-
-Use this file to understand existing patterns before creating new components or modifying existing code.
-
-## Dev Environment Tips
-
-### Quick Navigation
-- Use `cd layers/base` to work on base components and utilities
-- Use `cd layers/main` to develop the main application
-- Use `cd layers/showcases` to create component showcases
-- Run `bun install` at the root to install all workspace dependencies
-
-### Layer Architecture Commands
-- `bun --filter vket-boilerplate-nuxt-base dev` - Start base layer dev server
-- `bun --filter vket-boilerplate-nuxt-main dev` - Start main layer dev server
-- `bun --filter vket-boilerplate-nuxt-showcases dev` - Start showcases dev server
-- `bun --filter vket-boilerplate-nuxt-open-api generate` - Generate OpenAPI models
-
-## Development Guidelines
-
-### Component Creation
-- Use component prefixes: Ha (atoms), Hm (molecules), Ho (organisms), Ht (templates)
-- Always include `<i18n lang="yaml">` blocks in components for internationalization
-- Follow RSCSS naming convention for CSS classes
-- Components should have corresponding test files in `/test/components/`
-
-### Type Safety
-- NEVER use `any` type - this project enforces strict TypeScript
-- Define Zod schemas first, then infer types: `type Todo = z.infer<typeof todoSchema>`
-- Use type aliases over interfaces
-- Use utility types: Nullable, ValueOf, Overwrite
-
-### API Development
-- Define schemas in `/models/` using Zod
-- Create repositories in `/repositories/` for API calls
-- Use defaultApi for automatic case conversion (camelCase ↔ snake_case)
-- Always validate responses with Zod schemas
-
-## Testing Instructions
-
-### Running Tests
-- `bun --filter <layer-name> test:ut` - Run unit tests
-- `bun --filter <layer-name> test:coverage` - Generate coverage report
-- `bun --filter <layer-name> test:watch` - Watch mode for TDD
-- Tests must pass before committing
-
-### Quality Checks
-- `bun --filter <layer-name> typecheck` - Check TypeScript types (must be 0 errors)
-- `bun --filter <layer-name> lint` - Run ESLint and Stylelint (must be 0 errors)
-- `bun --filter <layer-name> fix` - Auto-fix linting issues
-- `bun --filter vket-boilerplate-nuxt-main fix-openapi-models` - Fix generated OpenAPI models
-
-## PR Instructions
-
-### Commit Format
-```
-[<layer>/<scope>] <description>
-
-- What: Brief description of changes
-- Why: Reason for the change
-- How: Implementation approach (if complex)
-```
-
-### Pre-commit Checklist
-1. Run `bun typecheck` - Must have 0 TypeScript errors
-2. Run `bun lint` - Must have 0 lint errors
-3. Run `bun test:ut` - All tests must pass
-4. Update i18n translations if UI text was added
-5. Add/update tests for modified code
-
-### PR Title Format
-`[<layer-name>] <Feature/Fix/Refactor>: <Description>`
-
-Examples:
-- `[base] Feature: Add HmDataTable component`
-- `[main] Fix: Resolve navigation issue in mobile view`
-- `[showcases] Refactor: Update component examples`
-
-## File Structure
-
-### Monorepo Layout
-```
-/layers/
-  /base/     # Shared components, utils, styles, config
-    /app/      # Application code
-    /config/   # Environment configuration (EnvType, runtimeConfig)
-    /@types/   # TypeScript type definitions
-    /i18n/     # Internationalization files
-  /main/     # Main application
-  /showcases/ # Component documentation
-  /open-api/ # API schema definitions & Zod generation
-    /openapi/  # OpenAPI specification files
-    /scripts/  # Generation scripts
-```
-
-### Import Paths
-- Use layer aliases: `#base/`, `#main/`, `#showcases/`
-- Example: `import { HmButton } from '#base/app/components/hm/button/HmButton.vue'`
-
-## Common Patterns
-
-### i18n Implementation
-```vue
-<i18n lang="yaml">
-ja:
-  title: タイトル
-en:
-  title: Title
-</i18n>
-
-<script setup lang="ts">
-const i18n = useI18n()
-</script>
-```
-
-### Zod Schema Pattern
-```typescript
-export const todoSchema = z.object({
-  id: z.number(),
-  title: z.string(),
-  completed: z.boolean(),
-})
-
-export type Todo = z.infer<typeof todoSchema>
-```
-
-### Component Pattern
-```vue
-<script lang="ts">
-export default defineComponent({
-  name: 'HmComponentName',
-})
-</script>
-
-<script setup lang="ts">
-const props = withDefaults(
-  defineProps<{
-    prop?: string
-  }>(),
-  {
-    prop: 'default',
-  },
-)
-</script>
-```
-
-## Environment Variables
-
-### System Requirements
-- Node.js 22.x (required by base layer)
-- Bun package manager
-
-### Required Variables
-- `VITE_OUTPUT_ENV` - Environment (local/staging/production)
-- API endpoints configured in `runtimeConfig.ts`
-
-### Environment Configuration System
-This project uses a sophisticated environment management system:
-- `config/models/EnvType.ts` - Environment type definitions and validation
-- `config/runtimeConfig.ts` - Environment-specific runtime configuration
-- Supports multiple environments: local, staging, production
-
-### Local Development
-```bash
-cross-env VITE_OUTPUT_ENV=local bun dev
-```
-
-## Debugging Tips
-
-### Common Issues
-1. **TypeScript errors**: Check `tsconfig.json` and ensure all imports use correct paths
-2. **i18n missing**: Every component needs an `<i18n>` block even if empty
-3. **Build fails**: Run `bun nuxi prepare` to regenerate types
-4. **Test fails**: Check snapshots with `bun test:ut -- -u` to update
-
-### Useful Commands
-- `bun nuxi analyze` - Analyze bundle size
-- `bun nuxi info` - Show Nuxt configuration
-- `bun package-update` - Update dependencies interactively
-
-## Code Review Focus
-
-### Must Check
-- No `any` types used
-- All components have i18n blocks
-- Zod schemas match API responses
-- Tests cover new functionality
-- RSCSS naming convention followed
-- Layer separation maintained
-
-### Performance
-- Images optimized and lazy loaded
-- Dynamic imports for large components
-- No unnecessary re-renders
-- Bundle size impact checked
-
-## Key Dependencies
-- **Nuxt 4.1.0** - Full-stack framework
-- **Vue 3.5.21** - Progressive JavaScript framework
-- **Zod 4.1.5** - TypeScript-first schema validation
-- **TypeScript 5.9.2** - Type safety and tooling
-- **Bun** - Fast package manager and runtime
-
-## Additional Resources
-- [Nuxt 4 Documentation](https://nuxt.com/docs)
-- [Zod Documentation](https://zod.dev)
-- [RSCSS Naming Convention](https://rscss.io)
-- [Vue 3 Composition API](https://vuejs.org/api/composition-api.html)
-````
-
 ## File: LICENSE
 ````
 MIT License
@@ -9413,376 +9519,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-````
-
-## File: README.md
-````markdown
-# Vket Boilerplate Nuxt INTERNAL (Vket App Front 2)
-
-*[日本語版は下部にあります / Japanese version available below](#日本語版)*
-
-This is a production-ready Nuxt3 boilerplate published by HIKKY Ltd., designed for building scalable VR/metaverse web applications.
-
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
-[![Nuxt](https://img.shields.io/badge/Nuxt-4.0+-00DC82?logo=nuxt.js)](https://nuxt.com/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9+-3178C6?logo=typescript)](https://www.typescriptlang.org/)
-[![Bun](https://img.shields.io/badge/Bun-1.0+-000000?logo=bun)](https://bun.sh/)
-
-## 🤖 For AI Agents
-
-**Before starting development, please read [`AGENTS.md`](./AGENTS.md) for comprehensive development guidelines, coding standards, and project-specific instructions.**
-
-The `AGENTS.md` file contains:
-- Project structure and Layer Architecture guidelines
-- Component naming conventions (Ha/Hm/Ho/Ht prefixes)  
-- TypeScript strict mode requirements
-- Testing and quality assurance procedures
-- i18n implementation patterns
-
-## ✨ Features
-
-- **🏗️ Nuxt Layer Architecture**: Modular monorepo structure with base/main/showcases layers
-- **⚡ Bun Workspaces**: Fast package management and monorepo support
-- **🔒 TypeScript Strict Mode**: Zero-tolerance for `any` types, full type safety
-- **🎨 Component System**: Atomic design with Ha/Hm/Ho/Ht prefixes
-- **🌍 Internationalization**: Built-in i18n support with YAML-based translations
-- **📏 Zod Validation**: Schema-first API validation and type inference
-- **🎯 RSCSS/BEM**: Structured CSS naming conventions
-- **🧪 Testing Ready**: Vitest + Testing Library setup with coverage
-- **📦 Auto-imports**: Components, composables, and utilities
-- **🛠️ Quality Tools**: ESLint, Stylelint, Husky, lint-staged
-
-## 🚀 Quick Start
-
-### Prerequisites
-- [Bun](https://bun.sh/docs/installation) (recommended) or Node.js 22+
-- Git
-
-### Installation
-
-1. **Fork this repository**
-   ```bash
-   # Click "Fork" on GitHub or use GitHub CLI
-   gh repo fork hikky-inc/vket-boilerplate-nuxt
-   ```
-
-2. **Clone and setup**
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/vket-boilerplate-nuxt.git
-   cd vket-boilerplate-nuxt
-   bun install
-   ```
-
-3. **Start development**
-   ```bash
-   # Navigate to main layer (your application)
-   cd layers/main
-   
-   # Start development server
-   bun dev
-   ```
-
-4. **You're ready!** 🎉
-   - Open http://localhost:3000
-   - Start building your application with zero configuration
-
-## 📁 Project Structure
-
-```
-/layers/
-├── base/        # 🏗️ Foundation layer - shared components, utilities
-├── main/        # 🎯 Your application - main development area
-├── showcases/   # 📚 Component documentation and examples
-└── open-api/    # 🔌 API schema definitions
-```
-
-### Layer Hierarchy
-- **Base Layer**: Reusable components (Ha*, Hm*), utilities, styles
-- **Main Layer**: Your application logic, pages, specific components (Ho*, Ht*)
-- **Showcases Layer**: Living documentation and component examples
-
-## 🛠️ Development
-
-### Available Commands
-
-| Command | Description |
-|---------|-------------|
-| `bun dev` | Start development server |
-| `bun build` | Build for production |
-| `bun typecheck` | Check TypeScript types |
-| `bun lint` | Run ESLint + Stylelint |
-| `bun test:ut` | Run unit tests |
-| `bun test:coverage` | Generate test coverage |
-
-### Layer-specific Commands
-```bash
-# Work with specific layers
-bun --filter vket-boilerplate-nuxt-base dev
-bun --filter vket-boilerplate-nuxt-main build
-bun --filter vket-boilerplate-nuxt-showcases test:ut
-```
-
-### Component Development
-
-#### Naming Convention
-- `Ha*` - Atoms (HaButton, HaInput)
-- `Hm*` - Molecules (HmLoginForm, HmProductCard) 
-- `Ho*` - Organisms (HoHeader, HoProductList)
-- `Ht*` - Templates (HtTopPage, HtProductPage)
-
-#### Component Structure
-```vue
-<template>
-  <div :class="['hm-component', `-${variant}`]">
-    {{ i18n.t('title') }}
-  </div>
-</template>
-
-<i18n lang="yaml">
-ja:
-  title: タイトル
-en:
-  title: Title
-</i18n>
-
-<script lang="ts">
-export default defineComponent({
-  name: 'HmComponent',
-})
-</script>
-
-<script setup lang="ts">
-const props = withDefaults(
-  defineProps<{
-    variant?: 'primary' | 'secondary'
-  }>(),
-  {
-    variant: 'primary',
-  },
-)
-
-const i18n = useI18n()
-</script>
-```
-
-## 🧪 Quality Assurance
-
-### Required Checks
-Before committing, ensure all these pass:
-```bash
-bun typecheck  # Must be 0 TypeScript errors
-bun lint       # Must be 0 lint errors  
-bun test:ut    # All tests must pass
-```
-
-### Git Hooks
-- **Pre-commit**: Automatically runs lint-staged
-- **Commit-msg**: Enforces conventional commit format
-
-## 🌐 Internationalization
-
-All components must include i18n blocks:
-```vue
-<i18n lang="yaml">
-ja:
-  welcome: ようこそ
-  description: これは説明です
-en:
-  welcome: Welcome
-  description: This is a description
-</i18n>
-```
-
-## 🔧 Configuration
-
-### Environment Variables
-```bash
-# .env.local
-VITE_OUTPUT_ENV=local  # local/staging/production
-```
-
-### Layer Configuration
-Each layer has its own:
-- `nuxt.config.ts` - Nuxt configuration
-- `package.json` - Dependencies and scripts
-- `tsconfig.json` - TypeScript configuration
-
-## 🤝 Contributing
-
-1. **Read the guidelines**: Check [`AGENTS.md`](./AGENTS.md) for development standards
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Follow the code style**: Use the established patterns
-4. **Add tests**: Cover your changes with tests
-5. **Run quality checks**: Ensure all checks pass
-6. **Submit PR**: Use the provided PR template
-
-### Commit Convention
-```
-[layer/scope] type: description
-
-- What: Brief description of changes
-- Why: Reason for the change  
-- How: Implementation approach (if complex)
-```
-
-Examples:
-- `[base/components] feat: add HmDataTable component`
-- `[main/pages] fix: resolve navigation issue in mobile view`
-
-## 📚 Documentation
-
-- [`AGENTS.md`](./AGENTS.md) - Complete development guide for AI agents
-- [`repomix-output.md`](./repomix-output.md) - Full codebase structure
-- [Nuxt 3 Docs](https://nuxt.com/docs) - Framework documentation
-- [Zod Docs](https://zod.dev) - Schema validation
-- [RSCSS](https://rscss.io) - CSS naming convention
-
-## 🔗 Useful Links
-
-- [HIKKY Ltd.](https://www.hikky.co.jp/) - Company website
-- [VRChat](https://hello.vrchat.com/) - VR platform
-- [Virtual Market](https://vket.com/) - Virtual event platform
-
-## 📄 License
-
-MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-# 日本語版
-
-これはHIKKY株式会社が公開するNuxt3本格運用向けボイラープレートで、スケーラブルなVR/メタバース関連Webアプリケーション構築用に設計されています。
-
-## 🤖 AI エージェント向け
-
-**開発を開始する前に、包括的な開発ガイドライン、コーディング標準、プロジェクト固有の指示について[`AGENTS.md`](./AGENTS.md)をお読みください。**
-
-`AGENTS.md`ファイルには以下が含まれます：
-- プロジェクト構造とレイヤーアーキテクチャのガイドライン
-- コンポーネント命名規則（Ha/Hm/Ho/Htプレフィックス）
-- TypeScript厳格モード要件  
-- テストと品質保証手順
-- i18n実装パターン
-
-## ✨ 特徴
-
-- **🏗️ Nuxt レイヤーアーキテクチャ**: base/main/showcasesレイヤーによるモジュラーモノレポ構造
-- **⚡ Bun ワークスペース**: 高速パッケージ管理とモノレポサポート
-- **🔒 TypeScript厳格モード**: `any`型ゼロトレランス、完全な型安全性
-- **🎨 コンポーネントシステム**: Ha/Hm/Ho/Htプレフィックスによるアトミックデザイン
-- **🌍 国際化**: YAMLベース翻訳によるi18nサポート
-- **📏 Zod バリデーション**: スキーマファーストAPIバリデーションと型推論
-- **🎯 RSCSS/BEM**: 構造化CSS命名規則
-- **🧪 テスト対応**: Vitest + Testing Libraryセットアップ、カバレッジ付き
-- **📦 自動インポート**: コンポーネント、コンポーザブル、ユーティリティ
-- **🛠️ 品質ツール**: ESLint、Stylelint、Husky、lint-staged
-
-## 🚀 クイックスタート
-
-### 前提条件
-- [Bun](https://bun.sh/docs/installation)（推奨）またはNode.js 22+
-- Git
-
-### インストール
-
-1. **このリポジトリをフォーク**
-   ```bash
-   # GitHubで「Fork」をクリックするかGitHub CLIを使用
-   gh repo fork hikky-inc/vket-boilerplate-nuxt
-   ```
-
-2. **クローンとセットアップ**
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/vket-boilerplate-nuxt.git
-   cd vket-boilerplate-nuxt
-   bun install
-   ```
-
-3. **開発開始**
-   ```bash
-   # メインレイヤー（あなたのアプリケーション）に移動
-   cd layers/main
-   
-   # 開発サーバー起動
-   bun dev
-   ```
-
-4. **準備完了！** 🎉
-   - http://localhost:3000 を開く
-   - ゼロ設定でアプリケーション構築を開始
-
-## 📁 プロジェクト構造
-
-```
-/layers/
-├── base/        # 🏗️ 基盤レイヤー - 共有コンポーネント、ユーティリティ
-├── main/        # 🎯 あなたのアプリケーション - メイン開発エリア  
-├── showcases/   # 📚 コンポーネントドキュメントと例
-└── open-api/    # 🔌 APIスキーマ定義
-```
-
-### レイヤー階層
-- **Baseレイヤー**: 再利用可能コンポーネント（Ha*, Hm*）、ユーティリティ、スタイル
-- **Mainレイヤー**: アプリケーションロジック、ページ、固有コンポーネント（Ho*, Ht*）
-- **Showcasesレイヤー**: 生きたドキュメントとコンポーネント例
-
-## 🛠️ 開発
-
-### 利用可能コマンド
-
-| コマンド | 説明 |
-|---------|-------------|
-| `bun dev` | 開発サーバー起動 |
-| `bun build` | 本番用ビルド |
-| `bun typecheck` | TypeScript型チェック |
-| `bun lint` | ESLint + Stylelint実行 |
-| `bun test:ut` | ユニットテスト実行 |
-| `bun test:coverage` | テストカバレッジ生成 |
-
-### レイヤー固有コマンド
-```bash
-# 特定レイヤーでの作業
-bun --filter vket-boilerplate-nuxt-base dev
-bun --filter vket-boilerplate-nuxt-main build
-bun --filter vket-boilerplate-nuxt-showcases test:ut
-```
-
-## 🧪 品質保証
-
-### 必須チェック
-コミット前に以下が全て通ることを確認：
-```bash
-bun typecheck  # TypeScriptエラー0件必須
-bun lint       # lintエラー0件必須
-bun test:ut    # 全テスト成功必須
-```
-
-## 🌐 国際化
-
-全コンポーネントはi18nブロックを含める必要があります：
-```vue
-<i18n lang="yaml">
-ja:
-  welcome: ようこそ
-  description: これは説明です
-en:
-  welcome: Welcome  
-  description: This is a description
-</i18n>
-```
-
-## 🤝 コントリビューション
-
-1. **ガイドラインを読む**: 開発標準について[`AGENTS.md`](./AGENTS.md)を確認
-2. **フィーチャーブランチ作成**: `git checkout -b feature/amazing-feature`
-3. **コードスタイルに従う**: 確立されたパターンを使用
-4. **テストを追加**: 変更にテストを追加
-5. **品質チェック実行**: 全チェックが通ることを確認
-6. **PR提出**: 提供されたPRテンプレートを使用
-
-## 📄 ライセンス
-
-MITライセンス - 詳細は[LICENSE](LICENSE)ファイルをご覧ください。
 ````
 
 ## File: .github/workflows/base-check.yml
@@ -9913,6 +9649,14 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "monthly"
+````
+
+## File: .husky/pre-commit
+````
+#!/bin/sh
+bunx lint-staged
+bun run repomix
+git add repomix-output.md
 ````
 
 ## File: layers/base/app/assets/styles/_base.scss
@@ -12085,6 +11829,78 @@ export const useStrictI18n = (
     throw new I18nTKeyMissingError(`key '${key}' is not found in locale '${locale}'`)
   },
 })
+````
+
+## File: layers/base/app/composables/useLocale.ts
+````typescript
+import { getSingleCookieValue } from '#base/app/utils/storage-control'
+import { setLocale } from '@vee-validate/i18n'
+import { useRequestHeaders } from 'nuxt/app'
+import type { InjectionKey } from 'vue'
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+export const COOKIE_KEY = 'VUEI18N_MANUAL_LOCALE'
+export const JA = 'ja'
+export const EN = 'en'
+export type Lang = typeof JA | typeof EN
+
+export const useLocale = () => {
+  const i18n = useI18n()
+
+  /**
+   * デフォルトの言語を取得。
+   */
+  const getDefaultLanguage = () => {
+    const reqLocale = useRequestHeaders(['accept-language'])[
+      'accept-language'
+    ]?.split(',')[0]
+    const locale = ref(
+      import.meta.server && reqLocale
+        ? reqLocale // サーバーサイドでの判定
+        : import.meta.client && navigator.language
+          ? navigator.language // クライアントでの判定
+          : JA,
+    )
+
+    const isBrowserLanguageJa = locale.value.startsWith(JA)
+    const isBrowserLanguageEn = locale.value.startsWith(EN)
+    const defaultLanguageFromCookie = getSingleCookieValue(COOKIE_KEY)
+    return defaultLanguageFromCookie === JA
+      ? JA
+      : defaultLanguageFromCookie === EN
+        ? EN
+        : isBrowserLanguageJa
+          ? JA
+          : isBrowserLanguageEn
+            ? EN
+            : JA
+  }
+
+  const changeLocale = (target: 'ja' | 'en') => {
+    setLocale(target)
+    i18n.locale.value = target
+  }
+
+  /**
+   * 現在のi18n localeに基づいてlocale固有のパスを返却します。
+   * @param to - '/'から始まる宛先パス
+   * @returns '/'から始まるパス
+   */
+  const localePath = (to: string) =>
+    i18n.locale.value === JA ? to : `/${i18n.locale.value}${to}`
+
+  return {
+    getDefaultLanguage,
+    changeLocale,
+    localePath,
+  }
+}
+
+export type LocaleComposable = ReturnType<typeof useLocale>
+
+export const localeInjectionKey: InjectionKey<LocaleComposable>
+  = Symbol('locale')
 ````
 
 ## File: layers/base/app/composables/useToast.ts
@@ -16796,59 +16612,6 @@ describe('use-strict-i18n.ts', () => {
       })
     })
   })
-})
-````
-
-## File: layers/base/app/test/composables/useLocale.spec.ts
-````typescript
-import { useLocale } from '#base/app/composables/useLocale'
-
-let globalLocale: string | null = null
-
-beforeEach(() => {
-  vi.mock('nuxt/app', () => ({
-    useRequestHeaders: vi.fn(() => 'ja'),
-  }))
-
-  vi.mock('vue-i18n', () => ({
-    useI18n: vi.fn(() => ({
-      locale: ref('ja') as WritableComputedRef<string>,
-    })),
-  }))
-
-  vi.mock('@vee-validate/i18n', () => ({
-    setLocale: vi.fn((locale: string) => {
-      globalLocale = locale
-    }),
-  }))
-})
-
-afterEach(() => {
-  vi.restoreAllMocks()
-  globalLocale = null
-})
-
-test('getDefaultLanguage', () => {
-  const locale = useLocale()
-  const result = locale.getDefaultLanguage()
-  expect(result).oneOf(['ja', 'en'])
-})
-
-test('changeLocale', () => {
-  const locale = useLocale()
-  locale.changeLocale('en')
-  expect(globalLocale).toBe('en')
-})
-
-test('localPath', () => {
-  const locale = useLocale()
-
-  expect(locale.localePath('')).toBe('')
-  expect(locale.localePath('/path')).toBe('/path')
-
-  locale.changeLocale('en')
-  expect(locale.localePath('')).toBe('/en')
-  expect(locale.localePath('/path')).toBe('/en/path')
 })
 ````
 
@@ -23252,343 +23015,6 @@ declare module 'vue' {
 }
 ````
 
-## File: layers/vket-sso/app/composables/useAuthVketSso.ts
-````typescript
-/**
- * @group Feature List
- * @category Composables
- * @module Auth (Vket SSO)
- */
-import { InjectionKey } from 'vue'
-import { vketSsoRepository } from '#vket-sso/app/repositories/vketSsoRepository'
-import { Result, ssoJwtSchema, SsoUser } from '#vket-sso/app/models/vketSso'
-import { decodeJwt } from '#base/app/utils/token'
-import {
-  getSessionStorageValue,
-  setSessionStorageValue,
-  removeSessionStorageValue,
-} from '#base/app/utils/storage-control'
-import { raiseError } from '#base/app/utils/error'
-
-export const useAuthVketSso = () => {
-  const REPOSITORY_NAME = 'vketsso'
-  const COOKIE_KEY_JWT = 'sso-token-jwt'
-  const SESSION_STORAGE_KEY_EXP = 'sso-token-expires-in'
-  const SESSION_STORAGE_KEY_IAT = 'sso-token-created-at'
-  const runtimeConfig = useRuntimeConfig()
-
-  const _ssoDomain
-    = runtimeConfig?.public?.ssoDomain && typeof runtimeConfig?.public?.ssoDomain === 'string' ? runtimeConfig?.public?.ssoDomain : raiseError('undefined ssoDomain')
-  const ssoUser = useState<SsoUser | null>(`${REPOSITORY_NAME}-user`)
-  const aliveToken = useState<string | null>(`${REPOSITORY_NAME}-ac`)
-  const isLogout = useState<boolean>(`${REPOSITORY_NAME}-logout`)
-  const isAuthError = useState<boolean>(`${REPOSITORY_NAME}-auth-error`)
-
-  /**
-   * @remarks VketSSO: token取得(Fetcher)
-   */
-  const _fetchToken = async () => {
-    if (import.meta.server) raiseError('SSR not supported')
-    try {
-      const result = await vketSsoRepository.get.fetchSsoToken()
-      const decodedToken = requireValueOf(ssoJwtSchema, decodeJwt(result.jwt))
-
-      setSessionStorageValue(SESSION_STORAGE_KEY_EXP, String(decodedToken.exp))
-      setSessionStorageValue(SESSION_STORAGE_KEY_IAT, String(decodedToken.iat))
-      setSingleCookieValue(COOKIE_KEY_JWT, result.jwt)
-      aliveToken.value = result.jwt
-      return result.jwt
-    } catch (e) {
-      console.error(`${e}`)
-      aliveToken.value = null
-      return null
-    }
-  }
-
-  /**
-   * @remarks VketSSO: token削除
-   */
-  const _removeToken = () => {
-    removeSessionStorageValue(SESSION_STORAGE_KEY_EXP)
-    removeSessionStorageValue(SESSION_STORAGE_KEY_IAT)
-    removeSingleCookieValue(COOKIE_KEY_JWT)
-    aliveToken.value = null
-  }
-
-  /**
-   * @remarks VketSSO: token検証
-   * @return boolean
-   */
-  const _verifyTokenByExp = (exp: number) => {
-    const expiredUnixTime = Number(exp) || 0
-    // NOTE: 桁数が異なるので1/1000倍にする
-    const currentUnixTime = new Date().getTime() / 1000
-    if (currentUnixTime < expiredUnixTime) return true
-    _removeToken()
-    return false
-  }
-
-  /**
-   * @remarks VketSSO: ログイン
-   * エラー時はi18nのキーを返却するので呼び出し元でハンドリングを行う
-   */
-  const login = async (): Promise<Result> => {
-    const loginWindow = window.open(`${_ssoDomain}/auth/vket_account/login?redirect_uri=${_ssoDomain}/close`)
-    if (!loginWindow) {
-      return {
-        success: false,
-        errorKey: 'error.popup-block',
-      }
-    }
-
-    return new Promise<Result>((resolve) => {
-      const interval = setInterval(() => {
-        if (loginWindow.closed) {
-          clearInterval(interval)
-          getSsoUserState().then((response) => {
-            if (!response || !response.value) {
-              // NOTE: タブを手動で閉じる場合もこの分岐になる
-              return resolve({
-                success: false,
-                errorKey: 'error.login',
-              })
-            }
-            resolve({
-              success: true,
-            })
-          }).catch(() => {
-            return resolve({
-              success: false,
-              errorKey: 'error.login',
-            })
-          })
-        }
-      }, 1000)
-    }).catch((error) => {
-      // NOTE: この分岐は来ない想定だが、何かあった時のために一応
-      console.error(`${error}`)
-      return {
-        success: false,
-        errorKey: 'error.login',
-      }
-    })
-  }
-
-  /**
-   * @remarks VketSSO: ログアウト
-   * エラー時はi18nのキーを返却するので呼び出し元でハンドリングを行う
-   */
-  const logout = () => {
-    const logoutWindow = window.open(`${_ssoDomain}/auth/vket_account/logout?callback_url=${_ssoDomain}/close`)
-    if (!logoutWindow) {
-      return {
-        success: false,
-        errorKey: 'error.popup-block',
-      }
-    }
-
-    return new Promise<Result>((resolve) => {
-      const interval = setInterval(() => {
-        if (logoutWindow.closed) {
-          clearInterval(interval)
-          _removeToken()
-          resolve({
-            success: true,
-          })
-        }
-      }, 1000)
-    }).catch((error) => {
-      // NOTE: この分岐は来ない想定だが、何かあった時のために一応
-      console.error(`${error}`)
-      return {
-        success: false,
-        errorKey: 'error.logout',
-      }
-    })
-  }
-
-  /**
-   * @remarks VketSSO: SSO User をfetchする
-   */
-  const fetchSsoUser = async () => {
-    if (import.meta.server) raiseError('SSR not supported')
-    try {
-      const result = await vketSsoRepository.get.fetchSsoProfile()
-      ssoUser.value = result.user
-    } catch (e) {
-      console.error(e)
-      ssoUser.value = null
-      isLogout.value = true
-      if (_getAndStateSetJwt()) {
-        isAuthError.value = true
-      }
-      _removeToken()
-    }
-  }
-
-  /**
-   * @remarks VketSSO: SSO User をリセットする
-   */
-  const resetSsoUser = () => {
-    ssoUser.value = null
-  }
-
-  /**
-   * @remarks VketSSO: SSO User のをstateをreturnする
-   * @param awaitRefetch boolean default: true
-   * @return Ref<SsoUser | null>
-   */
-  const getSsoUserState = async (awaitRefetch = true) => {
-    if (awaitRefetch) await fetchSsoUser()
-    return readonly(ssoUser)
-  }
-
-  /**
-   * stateからtokenを取得する、stateがnullの場合以下の情報を返却する
-   * SSRの場合Cookieからtokenを取得
-   * CSR（SPA）の場合、sessionからtokenを取得
-   * いずれも取得出来た場合、stateを更新する
-   * @returns {string | null}
-   */
-  const _getAndStateSetJwt = (
-  ): string | null => {
-    if (aliveToken.value) return aliveToken.value
-    if (import.meta.client) {
-      const token = getSessionStorageValue(COOKIE_KEY_JWT) ?? null
-      if (token) aliveToken.value = token
-      return token
-    }
-    const cookieString = useRequestHeaders(['cookie']).cookie
-    if (!cookieString) return null
-    const token = cookieString
-      .split(';')
-      .map(item => item.trim())
-      .find(trimmedCookie => trimmedCookie.startsWith(COOKIE_KEY_JWT + '=')) // Cookieの名前と値は「名前=値」の形式で保存されている
-      ?.substring(COOKIE_KEY_JWT.length + 1) ?? null
-    if (token) aliveToken.value = token
-    return token
-  }
-
-  /**
-   * @remarks VketSSO: tokenを取得し有効期限が切れていたら更新する(SSRではtokenの更新ができないので更新フローに入るとnullを返す)
-   */
-  const getTokenOrRefresh = async (
-    returnType: 'encoded' | 'decodedObject' | 'decodedJson' = 'encoded',
-  ) => {
-    const returnFunction = (token: string | null) => {
-      if (!token) return null
-      const decodedToken = requireValueOf(ssoJwtSchema, decodeJwt(token))
-      // note: returnType = 'decodedObject' はデコードして返す
-      if (returnType === 'decodedObject') return decodedToken
-      // note: returnType = 'decodedJson' はデコードした結果をJSONとして返す
-      if (returnType === 'decodedJson') return JSON.stringify(decodedToken)
-      // note: デフォルトはそのまま返す
-      return aliveToken.value
-    }
-    try {
-      const jwtString = _getAndStateSetJwt()
-      if (!jwtString || jwtString === 'null') {
-        if (import.meta.server) return null
-        return returnFunction(await _fetchToken())
-      }
-      if (!aliveToken.value) {
-        return null
-      }
-      const decodedToken = requireValueOf(ssoJwtSchema, decodeJwt(aliveToken.value))
-      if (!_verifyTokenByExp(decodedToken.exp)) {
-        if (import.meta.server) return null
-        return returnFunction(await _fetchToken())
-      }
-      return returnFunction(jwtString)
-    } catch (error) {
-      console.error(`${error}`)
-      return null
-    }
-  }
-
-  // /**
-  //  * 必要になったら調整する
-  //  * @remarks VketSSO: login中である場合はtrue, そうでない場合はfalseをreturnする
-  //  * @param awaitRefetch boolean default: true
-  //  * @return boolean
-  //  */
-  // const isLoggedIn = async (awaitRefetch = true) => {
-  //   const currentState = await getSsoUserState(awaitRefetch)
-  //   return currentState.value !== undefined && currentState.value !== null
-  // }
-
-  // /**
-  //  * 必要になったら調整する
-  //  * @remarks VketSSO: token検証Keyの取得
-  //  */
-  // const getJwk = async (): Promise<void> => {
-  //   try {
-  //     const result = await vketSsoRepository.get.fetchSsoJwk()
-  //     if (!result) throw new Error('Failed to get jwk')
-  //     // TODO: jwkの使用タイミングで追加実装。現在はheliportからもheliscriptからも使わないはず
-  //     // eslint-disable-next-line
-  //     console.info(`${result}`)
-  //   }
-  //   catch (e) {
-  //     console.error(`${e}`)
-  //   }
-  // }
-
-  return {
-    aliveToken: readonly(aliveToken),
-    isLogout: readonly(isLogout),
-    ssoUser: readonly(ssoUser),
-    isAuthError,
-    login,
-    logout,
-    fetchSsoUser,
-    resetSsoUser,
-    getSsoUserState,
-    getTokenOrRefresh,
-  }
-}
-
-export type UseAuthVketSso = ReturnType<typeof useAuthVketSso>
-export const UseAuthVketSsoInjectionKey: InjectionKey<UseAuthVketSso>
-  = Symbol('auth-vket-sso')
-````
-
-## File: layers/vket-sso/app/middleware/001.fetchSsoUser.global.ts
-````typescript
-/**
- * CSRでSSOユーザー情報を取得するmiddleware
- * エラーハンドリングはmainアプリケーションlayerで行うとし、ここではログを出力するのみとする
- */
-export default defineNuxtRouteMiddleware(async () => {
-  if (import.meta.server) return
-  try {
-    const authVketSso = useAuthVketSso()
-    const ssoUser = await authVketSso.getSsoUserState(false)
-    if (ssoUser.value || authVketSso.isLogout.value) return
-    await authVketSso.fetchSsoUser()
-  } catch (error) {
-    console.error(error)
-  }
-})
-````
-
-## File: layers/vket-sso/app/middleware/002.tokenRefresh.global.ts
-````typescript
-/**
- * SSR/CSRともにページ遷移時にトークンの情報を最新化するmiddleware
- * エラーハンドリングはmainアプリケーションlayerで行うとし、ここではログを出力するのみとする
- */
-export default defineNuxtRouteMiddleware(async () => {
-  try {
-    const authVketSso = useAuthVketSso()
-    if (authVketSso.isLogout.value) return
-    await authVketSso.getTokenOrRefresh()
-  } catch (error) {
-    console.error(error)
-  }
-})
-````
-
 ## File: layers/vket-sso/app/models/vketSso.ts
 ````typescript
 /**
@@ -23698,6 +23124,17 @@ app/models/openapi.ts
 
 # AI tools
 .serena
+````
+
+## File: .lintstagedrc.json
+````json
+{
+  "layers/base/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/base && eslint --cache --cache-strategy content"],
+  "layers/main/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/main && eslint --cache --cache-strategy content"],
+  "layers/open-api/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/open-api && eslint --cache --cache-strategy content"],
+  "layers/showcases/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/showcases && eslint --cache --cache-strategy content"],
+  "layers/**/*.+(css|scss|sass|vue)": ["stylelint --allow-empty-input"]
+}
 ````
 
 ## File: .stylelintrc.shared.mjs
@@ -23836,6 +23273,376 @@ export default tseslint.config(
     ],
   },
 )
+````
+
+## File: README.md
+````markdown
+# Vket Boilerplate Nuxt INTERNAL (Vket App Front 2)
+
+*[日本語版は下部にあります / Japanese version available below](#日本語版)*
+
+This is a production-ready Nuxt3 boilerplate published by HIKKY Ltd., designed for building scalable VR/metaverse web applications.
+
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+[![Nuxt](https://img.shields.io/badge/Nuxt-4.0+-00DC82?logo=nuxt.js)](https://nuxt.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9+-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+[![Bun](https://img.shields.io/badge/Bun-1.0+-000000?logo=bun)](https://bun.sh/)
+
+## 🤖 For AI Agents
+
+**Before starting development, please read [`AGENTS.md`](./AGENTS.md) for comprehensive development guidelines, coding standards, and project-specific instructions.**
+
+The `AGENTS.md` file contains:
+- Project structure and Layer Architecture guidelines
+- Component naming conventions (Ha/Hm/Ho/Ht prefixes)  
+- TypeScript strict mode requirements
+- Testing and quality assurance procedures
+- i18n implementation patterns
+
+## ✨ Features
+
+- **🏗️ Nuxt Layer Architecture**: Modular monorepo structure with base/main/showcases layers
+- **⚡ Bun Workspaces**: Fast package management and monorepo support
+- **🔒 TypeScript Strict Mode**: Zero-tolerance for `any` types, full type safety
+- **🎨 Component System**: Atomic design with Ha/Hm/Ho/Ht prefixes
+- **🌍 Internationalization**: Built-in i18n support with YAML-based translations
+- **📏 Zod Validation**: Schema-first API validation and type inference
+- **🎯 RSCSS/BEM**: Structured CSS naming conventions
+- **🧪 Testing Ready**: Vitest + Testing Library setup with coverage
+- **📦 Auto-imports**: Components, composables, and utilities
+- **🛠️ Quality Tools**: ESLint, Stylelint, Husky, lint-staged
+
+## 🚀 Quick Start
+
+### Prerequisites
+- [Bun](https://bun.sh/docs/installation) (recommended) or Node.js 22+
+- Git
+
+### Installation
+
+1. **Fork this repository**
+   ```bash
+   # Click "Fork" on GitHub or use GitHub CLI
+   gh repo fork hikky-inc/vket-boilerplate-nuxt
+   ```
+
+2. **Clone and setup**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/vket-boilerplate-nuxt.git
+   cd vket-boilerplate-nuxt
+   bun install
+   ```
+
+3. **Start development**
+   ```bash
+   # Navigate to main layer (your application)
+   cd layers/main
+   
+   # Start development server
+   bun dev
+   ```
+
+4. **You're ready!** 🎉
+   - Open http://localhost:3000
+   - Start building your application with zero configuration
+
+## 📁 Project Structure
+
+```
+/layers/
+├── base/        # 🏗️ Foundation layer - shared components, utilities
+├── main/        # 🎯 Your application - main development area
+├── showcases/   # 📚 Component documentation and examples
+└── open-api/    # 🔌 API schema definitions
+```
+
+### Layer Hierarchy
+- **Base Layer**: Reusable components (Ha*, Hm*), utilities, styles
+- **Main Layer**: Your application logic, pages, specific components (Ho*, Ht*)
+- **Showcases Layer**: Living documentation and component examples
+
+## 🛠️ Development
+
+### Available Commands
+
+| Command | Description |
+|---------|-------------|
+| `bun dev` | Start development server |
+| `bun build` | Build for production |
+| `bun typecheck` | Check TypeScript types |
+| `bun lint` | Run ESLint + Stylelint |
+| `bun test:ut` | Run unit tests |
+| `bun test:coverage` | Generate test coverage |
+
+### Layer-specific Commands
+```bash
+# Work with specific layers
+bun --filter vket-boilerplate-nuxt-base dev
+bun --filter vket-boilerplate-nuxt-main build
+bun --filter vket-boilerplate-nuxt-showcases test:ut
+```
+
+### Component Development
+
+#### Naming Convention
+- `Ha*` - Atoms (HaButton, HaInput)
+- `Hm*` - Molecules (HmLoginForm, HmProductCard) 
+- `Ho*` - Organisms (HoHeader, HoProductList)
+- `Ht*` - Templates (HtTopPage, HtProductPage)
+
+#### Component Structure
+```vue
+<template>
+  <div :class="['hm-component', `-${variant}`]">
+    {{ i18n.t('title') }}
+  </div>
+</template>
+
+<i18n lang="yaml">
+ja:
+  title: タイトル
+en:
+  title: Title
+</i18n>
+
+<script lang="ts">
+export default defineComponent({
+  name: 'HmComponent',
+})
+</script>
+
+<script setup lang="ts">
+const props = withDefaults(
+  defineProps<{
+    variant?: 'primary' | 'secondary'
+  }>(),
+  {
+    variant: 'primary',
+  },
+)
+
+const i18n = useI18n()
+</script>
+```
+
+## 🧪 Quality Assurance
+
+### Required Checks
+Before committing, ensure all these pass:
+```bash
+bun typecheck  # Must be 0 TypeScript errors
+bun lint       # Must be 0 lint errors  
+bun test:ut    # All tests must pass
+```
+
+### Git Hooks
+- **Pre-commit**: Automatically runs lint-staged
+- **Commit-msg**: Enforces conventional commit format
+
+## 🌐 Internationalization
+
+All components must include i18n blocks:
+```vue
+<i18n lang="yaml">
+ja:
+  welcome: ようこそ
+  description: これは説明です
+en:
+  welcome: Welcome
+  description: This is a description
+</i18n>
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+```bash
+# .env.local
+VITE_OUTPUT_ENV=local  # local/staging/production
+```
+
+### Layer Configuration
+Each layer has its own:
+- `nuxt.config.ts` - Nuxt configuration
+- `package.json` - Dependencies and scripts
+- `tsconfig.json` - TypeScript configuration
+
+## 🤝 Contributing
+
+1. **Read the guidelines**: Check [`AGENTS.md`](./AGENTS.md) for development standards
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Follow the code style**: Use the established patterns
+4. **Add tests**: Cover your changes with tests
+5. **Run quality checks**: Ensure all checks pass
+6. **Submit PR**: Use the provided PR template
+
+### Commit Convention
+```
+[layer/scope] type: description
+
+- What: Brief description of changes
+- Why: Reason for the change  
+- How: Implementation approach (if complex)
+```
+
+Examples:
+- `[base/components] feat: add HmDataTable component`
+- `[main/pages] fix: resolve navigation issue in mobile view`
+
+## 📚 Documentation
+
+- [`AGENTS.md`](./AGENTS.md) - Complete development guide for AI agents
+- [`repomix-output.md`](./repomix-output.md) - Full codebase structure
+- [Nuxt 3 Docs](https://nuxt.com/docs) - Framework documentation
+- [Zod Docs](https://zod.dev) - Schema validation
+- [RSCSS](https://rscss.io) - CSS naming convention
+
+## 🔗 Useful Links
+
+- [HIKKY Ltd.](https://www.hikky.co.jp/) - Company website
+- [VRChat](https://hello.vrchat.com/) - VR platform
+- [Virtual Market](https://vket.com/) - Virtual event platform
+
+## 📄 License
+
+MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+# 日本語版
+
+これはHIKKY株式会社が公開するNuxt3本格運用向けボイラープレートで、スケーラブルなVR/メタバース関連Webアプリケーション構築用に設計されています。
+
+## 🤖 AI エージェント向け
+
+**開発を開始する前に、包括的な開発ガイドライン、コーディング標準、プロジェクト固有の指示について[`AGENTS.md`](./AGENTS.md)をお読みください。**
+
+`AGENTS.md`ファイルには以下が含まれます：
+- プロジェクト構造とレイヤーアーキテクチャのガイドライン
+- コンポーネント命名規則（Ha/Hm/Ho/Htプレフィックス）
+- TypeScript厳格モード要件  
+- テストと品質保証手順
+- i18n実装パターン
+
+## ✨ 特徴
+
+- **🏗️ Nuxt レイヤーアーキテクチャ**: base/main/showcasesレイヤーによるモジュラーモノレポ構造
+- **⚡ Bun ワークスペース**: 高速パッケージ管理とモノレポサポート
+- **🔒 TypeScript厳格モード**: `any`型ゼロトレランス、完全な型安全性
+- **🎨 コンポーネントシステム**: Ha/Hm/Ho/Htプレフィックスによるアトミックデザイン
+- **🌍 国際化**: YAMLベース翻訳によるi18nサポート
+- **📏 Zod バリデーション**: スキーマファーストAPIバリデーションと型推論
+- **🎯 RSCSS/BEM**: 構造化CSS命名規則
+- **🧪 テスト対応**: Vitest + Testing Libraryセットアップ、カバレッジ付き
+- **📦 自動インポート**: コンポーネント、コンポーザブル、ユーティリティ
+- **🛠️ 品質ツール**: ESLint、Stylelint、Husky、lint-staged
+
+## 🚀 クイックスタート
+
+### 前提条件
+- [Bun](https://bun.sh/docs/installation)（推奨）またはNode.js 22+
+- Git
+
+### インストール
+
+1. **このリポジトリをフォーク**
+   ```bash
+   # GitHubで「Fork」をクリックするかGitHub CLIを使用
+   gh repo fork hikky-inc/vket-boilerplate-nuxt
+   ```
+
+2. **クローンとセットアップ**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/vket-boilerplate-nuxt.git
+   cd vket-boilerplate-nuxt
+   bun install
+   ```
+
+3. **開発開始**
+   ```bash
+   # メインレイヤー（あなたのアプリケーション）に移動
+   cd layers/main
+   
+   # 開発サーバー起動
+   bun dev
+   ```
+
+4. **準備完了！** 🎉
+   - http://localhost:3000 を開く
+   - ゼロ設定でアプリケーション構築を開始
+
+## 📁 プロジェクト構造
+
+```
+/layers/
+├── base/        # 🏗️ 基盤レイヤー - 共有コンポーネント、ユーティリティ
+├── main/        # 🎯 あなたのアプリケーション - メイン開発エリア  
+├── showcases/   # 📚 コンポーネントドキュメントと例
+└── open-api/    # 🔌 APIスキーマ定義
+```
+
+### レイヤー階層
+- **Baseレイヤー**: 再利用可能コンポーネント（Ha*, Hm*）、ユーティリティ、スタイル
+- **Mainレイヤー**: アプリケーションロジック、ページ、固有コンポーネント（Ho*, Ht*）
+- **Showcasesレイヤー**: 生きたドキュメントとコンポーネント例
+
+## 🛠️ 開発
+
+### 利用可能コマンド
+
+| コマンド | 説明 |
+|---------|-------------|
+| `bun dev` | 開発サーバー起動 |
+| `bun build` | 本番用ビルド |
+| `bun typecheck` | TypeScript型チェック |
+| `bun lint` | ESLint + Stylelint実行 |
+| `bun test:ut` | ユニットテスト実行 |
+| `bun test:coverage` | テストカバレッジ生成 |
+
+### レイヤー固有コマンド
+```bash
+# 特定レイヤーでの作業
+bun --filter vket-boilerplate-nuxt-base dev
+bun --filter vket-boilerplate-nuxt-main build
+bun --filter vket-boilerplate-nuxt-showcases test:ut
+```
+
+## 🧪 品質保証
+
+### 必須チェック
+コミット前に以下が全て通ることを確認：
+```bash
+bun typecheck  # TypeScriptエラー0件必須
+bun lint       # lintエラー0件必須
+bun test:ut    # 全テスト成功必須
+```
+
+## 🌐 国際化
+
+全コンポーネントはi18nブロックを含める必要があります：
+```vue
+<i18n lang="yaml">
+ja:
+  welcome: ようこそ
+  description: これは説明です
+en:
+  welcome: Welcome  
+  description: This is a description
+</i18n>
+```
+
+## 🤝 コントリビューション
+
+1. **ガイドラインを読む**: 開発標準について[`AGENTS.md`](./AGENTS.md)を確認
+2. **フィーチャーブランチ作成**: `git checkout -b feature/amazing-feature`
+3. **コードスタイルに従う**: 確立されたパターンを使用
+4. **テストを追加**: 変更にテストを追加
+5. **品質チェック実行**: 全チェックが通ることを確認
+6. **PR提出**: 提供されたPRテンプレートを使用
+
+## 📄 ライセンス
+
+MITライセンス - 詳細は[LICENSE](LICENSE)ファイルをご覧ください。
 ````
 
 ## File: layers/base/@types/components.d.ts
@@ -25029,78 +24836,6 @@ const changeTab = (index: number): void => {
   }
 }
 </style>
-````
-
-## File: layers/base/app/composables/useLocale.ts
-````typescript
-import { getSingleCookieValue } from '#base/app/utils/storage-control'
-import { setLocale } from '@vee-validate/i18n'
-import { useRequestHeaders } from 'nuxt/app'
-import type { InjectionKey } from 'vue'
-import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-
-export const COOKIE_KEY = 'VUEI18N_MANUAL_LOCALE'
-export const JA = 'ja'
-export const EN = 'en'
-export type Lang = typeof JA | typeof EN
-
-export const useLocale = () => {
-  const i18n = useI18n()
-
-  /**
-   * デフォルトの言語を取得。
-   */
-  const getDefaultLanguage = () => {
-    const reqLocale = useRequestHeaders(['accept-language'])[
-      'accept-language'
-    ]?.split(',')[0]
-    const locale = ref(
-      import.meta.server && reqLocale
-        ? reqLocale // サーバーサイドでの判定
-        : import.meta.client && navigator.language
-          ? navigator.language // クライアントでの判定
-          : JA,
-    )
-
-    const isBrowserLanguageJa = locale.value.startsWith(JA)
-    const isBrowserLanguageEn = locale.value.startsWith(EN)
-    const defaultLanguageFromCookie = getSingleCookieValue(COOKIE_KEY)
-    return defaultLanguageFromCookie === JA
-      ? JA
-      : defaultLanguageFromCookie === EN
-        ? EN
-        : isBrowserLanguageJa
-          ? JA
-          : isBrowserLanguageEn
-            ? EN
-            : JA
-  }
-
-  const changeLocale = (target: 'ja' | 'en') => {
-    setLocale(target)
-    i18n.locale.value = target
-  }
-
-  /**
-   * 現在のi18n localeに基づいてlocale固有のパスを返却します。
-   * @param to - '/'から始まる宛先パス
-   * @returns '/'から始まるパス
-   */
-  const localePath = (to: string) =>
-    i18n.locale.value === JA ? to : `/${i18n.locale.value}${to}`
-
-  return {
-    getDefaultLanguage,
-    changeLocale,
-    localePath,
-  }
-}
-
-export type LocaleComposable = ReturnType<typeof useLocale>
-
-export const localeInjectionKey: InjectionKey<LocaleComposable>
-  = Symbol('locale')
 ````
 
 ## File: layers/base/app/models/error-message.ts
@@ -26996,174 +26731,6 @@ export default {
 }
 ````
 
-## File: layers/open-api/scripts/make-zod.ts
-````typescript
-#!/usr/bin/env bun
-/**
- * OpenAPI から Zod スキーマと型安全なAPIクライアントを自動生成
- */
-
-import { execSync } from 'child_process'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
-import yaml from 'js-yaml'
-import path from 'path'
-
-/**
- * エンドポイント設定
- */
-interface Endpoint {
-  name: string
-  path: string
-  output: string
-}
-
-/**
- * 設定
- */
-const endpoints: Endpoint[] = [
-  {
-    name: 'example',
-    path: './openapi/example.yml',
-    output: './app/models/openapi/example.ts',
-  },
-  // 追加のエンドポイントをここに定義
-]
-
-const template = './scripts/template.hbs'
-
-/**
- * コマンドを実行
- */
-const runCommand = (command: string): void => {
-  console.info(`Executing: ${command}`)
-  try {
-    execSync(command, { stdio: 'inherit' })
-  } catch (error) {
-    console.error(`Command failed: ${command}`)
-    throw error
-  }
-}
-
-/**
- * YAMLファイルをマージ
- */
-const mergeYamlFiles = (openapiPath: string, name: string): string => {
-  const baseDir = path.dirname(openapiPath)
-  const mergedPath = path.join(baseDir, `${name}-merged.yml`)
-  
-  if (!existsSync(openapiPath)) {
-    console.warn(`OpenAPI file not found: ${openapiPath}`)
-    return openapiPath
-  }
-  
-  try {
-    const content = readFileSync(openapiPath, 'utf8')
-    const parsed = yaml.load(content) as any
-    
-    // ここで必要に応じてYAMLファイルのマージ処理を実装
-    // 現在は単純にそのまま書き出し
-    writeFileSync(mergedPath, yaml.dump(parsed))
-    
-    return mergedPath
-  } catch (error) {
-    console.error(`Failed to merge YAML files: ${error}`)
-    return openapiPath
-  }
-}
-
-/**
- * Zodクライアントをビルド
- */
-const buildZodClient = ({ name, path: openapiPath, output }: Endpoint): void => {
-  console.info(`Building Zod client for ${name}...`)
-  
-  // 出力ディレクトリを作成
-  const outputDir = path.dirname(output)
-  if (!existsSync(outputDir)) {
-    mkdirSync(outputDir, { recursive: true })
-  }
-  
-  // YAMLファイルをマージ
-  const mergeFilePath = mergeYamlFiles(openapiPath, name)
-  
-  // OpenAPI-Zod-Client でコード生成
-  const command = `bunx openapi-zod-client ${mergeFilePath} -o ${output} -t ${template}`
-  runCommand(command)
-  
-  console.info(`✅ Generated ${output}`)
-}
-
-/**
- * テンプレートファイルが存在しない場合は作成
- */
-const ensureTemplate = (): void => {
-  if (!existsSync(template)) {
-    const templateContent = `{{#each operations}}
-{{#each responses}}
-{{#if content}}
-export const {{toCamelCase ../operationId}}ResponseSchema = z.object({
-{{#each content}}
-  {{#each schema.properties}}
-  {{toCamelCase @key}}: {{{zodType this}}},
-  {{/each}}
-});
-export type {{toCamelCase ../operationId}}ResponseType = z.infer<typeof {{toCamelCase ../operationId}}ResponseSchema>;
-
-{{/each}}
-{{/if}}
-{{/each}}
-
-{{#if requestBody}}
-export const {{toCamelCase operationId}}RequestSchema = z.object({
-{{#each requestBody.content}}
-  {{#each schema.properties}}
-  {{toCamelCase @key}}: {{{zodType this}}},
-  {{/each}}
-{{/each}}
-});
-export type {{toCamelCase operationId}}RequestType = z.infer<typeof {{toCamelCase operationId}}RequestSchema>;
-
-{{/if}}
-{{/each}}`
-    
-    const templateDir = path.dirname(template)
-    if (!existsSync(templateDir)) {
-      mkdirSync(templateDir, { recursive: true })
-    }
-    
-    writeFileSync(template, templateContent)
-    console.info(`Created template file: ${template}`)
-  }
-}
-
-/**
- * メイン処理
- */
-const main = (): void => {
-  console.info('🚀 Starting OpenAPI Zod client generation...')
-  
-  // テンプレートファイルを確認・作成
-  ensureTemplate()
-  
-  // 各エンドポイントに対してZodクライアントを生成
-  for (const endpoint of endpoints) {
-    try {
-      buildZodClient(endpoint)
-    } catch (error) {
-      console.error(`Failed to build client for ${endpoint.name}:`, error)
-      process.exit(1)
-    }
-  }
-  
-  console.info('✅ OpenAPI Zod client generation completed!')
-}
-
-// スクリプトとして実行された場合のみメイン処理を実行
-if (process.argv[1] === import.meta.url) {
-  main()
-}
-````
-
 ## File: layers/open-api/scripts/template.hbs
 ````
 {{!-- OpenAPI から Zod スキーマ生成用テンプレート --}}
@@ -27240,28 +26807,39 @@ export const {{toCamelCase operationId}} = async (
 {{/each}}
 ````
 
-## File: layers/open-api/package.json
+## File: layers/open-api/tsconfig.json
 ````json
 {
-  "name": "vket-boilerplate-nuxt-open-api",
-  "private": true,
-  "type": "module",
-  "version": "0.1.0",
-  "scripts": {
-    "generate": "bun run scripts/make-zod.ts",
-    "clean": "rm -rf app/models/openapi/*",
-    "package-update": "bunx npm-check-updates -i"
+  "compilerOptions": {
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "module": "esnext",
+    "target": "esnext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "composite": true,
+    "strict": true,
+    "downlevelIteration": true,
+    "skipLibCheck": true,
+    "jsx": "preserve",
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true,
+    "types": [
+      "bun-types",
+      "node"
+    ]
   },
-  "dependencies": {
-    "zod": "^4.1.5"
-  },
-  "devDependencies": {
-    "openapi-zod-client": "^1.18.3",
-    "js-yaml": "^4.1.0",
-    "@types/js-yaml": "^4.0.9",
-    "@types/node": "^20.0.0",
-    "bun-types": "^1.0.14"
-  }
+  "include": [
+    "scripts/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
 ````
 
@@ -28139,6 +27717,241 @@ export const vketSsoRepository = {
     },
   },
 }
+````
+
+## File: AGENTS.md
+````markdown
+# Vket Boilerplate Nuxt - AI Agent Configuration
+
+## About This File
+
+This AGENTS.md file follows the standard format for AI agent coordination in software development. AGENTS.md is a simple, open format for guiding coding agents - think of it as a README for AI agents.
+
+For more information about the AGENTS.md format and best practices, visit: https://agents.md/
+
+## Project Overview
+Nuxt4-based monorepo boilerplate using Layer Architecture, developed by HIKKY Ltd. for building scalable VR/metaverse-related web applications.
+
+### Understanding Project Structure
+Before starting development, AI agents should read `./repomix-output.md` to understand the complete project structure and codebase. This file contains:
+- Complete directory structure
+- All source code files and their contents
+- Configuration files and their relationships
+- Testing patterns and examples
+- Component implementations and naming conventions
+
+Use this file to understand existing patterns before creating new components or modifying existing code.
+
+## Dev Environment Tips
+
+### Quick Navigation
+- Use `cd layers/base` to work on base components and utilities
+- Use `cd layers/main` to develop the main application
+- Use `cd layers/showcases` to create component showcases
+- Use `cd layers/vket-sso` to work on SSO (Single Sign-On) functionality
+- Run `bun install` at the root to install all workspace dependencies
+
+### Layer Architecture Commands
+- `bun --filter vket-boilerplate-nuxt-base dev` - Start base layer dev server
+- `bun --filter vket-boilerplate-nuxt-main dev` - Start main layer dev server
+- `bun --filter vket-boilerplate-nuxt-showcases dev` - Start showcases dev server
+- `bun --filter vket-boilerplate-nuxt-vket-sso dev` - Start SSO layer dev server
+- `bun --filter vket-boilerplate-nuxt-open-api generate` - Generate OpenAPI models
+
+## Development Guidelines
+
+### Component Creation
+- Use component prefixes: Ha (atoms), Hm (molecules), Ho (organisms), Ht (templates)
+- Always include `<i18n lang="yaml">` blocks in components for internationalization
+- Follow RSCSS naming convention for CSS classes
+- Components should have corresponding test files in `/test/components/`
+
+### Type Safety
+- NEVER use `any` type - this project enforces strict TypeScript
+- Define Zod schemas first, then infer types: `type Todo = z.infer<typeof todoSchema>`
+- Use type aliases over interfaces
+- Use utility types: Nullable, ValueOf, Overwrite
+
+### API Development
+- Define schemas in `/models/` using Zod
+- Create repositories in `/repositories/` for API calls
+- Use defaultApi for automatic case conversion (camelCase ↔ snake_case)
+- Always validate responses with Zod schemas
+
+## Testing Instructions
+
+### Running Tests
+- `bun --filter <layer-name> test:ut` - Run unit tests
+- `bun --filter <layer-name> test:coverage` - Generate coverage report
+- `bun --filter <layer-name> test:watch` - Watch mode for TDD
+- Tests must pass before committing
+
+### Quality Checks
+- `bun --filter <layer-name> typecheck` - Check TypeScript types (must be 0 errors)
+- `bun --filter <layer-name> lint` - Run ESLint and Stylelint (must be 0 errors)
+- `bun --filter <layer-name> fix` - Auto-fix linting issues
+- `bun --filter vket-boilerplate-nuxt-main fix-openapi-models` - Fix generated OpenAPI models
+
+## PR Instructions
+
+### Commit Format
+```
+[<layer>/<scope>] <description>
+
+- What: Brief description of changes
+- Why: Reason for the change
+- How: Implementation approach (if complex)
+```
+
+### Pre-commit Checklist
+1. Run `bun typecheck` - Must have 0 TypeScript errors
+2. Run `bun lint` - Must have 0 lint errors
+3. Run `bun test:ut` - All tests must pass
+4. Update i18n translations if UI text was added
+5. Add/update tests for modified code
+
+### PR Title Format
+`[<layer-name>] <Feature/Fix/Refactor>: <Description>`
+
+Examples:
+- `[base] Feature: Add HmDataTable component`
+- `[main] Fix: Resolve navigation issue in mobile view`
+- `[showcases] Refactor: Update component examples`
+
+## File Structure
+
+### Monorepo Layout
+```
+/layers/
+  /base/     # Shared components, utils, styles, config
+    /app/      # Application code
+    /config/   # Environment configuration (EnvType, runtimeConfig)
+    /@types/   # TypeScript type definitions
+    /i18n/     # Internationalization files
+  /main/     # Main application
+  /showcases/ # Component documentation
+  /vket-sso/ # SSO (Single Sign-On) functionality layer
+    /app/      # SSO application code
+    /config/   # SSO-specific configuration
+    /i18n/     # SSO internationalization
+  /open-api/ # API schema definitions & Zod generation
+    /openapi/  # OpenAPI specification files
+    /scripts/  # Generation scripts
+```
+
+### Import Paths
+- Use layer aliases: `#base/`, `#main/`, `#showcases/`
+- Example: `import { HmButton } from '#base/app/components/hm/button/HmButton.vue'`
+
+## Common Patterns
+
+### i18n Implementation
+```vue
+<i18n lang="yaml">
+ja:
+  title: タイトル
+en:
+  title: Title
+</i18n>
+
+<script setup lang="ts">
+const i18n = useI18n()
+</script>
+```
+
+### Zod Schema Pattern
+```typescript
+export const todoSchema = z.object({
+  id: z.number(),
+  title: z.string(),
+  completed: z.boolean(),
+})
+
+export type Todo = z.infer<typeof todoSchema>
+```
+
+### Component Pattern
+```vue
+<script lang="ts">
+export default defineComponent({
+  name: 'HmComponentName',
+})
+</script>
+
+<script setup lang="ts">
+const props = withDefaults(
+  defineProps<{
+    prop?: string
+  }>(),
+  {
+    prop: 'default',
+  },
+)
+</script>
+```
+
+## Environment Variables
+
+### System Requirements
+- Node.js 22.x (required by base layer)
+- Bun package manager
+
+### Required Variables
+- `VITE_OUTPUT_ENV` - Environment (local/staging/production)
+- API endpoints configured in `runtimeConfig.ts`
+
+### Environment Configuration System
+This project uses a sophisticated environment management system:
+- `config/models/EnvType.ts` - Environment type definitions and validation
+- `config/runtimeConfig.ts` - Environment-specific runtime configuration
+- Supports multiple environments: local, staging, production
+
+### Local Development
+```bash
+cross-env VITE_OUTPUT_ENV=local bun dev
+```
+
+## Debugging Tips
+
+### Common Issues
+1. **TypeScript errors**: Check `tsconfig.json` and ensure all imports use correct paths
+2. **i18n missing**: Every component needs an `<i18n>` block even if empty
+3. **Build fails**: Run `bun nuxi prepare` to regenerate types
+4. **Test fails**: Check snapshots with `bun test:ut -- -u` to update
+
+### Useful Commands
+- `bun nuxi analyze` - Analyze bundle size
+- `bun nuxi info` - Show Nuxt configuration
+- `bun package-update` - Update dependencies interactively
+
+## Code Review Focus
+
+### Must Check
+- No `any` types used
+- All components have i18n blocks
+- Zod schemas match API responses
+- Tests cover new functionality
+- RSCSS naming convention followed
+- Layer separation maintained
+
+### Performance
+- Images optimized and lazy loaded
+- Dynamic imports for large components
+- No unnecessary re-renders
+- Bundle size impact checked
+
+## Key Dependencies
+- **Nuxt 4.1.0** - Full-stack framework
+- **Vue 3.5.21** - Progressive JavaScript framework
+- **Zod 4.1.5** - TypeScript-first schema validation
+- **TypeScript 5.9.2** - Type safety and tooling
+- **Bun** - Fast package manager and runtime
+
+## Additional Resources
+- [Nuxt 4 Documentation](https://nuxt.com/docs)
+- [Zod Documentation](https://zod.dev)
+- [RSCSS Naming Convention](https://rscss.io)
+- [Vue 3 Composition API](https://vuejs.org/api/composition-api.html)
 ````
 
 ## File: layers/base/app/components/hm/icon/HmIconUser.vue
@@ -29636,6 +29449,199 @@ declare global {
 }
 ````
 
+## File: layers/open-api/scripts/make-zod.ts
+````typescript
+#!/usr/bin/env bun
+/**
+ * OpenAPI から Zod スキーマと型安全なAPIクライアントを自動生成
+ */
+
+import { execSync } from 'child_process'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import yaml from 'js-yaml'
+import path from 'path'
+
+/**
+ * エンドポイント設定
+ */
+interface Endpoint {
+  name: string
+  path: string
+  output: string
+}
+
+/**
+ * 設定
+ */
+const endpoints: Endpoint[] = [
+  {
+    name: 'example',
+    path: './openapi/example.yml',
+    output: './app/models/openapi/example.ts',
+  },
+  // 追加のエンドポイントをここに定義
+]
+
+const template = './scripts/template.hbs'
+
+/**
+ * コマンドを実行
+ */
+const runCommand = (command: string): void => {
+  console.info(`Executing: ${command}`)
+  try {
+    execSync(command, { stdio: 'inherit' })
+  } catch (error) {
+    console.error(`Command failed: ${command}`)
+    throw error
+  }
+}
+
+/**
+ * YAMLファイルをマージ
+ */
+const mergeYamlFiles = (openapiPath: string, name: string): string => {
+  const baseDir = path.dirname(openapiPath)
+  const mergedPath = path.join(baseDir, `${name}-merged.yml`)
+  
+  if (!existsSync(openapiPath)) {
+    console.warn(`OpenAPI file not found: ${openapiPath}`)
+    return openapiPath
+  }
+  
+  try {
+    const content = readFileSync(openapiPath, 'utf8')
+    const parsed = yaml.load(content) as any
+    
+    // ここで必要に応じてYAMLファイルのマージ処理を実装
+    // 現在は単純にそのまま書き出し
+    writeFileSync(mergedPath, yaml.dump(parsed))
+    
+    return mergedPath
+  } catch (error) {
+    console.error(`Failed to merge YAML files: ${error}`)
+    return openapiPath
+  }
+}
+
+/**
+ * Zodクライアントをビルド
+ */
+const buildZodClient = ({ name, path: openapiPath, output }: Endpoint): void => {
+  console.info(`Building Zod client for ${name}...`)
+  
+  // 出力ディレクトリを作成
+  const outputDir = path.dirname(output)
+  if (!existsSync(outputDir)) {
+    mkdirSync(outputDir, { recursive: true })
+  }
+  
+  // YAMLファイルをマージ
+  const mergeFilePath = mergeYamlFiles(openapiPath, name)
+  
+  // OpenAPI-Zod-Client でコード生成
+  const command = `bunx openapi-zod-client ${mergeFilePath} -o ${output} -t ${template}`
+  runCommand(command)
+  
+  console.info(`✅ Generated ${output}`)
+}
+
+/**
+ * テンプレートファイルが存在しない場合は作成
+ */
+const ensureTemplate = (): void => {
+  if (!existsSync(template)) {
+    const templateContent = `{{#each operations}}
+{{#each responses}}
+{{#if content}}
+export const {{toCamelCase ../operationId}}ResponseSchema = z.object({
+{{#each content}}
+  {{#each schema.properties}}
+  {{toCamelCase @key}}: {{{zodType this}}},
+  {{/each}}
+});
+export type {{toCamelCase ../operationId}}ResponseType = z.infer<typeof {{toCamelCase ../operationId}}ResponseSchema>;
+
+{{/each}}
+{{/if}}
+{{/each}}
+
+{{#if requestBody}}
+export const {{toCamelCase operationId}}RequestSchema = z.object({
+{{#each requestBody.content}}
+  {{#each schema.properties}}
+  {{toCamelCase @key}}: {{{zodType this}}},
+  {{/each}}
+{{/each}}
+});
+export type {{toCamelCase operationId}}RequestType = z.infer<typeof {{toCamelCase operationId}}RequestSchema>;
+
+{{/if}}
+{{/each}}`
+    
+    const templateDir = path.dirname(template)
+    if (!existsSync(templateDir)) {
+      mkdirSync(templateDir, { recursive: true })
+    }
+    
+    writeFileSync(template, templateContent)
+    console.info(`Created template file: ${template}`)
+  }
+}
+
+/**
+ * メイン処理
+ */
+const main = (): void => {
+  console.info('🚀 Starting OpenAPI Zod client generation...')
+  
+  // テンプレートファイルを確認・作成
+  ensureTemplate()
+  
+  // 各エンドポイントに対してZodクライアントを生成
+  for (const endpoint of endpoints) {
+    try {
+      buildZodClient(endpoint)
+    } catch (error) {
+      console.error(`Failed to build client for ${endpoint.name}:`, error)
+      process.exit(1)
+    }
+  }
+  
+  console.info('✅ OpenAPI Zod client generation completed!')
+}
+
+// スクリプトとして実行された場合のみメイン処理を実行
+if (process.argv[1] === import.meta.url) {
+  main()
+}
+````
+
+## File: layers/open-api/package.json
+````json
+{
+  "name": "vket-boilerplate-nuxt-open-api",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "generate": "bun run scripts/make-zod.ts",
+    "clean": "rm -rf app/models/openapi/*",
+    "package-update": "bunx npm-check-updates -i"
+  },
+  "dependencies": {
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "openapi-zod-client": "^1.18.3",
+    "js-yaml": "^4.1.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.0.0",
+    "bun-types": "^1.0.14"
+  }
+}
+````
+
 ## File: layers/vket-sso/package.json
 ````json
 {
@@ -30440,39 +30446,6 @@ declare global {
 }
 ````
 
-## File: package.json
-````json
-{
-  "name": "vket-boilerplate-nuxt",
-  "private": true,
-  "version": "1.0.1",
-  "license": "MIT",
-  "workspaces": [
-    "layers/*"
-  ],
-  "scripts": {
-    "prepare": "bun husky",
-    "package-update": "bunx npm-check-updates -i",
-    "repomix": "bunx repomix@latest --style markdown"
-  },
-  "devDependencies": {
-    "@types/bun": "^1.2.21",
-    "eslint": "^9.34.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.1.6",
-    "stylelint": "^16.23.1"
-  },
-  "lint-staged": {
-    "layers/**/*.+(js|ts|tsx|vue)": [
-      "eslint --cache --cache-strategy content"
-    ]
-  },
-  "resolutions": {
-    "eslint": "9.34.0"
-  }
-}
-````
-
 ## File: layers/base/app/components/ha/HaDialogElement.vue
 ````vue
 <!--
@@ -31067,6 +31040,102 @@ const innerValue = computed({
 </style>
 ````
 
+## File: layers/base/app/components/hm/HmDialogElement.vue
+````vue
+<!--
+HaDialogとの違いとして、HmDialogElementは別階層の別要素のz-indexの影響により、それよりも下に表示されてしまう
+と言った現象が起きません(dialog要素は常に最前面に表示される)。
+ -->
+<template>
+  <!-- ダイアログを開くボタン -->
+  <component
+    :is="props.openButtonHtmlTag"
+    :tabindex="props.openButtonHtmlTag !== 'button' ? 0 : undefined"
+    class="open"
+    aria-expanded="false"
+    @click.stop="openDialog"
+  >
+    <slot name="open">
+      <span class="text">{{
+        i18n.locale.value === 'ja' ? 'ダイアログを開く' : 'Open the dialog'
+      }}</span>
+    </slot>
+  </component>
+  <!-- ダイアログ -->
+  <template v-if="isActive">
+    <HaDialogElement
+      ref="dialog"
+      :closeButtonHtmlTag="props.closeButtonHtmlTag"
+      :closedby="props.closedby"
+    >
+      <template
+        v-if="$slots.close"
+        #close
+      >
+        <slot name="close"></slot>
+      </template>
+      <template #inner>
+        <slot name="inner"></slot>
+      </template>
+    </HaDialogElement>
+  </template>
+</template>
+
+<script lang="ts" setup>
+import HaDialogElement from '#base/app/components/ha/HaDialogElement.vue'
+// import RiCloseLine from '~icons/ri/close-line'
+
+export type Props = {
+  openButtonHtmlTag?: string
+  closeButtonHtmlTag?: string
+  closedby?: 'any' | 'closerequest' | 'none' | undefined
+}
+const props = withDefaults(defineProps<Props>(), {
+  openButtonHtmlTag: 'button',
+  closeButtonHtmlTag: 'button',
+  closedby: 'any',
+})
+
+// aria-label用のi18n
+const i18n = useI18n()
+
+// dialog要素をrefにする
+const dialog = ref<InstanceType<typeof HaDialogElement>>()
+const isActive = ref(false)
+
+// dialogを開く関数
+const openDialog = async () => {
+  isActive.value = true
+  await nextTick()
+  if (!dialog.value) {
+    throw new Error('dialogコンポーネントはnull (HmDialogElement openDialog)')
+  }
+  dialog.value.openDialog()
+}
+
+// dialogを閉じる関数
+const closeDialog = () => {
+  if (!dialog.value) {
+    throw new Error('dialogコンポーネントはnull (HmDialogElement closeDialog)')
+  }
+  dialog.value.closeDialog()
+  isActive.value = false
+}
+
+defineExpose({
+  openDialog,
+  closeDialog,
+  isActive,
+})
+</script>
+
+<style lang="scss" scoped>
+.open {
+  cursor: pointer;
+}
+</style>
+````
+
 ## File: layers/base/app/utils/file-control.ts
 ````typescript
 /**
@@ -31137,6 +31206,39 @@ export const getFileByBase64 = (base64: string, fileName: string = 'file'): File
   } catch (error) {
     console.error(error)
     return null
+  }
+}
+````
+
+## File: package.json
+````json
+{
+  "name": "vket-boilerplate-nuxt",
+  "private": true,
+  "version": "1.0.1",
+  "license": "MIT",
+  "workspaces": [
+    "layers/*"
+  ],
+  "scripts": {
+    "prepare": "bun husky",
+    "package-update": "bunx npm-check-updates -i",
+    "repomix": "bunx repomix@latest --style markdown"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.21",
+    "eslint": "^9.34.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.6",
+    "stylelint": "^16.23.1"
+  },
+  "lint-staged": {
+    "layers/**/*.+(js|ts|tsx|vue)": [
+      "eslint --cache --cache-strategy content"
+    ]
+  },
+  "resolutions": {
+    "eslint": "9.34.0"
   }
 }
 ````
@@ -31748,102 +31850,6 @@ const cancel = () => {
   &:deep(.dialog-window) {
     height: 100%;
   }
-}
-</style>
-````
-
-## File: layers/base/app/components/hm/HmDialogElement.vue
-````vue
-<!--
-HaDialogとの違いとして、HmDialogElementは別階層の別要素のz-indexの影響により、それよりも下に表示されてしまう
-と言った現象が起きません(dialog要素は常に最前面に表示される)。
- -->
-<template>
-  <!-- ダイアログを開くボタン -->
-  <component
-    :is="props.openButtonHtmlTag"
-    :tabindex="props.openButtonHtmlTag !== 'button' ? 0 : undefined"
-    class="open"
-    aria-expanded="false"
-    @click.stop="openDialog"
-  >
-    <slot name="open">
-      <span class="text">{{
-        i18n.locale.value === 'ja' ? 'ダイアログを開く' : 'Open the dialog'
-      }}</span>
-    </slot>
-  </component>
-  <!-- ダイアログ -->
-  <template v-if="isActive">
-    <HaDialogElement
-      ref="dialog"
-      :closeButtonHtmlTag="props.closeButtonHtmlTag"
-      :closedby="props.closedby"
-    >
-      <template
-        v-if="$slots.close"
-        #close
-      >
-        <slot name="close"></slot>
-      </template>
-      <template #inner>
-        <slot name="inner"></slot>
-      </template>
-    </HaDialogElement>
-  </template>
-</template>
-
-<script lang="ts" setup>
-import HaDialogElement from '#base/app/components/ha/HaDialogElement.vue'
-// import RiCloseLine from '~icons/ri/close-line'
-
-export type Props = {
-  openButtonHtmlTag?: string
-  closeButtonHtmlTag?: string
-  closedby?: 'any' | 'closerequest' | 'none' | undefined
-}
-const props = withDefaults(defineProps<Props>(), {
-  openButtonHtmlTag: 'button',
-  closeButtonHtmlTag: 'button',
-  closedby: 'any',
-})
-
-// aria-label用のi18n
-const i18n = useI18n()
-
-// dialog要素をrefにする
-const dialog = ref<InstanceType<typeof HaDialogElement>>()
-const isActive = ref(false)
-
-// dialogを開く関数
-const openDialog = async () => {
-  isActive.value = true
-  await nextTick()
-  if (!dialog.value) {
-    throw new Error('dialogコンポーネントはnull (HmDialogElement openDialog)')
-  }
-  dialog.value.openDialog()
-}
-
-// dialogを閉じる関数
-const closeDialog = () => {
-  if (!dialog.value) {
-    throw new Error('dialogコンポーネントはnull (HmDialogElement closeDialog)')
-  }
-  dialog.value.closeDialog()
-  isActive.value = false
-}
-
-defineExpose({
-  openDialog,
-  closeDialog,
-  isActive,
-})
-</script>
-
-<style lang="scss" scoped>
-.open {
-  cursor: pointer;
 }
 </style>
 ````
