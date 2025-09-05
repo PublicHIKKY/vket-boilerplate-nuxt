@@ -514,6 +514,7 @@ layers/
 .prettierrc
 .stylelintignore
 .stylelintrc.shared.mjs
+AGENTS.md
 eslint.config.shared.mjs
 LICENSE
 package.json
@@ -535,14 +536,6 @@ README.md
 
 ### Evidences
 -
-````
-
-## File: .husky/pre-commit
-````
-#!/bin/sh
-bunx lint-staged
-bun run repomix
-git add repomix-output.md
 ````
 
 ## File: layers/base/@types/nuxt-i18n.d.ts
@@ -806,6 +799,64 @@ defineProps<{
   }
 }
 </style>
+````
+
+## File: layers/base/app/composables/useExample.ts
+````typescript
+import { useState } from 'nuxt/app'
+import { _AsyncData } from 'nuxt/dist/app/composables/asyncData'
+import type { Ref } from 'vue'
+import { InjectionKey, readonly, ref } from 'vue'
+import { GetExampleResponse } from '#base/app/repositories/exampleRepository'
+import useDefaultApi from '#base/app/composables/useDefaultApi'
+
+export type Example = GetExampleResponse['data']['todos']
+
+export function useExample(data?: Example) {
+  const exampleState = useState<Example | undefined>('example', () => data)
+  const exampleRef = ref<Example | undefined>(data)
+
+  const repo = useDefaultApi('example').repository.value
+
+  /**
+   * APIを実行し、stateを更新後、結果を返す
+   * 必要であればこの中でデータの加工などを行っても良い
+   */
+  async function getExample() {
+    const response = await repo.get.getExample()
+
+    // stateを使う場合
+    exampleState.value = response.data.todos
+
+    // refを使う場合
+    exampleRef.value = response.data.todos
+
+    return response.data.todos
+  }
+
+  async function refreshExample<T>(
+    refresh: _AsyncData<Example, T>['refresh'],
+    data: Ref<Example | null>,
+  ) {
+    await refresh()
+    // stateを使う場合
+    exampleState.value = data.value || undefined
+
+    // refを使う場合
+    exampleRef.value = data.value || undefined
+  }
+
+  return {
+    exampleState: readonly(exampleState),
+    exampleRef: readonly(exampleRef),
+    getExample,
+    refreshExample,
+  }
+}
+
+export type ExampleComposable = ReturnType<typeof useExample>
+export const exampleInjectionKey: InjectionKey<ExampleComposable>
+  = Symbol('example')
 ````
 
 ## File: layers/base/app/layouts/default.vue
@@ -3067,6 +3118,158 @@ describe('zip', () => {
 })
 ````
 
+## File: layers/base/app/test/utils/default-api.spec.ts
+````typescript
+import type { NitroFetchRequest } from 'nitropack'
+import api from '#base/app/utils/default-api'
+
+// NOTE: mockを使う際に必要な記述
+vi.mock('#app', () => ({
+  // NOTE:  defineNuxtPluginでエラーが出るので設置
+  defineNuxtPlugin: vi.fn(),
+}))
+
+// NOTE: src/utils/default-api.tsのテストとして当該ファイルがimportしているファイルからの変数「requireRuntimeConfig」をモックする。
+vi.mock('#base/app/plugins/runtimeConfig', () => {
+  return {
+    requireRuntimeConfig: vi.fn(() => {
+      // NOTE: default-api.tsのテストとしてrequireRuntimeConfigが{public.baseUrl}としてダミーURLを返すだけの処理を行うようにモックする
+      return {
+        public: {
+          baseUrl: '/test-api',
+        },
+      }
+    }),
+  }
+})
+
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+vi.mock('#base/app/plugins/fetch', () => {
+  return {
+    pluginFetchApi: vi.fn((path: string, options: NitroFetchRequest) => {
+      return { path, options }
+    }),
+  }
+})
+
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+vi.mock('ofetch', () => {
+  return {
+    $fetch: vi.fn((path: string, options: NitroFetchRequest) => {
+      return { path, options }
+    }),
+  }
+})
+
+describe('api', () => {
+  // NOTE: default-api.getの返却値のテストとして、引数のpathやfetchOptionを入力して、返却値として期待するexpectObjと同等かテストする。その際、onRequestとonResponseは複雑化するので、空オブジェクトで省略としてtoMatchObjectで合格するか検査する。
+  it('get', () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'GET',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    expect(api('get', path, fetchOptions)).toMatchObject(expectObj)
+  })
+  it('post', () => {
+    // NOET: 以下getと同様にテストする。methodはgetではなく、相送信methodに準じた値に変化するので注意
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'POST',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    expect(api('post', path, fetchOptions)).toMatchObject(expectObj)
+  })
+  it('put', () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'PUT',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    expect(api('put', path, fetchOptions)).toMatchObject(expectObj)
+  })
+  it('patch', () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'PATCH',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    expect(api('patch', path, fetchOptions)).toMatchObject(expectObj)
+  })
+  it('delete', () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'DELETE',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    expect(api('delete', path, fetchOptions)).toMatchObject(expectObj)
+  })
+})
+````
+
+## File: layers/base/app/test/utils/default-factory.spec.ts
+````typescript
+import exampleRepository from '#base/app/repositories/exampleRepository'
+import {
+  defaultRepositories,
+  defaultRepositoryFactory,
+} from '#base/app/utils/default-factory'
+
+// NOTE: mockを使う際に必要な記述
+vi.mock('#app', () => ({
+  // NOTE:  defineNuxtPluginでエラーが出るので設置
+  defineNuxtPlugin: vi.fn(),
+}))
+
+describe('defaultRepositoryFactory', () => {
+  it('should return the correct repository when a valid key is provided', () => {
+    const repository = defaultRepositoryFactory.get('example')
+    expect(repository).toBe(exampleRepository)
+  })
+})
+
+describe('defaultRepositories', () => {
+  it('should contain the example repository', () => {
+    expect(defaultRepositories.example).toBe(exampleRepository)
+  })
+})
+````
+
 ## File: layers/base/app/test/utils/i18n.spec.ts
 ````typescript
 test('関数のexportがないので、#base/app/utils/i18nモジュールへのテストはなし', () => {})
@@ -4311,6 +4514,37 @@ export const requireRuntimeConfig: () => ProcessEnv | RuntimeConfig = () => {
 }
 ````
 
+## File: layers/main/app/test/composables/useApi.spec.ts
+````typescript
+// NOTE: そもそももっといいテストあれば是非
+import { UseFetchOptions } from 'nuxt/app'
+import { FetchOptions } from 'ofetch'
+import useApi, { fetcher } from '@/composables/useApi'
+
+vi.mock('#app', () => ({
+  // NOTE:  defineNuxtPluginでエラーが出るので設置
+  defineNuxtPlugin: vi.fn(),
+  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+  useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
+    return { path, options }
+  }),
+}))
+
+test('useApi', () => {
+  // NOTE: useApiで使用できるRepositoryKeyを入れた際にオブジェクトが返ってくること。この場合useApi('hoge')など存在しない場合はテストが落ちる
+  const useApiExample = useApi('example').repository.value
+  const expectObj = { get: {} }
+  expect(useApiExample).toMatchObject(expectObj)
+})
+
+test('fetcher', () => {
+  const path = '/example'
+  const options = {}
+  // useFetchが発火することを確認。戻り値はmockの戻り値とする
+  expect(fetcher(path, options)).toStrictEqual({ path, options })
+})
+````
+
 ## File: layers/main/app/test/utils/@types/auto-imports.d.ts
 ````typescript
 /* eslint-disable */
@@ -4465,6 +4699,35 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
   }
 }
+````
+
+## File: layers/main/app/test/utils/factory.spec.ts
+````typescript
+import { describe, expect, it } from 'vitest'
+import exampleRepository from '#base/app/repositories/exampleRepository'
+import {
+  defaultRepositories,
+  defaultRepositoryFactory,
+} from '#base/app/utils/default-factory'
+
+// NOTE: mockを使う際に必要な記述
+vi.mock('#app', () => ({
+  // NOTE:  defineNuxtPluginでエラーが出るので設置
+  defineNuxtPlugin: vi.fn(),
+}))
+
+describe('defaultRepositoryFactory', () => {
+  it('should return the correct repository when a valid key is provided', () => {
+    const repository = defaultRepositoryFactory.get('example')
+    expect(repository).toBe(exampleRepository)
+  })
+})
+
+describe('defaultRepositories', () => {
+  it('should contain the example repository', () => {
+    expect(defaultRepositories.example).toBe(exampleRepository)
+  })
+})
 ````
 
 ## File: layers/main/app/test/utils/i18n.spec.ts
@@ -4723,40 +4986,147 @@ export default {
 }
 ````
 
-## File: layers/open-api/tsconfig.json
-````json
-{
-  "compilerOptions": {
-    "lib": [
-      "ESNext",
-      "DOM",
-    ],
-    "module": "esnext",
-    "target": "esnext",
-    "moduleResolution": "bundler",
-    "moduleDetection": "force",
-    "allowImportingTsExtensions": true,
-    "noEmit": true,
-    "composite": true,
-    "strict": true,
-    "downlevelIteration": true,
-    "skipLibCheck": true,
-    "jsx": "preserve",
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowJs": true,
-    "types": [
-      "bun-types",
-      "node"
-    ]
-  },
-  "include": [
-    "scripts/**/*"
+## File: layers/main/vitest.config.mts
+````
+/// <reference types="vitest" />
+import VueI18nVitePlugin from '@intlify/unplugin-vue-i18n/vite'
+import Vue from '@vitejs/plugin-vue'
+import path from 'path'
+import AutoImport from 'unplugin-auto-import/vite'
+import Components from 'unplugin-vue-components/vite'
+import { fileURLToPath } from 'url'
+import svgLoader from 'vite-svg-loader'
+import { defineConfig } from 'vitest/config'
+
+export default defineConfig({
+  plugins: [
+    Vue(),
+    AutoImport({
+      exclude: ['/test/', '/test-e2e/'],
+      include: [/\.[tj]s?$/, /\.[tj]sx?$/, /\.vue$/, /\.vue\?vue/],
+      imports: [
+        'vue',
+        'vue-i18n',
+        {
+          '#app': [
+            // NOTE: 自動生成される.nuxt/imports.d.tsから手動移植 https://tech.andpad.co.jp/entry/2023/03/16/100000
+            // export { // .nuxt/imports.d.ts 参照
+            'useAsyncData',
+            'useLazyAsyncData',
+            'useNuxtData',
+            'refreshNuxtData',
+            'clearNuxtData',
+            'defineNuxtComponent',
+            'useNuxtApp',
+            'defineNuxtPlugin',
+            'definePayloadPlugin',
+            'reloadNuxtApp',
+            'useRuntimeConfig',
+            'useState',
+            'clearNuxtState',
+            'useFetch',
+            'useLazyFetch',
+            'useCookie',
+            'useRequestHeaders',
+            'useRequestEvent',
+            'useRequestFetch',
+            'useRequestURL',
+            'setResponseStatus',
+            'setPageLayout',
+            'prerenderRoutes',
+            'onNuxtReady',
+            'useRouter',
+            'useRoute',
+            'defineNuxtRouteMiddleware',
+            'navigateTo',
+            'abortNavigation',
+            'addRouteMiddleware',
+            'showError',
+            'clearError',
+            'isNuxtError',
+            'useError',
+            'createError',
+            'defineNuxtLink',
+            'useAppConfig',
+            'updateAppConfig',
+            'defineAppConfig',
+            'preloadComponents',
+            'preloadRouteComponents',
+            'prefetchComponents',
+            'loadPayload',
+            'preloadPayload',
+            'isPrerendered',
+            'getAppManifest',
+            'getRouteRules',
+            'definePayloadReducer',
+            'definePayloadReviver',
+            'requestIdleCallback',
+            'cancelIdleCallback',
+            'onBeforeRouteLeave',
+            'onBeforeRouteUpdate',
+            //  } from '#app'; // .nuxt/imports.d.ts 参照
+          ],
+          '#i18n': [
+            'useRouteBaseName',
+            'useLocalePath',
+            'useLocaleRoute',
+            'useSwitchLocalePath',
+            'useLocaleHead',
+            'useBrowserLocale',
+            'useCookieLocale',
+            'defineI18nRoute',
+            'defineI18nLocale',
+            'defineI18nConfig',
+          ],
+        },
+      ],
+      dirs: [
+        'app/composables',
+        'app/utils/**',
+        '#base/app/composables',
+        '#base/app/utils/**',
+      ],
+      dts: './@types/auto-imports.d.ts',
+    }),
+    Components({
+      dirs: ['app/components', '#base/app/components'],
+      dts: './@types/components.d.ts',
+    }),
+    VueI18nVitePlugin({
+      include: [
+        path.resolve(
+          path.dirname(fileURLToPath(import.meta.url)),
+          './i18n/locales/*.json'
+        ),
+      ],
+      defaultSFCLang: 'yaml',
+      runtimeOnly: false,
+    }),
+    svgLoader({
+      defaultImport: 'component', // 'component', 'url', 'raw'
+      svgo: false,
+    }),
   ],
-  "exclude": [
-    "node_modules"
-  ]
-}
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    coverage: {
+      include: ['app/**/*.{vue,ts}'],
+    },
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'app'),
+      '#base': path.resolve(__dirname, '../base'),
+      '#main': path.resolve(__dirname, './'),
+      '#app': path.resolve(__dirname, '../../node_modules/nuxt/dist/app'),
+      '#i18n': path.resolve(
+        __dirname,
+        '../../node_modules/@nuxtjs/i18n/dist/runtime/composables'
+      ),
+    },
+  },
+})
 ````
 
 ## File: layers/showcases/@types/components.d.ts
@@ -5182,41 +5552,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-## File: README.md
-````markdown
-# Vket Boilerplate Nuxt
-
-This is a Nuxt boilerplate published by HIKKY Ltd.
-
-Anyone is welcome to fork over this repository! 
-
-## What is Vket Boilerplate?
-
-The repository uses Nuxt Layers and Bun Workspaces. This provides a monolithic architecture for managing multiple Nuxt applications. This approximates, but does not strictly match, a modular monolithic architecture.
-
-## How to use
-
-1. You should install Bun. https://bun.sh/docs/installation
-
-2. Fork this repo.
-
-3. Run `bun install`
-
-4. Move to `/layers/main/`
-
-5. You can start developing MAIN LAYER with ZERO CONFIGS.
-
-
-## Contribution
-
-In preparation...
-
-
-## LICENSE
-
-MIT
-````
-
 ## File: .github/workflows/base-check.yml
 ````yaml
 name: <Base> Check by lint, type-check, and test
@@ -5345,6 +5680,14 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "monthly"
+````
+
+## File: .husky/pre-commit
+````
+#!/bin/sh
+bunx lint-staged
+bun run repomix
+git add repomix-output.md
 ````
 
 ## File: layers/base/app/assets/styles/_base.scss
@@ -6792,6 +7135,26 @@ const url = computed(() => socialShareLink.getShareUrl(props.name || '', props))
 </script>
 ````
 
+## File: layers/base/app/components/hm/HmTsx.vue
+````vue
+<template>
+  <div class="hm-tsx">
+    <DefaultSlot />
+  </div>
+</template>
+
+<script lang="tsx" setup>
+import { Fragment } from 'vue'
+
+const slots = useSlots() as { default?: () => unknown }
+const defaultSlot = slots.default ? slots.default() : null
+
+const DefaultSlot = () => {
+  return <Fragment>{defaultSlot}</Fragment>
+}
+</script>
+````
+
 ## File: layers/base/app/composables/use-strict-i18n.ts
 ````typescript
 import type { UseI18nOptions } from 'vue-i18n'
@@ -6862,62 +7225,41 @@ const doObserve = (
 export default () => ({ doObserve })
 ````
 
-## File: layers/base/app/composables/useExample.ts
+## File: layers/base/app/composables/useDefaultApi.ts
 ````typescript
-import { useState } from 'nuxt/app'
-import { _AsyncData } from 'nuxt/dist/app/composables/asyncData'
-import type { Ref } from 'vue'
-import { InjectionKey, readonly, ref } from 'vue'
-import { GetExampleResponse } from '#base/app/repositories/exampleRepository'
-import useDefaultApi from '#base/app/composables/useDefaultApi'
+/**
+ * Nuxt3 FWにおける API composables。
+ *
+ * @packageDocumentation
+ */
 
-export type Example = GetExampleResponse['data']['todos']
+import { useFetch, UseFetchOptions } from 'nuxt/app'
+import type { FetchOptions } from 'ofetch'
+import { ref } from 'vue'
+import {
+  defaultRepositoryFactory,
+  DefaultRepositoryKey,
+} from '#base/app/utils/default-factory'
 
-export function useExample(data?: Example) {
-  const exampleState = useState<Example | undefined>('example', () => data)
-  const exampleRef = ref<Example | undefined>(data)
-
-  const repo = useDefaultApi('example').repository.value
-
-  /**
-   * APIを実行し、stateを更新後、結果を返す
-   * 必要であればこの中でデータの加工などを行っても良い
-   */
-  async function getExample() {
-    const response = await repo.get.getExample()
-
-    // stateを使う場合
-    exampleState.value = response.data.todos
-
-    // refを使う場合
-    exampleRef.value = response.data.todos
-
-    return response.data.todos
-  }
-
-  async function refreshExample<T>(
-    refresh: _AsyncData<Example, T>['refresh'],
-    data: Ref<Example | null>,
-  ) {
-    await refresh()
-    // stateを使う場合
-    exampleState.value = data.value || undefined
-
-    // refを使う場合
-    exampleRef.value = data.value || undefined
-  }
-
-  return {
-    exampleState: readonly(exampleState),
-    exampleRef: readonly(exampleRef),
-    getExample,
-    refreshExample,
-  }
+export const defaultFetcher = (
+  path: string,
+  options: UseFetchOptions<FetchOptions>,
+) => {
+  return useFetch(path, options)
 }
 
-export type ExampleComposable = ReturnType<typeof useExample>
-export const exampleInjectionKey: InjectionKey<ExampleComposable>
-  = Symbol('example')
+const _getRepo = <K extends DefaultRepositoryKey>(endpoint: K) => {
+  return defaultRepositoryFactory.get(endpoint)
+}
+
+export default function useDefaultApi<K extends DefaultRepositoryKey>(
+  endpoint: K,
+) {
+  const repository = ref(_getRepo(endpoint))
+  return {
+    repository,
+  }
+}
 ````
 
 ## File: layers/base/app/composables/useSocialShareLink.ts
@@ -7151,6 +7493,37 @@ export default defineNuxtPlugin(() => {
     },
   }
 })
+````
+
+## File: layers/base/app/repositories/exampleRepository.ts
+````typescript
+import { z } from 'zod/v3'
+import { todoSchema } from '#base/app/models/todo'
+import { requireRuntimeConfig } from '#base/app/plugins/runtimeConfig'
+import defaultApi from '#base/app/utils/default-api'
+import { raiseError } from '#base/app/utils/error'
+import { requireValueOf } from '#base/app/utils/zod'
+
+const statusSchema = z.literal('ok').or(z.literal('ng'))
+
+export const getExampleResponseSchema = z.object({
+  status: statusSchema,
+  data: z.object({
+    todos: z.array(todoSchema),
+  }),
+})
+export type GetExampleResponse = z.infer<typeof getExampleResponseSchema>
+
+export default {
+  get: {
+    async getExample() {
+      const prefix
+        = requireRuntimeConfig().public?.apiPrefix ?? raiseError('getExample()')
+      const response = await defaultApi('get', `${prefix}/example`)
+      return requireValueOf(getExampleResponseSchema, response)
+    },
+  } as const,
+}
 ````
 
 ## File: layers/base/app/test/components/ha/base/HaBaseInput.spec.ts
@@ -8790,6 +9163,109 @@ describe('HaModal', () => {
 })
 ````
 
+## File: layers/base/app/test/components/hm/__snapshots__/HmClipping.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-7cbd279a="" class="hm-clipping">
+  <div data-v-7cbd279a="" class="cropper-container">
+    <div data-v-7cbd279a="" class="vue-advanced-cropper cropper">
+      <div class="vue-advanced-cropper__stretcher"></div>
+      <div class="vue-advanced-cropper__boundaries" style="width: auto; height: auto; transition: opacity 300ms; pointer-events: none; opacity: 0;">
+        <div class="vue-advanced-cropper__cropper-wrapper">
+          <div class="vue-advanced-cropper__background" style="width: auto; height: auto; transition: opacity 300ms; pointer-events: none; opacity: 0;"></div>
+          <div class="vue-advanced-cropper__image-wrapper"><img class="vue-advanced-cropper__image" style="height: 0px; left: 0px; top: 0px; transform: translate(NaNpx, NaNpx) rotate(0deg)  scaleX(NaN)  scaleY(NaN);"></div>
+          <div class="vue-advanced-cropper__foreground" style="width: auto; height: auto; transition: opacity 300ms; pointer-events: none; opacity: 0;"></div>
+          <div class="vue-rectangle-stencil vue-rectangle-stencil--movable" style="width: 0px; height: 0px; transform: translate(0px, 0px); display: none;">
+            <div class="vue-bounding-box vue-rectangle-stencil__bounding-box">
+              <div>
+                <div class="vue-preview vue-preview--fill vue-rectangle-stencil__preview">
+                  <div class="vue-preview__wrapper" style="width: 0px; height: 0px; left: calc(50% - 0px); top: calc(50% - 0px);"><img class="vue-preview__image" style="width: 0px; height: 0px; left: 0px; top: 0px; transform: translate(
+				NaNpx,NaNpx)  rotate(0deg)  scaleX(NaN)  scaleY(NaN); display: none;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="vue-line-wrapper vue-line-wrapper--east vue-simple-line-wrapper vue-simple-line-wrapper--east">
+                  <div class="vue-simple-line vue-simple-line--east"></div>
+                </div>
+                <div class="vue-line-wrapper vue-line-wrapper--west vue-simple-line-wrapper vue-simple-line-wrapper--west">
+                  <div class="vue-simple-line vue-simple-line--west"></div>
+                </div>
+                <div class="vue-line-wrapper vue-line-wrapper--south vue-simple-line-wrapper vue-simple-line-wrapper--south">
+                  <div class="vue-simple-line vue-simple-line--south"></div>
+                </div>
+                <div class="vue-line-wrapper vue-line-wrapper--north vue-simple-line-wrapper vue-simple-line-wrapper--north">
+                  <div class="vue-simple-line vue-simple-line--north"></div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--east-south">
+                <div class="vue-handler-wrapper vue-handler-wrapper--east-south vue-simple-handler-wrapper vue-simple-handler-wrapper--east vue-simple-handler-wrapper--south vue-simple-handler-wrapper--east-south vue-bounding-box__handler vue-bounding-box__handler--east-south">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--east vue-simple-handler--south vue-simple-handler--east-south"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--east-north">
+                <div class="vue-handler-wrapper vue-handler-wrapper--east-north vue-simple-handler-wrapper vue-simple-handler-wrapper--east vue-simple-handler-wrapper--north vue-simple-handler-wrapper--east-north vue-bounding-box__handler vue-bounding-box__handler--east-north">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--east vue-simple-handler--north vue-simple-handler--east-north"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--east">
+                <div class="vue-handler-wrapper vue-handler-wrapper--east vue-simple-handler-wrapper vue-simple-handler-wrapper--east vue-bounding-box__handler vue-bounding-box__handler--east">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--east"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--west-south">
+                <div class="vue-handler-wrapper vue-handler-wrapper--west-south vue-simple-handler-wrapper vue-simple-handler-wrapper--west vue-simple-handler-wrapper--south vue-simple-handler-wrapper--west-south vue-bounding-box__handler vue-bounding-box__handler--west-south">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--west vue-simple-handler--south vue-simple-handler--west-south"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--west-north">
+                <div class="vue-handler-wrapper vue-handler-wrapper--west-north vue-simple-handler-wrapper vue-simple-handler-wrapper--west vue-simple-handler-wrapper--north vue-simple-handler-wrapper--west-north vue-bounding-box__handler vue-bounding-box__handler--west-north">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--west vue-simple-handler--north vue-simple-handler--west-north"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--west">
+                <div class="vue-handler-wrapper vue-handler-wrapper--west vue-simple-handler-wrapper vue-simple-handler-wrapper--west vue-bounding-box__handler vue-bounding-box__handler--west">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--west"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--south">
+                <div class="vue-handler-wrapper vue-handler-wrapper--south vue-simple-handler-wrapper vue-simple-handler-wrapper--south vue-bounding-box__handler vue-bounding-box__handler--south">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--south"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--north">
+                <div class="vue-handler-wrapper vue-handler-wrapper--north vue-simple-handler-wrapper vue-simple-handler-wrapper--north vue-bounding-box__handler vue-bounding-box__handler--north">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--north"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div><canvas style="display: none;"></canvas><canvas style="display: none;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--v-if-->
+</div>"
+`;
+````
+
 ## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadio.spec.ts.snap
 ````
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
@@ -9166,6 +9642,96 @@ describe('HmAutoCarousel', () => {
       expect(lists[1]?.attributes('aria-hidden')).toBeUndefined() // メインリスト
       expect(lists[2]?.attributes('aria-hidden')).toBe('true') // -after
     })
+  })
+})
+````
+
+## File: layers/base/app/test/components/hm/HmClipping.spec.ts
+````typescript
+import { mount, shallowMount } from '@vue/test-utils'
+import HmClipping from '#base/app/components/hm/HmClipping.vue'
+
+test('ref component', () => {
+  expect(HmClipping).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HmClipping, {
+    props: {
+      src: '',
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+test('props', () => {
+  const wrapper = mount(HmClipping, {
+    props: {
+      src: '',
+      width: 256,
+      height: 256,
+      cropperAreaHeight: 0,
+      doResize: true,
+      stencil: 'RectangleStencil',
+      imageRestriction: 'stencil',
+      autoZoom: false,
+      ext: 'jpeg',
+    },
+  })
+  expect(wrapper.props('src')).toStrictEqual('')
+  expect(wrapper.props('width')).toStrictEqual(256)
+  expect(wrapper.props('height')).toStrictEqual(256)
+  expect(wrapper.props('cropperAreaHeight')).toStrictEqual(0)
+  expect(wrapper.props('doResize')).toStrictEqual(true)
+  expect(wrapper.props('stencil')).toStrictEqual('RectangleStencil')
+  expect(wrapper.props('imageRestriction')).toStrictEqual('stencil')
+  expect(wrapper.props('autoZoom')).toStrictEqual(false)
+  expect(wrapper.props('ext')).toStrictEqual('jpeg')
+})
+
+describe('events', () => {
+  it(':button click to emit clipped', async () => {
+    // NOTE: mountしてcomponentを展開すると、「Error: connect ECONNREFUSED」になる
+    const wrapper = shallowMount(HmClipping, {
+      props: {
+        src: '/dummy',
+        width: 256,
+        height: 256,
+        cropperAreaHeight: 0,
+        doResize: true,
+        stencil: 'RectangleStencil',
+        imageRestriction: 'stencil',
+        autoZoom: false,
+        ext: 'jpeg',
+      },
+    })
+    await wrapper.find('ha-base-button-stub').trigger('click')
+    expect(wrapper.emitted()).toHaveProperty('clipped')
+    expect(wrapper.emitted()['clipped']).toHaveLength(1)
+    expect(wrapper.emitted()['clipped']).toEqual([[[]]])
+  })
+
+  // TODO: Cropperのchangeのテスト
+  it(':Cropper change', () => {
+    // NOTE: mountしてcomponentを展開すると、「Error: connect ECONNREFUSED」になる
+    const _wrapper = shallowMount(HmClipping, {
+      props: {
+        src: '/dummy',
+        width: 256,
+        height: 256,
+        cropperAreaHeight: 0,
+        doResize: true,
+        stencil: 'RectangleStencil',
+        imageRestriction: 'stencil',
+        autoZoom: false,
+        ext: 'jpeg',
+      },
+    })
+    /*
+     * ERROR: 発火はできるが、canvas.toDataURLが読めず、vi.importActualにてcanvas.toDataURLのみを偽装してもエラーとなったのでコメントアウトする
+     * await wrapper.find('cropper-stub').trigger('change')
+     */
   })
 })
 ````
@@ -11580,6 +12146,37 @@ describe('use-strict-i18n.ts', () => {
 })
 ````
 
+## File: layers/base/app/test/composables/useDefaultApi.spec.ts
+````typescript
+// NOTE: そもそももっといいテストあれば是非
+import { UseFetchOptions } from 'nuxt/app'
+import { FetchOptions } from 'ofetch'
+import useDefaultApi, { defaultFetcher } from '#base/app/composables/useDefaultApi'
+
+vi.mock('#app', () => ({
+  // NOTE:  defineNuxtPluginでエラーが出るので設置
+  defineNuxtPlugin: vi.fn(),
+  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+  useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
+    return { path, options }
+  }),
+}))
+
+test('useDefaultApi', () => {
+  // NOTE: useDefaultApiで使用できるRepositoryKeyを入れた際にオブジェクトが返ってくること。この場合useDefaultApi('hoge')など存在しない場合はテストが落ちる
+  const useApiExample = useDefaultApi('example').repository.value
+  const expectObj = { get: {} }
+  expect(useApiExample).toMatchObject(expectObj)
+})
+
+test('defaultFetcher', () => {
+  const path = '/example'
+  const options = {}
+  // useFetchが発火することを確認。戻り値はmockの戻り値とする
+  expect(defaultFetcher(path, options)).toStrictEqual({ path, options })
+})
+````
+
 ## File: layers/base/app/test/composables/useExample.spec.ts
 ````typescript
 import type { NitroFetchRequest } from 'nitropack'
@@ -13326,158 +13923,6 @@ describe('date-control.ts', () => {
 })
 ````
 
-## File: layers/base/app/test/utils/default-api.spec.ts
-````typescript
-import type { NitroFetchRequest } from 'nitropack'
-import api from '#base/app/utils/default-api'
-
-// NOTE: mockを使う際に必要な記述
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-}))
-
-// NOTE: src/utils/default-api.tsのテストとして当該ファイルがimportしているファイルからの変数「requireRuntimeConfig」をモックする。
-vi.mock('#base/app/plugins/runtimeConfig', () => {
-  return {
-    requireRuntimeConfig: vi.fn(() => {
-      // NOTE: default-api.tsのテストとしてrequireRuntimeConfigが{public.baseUrl}としてダミーURLを返すだけの処理を行うようにモックする
-      return {
-        public: {
-          baseUrl: '/test-api',
-        },
-      }
-    }),
-  }
-})
-
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-vi.mock('#base/app/plugins/fetch', () => {
-  return {
-    pluginFetchApi: vi.fn((path: string, options: NitroFetchRequest) => {
-      return { path, options }
-    }),
-  }
-})
-
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-vi.mock('ofetch', () => {
-  return {
-    $fetch: vi.fn((path: string, options: NitroFetchRequest) => {
-      return { path, options }
-    }),
-  }
-})
-
-describe('api', () => {
-  // NOTE: default-api.getの返却値のテストとして、引数のpathやfetchOptionを入力して、返却値として期待するexpectObjと同等かテストする。その際、onRequestとonResponseは複雑化するので、空オブジェクトで省略としてtoMatchObjectで合格するか検査する。
-  it('get', () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'GET',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    expect(api('get', path, fetchOptions)).toMatchObject(expectObj)
-  })
-  it('post', () => {
-    // NOET: 以下getと同様にテストする。methodはgetではなく、相送信methodに準じた値に変化するので注意
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'POST',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    expect(api('post', path, fetchOptions)).toMatchObject(expectObj)
-  })
-  it('put', () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'PUT',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    expect(api('put', path, fetchOptions)).toMatchObject(expectObj)
-  })
-  it('patch', () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'PATCH',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    expect(api('patch', path, fetchOptions)).toMatchObject(expectObj)
-  })
-  it('delete', () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'DELETE',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    expect(api('delete', path, fetchOptions)).toMatchObject(expectObj)
-  })
-})
-````
-
-## File: layers/base/app/test/utils/default-factory.spec.ts
-````typescript
-import exampleRepository from '#base/app/repositories/exampleRepository'
-import {
-  defaultRepositories,
-  defaultRepositoryFactory,
-} from '#base/app/utils/default-factory'
-
-// NOTE: mockを使う際に必要な記述
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-}))
-
-describe('defaultRepositoryFactory', () => {
-  it('should return the correct repository when a valid key is provided', () => {
-    const repository = defaultRepositoryFactory.get('example')
-    expect(repository).toBe(exampleRepository)
-  })
-})
-
-describe('defaultRepositories', () => {
-  it('should contain the example repository', () => {
-    expect(defaultRepositories.example).toBe(exampleRepository)
-  })
-})
-````
-
 ## File: layers/base/app/test/utils/environment.spec.ts
 ````typescript
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -15086,6 +15531,186 @@ export function formatCustom(date: Date | string, format: string): string {
 }
 ````
 
+## File: layers/base/app/utils/default-api.ts
+````typescript
+/**
+ * apiの抽象化。 ofetch 準拠
+ *
+ * @packageDocumentation
+ */
+
+import camelcaseKeys from 'camelcase-keys'
+import type { FetchOptions } from 'ofetch'
+import { $fetch as _oFetchApi } from 'ofetch' // not nuxt
+import snakecaseKeys from 'snakecase-keys'
+import { raiseError } from '#base/app/utils/error'
+import { requireRuntimeConfig } from '#base/app/plugins/runtimeConfig'
+import { pluginFetchApi } from '#base/app/plugins/fetch' // nuxt
+
+export type Method
+  = | 'GET'
+    | 'HEAD'
+    | 'PATCH'
+    | 'POST'
+    | 'PUT'
+    | 'DELETE'
+    | 'CONNECT'
+    | 'OPTIONS'
+    | 'TRACE'
+    | 'get'
+    | 'head'
+    | 'patch'
+    | 'post'
+    | 'put'
+    | 'delete'
+    | 'connect'
+    | 'options'
+    | 'trace'
+
+/**
+ * @definication 使用するAPIの定義
+ */
+const defaultFetchOptions: FetchOptions = {
+  retry: 2,
+  // headers: {},
+  onRequest: (ctx) => {
+    if (
+      !ctx.options.body
+      || typeof ctx.options.body !== 'object'
+      // FormDataをsnakecaseKeysに突っ込むと空Objectになるので、append時、snakecaseにしておく
+      || ctx.options.body instanceof FormData
+    )
+      // [todo] ここのasを直すとsnakecaseKeysの型が合わなくなるので、要検討
+      return
+    ctx.options.body = snakecaseKeys(
+      ctx.options.body as Record<string, unknown>,
+      { deep: true },
+    )
+  },
+  // onRequestError: async (ctx) => {},
+  onResponse: async (ctx) => {
+    if (!ctx.response._data || typeof ctx.response._data !== 'object') return
+    ctx.response._data = await camelcaseKeys(ctx.response._data, { deep: true })
+  },
+  // onResponseError: async (ctx) => {},
+}
+
+const apiFetchFunction = (
+  method: Method,
+  _path: string,
+  _options?: Omit<FetchOptions, 'method'>,
+) => {
+  // デフォルトのAPI(ofetch)
+  const _DEFAULT_FETCH_API = pluginFetchApi().fetchApi || _oFetchApi
+  // NOTE: useFetchはラップしないことにし$fetchを使うようにする。方針が変わった場合は修正する
+  const FETCH_API = _DEFAULT_FETCH_API
+  return (path = _path, opts = _options) => {
+    const options = { ...opts, method }
+    return FETCH_API(path, options)
+  }
+}
+
+// HACK: 即時関数で返したい...
+export const defaultApi = {
+  get: (path: string, fetchOptions: FetchOptions = {}) => {
+    const methodOptions: FetchOptions = {
+      baseURL:
+        fetchOptions.baseURL
+        ?? requireRuntimeConfig().public?.baseUrl
+        ?? raiseError('Missing config baseUrl'),
+    }
+    const options = {
+      ...defaultFetchOptions,
+      ...methodOptions,
+      ...fetchOptions,
+    }
+    return apiFetchFunction('GET', path, options)()
+  },
+  post: (path: string, fetchOptions: FetchOptions = {}) => {
+    const methodOptions: FetchOptions = {
+      baseURL:
+        fetchOptions.baseURL
+        ?? requireRuntimeConfig().public?.baseUrl
+        ?? raiseError('Missing config baseUrl'),
+    }
+    const options = {
+      ...defaultFetchOptions,
+      ...methodOptions,
+      ...fetchOptions,
+    }
+    return apiFetchFunction('POST', path, options)()
+  },
+  put: (path: string, fetchOptions: FetchOptions = {}) => {
+    const methodOptions: FetchOptions = {
+      baseURL:
+        fetchOptions.baseURL
+        ?? requireRuntimeConfig().public?.baseUrl
+        ?? raiseError('Missing config baseUrl'),
+    }
+    const options = {
+      ...defaultFetchOptions,
+      ...methodOptions,
+      ...fetchOptions,
+    }
+    return apiFetchFunction('PUT', path, options)()
+  },
+  patch: (path: string, fetchOptions: FetchOptions = {}) => {
+    const methodOptions: FetchOptions = {
+      baseURL:
+        fetchOptions.baseURL
+        ?? requireRuntimeConfig().public?.baseUrl
+        ?? raiseError('Missing config baseUrl'),
+    }
+    const options = {
+      ...defaultFetchOptions,
+      ...methodOptions,
+      ...fetchOptions,
+    }
+    return apiFetchFunction('PATCH', path, options)()
+  },
+  delete: (path: string, fetchOptions: FetchOptions = {}) => {
+    const methodOptions: FetchOptions = {
+      baseURL:
+        fetchOptions.baseURL
+        ?? requireRuntimeConfig().public?.baseUrl
+        ?? raiseError('Missing config baseUrl'),
+    }
+    const options = {
+      ...defaultFetchOptions,
+      ...methodOptions,
+      ...fetchOptions,
+    }
+    return apiFetchFunction('DELETE', path, options)()
+  },
+} as const
+
+export default (
+  method: Method,
+  path: string,
+  fetchOptions: FetchOptions = {},
+) => {
+  switch (method) {
+    case 'GET':
+    case 'get':
+      return defaultApi.get(path, fetchOptions)
+    case 'POST':
+    case 'post':
+      return defaultApi.post(path, fetchOptions)
+    case 'PUT':
+    case 'put':
+      return defaultApi.put(path, fetchOptions)
+    case 'PATCH':
+    case 'patch':
+      return defaultApi.patch(path, fetchOptions)
+    case 'DELETE':
+    case 'delete':
+      return defaultApi.delete(path, fetchOptions)
+    default:
+      return defaultApi.get(path, fetchOptions)
+  }
+}
+````
+
 ## File: layers/base/app/utils/image.ts
 ````typescript
 /**
@@ -15431,6 +16056,38 @@ en:
 </style>
 ````
 
+## File: layers/main/app/composables/useApi.ts
+````typescript
+/**
+ * Nuxt3 FWにおける API composables。
+ *
+ * @packageDocumentation
+ */
+
+import { useFetch, UseFetchOptions } from 'nuxt/app'
+import type { FetchOptions } from 'ofetch'
+import { ref } from 'vue'
+import { repositoryFactory, RepositoryKey } from '@/utils/factory'
+
+export const fetcher = (
+  path: string,
+  options: UseFetchOptions<FetchOptions>,
+) => {
+  return useFetch(path, options)
+}
+
+const _getRepo = <K extends RepositoryKey>(endpoint: K) => {
+  return repositoryFactory.get(endpoint)
+}
+
+export default function useApi<K extends RepositoryKey>(endpoint: K) {
+  const repository = ref(_getRepo(endpoint))
+  return {
+    repository,
+  }
+}
+````
+
 ## File: layers/main/app/layouts/default.vue
 ````vue
 <template>
@@ -15500,45 +16157,10 @@ export const todoSchema = z.object({
 export type Todo = z.infer<typeof todoSchema>
 ````
 
-## File: layers/main/app/test/composables/useApi.spec.ts
+## File: layers/main/app/test/utils/api.spec.ts
 ````typescript
-// NOTE: そもそももっといいテストあれば是非
-import { UseFetchOptions } from 'nuxt/app'
-import { FetchOptions } from 'ofetch'
-import useApi, { fetcher } from '@/composables/useApi'
-
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-  useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
-    return { path, options }
-  }),
-}))
-
-test('useApi', () => {
-  // NOTE: useApiで使用できるRepositoryKeyを入れた際にオブジェクトが返ってくること。この場合useApi('hoge')など存在しない場合はテストが落ちる
-  const useApiExample = useApi('example').repository.value
-  const expectObj = { get: {} }
-  expect(useApiExample).toMatchObject(expectObj)
-})
-
-test('fetcher', () => {
-  const path = '/example'
-  const options = {}
-  // useFetchが発火することを確認。戻り値はmockの戻り値とする
-  expect(fetcher(path, options)).toStrictEqual({ path, options })
-})
-````
-
-## File: layers/main/app/test/utils/factory.spec.ts
-````typescript
-import { describe, expect, it } from 'vitest'
-import exampleRepository from '#base/app/repositories/exampleRepository'
-import {
-  defaultRepositories,
-  defaultRepositoryFactory,
-} from '#base/app/utils/default-factory'
+import type { NitroFetchRequest } from 'nitropack'
+import api from '@/utils/api'
 
 // NOTE: mockを使う際に必要な記述
 vi.mock('#app', () => ({
@@ -15546,18 +16168,157 @@ vi.mock('#app', () => ({
   defineNuxtPlugin: vi.fn(),
 }))
 
-describe('defaultRepositoryFactory', () => {
-  it('should return the correct repository when a valid key is provided', () => {
-    const repository = defaultRepositoryFactory.get('example')
-    expect(repository).toBe(exampleRepository)
-  })
+// NOTE: src/utils/api.tsのテストとして当該ファイルがimportしているファイルからの変数「requireRuntimeConfig」をモックする。
+vi.mock('#base/app/plugins/runtimeConfig', () => {
+  return {
+    requireRuntimeConfig: vi.fn(() => {
+      // NOTE: api.tsのテストとしてrequireRuntimeConfigが{public.baseUrl}としてダミーURLを返すだけの処理を行うようにモックする
+      return {
+        public: {
+          baseUrl: '/test-api',
+        },
+      }
+    }),
+  }
 })
 
-describe('defaultRepositories', () => {
-  it('should contain the example repository', () => {
-    expect(defaultRepositories.example).toBe(exampleRepository)
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+vi.mock('#base/app/plugins/fetch', () => {
+  return {
+    pluginFetchApi: vi.fn((path: string, options: NitroFetchRequest) => {
+      return { path, options }
+    }),
+  }
+})
+
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+vi.mock('ofetch', () => {
+  return {
+    $fetch: vi.fn((path: string, options: NitroFetchRequest) => {
+      return { path, options }
+    }),
+  }
+})
+
+describe('api', () => {
+  // NOTE: api.getの返却値のテストとして、引数のpathやfetchOptionを入力して、返却値として期待するexpectObjと同等かテストする。その際、onRequestとonResponseは複雑化するので、空オブジェクトで省略としてtoMatchObjectで合格するか検査する。
+  it('get', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'GET',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('get', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('post', async () => {
+    // NOET: 以下getと同様にテストする。methodはgetではなく、相送信methodに準じた値に変化するので注意
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'POST',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('post', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('put', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'PUT',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('put', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('patch', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'PATCH',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('patch', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('delete', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'DELETE',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('delete', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
   })
 })
+````
+
+## File: layers/main/app/utils/api.ts
+````typescript
+import { FetchOptions } from 'ofetch'
+import type { Method } from '#base/app/utils/default-api'
+import { defaultApi } from '#base/app/utils/default-api'
+
+export type { Method }
+
+export default (
+  method: Method,
+  path: string,
+  fetchOptions: FetchOptions = {},
+) => {
+  switch (method) {
+    case 'GET':
+    case 'get':
+      return defaultApi.get(path, fetchOptions)
+    case 'POST':
+    case 'post':
+      return defaultApi.post(path, fetchOptions)
+    case 'PUT':
+    case 'put':
+      return defaultApi.put(path, fetchOptions)
+    case 'PATCH':
+    case 'patch':
+      return defaultApi.patch(path, fetchOptions)
+    case 'DELETE':
+    case 'delete':
+      return defaultApi.delete(path, fetchOptions)
+    default:
+      return defaultApi.get(path, fetchOptions)
+  }
+}
 ````
 
 ## File: layers/main/app/utils/i18n.ts
@@ -17530,17 +18291,6 @@ app/models/openapi.ts
 .serena
 ````
 
-## File: .lintstagedrc.json
-````json
-{
-  "layers/base/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/base && eslint --cache --cache-strategy content"],
-  "layers/main/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/main && eslint --cache --cache-strategy content"],
-  "layers/open-api/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/open-api && eslint --cache --cache-strategy content"],
-  "layers/showcases/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/showcases && eslint --cache --cache-strategy content"],
-  "layers/**/*.+(css|scss|sass|vue)": ["stylelint --allow-empty-input"]
-}
-````
-
 ## File: .stylelintrc.shared.mjs
 ````
 export default {
@@ -17587,6 +18337,666 @@ export default {
       customSyntax: 'postcss-html',
     },
   ],
+}
+````
+
+## File: AGENTS.md
+````markdown
+# Vket Boilerplate Nuxt - AI Agent Configuration
+
+## About This File
+
+This AGENTS.md file follows the standard format for AI agent coordination in software development. AGENTS.md is a simple, open format for guiding coding agents - think of it as a README for AI agents.
+
+For more information about the AGENTS.md format and best practices, visit: https://agents.md/
+
+## Project Overview
+Nuxt4-based monorepo boilerplate using Layer Architecture, developed by HIKKY Ltd. for building scalable VR/metaverse-related web applications.
+
+### Understanding Project Structure
+Before starting development, AI agents should read `./repomix-output.md` to understand the complete project structure and codebase. This file contains:
+- Complete directory structure
+- All source code files and their contents
+- Configuration files and their relationships
+- Testing patterns and examples
+- Component implementations and naming conventions
+
+Use this file to understand existing patterns before creating new components or modifying existing code.
+
+## Dev Environment Tips
+
+### Quick Navigation
+- Use `cd layers/base` to work on base components and utilities
+- Use `cd layers/main` to develop the main application
+- Use `cd layers/showcases` to create component showcases
+- Run `bun install` at the root to install all workspace dependencies
+
+### Layer Architecture Commands
+- `bun --filter vket-boilerplate-nuxt-base dev` - Start base layer dev server
+- `bun --filter vket-boilerplate-nuxt-main dev` - Start main layer dev server
+- `bun --filter vket-boilerplate-nuxt-showcases dev` - Start showcases dev server
+- `bun --filter vket-boilerplate-nuxt-open-api generate` - Generate OpenAPI models
+
+## Development Guidelines
+
+### Component Creation
+- Use component prefixes: Ha (atoms), Hm (molecules), Ho (organisms), Ht (templates)
+- Always include `<i18n lang="yaml">` blocks in components for internationalization
+- Follow RSCSS naming convention for CSS classes
+- Components should have corresponding test files in `/test/components/`
+
+### Type Safety
+- NEVER use `any` type - this project enforces strict TypeScript
+- Define Zod schemas first, then infer types: `type Todo = z.infer<typeof todoSchema>`
+- Use type aliases over interfaces
+- Use utility types: Nullable, ValueOf, Overwrite
+
+### API Development
+- Define schemas in `/models/` using Zod
+- Create repositories in `/repositories/` for API calls
+- Use defaultApi for automatic case conversion (camelCase ↔ snake_case)
+- Always validate responses with Zod schemas
+
+## Testing Instructions
+
+### Running Tests
+- `bun --filter <layer-name> test:ut` - Run unit tests
+- `bun --filter <layer-name> test:coverage` - Generate coverage report
+- `bun --filter <layer-name> test:watch` - Watch mode for TDD
+- Tests must pass before committing
+
+### Quality Checks
+- `bun --filter <layer-name> typecheck` - Check TypeScript types (must be 0 errors)
+- `bun --filter <layer-name> lint` - Run ESLint and Stylelint (must be 0 errors)
+- `bun --filter <layer-name> fix` - Auto-fix linting issues
+- `bun --filter vket-boilerplate-nuxt-main fix-openapi-models` - Fix generated OpenAPI models
+
+## PR Instructions
+
+### Commit Format
+```
+[<layer>/<scope>] <description>
+
+- What: Brief description of changes
+- Why: Reason for the change
+- How: Implementation approach (if complex)
+```
+
+### Pre-commit Checklist
+1. Run `bun typecheck` - Must have 0 TypeScript errors
+2. Run `bun lint` - Must have 0 lint errors
+3. Run `bun test:ut` - All tests must pass
+4. Update i18n translations if UI text was added
+5. Add/update tests for modified code
+
+### PR Title Format
+`[<layer-name>] <Feature/Fix/Refactor>: <Description>`
+
+Examples:
+- `[base] Feature: Add HmDataTable component`
+- `[main] Fix: Resolve navigation issue in mobile view`
+- `[showcases] Refactor: Update component examples`
+
+## File Structure
+
+### Monorepo Layout
+```
+/layers/
+  /base/     # Shared components, utils, styles, config
+    /app/      # Application code
+    /config/   # Environment configuration (EnvType, runtimeConfig)
+    /@types/   # TypeScript type definitions
+    /i18n/     # Internationalization files
+  /main/     # Main application
+  /showcases/ # Component documentation
+  /open-api/ # API schema definitions & Zod generation
+    /openapi/  # OpenAPI specification files
+    /scripts/  # Generation scripts
+```
+
+### Import Paths
+- Use layer aliases: `#base/`, `#main/`, `#showcases/`
+- Example: `import { HmButton } from '#base/app/components/hm/button/HmButton.vue'`
+
+## Common Patterns
+
+### i18n Implementation
+```vue
+<i18n lang="yaml">
+ja:
+  title: タイトル
+en:
+  title: Title
+</i18n>
+
+<script setup lang="ts">
+const i18n = useI18n()
+</script>
+```
+
+### Zod Schema Pattern
+```typescript
+export const todoSchema = z.object({
+  id: z.number(),
+  title: z.string(),
+  completed: z.boolean(),
+})
+
+export type Todo = z.infer<typeof todoSchema>
+```
+
+### Component Pattern
+```vue
+<script lang="ts">
+export default defineComponent({
+  name: 'HmComponentName',
+})
+</script>
+
+<script setup lang="ts">
+const props = withDefaults(
+  defineProps<{
+    prop?: string
+  }>(),
+  {
+    prop: 'default',
+  },
+)
+</script>
+```
+
+## Environment Variables
+
+### System Requirements
+- Node.js 22.x (required by base layer)
+- Bun package manager
+
+### Required Variables
+- `VITE_OUTPUT_ENV` - Environment (local/staging/production)
+- API endpoints configured in `runtimeConfig.ts`
+
+### Environment Configuration System
+This project uses a sophisticated environment management system:
+- `config/models/EnvType.ts` - Environment type definitions and validation
+- `config/runtimeConfig.ts` - Environment-specific runtime configuration
+- Supports multiple environments: local, staging, production
+
+### Local Development
+```bash
+cross-env VITE_OUTPUT_ENV=local bun dev
+```
+
+## Debugging Tips
+
+### Common Issues
+1. **TypeScript errors**: Check `tsconfig.json` and ensure all imports use correct paths
+2. **i18n missing**: Every component needs an `<i18n>` block even if empty
+3. **Build fails**: Run `bun nuxi prepare` to regenerate types
+4. **Test fails**: Check snapshots with `bun test:ut -- -u` to update
+
+### Useful Commands
+- `bun nuxi analyze` - Analyze bundle size
+- `bun nuxi info` - Show Nuxt configuration
+- `bun package-update` - Update dependencies interactively
+
+## Code Review Focus
+
+### Must Check
+- No `any` types used
+- All components have i18n blocks
+- Zod schemas match API responses
+- Tests cover new functionality
+- RSCSS naming convention followed
+- Layer separation maintained
+
+### Performance
+- Images optimized and lazy loaded
+- Dynamic imports for large components
+- No unnecessary re-renders
+- Bundle size impact checked
+
+## Key Dependencies
+- **Nuxt 4.1.0** - Full-stack framework
+- **Vue 3.5.21** - Progressive JavaScript framework
+- **Zod 4.1.5** - TypeScript-first schema validation
+- **TypeScript 5.9.2** - Type safety and tooling
+- **Bun** - Fast package manager and runtime
+
+## Additional Resources
+- [Nuxt 4 Documentation](https://nuxt.com/docs)
+- [Zod Documentation](https://zod.dev)
+- [RSCSS Naming Convention](https://rscss.io)
+- [Vue 3 Composition API](https://vuejs.org/api/composition-api.html)
+````
+
+## File: README.md
+````markdown
+# Vket Boilerplate Nuxt
+
+*[日本語版は下部にあります / Japanese version available below](#日本語版)*
+
+This is a production-ready Nuxt3 boilerplate published by HIKKY Ltd., designed for building scalable VR/metaverse web applications.
+
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+[![Nuxt](https://img.shields.io/badge/Nuxt-4.0+-00DC82?logo=nuxt.js)](https://nuxt.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9+-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+[![Bun](https://img.shields.io/badge/Bun-1.0+-000000?logo=bun)](https://bun.sh/)
+
+## 🤖 For AI Agents
+
+**Before starting development, please read [`AGENTS.md`](./AGENTS.md) for comprehensive development guidelines, coding standards, and project-specific instructions.**
+
+The `AGENTS.md` file contains:
+- Project structure and Layer Architecture guidelines
+- Component naming conventions (Ha/Hm/Ho/Ht prefixes)  
+- TypeScript strict mode requirements
+- Testing and quality assurance procedures
+- i18n implementation patterns
+
+## ✨ Features
+
+- **🏗️ Nuxt Layer Architecture**: Modular monorepo structure with base/main/showcases layers
+- **⚡ Bun Workspaces**: Fast package management and monorepo support
+- **🔒 TypeScript Strict Mode**: Zero-tolerance for `any` types, full type safety
+- **🎨 Component System**: Atomic design with Ha/Hm/Ho/Ht prefixes
+- **🌍 Internationalization**: Built-in i18n support with YAML-based translations
+- **📏 Zod Validation**: Schema-first API validation and type inference
+- **🎯 RSCSS/BEM**: Structured CSS naming conventions
+- **🧪 Testing Ready**: Vitest + Testing Library setup with coverage
+- **📦 Auto-imports**: Components, composables, and utilities
+- **🛠️ Quality Tools**: ESLint, Stylelint, Husky, lint-staged
+
+## 🚀 Quick Start
+
+### Prerequisites
+- [Bun](https://bun.sh/docs/installation) (recommended) or Node.js 22+
+- Git
+
+### Installation
+
+1. **Fork this repository**
+   ```bash
+   # Click "Fork" on GitHub or use GitHub CLI
+   gh repo fork hikky-inc/vket-boilerplate-nuxt
+   ```
+
+2. **Clone and setup**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/vket-boilerplate-nuxt.git
+   cd vket-boilerplate-nuxt
+   bun install
+   ```
+
+3. **Start development**
+   ```bash
+   # Navigate to main layer (your application)
+   cd layers/main
+   
+   # Start development server
+   bun dev
+   ```
+
+4. **You're ready!** 🎉
+   - Open http://localhost:3000
+   - Start building your application with zero configuration
+
+## 📁 Project Structure
+
+```
+/layers/
+├── base/        # 🏗️ Foundation layer - shared components, utilities
+├── main/        # 🎯 Your application - main development area
+├── showcases/   # 📚 Component documentation and examples
+└── open-api/    # 🔌 API schema definitions
+```
+
+### Layer Hierarchy
+- **Base Layer**: Reusable components (Ha*, Hm*), utilities, styles
+- **Main Layer**: Your application logic, pages, specific components (Ho*, Ht*)
+- **Showcases Layer**: Living documentation and component examples
+
+## 🛠️ Development
+
+### Available Commands
+
+| Command | Description |
+|---------|-------------|
+| `bun dev` | Start development server |
+| `bun build` | Build for production |
+| `bun typecheck` | Check TypeScript types |
+| `bun lint` | Run ESLint + Stylelint |
+| `bun test:ut` | Run unit tests |
+| `bun test:coverage` | Generate test coverage |
+
+### Layer-specific Commands
+```bash
+# Work with specific layers
+bun --filter vket-boilerplate-nuxt-base dev
+bun --filter vket-boilerplate-nuxt-main build
+bun --filter vket-boilerplate-nuxt-showcases test:ut
+```
+
+### Component Development
+
+#### Naming Convention
+- `Ha*` - Atoms (HaButton, HaInput)
+- `Hm*` - Molecules (HmLoginForm, HmProductCard) 
+- `Ho*` - Organisms (HoHeader, HoProductList)
+- `Ht*` - Templates (HtTopPage, HtProductPage)
+
+#### Component Structure
+```vue
+<template>
+  <div :class="['hm-component', `-${variant}`]">
+    {{ i18n.t('title') }}
+  </div>
+</template>
+
+<i18n lang="yaml">
+ja:
+  title: タイトル
+en:
+  title: Title
+</i18n>
+
+<script lang="ts">
+export default defineComponent({
+  name: 'HmComponent',
+})
+</script>
+
+<script setup lang="ts">
+const props = withDefaults(
+  defineProps<{
+    variant?: 'primary' | 'secondary'
+  }>(),
+  {
+    variant: 'primary',
+  },
+)
+
+const i18n = useI18n()
+</script>
+```
+
+## 🧪 Quality Assurance
+
+### Required Checks
+Before committing, ensure all these pass:
+```bash
+bun typecheck  # Must be 0 TypeScript errors
+bun lint       # Must be 0 lint errors  
+bun test:ut    # All tests must pass
+```
+
+### Git Hooks
+- **Pre-commit**: Automatically runs lint-staged
+- **Commit-msg**: Enforces conventional commit format
+
+## 🌐 Internationalization
+
+All components must include i18n blocks:
+```vue
+<i18n lang="yaml">
+ja:
+  welcome: ようこそ
+  description: これは説明です
+en:
+  welcome: Welcome
+  description: This is a description
+</i18n>
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+```bash
+# .env.local
+VITE_OUTPUT_ENV=local  # local/staging/production
+```
+
+### Layer Configuration
+Each layer has its own:
+- `nuxt.config.ts` - Nuxt configuration
+- `package.json` - Dependencies and scripts
+- `tsconfig.json` - TypeScript configuration
+
+## 🤝 Contributing
+
+1. **Read the guidelines**: Check [`AGENTS.md`](./AGENTS.md) for development standards
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Follow the code style**: Use the established patterns
+4. **Add tests**: Cover your changes with tests
+5. **Run quality checks**: Ensure all checks pass
+6. **Submit PR**: Use the provided PR template
+
+### Commit Convention
+```
+[layer/scope] type: description
+
+- What: Brief description of changes
+- Why: Reason for the change  
+- How: Implementation approach (if complex)
+```
+
+Examples:
+- `[base/components] feat: add HmDataTable component`
+- `[main/pages] fix: resolve navigation issue in mobile view`
+
+## 📚 Documentation
+
+- [`AGENTS.md`](./AGENTS.md) - Complete development guide for AI agents
+- [`repomix-output.md`](./repomix-output.md) - Full codebase structure
+- [Nuxt 3 Docs](https://nuxt.com/docs) - Framework documentation
+- [Zod Docs](https://zod.dev) - Schema validation
+- [RSCSS](https://rscss.io) - CSS naming convention
+
+## 🔗 Useful Links
+
+- [HIKKY Ltd.](https://www.hikky.co.jp/) - Company website
+- [VRChat](https://hello.vrchat.com/) - VR platform
+- [Virtual Market](https://vket.com/) - Virtual event platform
+
+## 📄 License
+
+MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+# 日本語版
+
+これはHIKKY株式会社が公開するNuxt3本格運用向けボイラープレートで、スケーラブルなVR/メタバース関連Webアプリケーション構築用に設計されています。
+
+## 🤖 AI エージェント向け
+
+**開発を開始する前に、包括的な開発ガイドライン、コーディング標準、プロジェクト固有の指示について[`AGENTS.md`](./AGENTS.md)をお読みください。**
+
+`AGENTS.md`ファイルには以下が含まれます：
+- プロジェクト構造とレイヤーアーキテクチャのガイドライン
+- コンポーネント命名規則（Ha/Hm/Ho/Htプレフィックス）
+- TypeScript厳格モード要件  
+- テストと品質保証手順
+- i18n実装パターン
+
+## ✨ 特徴
+
+- **🏗️ Nuxt レイヤーアーキテクチャ**: base/main/showcasesレイヤーによるモジュラーモノレポ構造
+- **⚡ Bun ワークスペース**: 高速パッケージ管理とモノレポサポート
+- **🔒 TypeScript厳格モード**: `any`型ゼロトレランス、完全な型安全性
+- **🎨 コンポーネントシステム**: Ha/Hm/Ho/Htプレフィックスによるアトミックデザイン
+- **🌍 国際化**: YAMLベース翻訳によるi18nサポート
+- **📏 Zod バリデーション**: スキーマファーストAPIバリデーションと型推論
+- **🎯 RSCSS/BEM**: 構造化CSS命名規則
+- **🧪 テスト対応**: Vitest + Testing Libraryセットアップ、カバレッジ付き
+- **📦 自動インポート**: コンポーネント、コンポーザブル、ユーティリティ
+- **🛠️ 品質ツール**: ESLint、Stylelint、Husky、lint-staged
+
+## 🚀 クイックスタート
+
+### 前提条件
+- [Bun](https://bun.sh/docs/installation)（推奨）またはNode.js 22+
+- Git
+
+### インストール
+
+1. **このリポジトリをフォーク**
+   ```bash
+   # GitHubで「Fork」をクリックするかGitHub CLIを使用
+   gh repo fork hikky-inc/vket-boilerplate-nuxt
+   ```
+
+2. **クローンとセットアップ**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/vket-boilerplate-nuxt.git
+   cd vket-boilerplate-nuxt
+   bun install
+   ```
+
+3. **開発開始**
+   ```bash
+   # メインレイヤー（あなたのアプリケーション）に移動
+   cd layers/main
+   
+   # 開発サーバー起動
+   bun dev
+   ```
+
+4. **準備完了！** 🎉
+   - http://localhost:3000 を開く
+   - ゼロ設定でアプリケーション構築を開始
+
+## 📁 プロジェクト構造
+
+```
+/layers/
+├── base/        # 🏗️ 基盤レイヤー - 共有コンポーネント、ユーティリティ
+├── main/        # 🎯 あなたのアプリケーション - メイン開発エリア  
+├── showcases/   # 📚 コンポーネントドキュメントと例
+└── open-api/    # 🔌 APIスキーマ定義
+```
+
+### レイヤー階層
+- **Baseレイヤー**: 再利用可能コンポーネント（Ha*, Hm*）、ユーティリティ、スタイル
+- **Mainレイヤー**: アプリケーションロジック、ページ、固有コンポーネント（Ho*, Ht*）
+- **Showcasesレイヤー**: 生きたドキュメントとコンポーネント例
+
+## 🛠️ 開発
+
+### 利用可能コマンド
+
+| コマンド | 説明 |
+|---------|-------------|
+| `bun dev` | 開発サーバー起動 |
+| `bun build` | 本番用ビルド |
+| `bun typecheck` | TypeScript型チェック |
+| `bun lint` | ESLint + Stylelint実行 |
+| `bun test:ut` | ユニットテスト実行 |
+| `bun test:coverage` | テストカバレッジ生成 |
+
+### レイヤー固有コマンド
+```bash
+# 特定レイヤーでの作業
+bun --filter vket-boilerplate-nuxt-base dev
+bun --filter vket-boilerplate-nuxt-main build
+bun --filter vket-boilerplate-nuxt-showcases test:ut
+```
+
+## 🧪 品質保証
+
+### 必須チェック
+コミット前に以下が全て通ることを確認：
+```bash
+bun typecheck  # TypeScriptエラー0件必須
+bun lint       # lintエラー0件必須
+bun test:ut    # 全テスト成功必須
+```
+
+## 🌐 国際化
+
+全コンポーネントはi18nブロックを含める必要があります：
+```vue
+<i18n lang="yaml">
+ja:
+  welcome: ようこそ
+  description: これは説明です
+en:
+  welcome: Welcome  
+  description: This is a description
+</i18n>
+```
+
+## 🤝 コントリビューション
+
+1. **ガイドラインを読む**: 開発標準について[`AGENTS.md`](./AGENTS.md)を確認
+2. **フィーチャーブランチ作成**: `git checkout -b feature/amazing-feature`
+3. **コードスタイルに従う**: 確立されたパターンを使用
+4. **テストを追加**: 変更にテストを追加
+5. **品質チェック実行**: 全チェックが通ることを確認
+6. **PR提出**: 提供されたPRテンプレートを使用
+
+## 📄 ライセンス
+
+MITライセンス - 詳細は[LICENSE](LICENSE)ファイルをご覧ください。
+````
+
+## File: layers/base/@types/components.d.ts
+````typescript
+/* eslint-disable */
+// @ts-nocheck
+// Generated by unplugin-vue-components
+// Read more: https://github.com/vuejs/core/pull/3399
+// biome-ignore lint: disable
+export {}
+
+/* prettier-ignore */
+declare module 'vue' {
+  export interface GlobalComponents {
+    HaBaseButton: typeof import('./../app/components/ha/base/HaBaseButton.vue')['default']
+    HaBaseInput: typeof import('./../app/components/ha/base/HaBaseInput.vue')['default']
+    HaContainer: typeof import('./../app/components/ha/HaContainer.vue')['default']
+    HaDialog: typeof import('./../app/components/ha/HaDialog.vue')['default']
+    HaDialogElement: typeof import('./../app/components/ha/HaDialogElement.vue')['default']
+    HaHamburger: typeof import('./../app/components/ha/HaHamburger.vue')['default']
+    HaImage: typeof import('./../app/components/ha/HaImage.vue')['default']
+    HaLabel: typeof import('./../app/components/ha/HaLabel.vue')['default']
+    HaLink: typeof import('./../app/components/ha/HaLink.vue')['default']
+    HaLoading: typeof import('./../app/components/ha/HaLoading.vue')['default']
+    HaLoadingIcon: typeof import('./../app/components/ha/HaLoadingIcon.vue')['default']
+    HaModal: typeof import('./../app/components/ha/HaModal.vue')['default']
+    HaSelectBox: typeof import('./../app/components/ha/HaSelectBox.vue')['default']
+    HaSkewBackground: typeof import('./../app/components/ha/HaSkewBackground.vue')['default']
+    HaTag: typeof import('./../app/components/ha/HaTag.vue')['default']
+    HaTextarea: typeof import('./../app/components/ha/HaTextarea.vue')['default']
+    HaVideo: typeof import('./../app/components/ha/HaVideo.vue')['default']
+    HmAccordion: typeof import('./../app/components/hm/HmAccordion.vue')['default']
+    HmAutoCarousel: typeof import('./../app/components/hm/HmAutoCarousel.vue')['default']
+    HmButton: typeof import('./../app/components/hm/button/HmButton.vue')['default']
+    HmButtonClose: typeof import('./../app/components/hm/button/HmButtonClose.vue')['default']
+    HmButtonFavorite: typeof import('./../app/components/hm/button/HmButtonFavorite.vue')['default']
+    HmClipping: typeof import('./../app/components/hm/HmClipping.vue')['default']
+    HmDialogElement: typeof import('./../app/components/hm/HmDialogElement.vue')['default']
+    HmIconUser: typeof import('./../app/components/hm/icon/HmIconUser.vue')['default']
+    HmInputCheckbox: typeof import('./../app/components/hm/input/HmInputCheckbox.vue')['default']
+    HmInputDatetime: typeof import('./../app/components/hm/input/HmInputDatetime.vue')['default']
+    HmInputFile: typeof import('./../app/components/hm/input/HmInputFile.vue')['default']
+    HmInputRadio: typeof import('./../app/components/hm/input/HmInputRadio.vue')['default']
+    HmInputRadioChangeable: typeof import('./../app/components/hm/input/HmInputRadioChangeable.vue')['default']
+    HmInputSingleImage: typeof import('./../app/components/hm/input/HmInputSingleImage.vue')['default']
+    HmInputText: typeof import('./../app/components/hm/input/HmInputText.vue')['default']
+    HmMenuExample: typeof import('./../app/components/hm/HmMenuExample.vue')['default']
+    HmNoteList: typeof import('./../app/components/hm/HmNoteList.vue')['default']
+    HmPaging: typeof import('./../app/components/hm/HmPaging.vue')['default']
+    HmPicture: typeof import('./../app/components/hm/HmPicture.vue')['default']
+    HmPopup: typeof import('./../app/components/hm/HmPopup.vue')['default']
+    HmSkeletonScreen: typeof import('./../app/components/hm/HmSkeletonScreen.vue')['default']
+    HmSlider: typeof import('./../app/components/hm/HmSlider.vue')['default']
+    HmSliderItem: typeof import('./../app/components/hm/HmSliderItem.vue')['default']
+    HmSocialShareLink: typeof import('./../app/components/hm/HmSocialShareLink.vue')['default']
+    HmTab: typeof import('./../app/components/hm/HmTab.vue')['default']
+    HmTsx: typeof import('./../app/components/hm/HmTsx.vue')['default']
+    RouterLink: typeof import('vue-router')['RouterLink']
+    RouterView: typeof import('vue-router')['RouterView']
+  }
 }
 ````
 
@@ -18649,63 +20059,6 @@ const changeTab = (index: number): void => {
 </style>
 ````
 
-## File: layers/base/app/components/hm/HmTsx.vue
-````vue
-<template>
-  <div class="hm-tsx">
-    <DefaultSlot />
-  </div>
-</template>
-
-<script lang="tsx" setup>
-import { Fragment } from 'vue'
-
-const slots = useSlots() as { default?: () => unknown }
-const defaultSlot = slots.default ? slots.default() : null
-
-const DefaultSlot = () => {
-  return <Fragment>{defaultSlot}</Fragment>
-}
-</script>
-````
-
-## File: layers/base/app/composables/useDefaultApi.ts
-````typescript
-/**
- * Nuxt3 FWにおける API composables。
- *
- * @packageDocumentation
- */
-
-import { useFetch, UseFetchOptions } from 'nuxt/app'
-import type { FetchOptions } from 'ofetch'
-import { ref } from 'vue'
-import {
-  defaultRepositoryFactory,
-  DefaultRepositoryKey,
-} from '#base/app/utils/default-factory'
-
-export const defaultFetcher = (
-  path: string,
-  options: UseFetchOptions<FetchOptions>,
-) => {
-  return useFetch(path, options)
-}
-
-const _getRepo = <K extends DefaultRepositoryKey>(endpoint: K) => {
-  return defaultRepositoryFactory.get(endpoint)
-}
-
-export default function useDefaultApi<K extends DefaultRepositoryKey>(
-  endpoint: K,
-) {
-  const repository = ref(_getRepo(endpoint))
-  return {
-    repository,
-  }
-}
-````
-
 ## File: layers/base/app/composables/useLocale.ts
 ````typescript
 import { getSingleCookieValue } from '#base/app/utils/storage-control'
@@ -19079,37 +20432,6 @@ export const safeSync = <T, E extends string = string>(
       : makeErrorMessage('予期しないエラーが発生しました') as ErrorMessage<E>
     return createError(errorMessage)
   }
-}
-````
-
-## File: layers/base/app/repositories/exampleRepository.ts
-````typescript
-import { z } from 'zod/v3'
-import { todoSchema } from '#base/app/models/todo'
-import { requireRuntimeConfig } from '#base/app/plugins/runtimeConfig'
-import defaultApi from '#base/app/utils/default-api'
-import { raiseError } from '#base/app/utils/error'
-import { requireValueOf } from '#base/app/utils/zod'
-
-const statusSchema = z.literal('ok').or(z.literal('ng'))
-
-export const getExampleResponseSchema = z.object({
-  status: statusSchema,
-  data: z.object({
-    todos: z.array(todoSchema),
-  }),
-})
-export type GetExampleResponse = z.infer<typeof getExampleResponseSchema>
-
-export default {
-  get: {
-    async getExample() {
-      const prefix
-        = requireRuntimeConfig().public?.apiPrefix ?? raiseError('getExample()')
-      const response = await defaultApi('get', `${prefix}/example`)
-      return requireValueOf(getExampleResponseSchema, response)
-    },
-  } as const,
 }
 ````
 
@@ -19662,109 +20984,6 @@ test('error display', async () => {
     `error max ${stringsMaxLength} strings`,
   )
 })
-````
-
-## File: layers/base/app/test/components/hm/__snapshots__/HmClipping.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-7cbd279a="" class="hm-clipping">
-  <div data-v-7cbd279a="" class="cropper-container">
-    <div data-v-7cbd279a="" class="vue-advanced-cropper cropper">
-      <div class="vue-advanced-cropper__stretcher"></div>
-      <div class="vue-advanced-cropper__boundaries" style="width: auto; height: auto; transition: opacity 300ms; pointer-events: none; opacity: 0;">
-        <div class="vue-advanced-cropper__cropper-wrapper">
-          <div class="vue-advanced-cropper__background" style="width: auto; height: auto; transition: opacity 300ms; pointer-events: none; opacity: 0;"></div>
-          <div class="vue-advanced-cropper__image-wrapper"><img class="vue-advanced-cropper__image" style="height: 0px; left: 0px; top: 0px; transform: translate(NaNpx, NaNpx) rotate(0deg)  scaleX(NaN)  scaleY(NaN);"></div>
-          <div class="vue-advanced-cropper__foreground" style="width: auto; height: auto; transition: opacity 300ms; pointer-events: none; opacity: 0;"></div>
-          <div class="vue-rectangle-stencil vue-rectangle-stencil--movable" style="width: 0px; height: 0px; transform: translate(0px, 0px); display: none;">
-            <div class="vue-bounding-box vue-rectangle-stencil__bounding-box">
-              <div>
-                <div class="vue-preview vue-preview--fill vue-rectangle-stencil__preview">
-                  <div class="vue-preview__wrapper" style="width: 0px; height: 0px; left: calc(50% - 0px); top: calc(50% - 0px);"><img class="vue-preview__image" style="width: 0px; height: 0px; left: 0px; top: 0px; transform: translate(
-				NaNpx,NaNpx)  rotate(0deg)  scaleX(NaN)  scaleY(NaN); display: none;"></div>
-                </div>
-              </div>
-              <div>
-                <div class="vue-line-wrapper vue-line-wrapper--east vue-simple-line-wrapper vue-simple-line-wrapper--east">
-                  <div class="vue-simple-line vue-simple-line--east"></div>
-                </div>
-                <div class="vue-line-wrapper vue-line-wrapper--west vue-simple-line-wrapper vue-simple-line-wrapper--west">
-                  <div class="vue-simple-line vue-simple-line--west"></div>
-                </div>
-                <div class="vue-line-wrapper vue-line-wrapper--south vue-simple-line-wrapper vue-simple-line-wrapper--south">
-                  <div class="vue-simple-line vue-simple-line--south"></div>
-                </div>
-                <div class="vue-line-wrapper vue-line-wrapper--north vue-simple-line-wrapper vue-simple-line-wrapper--north">
-                  <div class="vue-simple-line vue-simple-line--north"></div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--east-south">
-                <div class="vue-handler-wrapper vue-handler-wrapper--east-south vue-simple-handler-wrapper vue-simple-handler-wrapper--east vue-simple-handler-wrapper--south vue-simple-handler-wrapper--east-south vue-bounding-box__handler vue-bounding-box__handler--east-south">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--east vue-simple-handler--south vue-simple-handler--east-south"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--east-north">
-                <div class="vue-handler-wrapper vue-handler-wrapper--east-north vue-simple-handler-wrapper vue-simple-handler-wrapper--east vue-simple-handler-wrapper--north vue-simple-handler-wrapper--east-north vue-bounding-box__handler vue-bounding-box__handler--east-north">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--east vue-simple-handler--north vue-simple-handler--east-north"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--east">
-                <div class="vue-handler-wrapper vue-handler-wrapper--east vue-simple-handler-wrapper vue-simple-handler-wrapper--east vue-bounding-box__handler vue-bounding-box__handler--east">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--east"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--west-south">
-                <div class="vue-handler-wrapper vue-handler-wrapper--west-south vue-simple-handler-wrapper vue-simple-handler-wrapper--west vue-simple-handler-wrapper--south vue-simple-handler-wrapper--west-south vue-bounding-box__handler vue-bounding-box__handler--west-south">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--west vue-simple-handler--south vue-simple-handler--west-south"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--west-north">
-                <div class="vue-handler-wrapper vue-handler-wrapper--west-north vue-simple-handler-wrapper vue-simple-handler-wrapper--west vue-simple-handler-wrapper--north vue-simple-handler-wrapper--west-north vue-bounding-box__handler vue-bounding-box__handler--west-north">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--west vue-simple-handler--north vue-simple-handler--west-north"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--west">
-                <div class="vue-handler-wrapper vue-handler-wrapper--west vue-simple-handler-wrapper vue-simple-handler-wrapper--west vue-bounding-box__handler vue-bounding-box__handler--west">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--west"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--south">
-                <div class="vue-handler-wrapper vue-handler-wrapper--south vue-simple-handler-wrapper vue-simple-handler-wrapper--south vue-bounding-box__handler vue-bounding-box__handler--south">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--south"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--north">
-                <div class="vue-handler-wrapper vue-handler-wrapper--north vue-simple-handler-wrapper vue-simple-handler-wrapper--north vue-bounding-box__handler vue-bounding-box__handler--north">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--north"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div><canvas style="display: none;"></canvas><canvas style="display: none;"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!--v-if-->
-</div>"
-`;
 ````
 
 ## File: layers/base/app/test/components/hm/icon/HmIconUser.spec.ts
@@ -20446,127 +21665,6 @@ describe('event test', () => {
 })
 ````
 
-## File: layers/base/app/test/components/hm/HmClipping.spec.ts
-````typescript
-import { mount, shallowMount } from '@vue/test-utils'
-import HmClipping from '#base/app/components/hm/HmClipping.vue'
-
-test('ref component', () => {
-  expect(HmClipping).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HmClipping, {
-    props: {
-      src: '',
-    },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-test('props', () => {
-  const wrapper = mount(HmClipping, {
-    props: {
-      src: '',
-      width: 256,
-      height: 256,
-      cropperAreaHeight: 0,
-      doResize: true,
-      stencil: 'RectangleStencil',
-      imageRestriction: 'stencil',
-      autoZoom: false,
-      ext: 'jpeg',
-    },
-  })
-  expect(wrapper.props('src')).toStrictEqual('')
-  expect(wrapper.props('width')).toStrictEqual(256)
-  expect(wrapper.props('height')).toStrictEqual(256)
-  expect(wrapper.props('cropperAreaHeight')).toStrictEqual(0)
-  expect(wrapper.props('doResize')).toStrictEqual(true)
-  expect(wrapper.props('stencil')).toStrictEqual('RectangleStencil')
-  expect(wrapper.props('imageRestriction')).toStrictEqual('stencil')
-  expect(wrapper.props('autoZoom')).toStrictEqual(false)
-  expect(wrapper.props('ext')).toStrictEqual('jpeg')
-})
-
-describe('events', () => {
-  it(':button click to emit clipped', async () => {
-    // NOTE: mountしてcomponentを展開すると、「Error: connect ECONNREFUSED」になる
-    const wrapper = shallowMount(HmClipping, {
-      props: {
-        src: '/dummy',
-        width: 256,
-        height: 256,
-        cropperAreaHeight: 0,
-        doResize: true,
-        stencil: 'RectangleStencil',
-        imageRestriction: 'stencil',
-        autoZoom: false,
-        ext: 'jpeg',
-      },
-    })
-    await wrapper.find('ha-base-button-stub').trigger('click')
-    expect(wrapper.emitted()).toHaveProperty('clipped')
-    expect(wrapper.emitted()['clipped']).toHaveLength(1)
-    expect(wrapper.emitted()['clipped']).toEqual([[[]]])
-  })
-
-  // TODO: Cropperのchangeのテスト
-  it(':Cropper change', () => {
-    // NOTE: mountしてcomponentを展開すると、「Error: connect ECONNREFUSED」になる
-    const _wrapper = shallowMount(HmClipping, {
-      props: {
-        src: '/dummy',
-        width: 256,
-        height: 256,
-        cropperAreaHeight: 0,
-        doResize: true,
-        stencil: 'RectangleStencil',
-        imageRestriction: 'stencil',
-        autoZoom: false,
-        ext: 'jpeg',
-      },
-    })
-    /*
-     * ERROR: 発火はできるが、canvas.toDataURLが読めず、vi.importActualにてcanvas.toDataURLのみを偽装してもエラーとなったのでコメントアウトする
-     * await wrapper.find('cropper-stub').trigger('change')
-     */
-  })
-})
-````
-
-## File: layers/base/app/test/composables/useDefaultApi.spec.ts
-````typescript
-// NOTE: そもそももっといいテストあれば是非
-import { UseFetchOptions } from 'nuxt/app'
-import { FetchOptions } from 'ofetch'
-import useDefaultApi, { defaultFetcher } from '#base/app/composables/useDefaultApi'
-
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-  useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
-    return { path, options }
-  }),
-}))
-
-test('useDefaultApi', () => {
-  // NOTE: useDefaultApiで使用できるRepositoryKeyを入れた際にオブジェクトが返ってくること。この場合useDefaultApi('hoge')など存在しない場合はテストが落ちる
-  const useApiExample = useDefaultApi('example').repository.value
-  const expectObj = { get: {} }
-  expect(useApiExample).toMatchObject(expectObj)
-})
-
-test('defaultFetcher', () => {
-  const path = '/example'
-  const options = {}
-  // useFetchが発火することを確認。戻り値はmockの戻り値とする
-  expect(defaultFetcher(path, options)).toStrictEqual({ path, options })
-})
-````
-
 ## File: layers/base/app/test/utils/zod.spec.ts
 ````typescript
 import { fc, test } from '@fast-check/vitest'
@@ -20652,186 +21750,6 @@ describe('makeRecursiveSchema', () => {
     expect(subTree.value).toBe('foo')
   })
 })
-````
-
-## File: layers/base/app/utils/default-api.ts
-````typescript
-/**
- * apiの抽象化。 ofetch 準拠
- *
- * @packageDocumentation
- */
-
-import camelcaseKeys from 'camelcase-keys'
-import type { FetchOptions } from 'ofetch'
-import { $fetch as _oFetchApi } from 'ofetch' // not nuxt
-import snakecaseKeys from 'snakecase-keys'
-import { raiseError } from '#base/app/utils/error'
-import { requireRuntimeConfig } from '#base/app/plugins/runtimeConfig'
-import { pluginFetchApi } from '#base/app/plugins/fetch' // nuxt
-
-export type Method
-  = | 'GET'
-    | 'HEAD'
-    | 'PATCH'
-    | 'POST'
-    | 'PUT'
-    | 'DELETE'
-    | 'CONNECT'
-    | 'OPTIONS'
-    | 'TRACE'
-    | 'get'
-    | 'head'
-    | 'patch'
-    | 'post'
-    | 'put'
-    | 'delete'
-    | 'connect'
-    | 'options'
-    | 'trace'
-
-/**
- * @definication 使用するAPIの定義
- */
-const defaultFetchOptions: FetchOptions = {
-  retry: 2,
-  // headers: {},
-  onRequest: (ctx) => {
-    if (
-      !ctx.options.body
-      || typeof ctx.options.body !== 'object'
-      // FormDataをsnakecaseKeysに突っ込むと空Objectになるので、append時、snakecaseにしておく
-      || ctx.options.body instanceof FormData
-    )
-      // [todo] ここのasを直すとsnakecaseKeysの型が合わなくなるので、要検討
-      return
-    ctx.options.body = snakecaseKeys(
-      ctx.options.body as Record<string, unknown>,
-      { deep: true },
-    )
-  },
-  // onRequestError: async (ctx) => {},
-  onResponse: async (ctx) => {
-    if (!ctx.response._data || typeof ctx.response._data !== 'object') return
-    ctx.response._data = await camelcaseKeys(ctx.response._data, { deep: true })
-  },
-  // onResponseError: async (ctx) => {},
-}
-
-const apiFetchFunction = (
-  method: Method,
-  _path: string,
-  _options?: Omit<FetchOptions, 'method'>,
-) => {
-  // デフォルトのAPI(ofetch)
-  const _DEFAULT_FETCH_API = pluginFetchApi().fetchApi || _oFetchApi
-  // NOTE: useFetchはラップしないことにし$fetchを使うようにする。方針が変わった場合は修正する
-  const FETCH_API = _DEFAULT_FETCH_API
-  return (path = _path, opts = _options) => {
-    const options = { ...opts, method }
-    return FETCH_API(path, options)
-  }
-}
-
-// HACK: 即時関数で返したい...
-export const defaultApi = {
-  get: (path: string, fetchOptions: FetchOptions = {}) => {
-    const methodOptions: FetchOptions = {
-      baseURL:
-        fetchOptions.baseURL
-        ?? requireRuntimeConfig().public?.baseUrl
-        ?? raiseError('Missing config baseUrl'),
-    }
-    const options = {
-      ...defaultFetchOptions,
-      ...methodOptions,
-      ...fetchOptions,
-    }
-    return apiFetchFunction('GET', path, options)()
-  },
-  post: (path: string, fetchOptions: FetchOptions = {}) => {
-    const methodOptions: FetchOptions = {
-      baseURL:
-        fetchOptions.baseURL
-        ?? requireRuntimeConfig().public?.baseUrl
-        ?? raiseError('Missing config baseUrl'),
-    }
-    const options = {
-      ...defaultFetchOptions,
-      ...methodOptions,
-      ...fetchOptions,
-    }
-    return apiFetchFunction('POST', path, options)()
-  },
-  put: (path: string, fetchOptions: FetchOptions = {}) => {
-    const methodOptions: FetchOptions = {
-      baseURL:
-        fetchOptions.baseURL
-        ?? requireRuntimeConfig().public?.baseUrl
-        ?? raiseError('Missing config baseUrl'),
-    }
-    const options = {
-      ...defaultFetchOptions,
-      ...methodOptions,
-      ...fetchOptions,
-    }
-    return apiFetchFunction('PUT', path, options)()
-  },
-  patch: (path: string, fetchOptions: FetchOptions = {}) => {
-    const methodOptions: FetchOptions = {
-      baseURL:
-        fetchOptions.baseURL
-        ?? requireRuntimeConfig().public?.baseUrl
-        ?? raiseError('Missing config baseUrl'),
-    }
-    const options = {
-      ...defaultFetchOptions,
-      ...methodOptions,
-      ...fetchOptions,
-    }
-    return apiFetchFunction('PATCH', path, options)()
-  },
-  delete: (path: string, fetchOptions: FetchOptions = {}) => {
-    const methodOptions: FetchOptions = {
-      baseURL:
-        fetchOptions.baseURL
-        ?? requireRuntimeConfig().public?.baseUrl
-        ?? raiseError('Missing config baseUrl'),
-    }
-    const options = {
-      ...defaultFetchOptions,
-      ...methodOptions,
-      ...fetchOptions,
-    }
-    return apiFetchFunction('DELETE', path, options)()
-  },
-} as const
-
-export default (
-  method: Method,
-  path: string,
-  fetchOptions: FetchOptions = {},
-) => {
-  switch (method) {
-    case 'GET':
-    case 'get':
-      return defaultApi.get(path, fetchOptions)
-    case 'POST':
-    case 'post':
-      return defaultApi.post(path, fetchOptions)
-    case 'PUT':
-    case 'put':
-      return defaultApi.put(path, fetchOptions)
-    case 'PATCH':
-    case 'patch':
-      return defaultApi.patch(path, fetchOptions)
-    case 'DELETE':
-    case 'delete':
-      return defaultApi.delete(path, fetchOptions)
-    default:
-      return defaultApi.get(path, fetchOptions)
-  }
-}
 ````
 
 ## File: layers/base/app/utils/url.ts
@@ -21144,6 +22062,162 @@ export default {
     ja,
     en,
   },
+}
+````
+
+## File: layers/main/@types/auto-imports.d.ts
+````typescript
+/* eslint-disable */
+/* prettier-ignore */
+// @ts-nocheck
+// noinspection JSUnusedGlobalSymbols
+// Generated by unplugin-auto-import
+// biome-ignore lint: disable
+export {}
+declare global {
+  const EffectScope: typeof import('vue')['EffectScope']
+  const abortNavigation: typeof import('#app')['abortNavigation']
+  const addRouteMiddleware: typeof import('#app')['addRouteMiddleware']
+  const api: typeof import('../app/utils/api')['default']
+  const cancelIdleCallback: typeof import('#app')['cancelIdleCallback']
+  const clearError: typeof import('#app')['clearError']
+  const clearNuxtData: typeof import('#app')['clearNuxtData']
+  const clearNuxtState: typeof import('#app')['clearNuxtState']
+  const computed: typeof import('vue')['computed']
+  const createApp: typeof import('vue')['createApp']
+  const createError: typeof import('#app')['createError']
+  const customRef: typeof import('vue')['customRef']
+  const defineAppConfig: typeof import('#app')['defineAppConfig']
+  const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
+  const defineComponent: typeof import('vue')['defineComponent']
+  const defineI18nConfig: typeof import('#i18n')['defineI18nConfig']
+  const defineI18nLocale: typeof import('#i18n')['defineI18nLocale']
+  const defineI18nRoute: typeof import('#i18n')['defineI18nRoute']
+  const defineNuxtComponent: typeof import('#app')['defineNuxtComponent']
+  const defineNuxtLink: typeof import('#app')['defineNuxtLink']
+  const defineNuxtPlugin: typeof import('#app')['defineNuxtPlugin']
+  const defineNuxtRouteMiddleware: typeof import('#app')['defineNuxtRouteMiddleware']
+  const definePayloadPlugin: typeof import('#app')['definePayloadPlugin']
+  const definePayloadReducer: typeof import('#app')['definePayloadReducer']
+  const definePayloadReviver: typeof import('#app')['definePayloadReviver']
+  const effectScope: typeof import('vue')['effectScope']
+  const fetcher: typeof import('../app/composables/useApi')['fetcher']
+  const getAppManifest: typeof import('#app')['getAppManifest']
+  const getCurrentInstance: typeof import('vue')['getCurrentInstance']
+  const getCurrentScope: typeof import('vue')['getCurrentScope']
+  const getCurrentWatcher: typeof import('vue')['getCurrentWatcher']
+  const getI18nArray: typeof import('../app/utils/i18n')['getI18nArray']
+  const getRouteRules: typeof import('#app')['getRouteRules']
+  const h: typeof import('vue')['h']
+  const inject: typeof import('vue')['inject']
+  const isNuxtError: typeof import('#app')['isNuxtError']
+  const isPrerendered: typeof import('#app')['isPrerendered']
+  const isProxy: typeof import('vue')['isProxy']
+  const isReactive: typeof import('vue')['isReactive']
+  const isReadonly: typeof import('vue')['isReadonly']
+  const isRef: typeof import('vue')['isRef']
+  const isShallow: typeof import('vue')['isShallow']
+  const loadPayload: typeof import('#app')['loadPayload']
+  const markRaw: typeof import('vue')['markRaw']
+  const navigateTo: typeof import('#app')['navigateTo']
+  const nextTick: typeof import('vue')['nextTick']
+  const onActivated: typeof import('vue')['onActivated']
+  const onBeforeMount: typeof import('vue')['onBeforeMount']
+  const onBeforeRouteLeave: typeof import('#app')['onBeforeRouteLeave']
+  const onBeforeRouteUpdate: typeof import('#app')['onBeforeRouteUpdate']
+  const onBeforeUnmount: typeof import('vue')['onBeforeUnmount']
+  const onBeforeUpdate: typeof import('vue')['onBeforeUpdate']
+  const onDeactivated: typeof import('vue')['onDeactivated']
+  const onErrorCaptured: typeof import('vue')['onErrorCaptured']
+  const onMounted: typeof import('vue')['onMounted']
+  const onNuxtReady: typeof import('#app')['onNuxtReady']
+  const onRenderTracked: typeof import('vue')['onRenderTracked']
+  const onRenderTriggered: typeof import('vue')['onRenderTriggered']
+  const onScopeDispose: typeof import('vue')['onScopeDispose']
+  const onServerPrefetch: typeof import('vue')['onServerPrefetch']
+  const onUnmounted: typeof import('vue')['onUnmounted']
+  const onUpdated: typeof import('vue')['onUpdated']
+  const onWatcherCleanup: typeof import('vue')['onWatcherCleanup']
+  const prefetchComponents: typeof import('#app')['prefetchComponents']
+  const preloadComponents: typeof import('#app')['preloadComponents']
+  const preloadPayload: typeof import('#app')['preloadPayload']
+  const preloadRouteComponents: typeof import('#app')['preloadRouteComponents']
+  const prerenderRoutes: typeof import('#app')['prerenderRoutes']
+  const provide: typeof import('vue')['provide']
+  const reactive: typeof import('vue')['reactive']
+  const readonly: typeof import('vue')['readonly']
+  const ref: typeof import('vue')['ref']
+  const refreshNuxtData: typeof import('#app')['refreshNuxtData']
+  const reloadNuxtApp: typeof import('#app')['reloadNuxtApp']
+  const repositories: typeof import('../app/utils/factory')['repositories']
+  const repositoryFactory: typeof import('../app/utils/factory')['repositoryFactory']
+  const requestIdleCallback: typeof import('#app')['requestIdleCallback']
+  const resolveComponent: typeof import('vue')['resolveComponent']
+  const setPageLayout: typeof import('#app')['setPageLayout']
+  const setResponseStatus: typeof import('#app')['setResponseStatus']
+  const shallowReactive: typeof import('vue')['shallowReactive']
+  const shallowReadonly: typeof import('vue')['shallowReadonly']
+  const shallowRef: typeof import('vue')['shallowRef']
+  const showError: typeof import('#app')['showError']
+  const toRaw: typeof import('vue')['toRaw']
+  const toRef: typeof import('vue')['toRef']
+  const toRefs: typeof import('vue')['toRefs']
+  const toValue: typeof import('vue')['toValue']
+  const triggerRef: typeof import('vue')['triggerRef']
+  const unref: typeof import('vue')['unref']
+  const updateAppConfig: typeof import('#app')['updateAppConfig']
+  const useApi: typeof import('../app/composables/useApi')['default']
+  const useAppConfig: typeof import('#app')['useAppConfig']
+  const useAsyncData: typeof import('#app')['useAsyncData']
+  const useAttrs: typeof import('vue')['useAttrs']
+  const useBrowserLocale: typeof import('#i18n')['useBrowserLocale']
+  const useCookie: typeof import('#app')['useCookie']
+  const useCookieLocale: typeof import('#i18n')['useCookieLocale']
+  const useCssModule: typeof import('vue')['useCssModule']
+  const useCssVars: typeof import('vue')['useCssVars']
+  const useError: typeof import('#app')['useError']
+  const useFetch: typeof import('#app')['useFetch']
+  const useI18n: typeof import('vue-i18n')['useI18n']
+  const useId: typeof import('vue')['useId']
+  const useLazyAsyncData: typeof import('#app')['useLazyAsyncData']
+  const useLazyFetch: typeof import('#app')['useLazyFetch']
+  const useLocaleHead: typeof import('#i18n')['useLocaleHead']
+  const useLocalePath: typeof import('#i18n')['useLocalePath']
+  const useLocaleRoute: typeof import('#i18n')['useLocaleRoute']
+  const useModel: typeof import('vue')['useModel']
+  const useNuxtApp: typeof import('#app')['useNuxtApp']
+  const useNuxtData: typeof import('#app')['useNuxtData']
+  const useRequestEvent: typeof import('#app')['useRequestEvent']
+  const useRequestFetch: typeof import('#app')['useRequestFetch']
+  const useRequestHeaders: typeof import('#app')['useRequestHeaders']
+  const useRequestURL: typeof import('#app')['useRequestURL']
+  const useRoute: typeof import('#app')['useRoute']
+  const useRouteBaseName: typeof import('#i18n')['useRouteBaseName']
+  const useRouter: typeof import('#app')['useRouter']
+  const useRuntimeConfig: typeof import('#app')['useRuntimeConfig']
+  const useSlots: typeof import('vue')['useSlots']
+  const useState: typeof import('#app')['useState']
+  const useSwitchLocalePath: typeof import('#i18n')['useSwitchLocalePath']
+  const useTemplateRef: typeof import('vue')['useTemplateRef']
+  const watch: typeof import('vue')['watch']
+  const watchEffect: typeof import('vue')['watchEffect']
+  const watchPostEffect: typeof import('vue')['watchPostEffect']
+  const watchSyncEffect: typeof import('vue')['watchSyncEffect']
+}
+// for type re-export
+declare global {
+  // @ts-ignore
+  export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, ShallowRef, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
+  import('vue')
+  // @ts-ignore
+  export type { Method } from '../app/utils/api'
+  import('../app/utils/api')
+  // @ts-ignore
+  export type { Repository, Repositories, RepositoryKey } from '../app/utils/factory'
+  import('../app/utils/factory')
+  // @ts-ignore
+  export type { UseI18nReturnType } from '../app/utils/i18n'
+  import('../app/utils/i18n')
 }
 ````
 
@@ -21596,167 +22670,23 @@ export default defineNuxtPlugin(() => {
 })
 ````
 
-## File: layers/main/app/test/utils/api.spec.ts
+## File: layers/main/app/utils/factory.ts
 ````typescript
-import type { NitroFetchRequest } from 'nitropack'
-import api from '@/utils/api'
+import { type MakeRepository, defaultRepositories } from '#base/app/utils/default-factory'
+import { Method } from '@/utils/api'
 
-// NOTE: mockを使う際に必要な記述
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-}))
+export type Repository = MakeRepository<Method>
+export type Repositories = Record<string, Repository>
 
-// NOTE: src/utils/api.tsのテストとして当該ファイルがimportしているファイルからの変数「requireRuntimeConfig」をモックする。
-vi.mock('#base/app/plugins/runtimeConfig', () => {
-  return {
-    requireRuntimeConfig: vi.fn(() => {
-      // NOTE: api.tsのテストとしてrequireRuntimeConfigが{public.baseUrl}としてダミーURLを返すだけの処理を行うようにモックする
-      return {
-        public: {
-          baseUrl: '/test-api',
-        },
-      }
-    }),
-  }
-})
+export const repositories = {
+  ...defaultRepositories,
+  // Add non-default repositories here
+} as const satisfies Repositories
 
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-vi.mock('#base/app/plugins/fetch', () => {
-  return {
-    pluginFetchApi: vi.fn((path: string, options: NitroFetchRequest) => {
-      return { path, options }
-    }),
-  }
-})
+export type RepositoryKey = keyof typeof repositories
 
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-vi.mock('ofetch', () => {
-  return {
-    $fetch: vi.fn((path: string, options: NitroFetchRequest) => {
-      return { path, options }
-    }),
-  }
-})
-
-describe('api', () => {
-  // NOTE: api.getの返却値のテストとして、引数のpathやfetchOptionを入力して、返却値として期待するexpectObjと同等かテストする。その際、onRequestとonResponseは複雑化するので、空オブジェクトで省略としてtoMatchObjectで合格するか検査する。
-  it('get', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'GET',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('get', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('post', async () => {
-    // NOET: 以下getと同様にテストする。methodはgetではなく、相送信methodに準じた値に変化するので注意
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'POST',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('post', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('put', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'PUT',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('put', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('patch', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'PATCH',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('patch', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('delete', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'DELETE',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('delete', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-})
-````
-
-## File: layers/main/app/utils/api.ts
-````typescript
-import { FetchOptions } from 'ofetch'
-import type { Method } from '#base/app/utils/default-api'
-import { defaultApi } from '#base/app/utils/default-api'
-
-export type { Method }
-
-export default (
-  method: Method,
-  path: string,
-  fetchOptions: FetchOptions = {},
-) => {
-  switch (method) {
-    case 'GET':
-    case 'get':
-      return defaultApi.get(path, fetchOptions)
-    case 'POST':
-    case 'post':
-      return defaultApi.post(path, fetchOptions)
-    case 'PUT':
-    case 'put':
-      return defaultApi.put(path, fetchOptions)
-    case 'PATCH':
-    case 'patch':
-      return defaultApi.patch(path, fetchOptions)
-    case 'DELETE':
-    case 'delete':
-      return defaultApi.delete(path, fetchOptions)
-    default:
-      return defaultApi.get(path, fetchOptions)
-  }
+export const repositoryFactory = {
+  get: <K extends keyof typeof repositories>(name: K) => repositories[name],
 }
 ````
 
@@ -21838,317 +22768,6 @@ export default {
 }
 ````
 
-## File: layers/main/vitest.config.mts
-````
-/// <reference types="vitest" />
-import VueI18nVitePlugin from '@intlify/unplugin-vue-i18n/vite'
-import Vue from '@vitejs/plugin-vue'
-import path from 'path'
-import AutoImport from 'unplugin-auto-import/vite'
-import Components from 'unplugin-vue-components/vite'
-import { fileURLToPath } from 'url'
-import svgLoader from 'vite-svg-loader'
-import { defineConfig } from 'vitest/config'
-
-export default defineConfig({
-  plugins: [
-    Vue(),
-    AutoImport({
-      exclude: ['/test/', '/test-e2e/'],
-      include: [/\.[tj]s?$/, /\.[tj]sx?$/, /\.vue$/, /\.vue\?vue/],
-      imports: [
-        'vue',
-        'vue-i18n',
-        {
-          '#app': [
-            // NOTE: 自動生成される.nuxt/imports.d.tsから手動移植 https://tech.andpad.co.jp/entry/2023/03/16/100000
-            // export { // .nuxt/imports.d.ts 参照
-            'useAsyncData',
-            'useLazyAsyncData',
-            'useNuxtData',
-            'refreshNuxtData',
-            'clearNuxtData',
-            'defineNuxtComponent',
-            'useNuxtApp',
-            'defineNuxtPlugin',
-            'definePayloadPlugin',
-            'reloadNuxtApp',
-            'useRuntimeConfig',
-            'useState',
-            'clearNuxtState',
-            'useFetch',
-            'useLazyFetch',
-            'useCookie',
-            'useRequestHeaders',
-            'useRequestEvent',
-            'useRequestFetch',
-            'useRequestURL',
-            'setResponseStatus',
-            'setPageLayout',
-            'prerenderRoutes',
-            'onNuxtReady',
-            'useRouter',
-            'useRoute',
-            'defineNuxtRouteMiddleware',
-            'navigateTo',
-            'abortNavigation',
-            'addRouteMiddleware',
-            'showError',
-            'clearError',
-            'isNuxtError',
-            'useError',
-            'createError',
-            'defineNuxtLink',
-            'useAppConfig',
-            'updateAppConfig',
-            'defineAppConfig',
-            'preloadComponents',
-            'preloadRouteComponents',
-            'prefetchComponents',
-            'loadPayload',
-            'preloadPayload',
-            'isPrerendered',
-            'getAppManifest',
-            'getRouteRules',
-            'definePayloadReducer',
-            'definePayloadReviver',
-            'requestIdleCallback',
-            'cancelIdleCallback',
-            'onBeforeRouteLeave',
-            'onBeforeRouteUpdate',
-            //  } from '#app'; // .nuxt/imports.d.ts 参照
-          ],
-          '#i18n': [
-            'useRouteBaseName',
-            'useLocalePath',
-            'useLocaleRoute',
-            'useSwitchLocalePath',
-            'useLocaleHead',
-            'useBrowserLocale',
-            'useCookieLocale',
-            'defineI18nRoute',
-            'defineI18nLocale',
-            'defineI18nConfig',
-          ],
-        },
-      ],
-      dirs: [
-        'app/composables',
-        'app/utils/**',
-        '#base/app/composables',
-        '#base/app/utils/**',
-      ],
-      dts: './@types/auto-imports.d.ts',
-    }),
-    Components({
-      dirs: ['app/components', '#base/app/components'],
-      dts: './@types/components.d.ts',
-    }),
-    VueI18nVitePlugin({
-      include: [
-        path.resolve(
-          path.dirname(fileURLToPath(import.meta.url)),
-          './i18n/locales/*.json'
-        ),
-      ],
-      defaultSFCLang: 'yaml',
-      runtimeOnly: false,
-    }),
-    svgLoader({
-      defaultImport: 'component', // 'component', 'url', 'raw'
-      svgo: false,
-    }),
-  ],
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    coverage: {
-      include: ['app/**/*.{vue,ts}'],
-    },
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'app'),
-      '#base': path.resolve(__dirname, '../base'),
-      '#main': path.resolve(__dirname, './'),
-      '#app': path.resolve(__dirname, '../../node_modules/nuxt/dist/app'),
-      '#i18n': path.resolve(
-        __dirname,
-        '../../node_modules/@nuxtjs/i18n/dist/runtime/composables'
-      ),
-    },
-  },
-})
-````
-
-## File: layers/open-api/scripts/make-zod.ts
-````typescript
-#!/usr/bin/env bun
-/**
- * OpenAPI から Zod スキーマと型安全なAPIクライアントを自動生成
- */
-
-import { execSync } from 'child_process'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
-import yaml from 'js-yaml'
-import path from 'path'
-
-/**
- * エンドポイント設定
- */
-interface Endpoint {
-  name: string
-  path: string
-  output: string
-}
-
-/**
- * 設定
- */
-const endpoints: Endpoint[] = [
-  {
-    name: 'example',
-    path: './openapi/example.yml',
-    output: './app/models/openapi/example.ts',
-  },
-  // 追加のエンドポイントをここに定義
-]
-
-const template = './scripts/template.hbs'
-
-/**
- * コマンドを実行
- */
-const runCommand = (command: string): void => {
-  console.info(`Executing: ${command}`)
-  try {
-    execSync(command, { stdio: 'inherit' })
-  } catch (error) {
-    console.error(`Command failed: ${command}`)
-    throw error
-  }
-}
-
-/**
- * YAMLファイルをマージ
- */
-const mergeYamlFiles = (openapiPath: string, name: string): string => {
-  const baseDir = path.dirname(openapiPath)
-  const mergedPath = path.join(baseDir, `${name}-merged.yml`)
-  
-  if (!existsSync(openapiPath)) {
-    console.warn(`OpenAPI file not found: ${openapiPath}`)
-    return openapiPath
-  }
-  
-  try {
-    const content = readFileSync(openapiPath, 'utf8')
-    const parsed = yaml.load(content) as any
-    
-    // ここで必要に応じてYAMLファイルのマージ処理を実装
-    // 現在は単純にそのまま書き出し
-    writeFileSync(mergedPath, yaml.dump(parsed))
-    
-    return mergedPath
-  } catch (error) {
-    console.error(`Failed to merge YAML files: ${error}`)
-    return openapiPath
-  }
-}
-
-/**
- * Zodクライアントをビルド
- */
-const buildZodClient = ({ name, path: openapiPath, output }: Endpoint): void => {
-  console.info(`Building Zod client for ${name}...`)
-  
-  // 出力ディレクトリを作成
-  const outputDir = path.dirname(output)
-  if (!existsSync(outputDir)) {
-    mkdirSync(outputDir, { recursive: true })
-  }
-  
-  // YAMLファイルをマージ
-  const mergeFilePath = mergeYamlFiles(openapiPath, name)
-  
-  // OpenAPI-Zod-Client でコード生成
-  const command = `bunx openapi-zod-client ${mergeFilePath} -o ${output} -t ${template}`
-  runCommand(command)
-  
-  console.info(`✅ Generated ${output}`)
-}
-
-/**
- * テンプレートファイルが存在しない場合は作成
- */
-const ensureTemplate = (): void => {
-  if (!existsSync(template)) {
-    const templateContent = `{{#each operations}}
-{{#each responses}}
-{{#if content}}
-export const {{toCamelCase ../operationId}}ResponseSchema = z.object({
-{{#each content}}
-  {{#each schema.properties}}
-  {{toCamelCase @key}}: {{{zodType this}}},
-  {{/each}}
-});
-export type {{toCamelCase ../operationId}}ResponseType = z.infer<typeof {{toCamelCase ../operationId}}ResponseSchema>;
-
-{{/each}}
-{{/if}}
-{{/each}}
-
-{{#if requestBody}}
-export const {{toCamelCase operationId}}RequestSchema = z.object({
-{{#each requestBody.content}}
-  {{#each schema.properties}}
-  {{toCamelCase @key}}: {{{zodType this}}},
-  {{/each}}
-{{/each}}
-});
-export type {{toCamelCase operationId}}RequestType = z.infer<typeof {{toCamelCase operationId}}RequestSchema>;
-
-{{/if}}
-{{/each}}`
-    
-    const templateDir = path.dirname(template)
-    if (!existsSync(templateDir)) {
-      mkdirSync(templateDir, { recursive: true })
-    }
-    
-    writeFileSync(template, templateContent)
-    console.info(`Created template file: ${template}`)
-  }
-}
-
-/**
- * メイン処理
- */
-const main = (): void => {
-  console.info('🚀 Starting OpenAPI Zod client generation...')
-  
-  // テンプレートファイルを確認・作成
-  ensureTemplate()
-  
-  // 各エンドポイントに対してZodクライアントを生成
-  for (const endpoint of endpoints) {
-    try {
-      buildZodClient(endpoint)
-    } catch (error) {
-      console.error(`Failed to build client for ${endpoint.name}:`, error)
-      process.exit(1)
-    }
-  }
-  
-  console.info('✅ OpenAPI Zod client generation completed!')
-}
-
-// スクリプトとして実行された場合のみメイン処理を実行
-if (process.argv[1] === import.meta.url) {
-  main()
-}
-````
-
 ## File: layers/open-api/scripts/template.hbs
 ````
 {{!-- OpenAPI から Zod スキーマ生成用テンプレート --}}
@@ -22225,28 +22844,39 @@ export const {{toCamelCase operationId}} = async (
 {{/each}}
 ````
 
-## File: layers/open-api/package.json
+## File: layers/open-api/tsconfig.json
 ````json
 {
-  "name": "vket-boilerplate-nuxt-open-api",
-  "private": true,
-  "type": "module",
-  "version": "0.1.0",
-  "scripts": {
-    "generate": "bun run scripts/make-zod.ts",
-    "clean": "rm -rf app/models/openapi/*",
-    "package-update": "bunx npm-check-updates -i"
+  "compilerOptions": {
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "module": "esnext",
+    "target": "esnext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "composite": true,
+    "strict": true,
+    "downlevelIteration": true,
+    "skipLibCheck": true,
+    "jsx": "preserve",
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true,
+    "types": [
+      "bun-types",
+      "node"
+    ]
   },
-  "dependencies": {
-    "zod": "^4.1.5"
-  },
-  "devDependencies": {
-    "openapi-zod-client": "^1.18.3",
-    "js-yaml": "^4.1.0",
-    "@types/js-yaml": "^4.0.9",
-    "@types/node": "^20.0.0",
-    "bun-types": "^1.0.14"
-  }
+  "include": [
+    "scripts/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
 ````
 
@@ -22788,6 +23418,17 @@ export default {
 }
 ````
 
+## File: .lintstagedrc.json
+````json
+{
+  "layers/base/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/base && eslint --cache --cache-strategy content"],
+  "layers/main/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/main && eslint --cache --cache-strategy content"],
+  "layers/open-api/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/open-api && eslint --cache --cache-strategy content"],
+  "layers/showcases/**/*.+(js|jsx|ts|tsx|vue)": ["cd layers/showcases && eslint --cache --cache-strategy content"],
+  "layers/**/*.+(css|scss|sass|vue)": ["stylelint --allow-empty-input"]
+}
+````
+
 ## File: eslint.config.shared.mjs
 ````
 // @ts-check
@@ -22875,67 +23516,6 @@ export default tseslint.config(
     ],
   },
 )
-````
-
-## File: layers/base/@types/components.d.ts
-````typescript
-/* eslint-disable */
-// @ts-nocheck
-// Generated by unplugin-vue-components
-// Read more: https://github.com/vuejs/core/pull/3399
-// biome-ignore lint: disable
-export {}
-
-/* prettier-ignore */
-declare module 'vue' {
-  export interface GlobalComponents {
-    HaBaseButton: typeof import('./../app/components/ha/base/HaBaseButton.vue')['default']
-    HaBaseInput: typeof import('./../app/components/ha/base/HaBaseInput.vue')['default']
-    HaContainer: typeof import('./../app/components/ha/HaContainer.vue')['default']
-    HaDialog: typeof import('./../app/components/ha/HaDialog.vue')['default']
-    HaDialogElement: typeof import('./../app/components/ha/HaDialogElement.vue')['default']
-    HaHamburger: typeof import('./../app/components/ha/HaHamburger.vue')['default']
-    HaImage: typeof import('./../app/components/ha/HaImage.vue')['default']
-    HaLabel: typeof import('./../app/components/ha/HaLabel.vue')['default']
-    HaLink: typeof import('./../app/components/ha/HaLink.vue')['default']
-    HaLoading: typeof import('./../app/components/ha/HaLoading.vue')['default']
-    HaLoadingIcon: typeof import('./../app/components/ha/HaLoadingIcon.vue')['default']
-    HaModal: typeof import('./../app/components/ha/HaModal.vue')['default']
-    HaSelectBox: typeof import('./../app/components/ha/HaSelectBox.vue')['default']
-    HaSkewBackground: typeof import('./../app/components/ha/HaSkewBackground.vue')['default']
-    HaTag: typeof import('./../app/components/ha/HaTag.vue')['default']
-    HaTextarea: typeof import('./../app/components/ha/HaTextarea.vue')['default']
-    HaVideo: typeof import('./../app/components/ha/HaVideo.vue')['default']
-    HmAccordion: typeof import('./../app/components/hm/HmAccordion.vue')['default']
-    HmAutoCarousel: typeof import('./../app/components/hm/HmAutoCarousel.vue')['default']
-    HmButton: typeof import('./../app/components/hm/button/HmButton.vue')['default']
-    HmButtonClose: typeof import('./../app/components/hm/button/HmButtonClose.vue')['default']
-    HmButtonFavorite: typeof import('./../app/components/hm/button/HmButtonFavorite.vue')['default']
-    HmClipping: typeof import('./../app/components/hm/HmClipping.vue')['default']
-    HmDialogElement: typeof import('./../app/components/hm/HmDialogElement.vue')['default']
-    HmIconUser: typeof import('./../app/components/hm/icon/HmIconUser.vue')['default']
-    HmInputCheckbox: typeof import('./../app/components/hm/input/HmInputCheckbox.vue')['default']
-    HmInputDatetime: typeof import('./../app/components/hm/input/HmInputDatetime.vue')['default']
-    HmInputFile: typeof import('./../app/components/hm/input/HmInputFile.vue')['default']
-    HmInputRadio: typeof import('./../app/components/hm/input/HmInputRadio.vue')['default']
-    HmInputRadioChangeable: typeof import('./../app/components/hm/input/HmInputRadioChangeable.vue')['default']
-    HmInputSingleImage: typeof import('./../app/components/hm/input/HmInputSingleImage.vue')['default']
-    HmInputText: typeof import('./../app/components/hm/input/HmInputText.vue')['default']
-    HmMenuExample: typeof import('./../app/components/hm/HmMenuExample.vue')['default']
-    HmNoteList: typeof import('./../app/components/hm/HmNoteList.vue')['default']
-    HmPaging: typeof import('./../app/components/hm/HmPaging.vue')['default']
-    HmPicture: typeof import('./../app/components/hm/HmPicture.vue')['default']
-    HmPopup: typeof import('./../app/components/hm/HmPopup.vue')['default']
-    HmSkeletonScreen: typeof import('./../app/components/hm/HmSkeletonScreen.vue')['default']
-    HmSlider: typeof import('./../app/components/hm/HmSlider.vue')['default']
-    HmSliderItem: typeof import('./../app/components/hm/HmSliderItem.vue')['default']
-    HmSocialShareLink: typeof import('./../app/components/hm/HmSocialShareLink.vue')['default']
-    HmTab: typeof import('./../app/components/hm/HmTab.vue')['default']
-    HmTsx: typeof import('./../app/components/hm/HmTsx.vue')['default']
-    RouterLink: typeof import('vue-router')['RouterLink']
-    RouterView: typeof import('vue-router')['RouterView']
-  }
-}
 ````
 
 ## File: layers/base/app/components/ha/base/HaBaseInput.vue
@@ -23315,6 +23895,153 @@ const props = defineProps<Props>()
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+}
+</style>
+````
+
+## File: layers/base/app/components/hm/HmClipping.vue
+````vue
+<template>
+  <div class="hm-clipping">
+    <div class="cropper-container">
+      <Cropper
+        ref="cropper"
+        class="cropper"
+        :src="src"
+        :autoZoom="autoZoom"
+        :stencilSize="{
+          width: width,
+          height: height,
+        }"
+        v-bind="cropperOptions"
+        defaultBoundaries="fit"
+        :imageRestriction="imageRestriction"
+        :style="forceStyle"
+        @change="onChange"
+      />
+    </div>
+    <template v-if="src">
+      <HaBaseButton
+        class="button"
+        @click="clip"
+      >
+        <!-- {{ i18n.t('label') }} -->
+        切り抜く
+      </HaBaseButton>
+    </template>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { Cropper } from 'vue-advanced-cropper'
+import 'vue-advanced-cropper/dist/style.css'
+
+type Props = {
+  src: string
+  width?: number
+  height?: number
+  cropperAreaHeight?: number
+  doResize?: boolean
+  stencil?: string
+  imageRestriction?: 'fill-area' | 'fit-area' | 'stencil' | 'none'
+  autoZoom?: boolean
+  ext?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  width: 256,
+  height: 256,
+  cropperAreaHeight: undefined,
+  doResize: true,
+  stencil: 'RectangleStencil',
+  imageRestriction: 'stencil',
+  autoZoom: false,
+  ext: 'jpeg',
+})
+
+type Emits = {
+  (e: 'clipped', image: File[]): void
+}
+const emit = defineEmits<Emits>()
+
+const croppedImage = ref<File[]>([])
+
+const forceStyle = computed(() => {
+  if (props.cropperAreaHeight === undefined) return {}
+  const cropperAreaHeight = props.cropperAreaHeight || props.height * 1.4
+  return {
+    height: `${cropperAreaHeight}px`,
+  }
+})
+const cropperOptions = computed(() => {
+  return props.doResize
+    ? {
+        canvas: {
+          width: props.width,
+          height: props.height,
+        },
+      }
+    : {}
+})
+
+const onChange = ({ canvas }: { canvas: HTMLCanvasElement }) => {
+  /*
+   * this.coordinates = coordinates
+   * note: canvas to DataURI
+   * this.croppedImage = canvas.toDataURL(`image/${this.ext}`)
+   */
+  const data = canvas.toDataURL(`image/${props.ext}`)
+  // note: DataURL to File
+  const bytes = atob(data.split(',')[1] ?? raiseError('Invalid bytes'))
+  const mime
+    = data.split(',')[0]?.split(':')[1]?.split(';')[0]
+      ?? raiseError('Invalid mime')
+  const name = `tmp-${new Date().getTime()}.${mime.split('/')[1]}`
+  const writer = new Uint8Array(new ArrayBuffer(bytes.length))
+  for (let i = 0; i < bytes.length; i++) {
+    writer[i] = bytes.charCodeAt(i)
+  }
+  const file = new File([writer.buffer], name, { type: mime })
+  croppedImage.value[0] = file
+}
+
+const clip = () => {
+  emit('clipped', croppedImage.value)
+}
+</script>
+
+<style lang="scss" scoped>
+@use '@/assets/styles/variables' as v;
+@use '@/assets/styles/mixins' as m;
+
+.hm-clipping {
+  width: 100%;
+  height: 100%;
+
+  > .cropper-container {
+    height: calc(100% - 70px);
+    min-height: 300px;
+    margin-bottom: 20px;
+    padding: v.space(2);
+
+    background: #000;
+  }
+
+  > .cropper-container > .cropper {
+    height: 100%;
+    background: #000;
+  }
+
+  > .button {
+    width: 100%;
+    padding: v.$space-small;
+    color: v.$white;
+    background-color: v.$primary-button-default-color;
+
+    :hover {
+      background-color: v.$primary-button-active-color;
+    }
   }
 }
 </style>
@@ -24054,6 +24781,45 @@ describe('DOM check for error display', () => {
 })
 ````
 
+## File: layers/base/app/utils/default-factory.ts
+````typescript
+import exampleRepository from '#base/app/repositories/exampleRepository'
+import type { Method as DefaultMethods } from '#base/app/utils/default-api'
+
+/**
+ * The parent type for each method of `'get' | 'post' | 'put' | 'delete'` in each repository
+ */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+export type ApiAccess = Function
+
+/**
+ * For use when creating `#main/app/utils/factory.ts`.
+ * See [[DefaultRepository]] for usage.
+ */
+export type MakeRepository<Methods extends string | symbol> = {
+  [key in Methods]?: Record<string, ApiAccess>
+}
+
+/**
+ * NOTE:.
+ * Naming of "DefaultRepository" because it is the repository type of default-factory.
+ * The name is like "default type of some repository", but it is not intended.
+ */
+export type DefaultRepository = MakeRepository<DefaultMethods>
+export type DefaultRepositories = Record<string, DefaultRepository>
+
+export const defaultRepositories = {
+  example: exampleRepository,
+} as const satisfies DefaultRepositories
+
+export type DefaultRepositoryKey = keyof typeof defaultRepositories
+
+export const defaultRepositoryFactory = {
+  get: <K extends keyof typeof defaultRepositories>(name: K) =>
+    defaultRepositories[name],
+}
+````
+
 ## File: layers/base/app/utils/file-control.ts
 ````typescript
 /**
@@ -24486,56 +25252,152 @@ export default withNuxt(
 )
 ````
 
-## File: layers/main/app/composables/useApi.ts
-````typescript
-/**
- * Nuxt3 FWにおける API composables。
- *
- * @packageDocumentation
- */
-
-import { useFetch, UseFetchOptions } from 'nuxt/app'
-import type { FetchOptions } from 'ofetch'
-import { ref } from 'vue'
-import { repositoryFactory, RepositoryKey } from '@/utils/factory'
-
-export const fetcher = (
-  path: string,
-  options: UseFetchOptions<FetchOptions>,
-) => {
-  return useFetch(path, options)
-}
-
-const _getRepo = <K extends RepositoryKey>(endpoint: K) => {
-  return repositoryFactory.get(endpoint)
-}
-
-export default function useApi<K extends RepositoryKey>(endpoint: K) {
-  const repository = ref(_getRepo(endpoint))
-  return {
-    repository,
-  }
-}
+## File: layers/base/vitest.config.mts
 ````
+import path from 'path'
+import Vue from '@vitejs/plugin-vue'
+import AutoImport from 'unplugin-auto-import/vite'
+import Components from 'unplugin-vue-components/vite'
+import Icons from 'unplugin-icons/vite'
+import { defineConfig } from 'vitest/config'
+import svgLoader from 'vite-svg-loader'
 
-## File: layers/main/app/utils/factory.ts
-````typescript
-import { type MakeRepository, defaultRepositories } from '#base/app/utils/default-factory'
-import { Method } from '@/utils/api'
-
-export type Repository = MakeRepository<Method>
-export type Repositories = Record<string, Repository>
-
-export const repositories = {
-  ...defaultRepositories,
-  // Add non-default repositories here
-} as const satisfies Repositories
-
-export type RepositoryKey = keyof typeof repositories
-
-export const repositoryFactory = {
-  get: <K extends keyof typeof repositories>(name: K) => repositories[name],
-}
+export default defineConfig({
+  plugins: [
+    Vue(),
+    {
+      name: 'mock-svg-icons',
+      transform(_, id) {
+        if (id.includes('~icons/')) {
+          return 'export default { name: "MockIcon", template: "<svg><path /></svg>", props: ["class"] }';
+        }
+      },
+    },
+    AutoImport({
+      exclude: ['/test/', '/test-e2e/'],
+      include: [/\.[tj]s?$/, /\.[tj]sx?$/, /\.vue$/, /\.vue\?vue/],
+      imports: [
+        'vue',
+        'vue-i18n',
+        {
+          '#app': [
+            /*
+             * NOTE: 自動生成される.nuxt/imports.d.tsから手動移植 https://tech.andpad.co.jp/entry/2023/03/16/100000
+             * export { // .nuxt/imports.d.ts 参照
+             */
+            'useAsyncData',
+            'useLazyAsyncData',
+            'useNuxtData',
+            'refreshNuxtData',
+            'clearNuxtData',
+            'defineNuxtComponent',
+            'useNuxtApp',
+            'defineNuxtPlugin',
+            'definePayloadPlugin',
+            'reloadNuxtApp',
+            'useRuntimeConfig',
+            'useState',
+            'clearNuxtState',
+            'useFetch',
+            'useLazyFetch',
+            'useCookie',
+            'useRequestHeaders',
+            'useRequestEvent',
+            'useRequestFetch',
+            'useRequestURL',
+            'setResponseStatus',
+            'setPageLayout',
+            'prerenderRoutes',
+            'onNuxtReady',
+            'useRouter',
+            'useRoute',
+            'defineNuxtRouteMiddleware',
+            'navigateTo',
+            'abortNavigation',
+            'addRouteMiddleware',
+            'showError',
+            'clearError',
+            'isNuxtError',
+            'useError',
+            'createError',
+            'defineNuxtLink',
+            'useAppConfig',
+            'updateAppConfig',
+            'defineAppConfig',
+            'preloadComponents',
+            'preloadRouteComponents',
+            'prefetchComponents',
+            'loadPayload',
+            'preloadPayload',
+            'isPrerendered',
+            'getAppManifest',
+            'getRouteRules',
+            'definePayloadReducer',
+            'definePayloadReviver',
+            'requestIdleCallback',
+            'cancelIdleCallback',
+            'onBeforeRouteLeave',
+            'onBeforeRouteUpdate',
+            //  } from '#app'; // .nuxt/imports.d.ts 参照
+          ],
+          '#i18n': [
+            'useRouteBaseName',
+            'useLocalePath',
+            'useLocaleRoute',
+            'useSwitchLocalePath',
+            'useLocaleHead',
+            'useBrowserLocale',
+            'useCookieLocale',
+            'defineI18nRoute',
+            'defineI18nLocale',
+            'defineI18nConfig',
+          ],
+        },
+      ],
+      dirs: ['app/composables', 'app/utils/**'],
+      dts: './@types/auto-imports.d.ts',
+    }),
+    Components({
+      dirs: ['app/components'],
+      dts: './@types/components.d.ts',
+    }),
+    svgLoader({
+      defaultImport: 'component', // 'component', 'url', 'raw'
+      svgo: false,
+    }),
+    Icons({
+      autoInstall: true,
+      compiler: 'vue3',
+    }),
+  ],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    coverage: {
+      include: ['app/**/*.{vue,ts}'],
+      exclude: [
+        'app/plugins/**',
+        'app/middleware/**',
+        'app/layouts/**',
+        'app/test/**'
+      ],
+    },
+    setupFiles: ['./app/test/setup.ts'],
+  },
+  resolve: {
+    alias: {
+      '#base': path.resolve(__dirname),
+      '#main': path.resolve(__dirname, '../main'),
+      '#app': path.resolve(__dirname, '../../node_modules/nuxt/dist/app'),
+      '#i18n': path.resolve(
+        __dirname,
+        '../../node_modules/@nuxtjs/i18n/dist/runtime/composables',
+      ),
+      '#imports': path.resolve(__dirname, 'app/test/mocks/imports.ts'),
+      '@@/public/images/no-image.png': '/images/no-image.png',
+    },
+  },
+})
 ````
 
 ## File: layers/main/app/app.vue
@@ -24644,6 +25506,199 @@ useHeadSafe({
   ],
 })
 </script>
+````
+
+## File: layers/open-api/scripts/make-zod.ts
+````typescript
+#!/usr/bin/env bun
+/**
+ * OpenAPI から Zod スキーマと型安全なAPIクライアントを自動生成
+ */
+
+import { execSync } from 'child_process'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import yaml from 'js-yaml'
+import path from 'path'
+
+/**
+ * エンドポイント設定
+ */
+interface Endpoint {
+  name: string
+  path: string
+  output: string
+}
+
+/**
+ * 設定
+ */
+const endpoints: Endpoint[] = [
+  {
+    name: 'example',
+    path: './openapi/example.yml',
+    output: './app/models/openapi/example.ts',
+  },
+  // 追加のエンドポイントをここに定義
+]
+
+const template = './scripts/template.hbs'
+
+/**
+ * コマンドを実行
+ */
+const runCommand = (command: string): void => {
+  console.info(`Executing: ${command}`)
+  try {
+    execSync(command, { stdio: 'inherit' })
+  } catch (error) {
+    console.error(`Command failed: ${command}`)
+    throw error
+  }
+}
+
+/**
+ * YAMLファイルをマージ
+ */
+const mergeYamlFiles = (openapiPath: string, name: string): string => {
+  const baseDir = path.dirname(openapiPath)
+  const mergedPath = path.join(baseDir, `${name}-merged.yml`)
+  
+  if (!existsSync(openapiPath)) {
+    console.warn(`OpenAPI file not found: ${openapiPath}`)
+    return openapiPath
+  }
+  
+  try {
+    const content = readFileSync(openapiPath, 'utf8')
+    const parsed = yaml.load(content) as any
+    
+    // ここで必要に応じてYAMLファイルのマージ処理を実装
+    // 現在は単純にそのまま書き出し
+    writeFileSync(mergedPath, yaml.dump(parsed))
+    
+    return mergedPath
+  } catch (error) {
+    console.error(`Failed to merge YAML files: ${error}`)
+    return openapiPath
+  }
+}
+
+/**
+ * Zodクライアントをビルド
+ */
+const buildZodClient = ({ name, path: openapiPath, output }: Endpoint): void => {
+  console.info(`Building Zod client for ${name}...`)
+  
+  // 出力ディレクトリを作成
+  const outputDir = path.dirname(output)
+  if (!existsSync(outputDir)) {
+    mkdirSync(outputDir, { recursive: true })
+  }
+  
+  // YAMLファイルをマージ
+  const mergeFilePath = mergeYamlFiles(openapiPath, name)
+  
+  // OpenAPI-Zod-Client でコード生成
+  const command = `bunx openapi-zod-client ${mergeFilePath} -o ${output} -t ${template}`
+  runCommand(command)
+  
+  console.info(`✅ Generated ${output}`)
+}
+
+/**
+ * テンプレートファイルが存在しない場合は作成
+ */
+const ensureTemplate = (): void => {
+  if (!existsSync(template)) {
+    const templateContent = `{{#each operations}}
+{{#each responses}}
+{{#if content}}
+export const {{toCamelCase ../operationId}}ResponseSchema = z.object({
+{{#each content}}
+  {{#each schema.properties}}
+  {{toCamelCase @key}}: {{{zodType this}}},
+  {{/each}}
+});
+export type {{toCamelCase ../operationId}}ResponseType = z.infer<typeof {{toCamelCase ../operationId}}ResponseSchema>;
+
+{{/each}}
+{{/if}}
+{{/each}}
+
+{{#if requestBody}}
+export const {{toCamelCase operationId}}RequestSchema = z.object({
+{{#each requestBody.content}}
+  {{#each schema.properties}}
+  {{toCamelCase @key}}: {{{zodType this}}},
+  {{/each}}
+{{/each}}
+});
+export type {{toCamelCase operationId}}RequestType = z.infer<typeof {{toCamelCase operationId}}RequestSchema>;
+
+{{/if}}
+{{/each}}`
+    
+    const templateDir = path.dirname(template)
+    if (!existsSync(templateDir)) {
+      mkdirSync(templateDir, { recursive: true })
+    }
+    
+    writeFileSync(template, templateContent)
+    console.info(`Created template file: ${template}`)
+  }
+}
+
+/**
+ * メイン処理
+ */
+const main = (): void => {
+  console.info('🚀 Starting OpenAPI Zod client generation...')
+  
+  // テンプレートファイルを確認・作成
+  ensureTemplate()
+  
+  // 各エンドポイントに対してZodクライアントを生成
+  for (const endpoint of endpoints) {
+    try {
+      buildZodClient(endpoint)
+    } catch (error) {
+      console.error(`Failed to build client for ${endpoint.name}:`, error)
+      process.exit(1)
+    }
+  }
+  
+  console.info('✅ OpenAPI Zod client generation completed!')
+}
+
+// スクリプトとして実行された場合のみメイン処理を実行
+if (process.argv[1] === import.meta.url) {
+  main()
+}
+````
+
+## File: layers/open-api/package.json
+````json
+{
+  "name": "vket-boilerplate-nuxt-open-api",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "generate": "bun run scripts/make-zod.ts",
+    "clean": "rm -rf app/models/openapi/*",
+    "package-update": "bunx npm-check-updates -i"
+  },
+  "dependencies": {
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "openapi-zod-client": "^1.18.3",
+    "js-yaml": "^4.1.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.0.0",
+    "bun-types": "^1.0.14"
+  }
+}
 ````
 
 ## File: layers/showcases/@types/auto-imports.d.ts
@@ -25191,494 +26246,155 @@ const onChange = (e: Event) => {
 </style>
 ````
 
-## File: layers/base/app/components/hm/HmClipping.vue
-````vue
-<template>
-  <div class="hm-clipping">
-    <div class="cropper-container">
-      <Cropper
-        ref="cropper"
-        class="cropper"
-        :src="src"
-        :autoZoom="autoZoom"
-        :stencilSize="{
-          width: width,
-          height: height,
-        }"
-        v-bind="cropperOptions"
-        defaultBoundaries="fit"
-        :imageRestriction="imageRestriction"
-        :style="forceStyle"
-        @change="onChange"
-      />
-    </div>
-    <template v-if="src">
-      <HaBaseButton
-        class="button"
-        @click="clip"
-      >
-        <!-- {{ i18n.t('label') }} -->
-        切り抜く
-      </HaBaseButton>
-    </template>
-  </div>
-</template>
-
-<script lang="ts" setup>
-import { Cropper } from 'vue-advanced-cropper'
-import 'vue-advanced-cropper/dist/style.css'
-
-type Props = {
-  src: string
-  width?: number
-  height?: number
-  cropperAreaHeight?: number
-  doResize?: boolean
-  stencil?: string
-  imageRestriction?: 'fill-area' | 'fit-area' | 'stencil' | 'none'
-  autoZoom?: boolean
-  ext?: string
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  width: 256,
-  height: 256,
-  cropperAreaHeight: undefined,
-  doResize: true,
-  stencil: 'RectangleStencil',
-  imageRestriction: 'stencil',
-  autoZoom: false,
-  ext: 'jpeg',
-})
-
-type Emits = {
-  (e: 'clipped', image: File[]): void
-}
-const emit = defineEmits<Emits>()
-
-const croppedImage = ref<File[]>([])
-
-const forceStyle = computed(() => {
-  if (props.cropperAreaHeight === undefined) return {}
-  const cropperAreaHeight = props.cropperAreaHeight || props.height * 1.4
-  return {
-    height: `${cropperAreaHeight}px`,
-  }
-})
-const cropperOptions = computed(() => {
-  return props.doResize
-    ? {
-        canvas: {
-          width: props.width,
-          height: props.height,
-        },
-      }
-    : {}
-})
-
-const onChange = ({ canvas }: { canvas: HTMLCanvasElement }) => {
-  /*
-   * this.coordinates = coordinates
-   * note: canvas to DataURI
-   * this.croppedImage = canvas.toDataURL(`image/${this.ext}`)
-   */
-  const data = canvas.toDataURL(`image/${props.ext}`)
-  // note: DataURL to File
-  const bytes = atob(data.split(',')[1] ?? raiseError('Invalid bytes'))
-  const mime
-    = data.split(',')[0]?.split(':')[1]?.split(';')[0]
-      ?? raiseError('Invalid mime')
-  const name = `tmp-${new Date().getTime()}.${mime.split('/')[1]}`
-  const writer = new Uint8Array(new ArrayBuffer(bytes.length))
-  for (let i = 0; i < bytes.length; i++) {
-    writer[i] = bytes.charCodeAt(i)
-  }
-  const file = new File([writer.buffer], name, { type: mime })
-  croppedImage.value[0] = file
-}
-
-const clip = () => {
-  emit('clipped', croppedImage.value)
-}
-</script>
-
-<style lang="scss" scoped>
-@use '@/assets/styles/variables' as v;
-@use '@/assets/styles/mixins' as m;
-
-.hm-clipping {
-  width: 100%;
-  height: 100%;
-
-  > .cropper-container {
-    height: calc(100% - 70px);
-    min-height: 300px;
-    margin-bottom: 20px;
-    padding: v.space(2);
-
-    background: #000;
-  }
-
-  > .cropper-container > .cropper {
-    height: 100%;
-    background: #000;
-  }
-
-  > .button {
-    width: 100%;
-    padding: v.$space-small;
-    color: v.$white;
-    background-color: v.$primary-button-default-color;
-
-    :hover {
-      background-color: v.$primary-button-active-color;
-    }
-  }
-}
-</style>
-````
-
-## File: layers/base/app/utils/default-factory.ts
+## File: layers/main/nuxt.config.ts
 ````typescript
-import exampleRepository from '#base/app/repositories/exampleRepository'
-import type { Method as DefaultMethods } from '#base/app/utils/default-api'
-
-/**
- * The parent type for each method of `'get' | 'post' | 'put' | 'delete'` in each repository
- */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-export type ApiAccess = Function
-
-/**
- * For use when creating `#main/app/utils/factory.ts`.
- * See [[DefaultRepository]] for usage.
- */
-export type MakeRepository<Methods extends string | symbol> = {
-  [key in Methods]?: Record<string, ApiAccess>
-}
-
-/**
- * NOTE:.
- * Naming of "DefaultRepository" because it is the repository type of default-factory.
- * The name is like "default type of some repository", but it is not intended.
- */
-export type DefaultRepository = MakeRepository<DefaultMethods>
-export type DefaultRepositories = Record<string, DefaultRepository>
-
-export const defaultRepositories = {
-  example: exampleRepository,
-} as const satisfies DefaultRepositories
-
-export type DefaultRepositoryKey = keyof typeof defaultRepositories
-
-export const defaultRepositoryFactory = {
-  get: <K extends keyof typeof defaultRepositories>(name: K) =>
-    defaultRepositories[name],
-}
-````
-
-## File: layers/base/vitest.config.mts
-````
 import path from 'path'
-import Vue from '@vitejs/plugin-vue'
-import AutoImport from 'unplugin-auto-import/vite'
-import Components from 'unplugin-vue-components/vite'
-import Icons from 'unplugin-icons/vite'
-import { defineConfig } from 'vitest/config'
-import svgLoader from 'vite-svg-loader'
+import { defineNuxtConfig } from 'nuxt/config'
+import { readEnvType } from './config/models/EnvType'
+import { getRuntimeConfigOfEnvType } from './config/runtimeConfig'
+import { nuxtI18nOptions } from './i18n/i18n.config'
 
-export default defineConfig({
-  plugins: [
-    Vue(),
-    {
-      name: 'mock-svg-icons',
-      transform(_, id) {
-        if (id.includes('~icons/')) {
-          return 'export default { name: "MockIcon", template: "<svg><path /></svg>", props: ["class"] }';
-        }
-      },
-    },
-    AutoImport({
-      exclude: ['/test/', '/test-e2e/'],
-      include: [/\.[tj]s?$/, /\.[tj]sx?$/, /\.vue$/, /\.vue\?vue/],
-      imports: [
-        'vue',
-        'vue-i18n',
+type MetaInfo = {
+  title: string
+  description: string
+  robots: string
+  siteName: string
+  ogImageUrl: string
+  ogUrl: string
+  twitterSite: string
+  twitterCreator: string
+}
+
+const NUXT_ENV_OUTPUT_ENV = readEnvType(process.env)
+const runtimeConfig = getRuntimeConfigOfEnvType(
+  NUXT_ENV_OUTPUT_ENV,
+  process.env,
+)
+const cssUrls = [`@/assets/styles/style.scss`]
+const srcDir = 'app'
+const isSsr = false
+const checkTypeCheckOnBuild = true
+const needAnalyze = NUXT_ENV_OUTPUT_ENV === 'local'
+const needSourcemap = NUXT_ENV_OUTPUT_ENV !== 'production'
+const enableDebug = NUXT_ENV_OUTPUT_ENV === 'local'
+
+const meta: MetaInfo = {
+  title: '',
+  description: '',
+  robots: NUXT_ENV_OUTPUT_ENV === 'production' ? 'all' : 'none',
+  siteName: '',
+  ogImageUrl: `${runtimeConfig.public.url}/images/ogp.jpg`,
+  ogUrl: runtimeConfig.public.url,
+  twitterSite: '',
+  twitterCreator: '',
+}
+
+// https://nuxt.com/docs/api/configuration/nuxt-config
+export default defineNuxtConfig({
+  extends: path.resolve(__dirname, '../base'),
+  modules: [
+    '@nuxtjs/google-fonts',
+  ],
+  ssr: isSsr,
+
+  imports: {
+    dirs: ['utils/types/**'],
+    global: false,
+  },
+
+  app: {
+    head: {
+      meta: [
+        { name: 'robots', content: meta.robots },
         {
-          '#app': [
-            /*
-             * NOTE: 自動生成される.nuxt/imports.d.tsから手動移植 https://tech.andpad.co.jp/entry/2023/03/16/100000
-             * export { // .nuxt/imports.d.ts 参照
-             */
-            'useAsyncData',
-            'useLazyAsyncData',
-            'useNuxtData',
-            'refreshNuxtData',
-            'clearNuxtData',
-            'defineNuxtComponent',
-            'useNuxtApp',
-            'defineNuxtPlugin',
-            'definePayloadPlugin',
-            'reloadNuxtApp',
-            'useRuntimeConfig',
-            'useState',
-            'clearNuxtState',
-            'useFetch',
-            'useLazyFetch',
-            'useCookie',
-            'useRequestHeaders',
-            'useRequestEvent',
-            'useRequestFetch',
-            'useRequestURL',
-            'setResponseStatus',
-            'setPageLayout',
-            'prerenderRoutes',
-            'onNuxtReady',
-            'useRouter',
-            'useRoute',
-            'defineNuxtRouteMiddleware',
-            'navigateTo',
-            'abortNavigation',
-            'addRouteMiddleware',
-            'showError',
-            'clearError',
-            'isNuxtError',
-            'useError',
-            'createError',
-            'defineNuxtLink',
-            'useAppConfig',
-            'updateAppConfig',
-            'defineAppConfig',
-            'preloadComponents',
-            'preloadRouteComponents',
-            'prefetchComponents',
-            'loadPayload',
-            'preloadPayload',
-            'isPrerendered',
-            'getAppManifest',
-            'getRouteRules',
-            'definePayloadReducer',
-            'definePayloadReviver',
-            'requestIdleCallback',
-            'cancelIdleCallback',
-            'onBeforeRouteLeave',
-            'onBeforeRouteUpdate',
-            //  } from '#app'; // .nuxt/imports.d.ts 参照
-          ],
-          '#i18n': [
-            'useRouteBaseName',
-            'useLocalePath',
-            'useLocaleRoute',
-            'useSwitchLocalePath',
-            'useLocaleHead',
-            'useBrowserLocale',
-            'useCookieLocale',
-            'defineI18nRoute',
-            'defineI18nLocale',
-            'defineI18nConfig',
-          ],
+          name: 'description',
+          content: meta.description,
+        },
+        {
+          property: 'og:site_name',
+          content: meta.siteName,
+        },
+        {
+          property: 'og:url',
+          content: meta.ogUrl,
+        },
+        {
+          property: 'og:title',
+          content: meta.title,
+        },
+        {
+          property: 'og:description',
+          content: meta.description,
+        },
+        {
+          property: 'og:image',
+          content: meta.ogImageUrl,
+        },
+        {
+          name: 'twitter:site',
+          content: meta.twitterSite,
+        },
+        {
+          name: 'twitter:creator',
+          content: meta.twitterCreator,
         },
       ],
-      dirs: ['app/composables', 'app/utils/**'],
-      dts: './@types/auto-imports.d.ts',
-    }),
-    Components({
-      dirs: ['app/components'],
-      dts: './@types/components.d.ts',
-    }),
-    svgLoader({
-      defaultImport: 'component', // 'component', 'url', 'raw'
-      svgo: false,
-    }),
-    Icons({
-      autoInstall: true,
-      compiler: 'vue3',
-    }),
-  ],
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    coverage: {
-      include: ['app/**/*.{vue,ts}'],
-      exclude: [
-        'app/plugins/**',
-        'app/middleware/**',
-        'app/layouts/**',
-        'app/test/**'
+      link: [
+        {
+          rel: 'icon',
+          type: 'image/x-icon',
+          href: `${runtimeConfig.public.url}/favicon.ico`,
+        },
       ],
     },
-    setupFiles: ['./app/test/setup.ts'],
   },
-  resolve: {
-    alias: {
-      '#base': path.resolve(__dirname),
-      '#main': path.resolve(__dirname, '../main'),
-      '#app': path.resolve(__dirname, '../../node_modules/nuxt/dist/app'),
-      '#i18n': path.resolve(
-        __dirname,
-        '../../node_modules/@nuxtjs/i18n/dist/runtime/composables',
-      ),
-      '#imports': path.resolve(__dirname, 'app/test/mocks/imports.ts'),
-      '@@/public/images/no-image.png': '/images/no-image.png',
-    },
-  },
-})
-````
 
-## File: layers/main/@types/auto-imports.d.ts
-````typescript
-/* eslint-disable */
-/* prettier-ignore */
-// @ts-nocheck
-// noinspection JSUnusedGlobalSymbols
-// Generated by unplugin-auto-import
-// biome-ignore lint: disable
-export {}
-declare global {
-  const EffectScope: typeof import('vue')['EffectScope']
-  const abortNavigation: typeof import('#app')['abortNavigation']
-  const addRouteMiddleware: typeof import('#app')['addRouteMiddleware']
-  const api: typeof import('../app/utils/api')['default']
-  const cancelIdleCallback: typeof import('#app')['cancelIdleCallback']
-  const clearError: typeof import('#app')['clearError']
-  const clearNuxtData: typeof import('#app')['clearNuxtData']
-  const clearNuxtState: typeof import('#app')['clearNuxtState']
-  const computed: typeof import('vue')['computed']
-  const createApp: typeof import('vue')['createApp']
-  const createError: typeof import('#app')['createError']
-  const customRef: typeof import('vue')['customRef']
-  const defineAppConfig: typeof import('#app')['defineAppConfig']
-  const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
-  const defineComponent: typeof import('vue')['defineComponent']
-  const defineI18nConfig: typeof import('#i18n')['defineI18nConfig']
-  const defineI18nLocale: typeof import('#i18n')['defineI18nLocale']
-  const defineI18nRoute: typeof import('#i18n')['defineI18nRoute']
-  const defineNuxtComponent: typeof import('#app')['defineNuxtComponent']
-  const defineNuxtLink: typeof import('#app')['defineNuxtLink']
-  const defineNuxtPlugin: typeof import('#app')['defineNuxtPlugin']
-  const defineNuxtRouteMiddleware: typeof import('#app')['defineNuxtRouteMiddleware']
-  const definePayloadPlugin: typeof import('#app')['definePayloadPlugin']
-  const definePayloadReducer: typeof import('#app')['definePayloadReducer']
-  const definePayloadReviver: typeof import('#app')['definePayloadReviver']
-  const effectScope: typeof import('vue')['effectScope']
-  const fetcher: typeof import('../app/composables/useApi')['fetcher']
-  const getAppManifest: typeof import('#app')['getAppManifest']
-  const getCurrentInstance: typeof import('vue')['getCurrentInstance']
-  const getCurrentScope: typeof import('vue')['getCurrentScope']
-  const getCurrentWatcher: typeof import('vue')['getCurrentWatcher']
-  const getI18nArray: typeof import('../app/utils/i18n')['getI18nArray']
-  const getRouteRules: typeof import('#app')['getRouteRules']
-  const h: typeof import('vue')['h']
-  const inject: typeof import('vue')['inject']
-  const isNuxtError: typeof import('#app')['isNuxtError']
-  const isPrerendered: typeof import('#app')['isPrerendered']
-  const isProxy: typeof import('vue')['isProxy']
-  const isReactive: typeof import('vue')['isReactive']
-  const isReadonly: typeof import('vue')['isReadonly']
-  const isRef: typeof import('vue')['isRef']
-  const isShallow: typeof import('vue')['isShallow']
-  const loadPayload: typeof import('#app')['loadPayload']
-  const markRaw: typeof import('vue')['markRaw']
-  const navigateTo: typeof import('#app')['navigateTo']
-  const nextTick: typeof import('vue')['nextTick']
-  const onActivated: typeof import('vue')['onActivated']
-  const onBeforeMount: typeof import('vue')['onBeforeMount']
-  const onBeforeRouteLeave: typeof import('#app')['onBeforeRouteLeave']
-  const onBeforeRouteUpdate: typeof import('#app')['onBeforeRouteUpdate']
-  const onBeforeUnmount: typeof import('vue')['onBeforeUnmount']
-  const onBeforeUpdate: typeof import('vue')['onBeforeUpdate']
-  const onDeactivated: typeof import('vue')['onDeactivated']
-  const onErrorCaptured: typeof import('vue')['onErrorCaptured']
-  const onMounted: typeof import('vue')['onMounted']
-  const onNuxtReady: typeof import('#app')['onNuxtReady']
-  const onRenderTracked: typeof import('vue')['onRenderTracked']
-  const onRenderTriggered: typeof import('vue')['onRenderTriggered']
-  const onScopeDispose: typeof import('vue')['onScopeDispose']
-  const onServerPrefetch: typeof import('vue')['onServerPrefetch']
-  const onUnmounted: typeof import('vue')['onUnmounted']
-  const onUpdated: typeof import('vue')['onUpdated']
-  const onWatcherCleanup: typeof import('vue')['onWatcherCleanup']
-  const prefetchComponents: typeof import('#app')['prefetchComponents']
-  const preloadComponents: typeof import('#app')['preloadComponents']
-  const preloadPayload: typeof import('#app')['preloadPayload']
-  const preloadRouteComponents: typeof import('#app')['preloadRouteComponents']
-  const prerenderRoutes: typeof import('#app')['prerenderRoutes']
-  const provide: typeof import('vue')['provide']
-  const reactive: typeof import('vue')['reactive']
-  const readonly: typeof import('vue')['readonly']
-  const ref: typeof import('vue')['ref']
-  const refreshNuxtData: typeof import('#app')['refreshNuxtData']
-  const reloadNuxtApp: typeof import('#app')['reloadNuxtApp']
-  const repositories: typeof import('../app/utils/factory')['repositories']
-  const repositoryFactory: typeof import('../app/utils/factory')['repositoryFactory']
-  const requestIdleCallback: typeof import('#app')['requestIdleCallback']
-  const resolveComponent: typeof import('vue')['resolveComponent']
-  const setPageLayout: typeof import('#app')['setPageLayout']
-  const setResponseStatus: typeof import('#app')['setResponseStatus']
-  const shallowReactive: typeof import('vue')['shallowReactive']
-  const shallowReadonly: typeof import('vue')['shallowReadonly']
-  const shallowRef: typeof import('vue')['shallowRef']
-  const showError: typeof import('#app')['showError']
-  const toRaw: typeof import('vue')['toRaw']
-  const toRef: typeof import('vue')['toRef']
-  const toRefs: typeof import('vue')['toRefs']
-  const toValue: typeof import('vue')['toValue']
-  const triggerRef: typeof import('vue')['triggerRef']
-  const unref: typeof import('vue')['unref']
-  const updateAppConfig: typeof import('#app')['updateAppConfig']
-  const useApi: typeof import('../app/composables/useApi')['default']
-  const useAppConfig: typeof import('#app')['useAppConfig']
-  const useAsyncData: typeof import('#app')['useAsyncData']
-  const useAttrs: typeof import('vue')['useAttrs']
-  const useBrowserLocale: typeof import('#i18n')['useBrowserLocale']
-  const useCookie: typeof import('#app')['useCookie']
-  const useCookieLocale: typeof import('#i18n')['useCookieLocale']
-  const useCssModule: typeof import('vue')['useCssModule']
-  const useCssVars: typeof import('vue')['useCssVars']
-  const useError: typeof import('#app')['useError']
-  const useFetch: typeof import('#app')['useFetch']
-  const useI18n: typeof import('vue-i18n')['useI18n']
-  const useId: typeof import('vue')['useId']
-  const useLazyAsyncData: typeof import('#app')['useLazyAsyncData']
-  const useLazyFetch: typeof import('#app')['useLazyFetch']
-  const useLocaleHead: typeof import('#i18n')['useLocaleHead']
-  const useLocalePath: typeof import('#i18n')['useLocalePath']
-  const useLocaleRoute: typeof import('#i18n')['useLocaleRoute']
-  const useModel: typeof import('vue')['useModel']
-  const useNuxtApp: typeof import('#app')['useNuxtApp']
-  const useNuxtData: typeof import('#app')['useNuxtData']
-  const useRequestEvent: typeof import('#app')['useRequestEvent']
-  const useRequestFetch: typeof import('#app')['useRequestFetch']
-  const useRequestHeaders: typeof import('#app')['useRequestHeaders']
-  const useRequestURL: typeof import('#app')['useRequestURL']
-  const useRoute: typeof import('#app')['useRoute']
-  const useRouteBaseName: typeof import('#i18n')['useRouteBaseName']
-  const useRouter: typeof import('#app')['useRouter']
-  const useRuntimeConfig: typeof import('#app')['useRuntimeConfig']
-  const useSlots: typeof import('vue')['useSlots']
-  const useState: typeof import('#app')['useState']
-  const useSwitchLocalePath: typeof import('#i18n')['useSwitchLocalePath']
-  const useTemplateRef: typeof import('vue')['useTemplateRef']
-  const watch: typeof import('vue')['watch']
-  const watchEffect: typeof import('vue')['watchEffect']
-  const watchPostEffect: typeof import('vue')['watchPostEffect']
-  const watchSyncEffect: typeof import('vue')['watchSyncEffect']
-}
-// for type re-export
-declare global {
-  // @ts-ignore
-  export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, ShallowRef, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
-  import('vue')
-  // @ts-ignore
-  export type { Method } from '../app/utils/api'
-  import('../app/utils/api')
-  // @ts-ignore
-  export type { Repository, Repositories, RepositoryKey } from '../app/utils/factory'
-  import('../app/utils/factory')
-  // @ts-ignore
-  export type { UseI18nReturnType } from '../app/utils/i18n'
-  import('../app/utils/i18n')
-}
+  css: cssUrls,
+  runtimeConfig,
+  dir: {
+    public: path.resolve(__dirname, './public'),
+  },
+  rootDir: __dirname,
+  srcDir: `${srcDir}/`,
+
+  alias: {
+    '#main': __dirname,
+    '@': path.resolve(__dirname, './app'),
+  },
+
+  ignore: [
+    '.output',
+    '**/test/*.{js,ts,jsx,tsx}',
+    '**/*.{spec,test}.{js,ts,jsx,tsx}',
+    '**/-*.*',
+  ],
+
+  build: {
+    analyze: needAnalyze,
+  },
+
+  sourcemap: {
+    server: needSourcemap,
+    client: needSourcemap,
+  },
+
+  compatibilityDate: '2024-04-03',
+
+  typescript: {
+    typeCheck: checkTypeCheckOnBuild,
+  },
+
+  debug: enableDebug,
+
+  googleFonts: {
+    families: {
+      'Noto+Sans+JP': [100, 300, 400, 500, 700, 900],
+    },
+    display: 'swap',
+  },
+
+  i18n: nuxtI18nOptions,
+})
 ````
 
 ## File: layers/main/package.json
@@ -27755,253 +28471,6 @@ onMounted(() => {
 </style>
 ````
 
-## File: layers/main/nuxt.config.ts
-````typescript
-import path from 'path'
-import { defineNuxtConfig } from 'nuxt/config'
-import { readEnvType } from './config/models/EnvType'
-import { getRuntimeConfigOfEnvType } from './config/runtimeConfig'
-import { nuxtI18nOptions } from './i18n/i18n.config'
-
-type MetaInfo = {
-  title: string
-  description: string
-  robots: string
-  siteName: string
-  ogImageUrl: string
-  ogUrl: string
-  twitterSite: string
-  twitterCreator: string
-}
-
-const NUXT_ENV_OUTPUT_ENV = readEnvType(process.env)
-const runtimeConfig = getRuntimeConfigOfEnvType(
-  NUXT_ENV_OUTPUT_ENV,
-  process.env,
-)
-const cssUrls = [`@/assets/styles/style.scss`]
-const srcDir = 'app'
-const isSsr = false
-const checkTypeCheckOnBuild = true
-const needAnalyze = NUXT_ENV_OUTPUT_ENV === 'local'
-const needSourcemap = NUXT_ENV_OUTPUT_ENV !== 'production'
-const enableDebug = NUXT_ENV_OUTPUT_ENV === 'local'
-
-const meta: MetaInfo = {
-  title: '',
-  description: '',
-  robots: NUXT_ENV_OUTPUT_ENV === 'production' ? 'all' : 'none',
-  siteName: '',
-  ogImageUrl: `${runtimeConfig.public.url}/images/ogp.jpg`,
-  ogUrl: runtimeConfig.public.url,
-  twitterSite: '',
-  twitterCreator: '',
-}
-
-// https://nuxt.com/docs/api/configuration/nuxt-config
-export default defineNuxtConfig({
-  extends: path.resolve(__dirname, '../base'),
-  modules: [
-    '@nuxtjs/google-fonts',
-  ],
-  ssr: isSsr,
-
-  imports: {
-    dirs: ['utils/types/**'],
-    global: false,
-  },
-
-  app: {
-    head: {
-      meta: [
-        { name: 'robots', content: meta.robots },
-        {
-          name: 'description',
-          content: meta.description,
-        },
-        {
-          property: 'og:site_name',
-          content: meta.siteName,
-        },
-        {
-          property: 'og:url',
-          content: meta.ogUrl,
-        },
-        {
-          property: 'og:title',
-          content: meta.title,
-        },
-        {
-          property: 'og:description',
-          content: meta.description,
-        },
-        {
-          property: 'og:image',
-          content: meta.ogImageUrl,
-        },
-        {
-          name: 'twitter:site',
-          content: meta.twitterSite,
-        },
-        {
-          name: 'twitter:creator',
-          content: meta.twitterCreator,
-        },
-      ],
-      link: [
-        {
-          rel: 'icon',
-          type: 'image/x-icon',
-          href: `${runtimeConfig.public.url}/favicon.ico`,
-        },
-      ],
-    },
-  },
-
-  css: cssUrls,
-  runtimeConfig,
-  dir: {
-    public: path.resolve(__dirname, './public'),
-  },
-  rootDir: __dirname,
-  srcDir: `${srcDir}/`,
-
-  alias: {
-    '#main': __dirname,
-    '@': path.resolve(__dirname, './app'),
-  },
-
-  ignore: [
-    '.output',
-    '**/test/*.{js,ts,jsx,tsx}',
-    '**/*.{spec,test}.{js,ts,jsx,tsx}',
-    '**/-*.*',
-  ],
-
-  build: {
-    analyze: needAnalyze,
-  },
-
-  sourcemap: {
-    server: needSourcemap,
-    client: needSourcemap,
-  },
-
-  compatibilityDate: '2024-04-03',
-
-  typescript: {
-    typeCheck: checkTypeCheckOnBuild,
-  },
-
-  debug: enableDebug,
-
-  googleFonts: {
-    families: {
-      'Noto+Sans+JP': [100, 300, 400, 500, 700, 900],
-    },
-    display: 'swap',
-  },
-
-  i18n: nuxtI18nOptions,
-})
-````
-
-## File: layers/base/app/components/hm/HmDialogElement.vue
-````vue
-<!--
-HaDialogとの違いとして、HmDialogElementは別階層の別要素のz-indexの影響により、それよりも下に表示されてしまう
-と言った現象が起きません(dialog要素は常に最前面に表示される)。
- -->
-<template>
-  <!-- ダイアログを開くボタン -->
-  <component
-    :is="props.openButtonHtmlTag"
-    :tabindex="props.openButtonHtmlTag !== 'button' ? 0 : undefined"
-    class="open"
-    aria-expanded="false"
-    @click.stop="openDialog"
-  >
-    <slot name="open">
-      <span class="text">{{
-        i18n.locale.value === 'ja' ? 'ダイアログを開く' : 'Open the dialog'
-      }}</span>
-    </slot>
-  </component>
-  <!-- ダイアログ -->
-  <template v-if="isActive">
-    <HaDialogElement
-      ref="dialog"
-      :closeButtonHtmlTag="props.closeButtonHtmlTag"
-      :closedby="props.closedby"
-    >
-      <template
-        v-if="$slots.close"
-        #close
-      >
-        <slot name="close"></slot>
-      </template>
-      <template #inner>
-        <slot name="inner"></slot>
-      </template>
-    </HaDialogElement>
-  </template>
-</template>
-
-<script lang="ts" setup>
-import HaDialogElement from '#base/app/components/ha/HaDialogElement.vue'
-// import RiCloseLine from '~icons/ri/close-line'
-
-export type Props = {
-  openButtonHtmlTag?: string
-  closeButtonHtmlTag?: string
-  closedby?: 'any' | 'closerequest' | 'none' | undefined
-}
-const props = withDefaults(defineProps<Props>(), {
-  openButtonHtmlTag: 'button',
-  closeButtonHtmlTag: 'button',
-  closedby: 'any',
-})
-
-// aria-label用のi18n
-const i18n = useI18n()
-
-// dialog要素をrefにする
-const dialog = ref<InstanceType<typeof HaDialogElement>>()
-const isActive = ref(false)
-
-// dialogを開く関数
-const openDialog = async () => {
-  isActive.value = true
-  await nextTick()
-  if (!dialog.value) {
-    throw new Error('dialogコンポーネントはnull (HmDialogElement openDialog)')
-  }
-  dialog.value.openDialog()
-}
-
-// dialogを閉じる関数
-const closeDialog = () => {
-  if (!dialog.value) {
-    throw new Error('dialogコンポーネントはnull (HmDialogElement closeDialog)')
-  }
-  dialog.value.closeDialog()
-  isActive.value = false
-}
-
-defineExpose({
-  openDialog,
-  closeDialog,
-  isActive,
-})
-</script>
-
-<style lang="scss" scoped>
-.open {
-  cursor: pointer;
-}
-</style>
-````
-
 ## File: layers/base/nuxt.config.ts
 ````typescript
 import { defineNuxtConfig } from 'nuxt/config'
@@ -28131,39 +28600,6 @@ export default defineNuxtConfig({
   },
   i18n: nuxtI18nOptions,
 })
-````
-
-## File: package.json
-````json
-{
-  "name": "vket-boilerplate-nuxt",
-  "private": true,
-  "version": "1.0.1",
-  "license": "MIT",
-  "workspaces": [
-    "layers/*"
-  ],
-  "scripts": {
-    "prepare": "bun husky",
-    "package-update": "bunx npm-check-updates -i",
-    "repomix": "bunx repomix@latest --style markdown"
-  },
-  "devDependencies": {
-    "@types/bun": "^1.2.21",
-    "eslint": "^9.34.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.1.6",
-    "stylelint": "^16.23.1"
-  },
-  "lint-staged": {
-    "layers/**/*.+(js|ts|tsx|vue)": [
-      "eslint --cache --cache-strategy content"
-    ]
-  },
-  "resolutions": {
-    "eslint": "9.34.0"
-  }
-}
 ````
 
 ## File: layers/base/app/components/hm/input/HmInputSingleImage.vue
@@ -28558,6 +28994,135 @@ const cancel = () => {
   }
 }
 </style>
+````
+
+## File: layers/base/app/components/hm/HmDialogElement.vue
+````vue
+<!--
+HaDialogとの違いとして、HmDialogElementは別階層の別要素のz-indexの影響により、それよりも下に表示されてしまう
+と言った現象が起きません(dialog要素は常に最前面に表示される)。
+ -->
+<template>
+  <!-- ダイアログを開くボタン -->
+  <component
+    :is="props.openButtonHtmlTag"
+    :tabindex="props.openButtonHtmlTag !== 'button' ? 0 : undefined"
+    class="open"
+    aria-expanded="false"
+    @click.stop="openDialog"
+  >
+    <slot name="open">
+      <span class="text">{{
+        i18n.locale.value === 'ja' ? 'ダイアログを開く' : 'Open the dialog'
+      }}</span>
+    </slot>
+  </component>
+  <!-- ダイアログ -->
+  <template v-if="isActive">
+    <HaDialogElement
+      ref="dialog"
+      :closeButtonHtmlTag="props.closeButtonHtmlTag"
+      :closedby="props.closedby"
+    >
+      <template
+        v-if="$slots.close"
+        #close
+      >
+        <slot name="close"></slot>
+      </template>
+      <template #inner>
+        <slot name="inner"></slot>
+      </template>
+    </HaDialogElement>
+  </template>
+</template>
+
+<script lang="ts" setup>
+import HaDialogElement from '#base/app/components/ha/HaDialogElement.vue'
+// import RiCloseLine from '~icons/ri/close-line'
+
+export type Props = {
+  openButtonHtmlTag?: string
+  closeButtonHtmlTag?: string
+  closedby?: 'any' | 'closerequest' | 'none' | undefined
+}
+const props = withDefaults(defineProps<Props>(), {
+  openButtonHtmlTag: 'button',
+  closeButtonHtmlTag: 'button',
+  closedby: 'any',
+})
+
+// aria-label用のi18n
+const i18n = useI18n()
+
+// dialog要素をrefにする
+const dialog = ref<InstanceType<typeof HaDialogElement>>()
+const isActive = ref(false)
+
+// dialogを開く関数
+const openDialog = async () => {
+  isActive.value = true
+  await nextTick()
+  if (!dialog.value) {
+    throw new Error('dialogコンポーネントはnull (HmDialogElement openDialog)')
+  }
+  dialog.value.openDialog()
+}
+
+// dialogを閉じる関数
+const closeDialog = () => {
+  if (!dialog.value) {
+    throw new Error('dialogコンポーネントはnull (HmDialogElement closeDialog)')
+  }
+  dialog.value.closeDialog()
+  isActive.value = false
+}
+
+defineExpose({
+  openDialog,
+  closeDialog,
+  isActive,
+})
+</script>
+
+<style lang="scss" scoped>
+.open {
+  cursor: pointer;
+}
+</style>
+````
+
+## File: package.json
+````json
+{
+  "name": "vket-boilerplate-nuxt",
+  "private": true,
+  "version": "1.0.1",
+  "license": "MIT",
+  "workspaces": [
+    "layers/*"
+  ],
+  "scripts": {
+    "prepare": "bun husky",
+    "package-update": "bunx npm-check-updates -i",
+    "repomix": "bunx repomix@latest --style markdown"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.21",
+    "eslint": "^9.34.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.6",
+    "stylelint": "^16.23.1"
+  },
+  "lint-staged": {
+    "layers/**/*.+(js|ts|tsx|vue)": [
+      "eslint --cache --cache-strategy content"
+    ]
+  },
+  "resolutions": {
+    "eslint": "9.34.0"
+  }
+}
 ````
 
 ## File: layers/base/@types/auto-imports.d.ts

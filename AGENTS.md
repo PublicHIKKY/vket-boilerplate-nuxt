@@ -7,7 +7,7 @@ This AGENTS.md file follows the standard format for AI agent coordination in sof
 For more information about the AGENTS.md format and best practices, visit: https://agents.md/
 
 ## Project Overview
-Nuxt3-based monorepo boilerplate using Layer Architecture, developed by HIKKY Ltd. for building scalable VR/metaverse-related web applications.
+Nuxt4-based monorepo boilerplate using Layer Architecture, developed by HIKKY Ltd. for building scalable VR/metaverse-related web applications.
 
 ### Understanding Project Structure
 Before starting development, AI agents should read `./repomix-output.md` to understand the complete project structure and codebase. This file contains:
@@ -31,6 +31,7 @@ Use this file to understand existing patterns before creating new components or 
 - `bun --filter vket-boilerplate-nuxt-base dev` - Start base layer dev server
 - `bun --filter vket-boilerplate-nuxt-main dev` - Start main layer dev server
 - `bun --filter vket-boilerplate-nuxt-showcases dev` - Start showcases dev server
+- `bun --filter vket-boilerplate-nuxt-open-api generate` - Generate OpenAPI models
 
 ## Development Guidelines
 
@@ -64,6 +65,7 @@ Use this file to understand existing patterns before creating new components or 
 - `bun --filter <layer-name> typecheck` - Check TypeScript types (must be 0 errors)
 - `bun --filter <layer-name> lint` - Run ESLint and Stylelint (must be 0 errors)
 - `bun --filter <layer-name> fix` - Auto-fix linting issues
+- `bun --filter vket-boilerplate-nuxt-main fix-openapi-models` - Fix generated OpenAPI models
 
 ## PR Instructions
 
@@ -96,10 +98,16 @@ Examples:
 ### Monorepo Layout
 ```
 /layers/
-  /base/     # Shared components, utils, styles
+  /base/     # Shared components, utils, styles, config
+    /app/      # Application code
+    /config/   # Environment configuration (EnvType, runtimeConfig)
+    /@types/   # TypeScript type definitions
+    /i18n/     # Internationalization files
   /main/     # Main application
   /showcases/ # Component documentation
-  /open-api/ # API schema definitions
+  /open-api/ # API schema definitions & Zod generation
+    /openapi/  # OpenAPI specification files
+    /scripts/  # Generation scripts
 ```
 
 ### Import Paths
@@ -155,9 +163,19 @@ const props = withDefaults(
 
 ## Environment Variables
 
+### System Requirements
+- Node.js 22.x (required by base layer)
+- Bun package manager
+
 ### Required Variables
 - `VITE_OUTPUT_ENV` - Environment (local/staging/production)
 - API endpoints configured in `runtimeConfig.ts`
+
+### Environment Configuration System
+This project uses a sophisticated environment management system:
+- `config/models/EnvType.ts` - Environment type definitions and validation
+- `config/runtimeConfig.ts` - Environment-specific runtime configuration
+- Supports multiple environments: local, staging, production
 
 ### Local Development
 ```bash
@@ -193,8 +211,15 @@ cross-env VITE_OUTPUT_ENV=local bun dev
 - No unnecessary re-renders
 - Bundle size impact checked
 
+## Key Dependencies
+- **Nuxt 4.1.0** - Full-stack framework
+- **Vue 3.5.21** - Progressive JavaScript framework
+- **Zod 4.1.5** - TypeScript-first schema validation
+- **TypeScript 5.9.2** - Type safety and tooling
+- **Bun** - Fast package manager and runtime
+
 ## Additional Resources
-- [Nuxt 3 Documentation](https://nuxt.com/docs)
+- [Nuxt 4 Documentation](https://nuxt.com/docs)
 - [Zod Documentation](https://zod.dev)
 - [RSCSS Naming Convention](https://rscss.io)
 - [Vue 3 Composition API](https://vuejs.org/api/composition-api.html)
