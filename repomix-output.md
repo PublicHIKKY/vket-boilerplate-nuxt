@@ -8439,6 +8439,316 @@ export default withNuxt(
 }
 ````
 
+## File: layers/vket-sso/app/_test/models/vketSso.spec.ts
+````typescript
+import { describe, it, expect } from 'vitest'
+import { ssoUserSchema, ssoJwtSchema, resultSchema } from '#vket-sso/app/models/vketSso'
+
+describe('ssoUserSchema', () => {
+  it('should validate a correct SSO user object', () => {
+    const validUser = {
+      id: 1,
+      sub: 'sub123',
+      vketId: 'vket123',
+      vketDetaId: null,
+      email: 'test@example.com',
+      nameJa: 'テスト',
+      nameEn: 'Test',
+      pictureUrl: 'http://example.com/picture.jpg',
+      createdAt: '2023-01-01T00:00:00Z',
+      updatedAt: '2023-01-01T00:00:00Z',
+    }
+    expect(ssoUserSchema.parse(validUser)).toEqual(validUser)
+  })
+
+  it('should fail validation for an incorrect SSO user object', () => {
+    const invalidUser = {
+      id: 'not-a-number',
+      sub: 'sub123',
+      vketId: 'vket123',
+      createdAt: '2023-01-01T00:00:00Z',
+      updatedAt: '2023-01-01T00:00:00Z',
+    }
+    expect(() => ssoUserSchema.parse(invalidUser)).toThrow()
+  })
+})
+
+describe('ssoJwtSchema', () => {
+  it('should validate a correct JWT object', () => {
+    const validJwt = {
+      exp: 1234567890,
+      iat: 1234567890,
+    }
+    expect(ssoJwtSchema.parse(validJwt)).toEqual(validJwt)
+  })
+
+  it('should fail validation for an incorrect JWT object', () => {
+    const invalidJwt = {
+      exp: 'not-a-number',
+      iat: 1234567890,
+    }
+    expect(() => ssoJwtSchema.parse(invalidJwt)).toThrow()
+  })
+})
+
+describe('resultSchema', () => {
+  it('should validate a correct result object', () => {
+    const validResult = {
+      success: true,
+    }
+    expect(resultSchema.parse(validResult)).toEqual(validResult)
+  })
+
+  it('should fail validation for an incorrect result object', () => {
+    const invalidResult = {
+      success: 'not-a-boolean',
+    }
+    expect(() => resultSchema.parse(invalidResult)).toThrow()
+  })
+})
+````
+
+## File: layers/vket-sso/app/_test/repositories/vketSsoRepository.spec.ts
+````typescript
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { vketSsoRepository } from '#vket-sso/app/repositories/vketSsoRepository'
+import { defaultApi } from '#base/app/utils/default-api'
+
+vi.mock('#base/app/utils/default-api')
+vi.mock('#base/app/utils/error')
+vi.mock('#app')
+
+describe('vketSsoRepository', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  describe('get.fetchSsoProfile', () => {
+    it('should fetch the SSO profile', async () => {
+      const mockResponse = {
+        user: {
+          id: 1,
+          sub: 'sub',
+          vketId: 'vketId',
+          vketDetaId: 1,
+          email: 'email',
+          nameJa: 'nameJa',
+          nameEn: 'nameEn',
+          pictureUrl: 'pictureUrl',
+          createdAt: 'createdAt',
+          updatedAt: 'updatedAt',
+        },
+      }
+
+      vi.mocked(defaultApi.get).mockResolvedValue(mockResponse)
+      const result = await vketSsoRepository.get.fetchSsoProfile()
+      expect(defaultApi.get).toHaveBeenCalledWith(
+        useRuntimeConfig().public.ssoDomain + '/profile/me',
+        { credentials: 'include' },
+      )
+      expect(result).toEqual(mockResponse)
+    })
+  })
+
+  describe('get.fetchSsoToken', () => {
+    it('should fetch the SSO token', async () => {
+      const mockResponse = { jwt: 'test-jwt' }
+      vi.mocked(defaultApi.get).mockResolvedValue(mockResponse)
+
+      const config = useRuntimeConfig()
+      const result = await vketSsoRepository.get.fetchSsoToken()
+      const domain
+              = config?.public?.ssoDomain || raiseError('undefined ssoDomain')
+      const audience
+              = config?.public?.url
+      expect(defaultApi.get).toHaveBeenCalledWith(
+        `${domain}/auth/token?audience=${audience}`,
+        { credentials: 'include' },
+      )
+      expect(result).toEqual(mockResponse)
+    })
+  })
+
+  describe('get.fetchSsoJwk', () => {
+    it('should fetch the SSO JWK', async () => {
+      const mockResponse = {
+        d: 'test-d',
+        dp: 'test-dp',
+        dq: 'test-dq',
+        e: 'test-e',
+        kid: 'test-kid',
+        kty: 'test-kty',
+        n: 'test-n',
+        p: 'test-p',
+        q: 'test-q',
+        qi: 'test-qi',
+      }
+      vi.mocked(defaultApi.get).mockResolvedValue(mockResponse)
+
+      const result = await vketSsoRepository.get.fetchSsoJwk()
+
+      expect(defaultApi.get).toHaveBeenCalledWith(
+        useRuntimeConfig().public.ssoDomain + '/auth/discovery/keys',
+      )
+      expect(result).toEqual(mockResponse)
+    })
+  })
+})
+````
+
+## File: layers/vket-sso/app/_test/utils/record.spec.ts
+````typescript
+import { describe, it, expect } from 'vitest'
+import { getRestrictedRecord } from '#vket-sso/app/utils/record'
+
+describe('getRestrictedRecord', () => {
+  it('should remove undefined values from the record', () => {
+    const input = {
+      key1: 'value1',
+      key2: undefined,
+      key3: 'value3',
+    }
+    const expectedOutput = {
+      key1: 'value1',
+      key3: 'value3',
+    }
+    expect(getRestrictedRecord(input)).toEqual(expectedOutput)
+  })
+
+  it('should return an empty object if all values are undefined', () => {
+    const input = {
+      key1: undefined,
+      key2: undefined,
+    }
+    const expectedOutput = {}
+    expect(getRestrictedRecord(input)).toEqual(expectedOutput)
+  })
+
+  it('should return the same object if no values are undefined', () => {
+    const input = {
+      key1: 'value1',
+      key2: 'value2',
+    }
+    const expectedOutput = {
+      key1: 'value1',
+      key2: 'value2',
+    }
+    expect(getRestrictedRecord(input)).toEqual(expectedOutput)
+  })
+
+  it('should handle an empty input object', () => {
+    const input = {}
+    const expectedOutput = {}
+    expect(getRestrictedRecord(input)).toEqual(expectedOutput)
+  })
+})
+````
+
+## File: layers/vket-sso/app/_test/utils/vket-sso-api.spec.ts
+````typescript
+import { describe, it, expect, vi } from 'vitest'
+import api, { vketSsoApi } from '#vket-sso/app/utils/vket-sso-api'
+import { defaultApi } from '#base/app/utils/default-api'
+
+vi.mock('#base/app/utils/default-api')
+vi.mock('ofetch')
+vi.mock('#base/app/utils/default-api', () => ({
+  defaultApi: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    patch: vi.fn(),
+    delete: vi.fn(),
+  },
+}))
+
+describe('vketSsoApi', () => {
+  const path = '/test-path'
+  const fetchOptions = { headers: { 'Content-Type': 'application/json' } }
+
+  it('should call defaultApi.get with correct parameters', async () => {
+    await vketSsoApi.get(path, fetchOptions)
+    expect(defaultApi.get).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
+  })
+
+  it('should call defaultApi.post with correct parameters', async () => {
+    await vketSsoApi.post(path, fetchOptions)
+    expect(defaultApi.post).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
+  })
+
+  it('should call defaultApi.put with correct parameters', async () => {
+    await vketSsoApi.put(path, fetchOptions)
+    expect(defaultApi.put).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
+  })
+
+  it('should call defaultApi.patch with correct parameters', async () => {
+    await vketSsoApi.patch(path, fetchOptions)
+    expect(defaultApi.patch).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
+  })
+
+  it('should call defaultApi.delete with correct parameters', async () => {
+    await vketSsoApi.delete(path, fetchOptions)
+    expect(defaultApi.delete).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
+  })
+
+  //
+  it('should call api.get with correct parameters', async () => {
+    await api('get', path, fetchOptions)
+    expect(defaultApi.get).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
+  })
+
+  it('should call api.GET with correct parameters', async () => {
+    await api('GET', path, fetchOptions)
+    expect(defaultApi.get).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
+  })
+
+  it('should call api.post with correct parameters', async () => {
+    await api('post', path, fetchOptions)
+    expect(defaultApi.post).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
+  })
+
+  it('should call api.POST with correct parameters', async () => {
+    await api('POST', path, fetchOptions)
+    expect(defaultApi.post).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
+  })
+
+  it('should call api.put with correct parameters', async () => {
+    await api('put', path, fetchOptions)
+    expect(defaultApi.put).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
+  })
+
+  it('should call api.PUT with correct parameters', async () => {
+    await api('PUT', path, fetchOptions)
+    expect(defaultApi.put).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
+  })
+
+  it('should call api.patch with correct parameters', async () => {
+    await api('patch', path, fetchOptions)
+    expect(defaultApi.patch).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
+  })
+
+  it('should call api.PATCH with correct parameters', async () => {
+    await api('PATCH', path, fetchOptions)
+    expect(defaultApi.patch).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
+  })
+
+  it('should call api.delete with correct parameters', async () => {
+    await api('delete', path, fetchOptions)
+    expect(defaultApi.delete).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
+  })
+
+  it('should call api.DELETE with correct parameters', async () => {
+    await api('DELETE', path, fetchOptions)
+    expect(defaultApi.delete).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
+  })
+
+  it('should call api.CONNECT with correct parameters', async () => {
+    await api('CONNECT', path, fetchOptions)
+    expect(defaultApi.delete).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
+  })
+})
+````
+
 ## File: layers/vket-sso/app/composables/useAuthVketSso.ts
 ````typescript
 /**
@@ -22548,312 +22858,225 @@ export default defineConfig({
 })
 ````
 
-## File: layers/vket-sso/app/_test/models/vketSso.spec.ts
+## File: layers/vket-sso/app/_test/composables/useAuthVketSso.spec.ts
 ````typescript
-import { describe, it, expect } from 'vitest'
-import { ssoUserSchema, ssoJwtSchema, resultSchema } from '#vket-sso/app/models/vketSso'
-
-describe('ssoUserSchema', () => {
-  it('should validate a correct SSO user object', () => {
-    const validUser = {
-      id: 1,
-      sub: 'sub123',
-      vketId: 'vket123',
-      vketDetaId: null,
-      email: 'test@example.com',
-      nameJa: 'テスト',
-      nameEn: 'Test',
-      pictureUrl: 'http://example.com/picture.jpg',
-      createdAt: '2023-01-01T00:00:00Z',
-      updatedAt: '2023-01-01T00:00:00Z',
-    }
-    expect(ssoUserSchema.parse(validUser)).toEqual(validUser)
-  })
-
-  it('should fail validation for an incorrect SSO user object', () => {
-    const invalidUser = {
-      id: 'not-a-number',
-      sub: 'sub123',
-      vketId: 'vket123',
-      createdAt: '2023-01-01T00:00:00Z',
-      updatedAt: '2023-01-01T00:00:00Z',
-    }
-    expect(() => ssoUserSchema.parse(invalidUser)).toThrow()
-  })
-})
-
-describe('ssoJwtSchema', () => {
-  it('should validate a correct JWT object', () => {
-    const validJwt = {
-      exp: 1234567890,
-      iat: 1234567890,
-    }
-    expect(ssoJwtSchema.parse(validJwt)).toEqual(validJwt)
-  })
-
-  it('should fail validation for an incorrect JWT object', () => {
-    const invalidJwt = {
-      exp: 'not-a-number',
-      iat: 1234567890,
-    }
-    expect(() => ssoJwtSchema.parse(invalidJwt)).toThrow()
-  })
-})
-
-describe('resultSchema', () => {
-  it('should validate a correct result object', () => {
-    const validResult = {
-      success: true,
-    }
-    expect(resultSchema.parse(validResult)).toEqual(validResult)
-  })
-
-  it('should fail validation for an incorrect result object', () => {
-    const invalidResult = {
-      success: 'not-a-boolean',
-    }
-    expect(() => resultSchema.parse(invalidResult)).toThrow()
-  })
-})
-````
-
-## File: layers/vket-sso/app/_test/repositories/vketSsoRepository.spec.ts
-````typescript
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { getSessionStorageValue } from '#base/app/utils/storage-control'
+import { decodeJwt } from '#base/app/utils/token'
+import { useAuthVketSso } from '#vket-sso/app/composables/useAuthVketSso'
 import { vketSsoRepository } from '#vket-sso/app/repositories/vketSsoRepository'
-import { defaultApi } from '#base/app/utils/default-api'
 
-vi.mock('#base/app/utils/default-api')
-vi.mock('#base/app/utils/error')
-vi.mock('#app')
+// FIXME: import.meta.serverのモック化ができないのでそこの分岐テストは出来てない
+vi.mock('#base/app/utils/storage-control')
+vi.mock('#base/app/utils/token')
+vi.mock('#vket-sso/app/repositories/vketSsoRepository')
 
-describe('vketSsoRepository', () => {
+describe('useAuthVketSso', () => {
+  let auth: ReturnType<typeof useAuthVketSso>
+
   beforeEach(() => {
-    vi.clearAllMocks()
+    auth = useAuthVketSso()
+    vi.clearAllMocks() // すべてのモックをクリア
   })
 
-  describe('get.fetchSsoProfile', () => {
-    it('should fetch the SSO profile', async () => {
-      const mockResponse = {
+  afterEach(() => {
+    vi.resetAllMocks() // すべてのモックをリセット
+    clearNuxtState() // テスト間でstateの状態が引き継がれるのでリセット
+  })
+
+  describe('login', () => {
+    it('should open login window and resolve on success', async () => {
+      const mockWindow = { closed: false }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(window, 'open').mockReturnValue(mockWindow as any)
+      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockResolvedValue({
         user: {
           id: 1,
           sub: 'sub',
           vketId: 'vketId',
-          vketDetaId: 1,
-          email: 'email',
-          nameJa: 'nameJa',
-          nameEn: 'nameEn',
-          pictureUrl: 'pictureUrl',
           createdAt: 'createdAt',
           updatedAt: 'updatedAt',
         },
+      })
+
+      setTimeout(() => {
+        mockWindow.closed = true
+      }, 1)
+
+      const result = await auth.login()
+      expect(result.success).toBe(true)
+    })
+
+    it('should handle popup block error', async () => {
+      vi.spyOn(window, 'open').mockReturnValue(null)
+
+      const result = await auth.login()
+
+      expect(result.success).toBe(false)
+      expect(result.errorKey).toBe('error.popup-block')
+    })
+
+    // getSsoUserStateのresponseがnullの場合のテスト
+    it('should handle getSsoUserState null response', async () => {
+      const mockWindow = { closed: false }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(window, 'open').mockReturnValue(mockWindow as any)
+      vi.spyOn(auth, 'getSsoUserState').mockResolvedValue(ref(null))
+
+      setTimeout(() => {
+        mockWindow.closed = true
+      }, 1)
+
+      const result = await auth.login()
+      expect(result.success).toBe(false)
+      expect(result.errorKey).toBe('error.login')
+    })
+
+    // getSsoUserStateが例外の場合のテスト
+    it('should handle getSsoUserState error', async () => {
+      const mockWindow = { closed: false }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(window, 'open').mockReturnValue(mockWindow as any)
+      vi.spyOn(auth, 'getSsoUserState').mockImplementationOnce(() => {
+        throw new Error('should handle getSsoUserState error')
+      })
+
+      setTimeout(() => {
+        mockWindow.closed = true
+      }, 1)
+
+      const result = await auth.login()
+      expect(result.success).toBe(false)
+    })
+  })
+
+  describe('logout', () => {
+    it('should open logout window and resolve on success', async () => {
+      const mockWindow = { closed: false }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(window, 'open').mockReturnValue(mockWindow as any)
+
+      setTimeout(() => {
+        mockWindow.closed = true
+      }, 1)
+
+      const result = await auth.logout()
+
+      expect(result.success).toBe(true)
+      expect(auth.aliveToken.value).toBeNull()
+    })
+
+    it('should handle popup block error', async () => {
+      vi.spyOn(window, 'open').mockReturnValue(null)
+
+      const result = await auth.logout()
+
+      expect(result.success).toBe(false)
+      expect(result.errorKey).toBe('error.popup-block')
+    })
+  })
+
+  describe('fetchSsoUser', () => {
+    it('should fetch SSO user and set state', async () => {
+      const mockUser = {
+        id: 1,
+        sub: 'sub',
+        vketId: 'vketId',
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt',
       }
+      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockResolvedValue({ user: mockUser })
 
-      vi.mocked(defaultApi.get).mockResolvedValue(mockResponse)
-      const result = await vketSsoRepository.get.fetchSsoProfile()
-      expect(defaultApi.get).toHaveBeenCalledWith(
-        useRuntimeConfig().public.ssoDomain + '/profile/me',
-        { credentials: 'include' },
-      )
-      expect(result).toEqual(mockResponse)
+      await auth.fetchSsoUser()
+      expect(auth.ssoUser.value).toStrictEqual(mockUser)
+    })
+
+    it('should handle errors and set logout state', async () => {
+      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockRejectedValue(new Error('fetch error'))
+
+      await auth.fetchSsoUser()
+
+      expect(auth.ssoUser.value).toBeNull()
+      expect(auth.isLogout.value).toBe(true)
+    })
+
+    it('should handle errors and set logout state', async () => {
+      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockRejectedValue(new Error('fetch error'))
+      vi.mocked(getSessionStorageValue).mockReturnValue('mockJwt')
+
+      await auth.fetchSsoUser()
+
+      expect(auth.ssoUser.value).toBeNull()
+      expect(auth.isLogout.value).toBe(true)
     })
   })
 
-  describe('get.fetchSsoToken', () => {
-    it('should fetch the SSO token', async () => {
-      const mockResponse = { jwt: 'test-jwt' }
-      vi.mocked(defaultApi.get).mockResolvedValue(mockResponse)
+  describe('resetSsoUser', () => {
+    it('should reset SSO user state', () => {
+      auth.resetSsoUser()
 
-      const config = useRuntimeConfig()
-      const result = await vketSsoRepository.get.fetchSsoToken()
-      const domain
-              = config?.public?.ssoDomain || raiseError('undefined ssoDomain')
-      const audience
-              = config?.public?.url
-      expect(defaultApi.get).toHaveBeenCalledWith(
-        `${domain}/auth/token?audience=${audience}`,
-        { credentials: 'include' },
-      )
-      expect(result).toEqual(mockResponse)
+      expect(auth.ssoUser.value).toBeNull()
     })
   })
 
-  describe('get.fetchSsoJwk', () => {
-    it('should fetch the SSO JWK', async () => {
-      const mockResponse = {
-        d: 'test-d',
-        dp: 'test-dp',
-        dq: 'test-dq',
-        e: 'test-e',
-        kid: 'test-kid',
-        kty: 'test-kty',
-        n: 'test-n',
-        p: 'test-p',
-        q: 'test-q',
-        qi: 'test-qi',
+  describe('getSsoUserState', () => {
+    it('should return SSO user state', async () => {
+      const mockUser = {
+        id: 1,
+        sub: 'sub',
+        vketId: 'vketId',
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt',
       }
-      vi.mocked(defaultApi.get).mockResolvedValue(mockResponse)
+      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockResolvedValue({ user: mockUser })
 
-      const result = await vketSsoRepository.get.fetchSsoJwk()
+      const state = await auth.getSsoUserState()
 
-      expect(defaultApi.get).toHaveBeenCalledWith(
-        useRuntimeConfig().public.ssoDomain + '/auth/discovery/keys',
-      )
-      expect(result).toEqual(mockResponse)
+      expect(state.value).toStrictEqual(mockUser)
     })
   })
-})
-````
 
-## File: layers/vket-sso/app/_test/utils/record.spec.ts
-````typescript
-import { describe, it, expect } from 'vitest'
-import { getRestrictedRecord } from '#vket-sso/app/utils/record'
+  describe('getTokenOrRefresh', () => {
+    it('should return token if valid', async () => {
+      const mockJwt = 'mockJwt'
+      const mockDecodedToken = { exp: new Date().getTime() / 1000 + 1000, iat: new Date().getTime() / 1000 }
+      vi.mocked(decodeJwt).mockReturnValue(mockDecodedToken)
+      vi.mocked(getSessionStorageValue).mockReturnValue(mockJwt)
 
-describe('getRestrictedRecord', () => {
-  it('should remove undefined values from the record', () => {
-    const input = {
-      key1: 'value1',
-      key2: undefined,
-      key3: 'value3',
-    }
-    const expectedOutput = {
-      key1: 'value1',
-      key3: 'value3',
-    }
-    expect(getRestrictedRecord(input)).toEqual(expectedOutput)
-  })
+      const token = await auth.getTokenOrRefresh()
+      expect(token).toBe(mockJwt)
+    })
 
-  it('should return an empty object if all values are undefined', () => {
-    const input = {
-      key1: undefined,
-      key2: undefined,
-    }
-    const expectedOutput = {}
-    expect(getRestrictedRecord(input)).toEqual(expectedOutput)
-  })
+    it('should fetch token if invalid', async () => {
+      vi.mocked(getSessionStorageValue).mockReturnValue(null)
+      vi.mocked(vketSsoRepository.get.fetchSsoToken).mockResolvedValue({ jwt: '' })
+      const mockDecodedToken = { exp: new Date().getTime() / 1000 + 1000, iat: new Date().getTime() / 1000 }
+      vi.mocked(decodeJwt).mockReturnValue(mockDecodedToken)
 
-  it('should return the same object if no values are undefined', () => {
-    const input = {
-      key1: 'value1',
-      key2: 'value2',
-    }
-    const expectedOutput = {
-      key1: 'value1',
-      key2: 'value2',
-    }
-    expect(getRestrictedRecord(input)).toEqual(expectedOutput)
-  })
+      const token = await auth.getTokenOrRefresh()
+      expect(token).toBe(null)
+    })
 
-  it('should handle an empty input object', () => {
-    const input = {}
-    const expectedOutput = {}
-    expect(getRestrictedRecord(input)).toEqual(expectedOutput)
-  })
-})
-````
+    // jwtが取得できたが、有効期限が切れている場合
+    it('should fetch token if expired', async () => {
+      const mockJwt = 'mockJwt'
+      const mockDecodedToken = { exp: new Date().getTime() / 1000 - 1000, iat: new Date().getTime() / 1000 }
+      vi.mocked(decodeJwt).mockReturnValue(mockDecodedToken)
+      vi.mocked(getSessionStorageValue).mockReturnValue(mockJwt)
+      vi.mocked(vketSsoRepository.get.fetchSsoToken).mockResolvedValue({ jwt: '' })
 
-## File: layers/vket-sso/app/_test/utils/vket-sso-api.spec.ts
-````typescript
-import { describe, it, expect, vi } from 'vitest'
-import api, { vketSsoApi } from '#vket-sso/app/utils/vket-sso-api'
-import { defaultApi } from '#base/app/utils/default-api'
+      const token = await auth.getTokenOrRefresh()
+      expect(token).toBe(null)
+    })
 
-vi.mock('#base/app/utils/default-api')
-vi.mock('ofetch')
-vi.mock('#base/app/utils/default-api', () => ({
-  defaultApi: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
-}))
+    // _fetchToken で例外が発生した場合
+    it('should handle errors to _fetchToken', async () => {
+      vi.mocked(getSessionStorageValue).mockReturnValue(null)
+      vi.mocked(vketSsoRepository.get.fetchSsoToken).mockRejectedValue(new Error('should handle errors to _fetchToken'))
 
-describe('vketSsoApi', () => {
-  const path = '/test-path'
-  const fetchOptions = { headers: { 'Content-Type': 'application/json' } }
-
-  it('should call defaultApi.get with correct parameters', async () => {
-    await vketSsoApi.get(path, fetchOptions)
-    expect(defaultApi.get).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
-  })
-
-  it('should call defaultApi.post with correct parameters', async () => {
-    await vketSsoApi.post(path, fetchOptions)
-    expect(defaultApi.post).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
-  })
-
-  it('should call defaultApi.put with correct parameters', async () => {
-    await vketSsoApi.put(path, fetchOptions)
-    expect(defaultApi.put).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
-  })
-
-  it('should call defaultApi.patch with correct parameters', async () => {
-    await vketSsoApi.patch(path, fetchOptions)
-    expect(defaultApi.patch).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
-  })
-
-  it('should call defaultApi.delete with correct parameters', async () => {
-    await vketSsoApi.delete(path, fetchOptions)
-    expect(defaultApi.delete).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
-  })
-
-  //
-  it('should call api.get with correct parameters', async () => {
-    await api('get', path, fetchOptions)
-    expect(defaultApi.get).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
-  })
-
-  it('should call api.GET with correct parameters', async () => {
-    await api('GET', path, fetchOptions)
-    expect(defaultApi.get).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
-  })
-
-  it('should call api.post with correct parameters', async () => {
-    await api('post', path, fetchOptions)
-    expect(defaultApi.post).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
-  })
-
-  it('should call api.POST with correct parameters', async () => {
-    await api('POST', path, fetchOptions)
-    expect(defaultApi.post).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
-  })
-
-  it('should call api.put with correct parameters', async () => {
-    await api('put', path, fetchOptions)
-    expect(defaultApi.put).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
-  })
-
-  it('should call api.PUT with correct parameters', async () => {
-    await api('PUT', path, fetchOptions)
-    expect(defaultApi.put).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
-  })
-
-  it('should call api.patch with correct parameters', async () => {
-    await api('patch', path, fetchOptions)
-    expect(defaultApi.patch).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
-  })
-
-  it('should call api.PATCH with correct parameters', async () => {
-    await api('PATCH', path, fetchOptions)
-    expect(defaultApi.patch).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
-  })
-
-  it('should call api.delete with correct parameters', async () => {
-    await api('delete', path, fetchOptions)
-    expect(defaultApi.delete).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
-  })
-
-  it('should call api.DELETE with correct parameters', async () => {
-    await api('DELETE', path, fetchOptions)
-    expect(defaultApi.delete).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
-  })
-
-  it('should call api.CONNECT with correct parameters', async () => {
-    await api('CONNECT', path, fetchOptions)
-    expect(defaultApi.delete).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
+      const token = await auth.getTokenOrRefresh()
+      expect(token).toBe(null)
+    })
   })
 })
 ````
@@ -26653,84 +26876,6 @@ useHeadSafe({
 </script>
 ````
 
-## File: layers/main/i18n/i18n.config.ts
-````typescript
-/*
- * note: i18n by nuxt-i18n i18nの不具合があればこのファイルから参照する
- * ref: https://v8.i18n.nuxtjs.org/
- */
-import type { NuxtI18nOptions } from '@nuxtjs/i18n'
-import Cookies from 'universal-cookie'
-import en from './locales/en.json'
-import ja from './locales/ja.json'
-
-const cookie = new Cookies()
-const jaLanguage = 'ja'
-const enLanguage = 'en'
-const cookieKey = 'VUEI18N_MANUAL_LOCALE'
-const isBrowserLanguageJa = import.meta.client
-  ? navigator?.language?.startsWith(jaLanguage)
-  : false
-const isBrowserLanguageEn = import.meta.client
-  ? navigator?.language?.startsWith(enLanguage)
-  : false
-const defaultLanguageFromCookie = import.meta.client
-  ? cookie.get(cookieKey) ?? null
-  : ''
-const defaultLanguage
-  = defaultLanguageFromCookie === jaLanguage
-    ? jaLanguage
-    : defaultLanguageFromCookie === enLanguage
-      ? enLanguage
-      : isBrowserLanguageJa
-        ? jaLanguage
-        : isBrowserLanguageEn
-          ? enLanguage
-          : jaLanguage
-
-// settings for nuxt-i18n v9~
-export const nuxtI18nOptions: NuxtI18nOptions = {
-  strategy: 'prefix_and_default',
-  locales: [
-    {
-      code: jaLanguage,
-      language: 'ja-JP',
-      file: 'ja.json',
-      isCatchallLocale: true,
-    },
-    {
-      code: enLanguage,
-      language: 'en-US',
-      file: 'en.json',
-    },
-  ],
-  defaultLocale: defaultLanguage,
-  customRoutes: 'config',
-  pages: {
-    api: false,
-    server: false,
-  },
-  detectBrowserLanguage: {
-    useCookie: true,
-    cookieKey: 'i18n_redirected',
-    redirectOn: 'root', // recommended
-    alwaysRedirect: true,
-    cookieCrossOrigin: true,
-    fallbackLocale: defaultLanguage,
-  },
-  vueI18n: '@/i18n/i18n.config.ts',
-}
-
-export default {
-  legacy: false,
-  locale: defaultLanguage,
-  messages: {
-    ja,
-    en,
-  },
-}
-````
-
 ## File: layers/open-api/scripts/template.hbs
 ````
 {{!-- OpenAPI から Zod スキーマ生成用テンプレート --}}
@@ -27411,229 +27556,6 @@ export default defineNuxtConfig({
 })
 ````
 
-## File: layers/vket-sso/app/_test/composables/useAuthVketSso.spec.ts
-````typescript
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getSessionStorageValue } from '#base/app/utils/storage-control'
-import { decodeJwt } from '#base/app/utils/token'
-import { useAuthVketSso } from '#vket-sso/app/composables/useAuthVketSso'
-import { vketSsoRepository } from '#vket-sso/app/repositories/vketSsoRepository'
-
-// FIXME: import.meta.serverのモック化ができないのでそこの分岐テストは出来てない
-vi.mock('#base/app/utils/storage-control')
-vi.mock('#base/app/utils/token')
-vi.mock('#vket-sso/app/repositories/vketSsoRepository')
-
-describe('useAuthVketSso', () => {
-  let auth: ReturnType<typeof useAuthVketSso>
-
-  beforeEach(() => {
-    auth = useAuthVketSso()
-    vi.clearAllMocks() // すべてのモックをクリア
-  })
-
-  afterEach(() => {
-    vi.resetAllMocks() // すべてのモックをリセット
-    clearNuxtState() // テスト間でstateの状態が引き継がれるのでリセット
-  })
-
-  describe('login', () => {
-    it('should open login window and resolve on success', async () => {
-      const mockWindow = { closed: false }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.spyOn(window, 'open').mockReturnValue(mockWindow as any)
-      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockResolvedValue({
-        user: {
-          id: 1,
-          sub: 'sub',
-          vketId: 'vketId',
-          createdAt: 'createdAt',
-          updatedAt: 'updatedAt',
-        },
-      })
-
-      setTimeout(() => {
-        mockWindow.closed = true
-      }, 1)
-
-      const result = await auth.login()
-      expect(result.success).toBe(true)
-    })
-
-    it('should handle popup block error', async () => {
-      vi.spyOn(window, 'open').mockReturnValue(null)
-
-      const result = await auth.login()
-
-      expect(result.success).toBe(false)
-      expect(result.errorKey).toBe('error.popup-block')
-    })
-
-    // getSsoUserStateのresponseがnullの場合のテスト
-    it('should handle getSsoUserState null response', async () => {
-      const mockWindow = { closed: false }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.spyOn(window, 'open').mockReturnValue(mockWindow as any)
-      vi.spyOn(auth, 'getSsoUserState').mockResolvedValue(ref(null))
-
-      setTimeout(() => {
-        mockWindow.closed = true
-      }, 1)
-
-      const result = await auth.login()
-      expect(result.success).toBe(false)
-      expect(result.errorKey).toBe('error.login')
-    })
-
-    // getSsoUserStateが例外の場合のテスト
-    it('should handle getSsoUserState error', async () => {
-      const mockWindow = { closed: false }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.spyOn(window, 'open').mockReturnValue(mockWindow as any)
-      vi.spyOn(auth, 'getSsoUserState').mockImplementationOnce(() => {
-        throw new Error('should handle getSsoUserState error')
-      })
-
-      setTimeout(() => {
-        mockWindow.closed = true
-      }, 1)
-
-      const result = await auth.login()
-      expect(result.success).toBe(false)
-    })
-  })
-
-  describe('logout', () => {
-    it('should open logout window and resolve on success', async () => {
-      const mockWindow = { closed: false }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.spyOn(window, 'open').mockReturnValue(mockWindow as any)
-
-      setTimeout(() => {
-        mockWindow.closed = true
-      }, 1)
-
-      const result = await auth.logout()
-
-      expect(result.success).toBe(true)
-      expect(auth.aliveToken.value).toBeNull()
-    })
-
-    it('should handle popup block error', async () => {
-      vi.spyOn(window, 'open').mockReturnValue(null)
-
-      const result = await auth.logout()
-
-      expect(result.success).toBe(false)
-      expect(result.errorKey).toBe('error.popup-block')
-    })
-  })
-
-  describe('fetchSsoUser', () => {
-    it('should fetch SSO user and set state', async () => {
-      const mockUser = {
-        id: 1,
-        sub: 'sub',
-        vketId: 'vketId',
-        createdAt: 'createdAt',
-        updatedAt: 'updatedAt',
-      }
-      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockResolvedValue({ user: mockUser })
-
-      await auth.fetchSsoUser()
-      expect(auth.ssoUser.value).toStrictEqual(mockUser)
-    })
-
-    it('should handle errors and set logout state', async () => {
-      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockRejectedValue(new Error('fetch error'))
-
-      await auth.fetchSsoUser()
-
-      expect(auth.ssoUser.value).toBeNull()
-      expect(auth.isLogout.value).toBe(true)
-    })
-
-    it('should handle errors and set logout state', async () => {
-      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockRejectedValue(new Error('fetch error'))
-      vi.mocked(getSessionStorageValue).mockReturnValue('mockJwt')
-
-      await auth.fetchSsoUser()
-
-      expect(auth.ssoUser.value).toBeNull()
-      expect(auth.isLogout.value).toBe(true)
-    })
-  })
-
-  describe('resetSsoUser', () => {
-    it('should reset SSO user state', () => {
-      auth.resetSsoUser()
-
-      expect(auth.ssoUser.value).toBeNull()
-    })
-  })
-
-  describe('getSsoUserState', () => {
-    it('should return SSO user state', async () => {
-      const mockUser = {
-        id: 1,
-        sub: 'sub',
-        vketId: 'vketId',
-        createdAt: 'createdAt',
-        updatedAt: 'updatedAt',
-      }
-      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockResolvedValue({ user: mockUser })
-
-      const state = await auth.getSsoUserState()
-
-      expect(state.value).toStrictEqual(mockUser)
-    })
-  })
-
-  describe('getTokenOrRefresh', () => {
-    it('should return token if valid', async () => {
-      const mockJwt = 'mockJwt'
-      const mockDecodedToken = { exp: new Date().getTime() / 1000 + 1000, iat: new Date().getTime() / 1000 }
-      vi.mocked(decodeJwt).mockReturnValue(mockDecodedToken)
-      vi.mocked(getSessionStorageValue).mockReturnValue(mockJwt)
-
-      const token = await auth.getTokenOrRefresh()
-      expect(token).toBe(mockJwt)
-    })
-
-    it('should fetch token if invalid', async () => {
-      vi.mocked(getSessionStorageValue).mockReturnValue(null)
-      vi.mocked(vketSsoRepository.get.fetchSsoToken).mockResolvedValue({ jwt: '' })
-      const mockDecodedToken = { exp: new Date().getTime() / 1000 + 1000, iat: new Date().getTime() / 1000 }
-      vi.mocked(decodeJwt).mockReturnValue(mockDecodedToken)
-
-      const token = await auth.getTokenOrRefresh()
-      expect(token).toBe(null)
-    })
-
-    // jwtが取得できたが、有効期限が切れている場合
-    it('should fetch token if expired', async () => {
-      const mockJwt = 'mockJwt'
-      const mockDecodedToken = { exp: new Date().getTime() / 1000 - 1000, iat: new Date().getTime() / 1000 }
-      vi.mocked(decodeJwt).mockReturnValue(mockDecodedToken)
-      vi.mocked(getSessionStorageValue).mockReturnValue(mockJwt)
-      vi.mocked(vketSsoRepository.get.fetchSsoToken).mockResolvedValue({ jwt: '' })
-
-      const token = await auth.getTokenOrRefresh()
-      expect(token).toBe(null)
-    })
-
-    // _fetchToken で例外が発生した場合
-    it('should handle errors to _fetchToken', async () => {
-      vi.mocked(getSessionStorageValue).mockReturnValue(null)
-      vi.mocked(vketSsoRepository.get.fetchSsoToken).mockRejectedValue(new Error('should handle errors to _fetchToken'))
-
-      const token = await auth.getTokenOrRefresh()
-      expect(token).toBe(null)
-    })
-  })
-})
-````
-
 ## File: layers/vket-sso/app/repositories/vketSsoRepository.ts
 ````typescript
 /**
@@ -27716,6 +27638,44 @@ export const vketSsoRepository = {
       return requireValueOf(fetchSsoJwkResponseSchema, result)
     },
   },
+}
+````
+
+## File: layers/vket-sso/package.json
+````json
+{
+  "name": "vket-boilerplate-nuxt-vket-sso",
+  "private": true,
+  "type": "module",
+  "version": "1.0.1",
+  "scripts": {
+    "postinstall": "nuxt prepare",
+    "dev": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt dev",
+    "dev:local": "cross-env VITE_OUTPUT_ENV=local nuxt dev",
+    "build": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt build",
+    "build:local": "cross-env VITE_OUTPUT_ENV=local nuxt build",
+    "generate": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt generate",
+    "generate:local": "cross-env VITE_OUTPUT_ENV=local nuxt generate",
+    "preview": "nuxt preview",
+    "typecheck": "cross-env VITE_OUTPUT_ENV=local nuxt typecheck",
+    "analyze": "cross-env VITE_OUTPUT_ENV=local nuxt analyze",
+    "lint": "bun lint:eslint && bun lint:stylelint",
+    "lint:eslint": "eslint --cache --cache-strategy content ./app",
+    "lint:stylelint": "stylelint --cache --cache-strategy content './app/**/*.{css,scss,sass,vue}'",
+    "fix": "bun fix:eslint && bun fix:stylelint",
+    "fix:eslint": "eslint --cache --cache-strategy content --fix ./app",
+    "fix:stylelint": "stylelint --cache-strategy content --fix './app/**/*.{css,scss,sass,vue}'",
+    "test:ut": "cmd='vitest run  --dir ./app/test' bun exec-test",
+    "test:watch": "cmd='vitest --dir ./app/test' bun exec-test",
+    "test:ui": "cmd='vitest --ui --dir ./app/test' bun exec-test",
+    "test:coverage": "cmd='vitest run --dir ./app/test --coverage' bun exec-test",
+    "exec-test": "baseDir='./app/test' ext='\\.spec\\.ts' bun exec-if-file-exists",
+    "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true",
+    "package-update": "bunx npm-check-updates -i"
+  },
+  "dependencies": {
+    "vket-boilerplate-nuxt-base": "workspace:*"
+  }
 }
 ````
 
@@ -29214,6 +29174,124 @@ declare global {
 }
 ````
 
+## File: layers/main/i18n/i18n.config.ts
+````typescript
+/*
+ * note: i18n by nuxt-i18n i18nの不具合があればこのファイルから参照する
+ * ref: https://v8.i18n.nuxtjs.org/
+ */
+import type { NuxtI18nOptions } from '@nuxtjs/i18n'
+import Cookies from 'universal-cookie'
+import en from './locales/en.json'
+import ja from './locales/ja.json'
+
+const cookie = new Cookies()
+const jaLanguage = 'ja'
+const enLanguage = 'en'
+const cookieKey = 'VUEI18N_MANUAL_LOCALE'
+const isBrowserLanguageJa = import.meta.client
+  ? navigator?.language?.startsWith(jaLanguage)
+  : false
+const isBrowserLanguageEn = import.meta.client
+  ? navigator?.language?.startsWith(enLanguage)
+  : false
+const defaultLanguageFromCookie = import.meta.client
+  ? cookie.get(cookieKey) ?? null
+  : ''
+const defaultLanguage
+  = defaultLanguageFromCookie === jaLanguage
+    ? jaLanguage
+    : defaultLanguageFromCookie === enLanguage
+      ? enLanguage
+      : isBrowserLanguageJa
+        ? jaLanguage
+        : isBrowserLanguageEn
+          ? enLanguage
+          : jaLanguage
+
+// settings for nuxt-i18n v9~
+export const nuxtI18nOptions: NuxtI18nOptions = {
+  strategy: 'prefix_and_default',
+  locales: [
+    {
+      code: jaLanguage,
+      language: 'ja-JP',
+      file: 'ja.json',
+      isCatchallLocale: true,
+    },
+    {
+      code: enLanguage,
+      language: 'en-US',
+      file: 'en.json',
+    },
+  ],
+  defaultLocale: defaultLanguage,
+  customRoutes: 'config',
+  pages: {
+    api: false,
+    server: false,
+  },
+  detectBrowserLanguage: {
+    useCookie: true,
+    cookieKey: 'i18n_redirected',
+    redirectOn: 'root', // recommended
+    alwaysRedirect: true,
+    cookieCrossOrigin: true,
+    fallbackLocale: defaultLanguage,
+  },
+  vueI18n: '#main/i18n/i18n.config.ts',
+}
+
+export default {
+  legacy: false,
+  locale: defaultLanguage,
+  messages: {
+    ja,
+    en,
+  },
+}
+````
+
+## File: layers/main/package.json
+````json
+{
+  "name": "vket-boilerplate-nuxt-main",
+  "private": true,
+  "type": "module",
+  "version": "1.0.1",
+  "scripts": {
+    "postinstall": "nuxt prepare",
+    "dev": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt dev",
+    "dev:local": "cross-env VITE_OUTPUT_ENV=local nuxt dev",
+    "build": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt build",
+    "build:local": "cross-env VITE_OUTPUT_ENV=local nuxt build",
+    "build:staging": "cross-env VITE_OUTPUT_ENV=staging nuxt build",
+    "generate": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt generate",
+    "generate:local": "cross-env VITE_OUTPUT_ENV=local nuxt generate",
+    "preview": "nuxt preview",
+    "typecheck": "cross-env VITE_OUTPUT_ENV=local nuxt typecheck",
+    "analyze": "cross-env VITE_OUTPUT_ENV=local nuxt analyze",
+    "lint": "bun lint:eslint && bun lint:stylelint",
+    "lint:eslint": "eslint --cache --cache-strategy content './app'",
+    "lint:stylelint": "stylelint --cache --cache-strategy content './app/**/*.{css,scss,sass,vue}'",
+    "fix": "bun fix:eslint && bun fix:stylelint",
+    "fix:eslint": "eslint --cache --cache-strategy content --fix './app'",
+    "fix:stylelint": "stylelint --cache-strategy content --fix './app/**/*.{css,scss,sass,vue}'",
+    "fix-openapi-models": "baseDir='./app/models/openapi' ext='\\.ts' cmd='eslint --cache --cache-strategy content --fix ./app/models/openapi' bun exec-if-file-exists",
+    "test:ut": "cmd='vitest run --dir ./app/test' bun exec-test",
+    "test:watch": "cmd='vitest --dir ./app/test' bun exec-test",
+    "test:ui": "cmd='vitest --ui --dir ./app/test' bun exec-test",
+    "test:coverage": "cmd='vitest run --dir ./app/test --coverage' bun exec-test",
+    "exec-test": "baseDir='./app/test' ext='\\.spec\\.ts' bun exec-if-file-exists",
+    "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true",
+    "package-update": "bunx npm-check-updates -i"
+  },
+  "dependencies": {
+    "vket-boilerplate-nuxt-base": "workspace:*"
+  }
+}
+````
+
 ## File: layers/open-api/scripts/make-zod.ts
 ````typescript
 #!/usr/bin/env bun
@@ -29407,10 +29485,10 @@ if (process.argv[1] === import.meta.url) {
 }
 ````
 
-## File: layers/vket-sso/package.json
+## File: layers/showcases/package.json
 ````json
 {
-  "name": "vket-boilerplate-nuxt-vket-sso",
+  "name": "vket-boilerplate-nuxt-showcases",
   "private": true,
   "type": "module",
   "version": "1.0.1",
@@ -29431,7 +29509,7 @@ if (process.argv[1] === import.meta.url) {
     "fix": "bun fix:eslint && bun fix:stylelint",
     "fix:eslint": "eslint --cache --cache-strategy content --fix ./app",
     "fix:stylelint": "stylelint --cache-strategy content --fix './app/**/*.{css,scss,sass,vue}'",
-    "test:ut": "cmd='vitest run  --dir ./app/test' bun exec-test",
+    "test:ut": "cmd='vitest run --dir ./app/test' bun exec-test",
     "test:watch": "cmd='vitest --dir ./app/test' bun exec-test",
     "test:ui": "cmd='vitest --ui --dir ./app/test' bun exec-test",
     "test:coverage": "cmd='vitest run --dir ./app/test --coverage' bun exec-test",
@@ -30212,46 +30290,6 @@ input[type='number'] {
 </style>
 ````
 
-## File: layers/main/package.json
-````json
-{
-  "name": "vket-boilerplate-nuxt-main",
-  "private": true,
-  "type": "module",
-  "version": "1.0.1",
-  "scripts": {
-    "postinstall": "nuxt prepare",
-    "dev": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt dev",
-    "dev:local": "cross-env VITE_OUTPUT_ENV=local nuxt dev",
-    "build": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt build",
-    "build:local": "cross-env VITE_OUTPUT_ENV=local nuxt build",
-    "build:staging": "cross-env VITE_OUTPUT_ENV=staging nuxt build",
-    "generate": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt generate",
-    "generate:local": "cross-env VITE_OUTPUT_ENV=local nuxt generate",
-    "preview": "nuxt preview",
-    "typecheck": "cross-env VITE_OUTPUT_ENV=local nuxt typecheck",
-    "analyze": "cross-env VITE_OUTPUT_ENV=local nuxt analyze",
-    "lint": "bun lint:eslint && bun lint:stylelint",
-    "lint:eslint": "eslint --cache --cache-strategy content './app'",
-    "lint:stylelint": "stylelint --cache --cache-strategy content './app/**/*.{css,scss,sass,vue}'",
-    "fix": "bun fix:eslint && bun fix:stylelint",
-    "fix:eslint": "eslint --cache --cache-strategy content --fix './app'",
-    "fix:stylelint": "stylelint --cache-strategy content --fix './app/**/*.{css,scss,sass,vue}'",
-    "fix-openapi-models": "baseDir='./app/models/openapi' ext='\\.ts' cmd='eslint --cache --cache-strategy content --fix ./app/models/openapi' bun exec-if-file-exists",
-    "test:ut": "cmd='vitest run --dir ./app/test' bun exec-test",
-    "test:watch": "cmd='vitest --dir ./app/test' bun exec-test",
-    "test:ui": "cmd='vitest --ui --dir ./app/test' bun exec-test",
-    "test:coverage": "cmd='vitest run --dir ./app/test --coverage' bun exec-test",
-    "exec-test": "baseDir='./app/test' ext='\\.spec\\.ts' bun exec-if-file-exists",
-    "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true",
-    "package-update": "bunx npm-check-updates -i"
-  },
-  "dependencies": {
-    "vket-boilerplate-nuxt-base": "workspace:*"
-  }
-}
-````
-
 ## File: layers/showcases/@types/auto-imports.d.ts
 ````typescript
 /* eslint-disable */
@@ -30405,81 +30443,6 @@ declare global {
   // @ts-ignore
   export type { UseI18nReturnType } from '../app/utils/i18n'
   import('../app/utils/i18n')
-}
-````
-
-## File: layers/showcases/package.json
-````json
-{
-  "name": "vket-boilerplate-nuxt-showcases",
-  "private": true,
-  "type": "module",
-  "version": "1.0.1",
-  "scripts": {
-    "postinstall": "nuxt prepare",
-    "dev": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt dev",
-    "dev:local": "cross-env VITE_OUTPUT_ENV=local nuxt dev",
-    "build": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt build",
-    "build:local": "cross-env VITE_OUTPUT_ENV=local nuxt build",
-    "generate": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt generate",
-    "generate:local": "cross-env VITE_OUTPUT_ENV=local nuxt generate",
-    "preview": "nuxt preview",
-    "typecheck": "cross-env VITE_OUTPUT_ENV=local nuxt typecheck",
-    "analyze": "cross-env VITE_OUTPUT_ENV=local nuxt analyze",
-    "lint": "bun lint:eslint && bun lint:stylelint",
-    "lint:eslint": "eslint --cache --cache-strategy content ./app",
-    "lint:stylelint": "stylelint --cache --cache-strategy content './app/**/*.{css,scss,sass,vue}'",
-    "fix": "bun fix:eslint && bun fix:stylelint",
-    "fix:eslint": "eslint --cache --cache-strategy content --fix ./app",
-    "fix:stylelint": "stylelint --cache-strategy content --fix './app/**/*.{css,scss,sass,vue}'",
-    "test:ut": "cmd='vitest run --dir ./app/test' bun exec-test",
-    "test:watch": "cmd='vitest --dir ./app/test' bun exec-test",
-    "test:ui": "cmd='vitest --ui --dir ./app/test' bun exec-test",
-    "test:coverage": "cmd='vitest run --dir ./app/test --coverage' bun exec-test",
-    "exec-test": "baseDir='./app/test' ext='\\.spec\\.ts' bun exec-if-file-exists",
-    "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true",
-    "package-update": "bunx npm-check-updates -i"
-  },
-  "dependencies": {
-    "vket-boilerplate-nuxt-base": "workspace:*"
-  }
-}
-````
-
-## File: package.json
-````json
-{
-  "name": "vket-boilerplate-nuxt",
-  "private": true,
-  "version": "1.0.1",
-  "license": "MIT",
-  "workspaces": [
-    "layers/*"
-  ],
-  "scripts": {
-    "prepare": "bun husky",
-    "package-update": "bunx npm-check-updates -i",
-    "repomix": "bunx repomix@latest --style markdown",
-    "typecheck": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present typecheck",
-    "test:ut": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present test:ut",
-    "fix": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present fix",
-    "build:local": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present build:local"
-  },
-  "devDependencies": {
-    "@types/bun": "^1.2.21",
-    "eslint": "^9.34.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.1.6",
-    "stylelint": "^16.23.1"
-  },
-  "lint-staged": {
-    "layers/**/*.+(js|ts|tsx|vue)": [
-      "eslint --cache --cache-strategy content"
-    ]
-  },
-  "resolutions": {
-    "eslint": "9.34.0"
-  }
 }
 ````
 
@@ -31243,6 +31206,43 @@ export const getFileByBase64 = (base64: string, fileName: string = 'file'): File
   } catch (error) {
     console.error(error)
     return null
+  }
+}
+````
+
+## File: package.json
+````json
+{
+  "name": "vket-boilerplate-nuxt",
+  "private": true,
+  "version": "1.0.1",
+  "license": "MIT",
+  "workspaces": [
+    "layers/*"
+  ],
+  "scripts": {
+    "prepare": "bun husky",
+    "package-update": "bunx npm-check-updates -i",
+    "repomix": "bunx repomix@latest --style markdown",
+    "typecheck": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present typecheck",
+    "test:ut": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present test:ut",
+    "fix": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present fix",
+    "build:local": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present build:local"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.21",
+    "eslint": "^9.34.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.6",
+    "stylelint": "^16.23.1"
+  },
+  "lint-staged": {
+    "layers/**/*.+(js|ts|tsx|vue)": [
+      "eslint --cache --cache-strategy content"
+    ]
+  },
+  "resolutions": {
+    "eslint": "9.34.0"
   }
 }
 ````
