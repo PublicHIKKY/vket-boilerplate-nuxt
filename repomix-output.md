@@ -8086,6 +8086,151 @@ export default withNuxt(
 }
 ````
 
+## File: layers/main/vitest.config.mts
+````
+/// <reference types="vitest" />
+import path from 'path'
+import { fileURLToPath } from 'url'
+import VueI18nVitePlugin from '@intlify/unplugin-vue-i18n/vite'
+import Vue from '@vitejs/plugin-vue'
+import AutoImport from 'unplugin-auto-import/vite'
+import Components from 'unplugin-vue-components/vite'
+import svgLoader from 'vite-svg-loader'
+import { defineConfig } from 'vitest/config'
+
+export default defineConfig({
+  plugins: [
+    Vue(),
+    AutoImport({
+      exclude: ['/test/', '/test-e2e/'],
+      include: [/\.[tj]s?$/, /\.[tj]sx?$/, /\.vue$/, /\.vue\?vue/],
+      imports: [
+        'vue',
+        'vue-i18n',
+        {
+          '#app': [
+            /*
+             * NOTE: 自動生成される.nuxt/imports.d.tsから手動移植 https://tech.andpad.co.jp/entry/2023/03/16/100000
+             * export { // .nuxt/imports.d.ts 参照
+             */
+            'useAsyncData',
+            'useLazyAsyncData',
+            'useNuxtData',
+            'refreshNuxtData',
+            'clearNuxtData',
+            'defineNuxtComponent',
+            'useNuxtApp',
+            'defineNuxtPlugin',
+            'definePayloadPlugin',
+            'reloadNuxtApp',
+            'useRuntimeConfig',
+            'useState',
+            'clearNuxtState',
+            'useFetch',
+            'useLazyFetch',
+            'useCookie',
+            'useRequestHeaders',
+            'useRequestEvent',
+            'useRequestFetch',
+            'useRequestURL',
+            'setResponseStatus',
+            'setPageLayout',
+            'prerenderRoutes',
+            'onNuxtReady',
+            'useRouter',
+            'useRoute',
+            'defineNuxtRouteMiddleware',
+            'navigateTo',
+            'abortNavigation',
+            'addRouteMiddleware',
+            'showError',
+            'clearError',
+            'isNuxtError',
+            'useError',
+            'createError',
+            'defineNuxtLink',
+            'useAppConfig',
+            'updateAppConfig',
+            'defineAppConfig',
+            'preloadComponents',
+            'preloadRouteComponents',
+            'prefetchComponents',
+            'loadPayload',
+            'preloadPayload',
+            'isPrerendered',
+            'getAppManifest',
+            'getRouteRules',
+            'definePayloadReducer',
+            'definePayloadReviver',
+            'requestIdleCallback',
+            'cancelIdleCallback',
+            'onBeforeRouteLeave',
+            'onBeforeRouteUpdate',
+            //  } from '#app'; // .nuxt/imports.d.ts 参照
+          ],
+          '#i18n': [
+            'useRouteBaseName',
+            'useLocalePath',
+            'useLocaleRoute',
+            'useSwitchLocalePath',
+            'useLocaleHead',
+            'useBrowserLocale',
+            'useCookieLocale',
+            'defineI18nRoute',
+            'defineI18nLocale',
+            'defineI18nConfig',
+          ],
+        },
+      ],
+      dirs: [
+        'app/composables',
+        'app/utils/**',
+        '#base/app/composables',
+        '#base/app/utils/**',
+      ],
+      dts: './@types/auto-imports.d.ts',
+    }),
+    Components({
+      dirs: ['app/components', '#base/app/components'],
+      dts: './@types/components.d.ts',
+    }),
+    VueI18nVitePlugin({
+      include: [
+        path.resolve(
+          path.dirname(fileURLToPath(import.meta.url)),
+          './i18n/locales/*.json',
+        ),
+      ],
+      defaultSFCLang: 'yaml',
+      runtimeOnly: false,
+    }),
+    svgLoader({
+      defaultImport: 'component', // 'component', 'url', 'raw'
+      svgo: false,
+    }),
+  ],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    coverage: {
+      include: ['app/**/*.{vue,ts}'],
+    },
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'app'),
+      '#base': path.resolve(__dirname, '../base'),
+      '#main': path.resolve(__dirname, './'),
+      '#app': path.resolve(__dirname, '../../node_modules/nuxt/dist/app'),
+      '#i18n': path.resolve(
+        __dirname,
+        '../../node_modules/@nuxtjs/i18n/dist/runtime/composables',
+      ),
+    },
+  },
+})
+````
+
 ## File: layers/showcases/@types/components.d.ts
 ````typescript
 /* eslint-disable */
@@ -8439,6 +8584,229 @@ export default withNuxt(
 }
 ````
 
+## File: layers/vket-sso/app/_test/composables/useAuthVketSso.spec.ts
+````typescript
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { getSessionStorageValue } from '#base/app/utils/storage-control'
+import { decodeJwt } from '#base/app/utils/token'
+import { useAuthVketSso } from '#vket-sso/app/composables/useAuthVketSso'
+import { vketSsoRepository } from '#vket-sso/app/repositories/vketSsoRepository'
+
+// FIXME: import.meta.serverのモック化ができないのでそこの分岐テストは出来てない
+vi.mock('#base/app/utils/storage-control')
+vi.mock('#base/app/utils/token')
+vi.mock('#vket-sso/app/repositories/vketSsoRepository')
+
+describe('useAuthVketSso', () => {
+  let auth: ReturnType<typeof useAuthVketSso>
+
+  beforeEach(() => {
+    auth = useAuthVketSso()
+    vi.clearAllMocks() // すべてのモックをクリア
+  })
+
+  afterEach(() => {
+    vi.resetAllMocks() // すべてのモックをリセット
+    clearNuxtState() // テスト間でstateの状態が引き継がれるのでリセット
+  })
+
+  describe('login', () => {
+    it('should open login window and resolve on success', async () => {
+      const mockWindow = { closed: false }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(window, 'open').mockReturnValue(mockWindow as any)
+      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockResolvedValue({
+        user: {
+          id: 1,
+          sub: 'sub',
+          vketId: 'vketId',
+          createdAt: 'createdAt',
+          updatedAt: 'updatedAt',
+        },
+      })
+
+      setTimeout(() => {
+        mockWindow.closed = true
+      }, 1)
+
+      const result = await auth.login()
+      expect(result.success).toBe(true)
+    })
+
+    it('should handle popup block error', async () => {
+      vi.spyOn(window, 'open').mockReturnValue(null)
+
+      const result = await auth.login()
+
+      expect(result.success).toBe(false)
+      expect(result.errorKey).toBe('error.popup-block')
+    })
+
+    // getSsoUserStateのresponseがnullの場合のテスト
+    it('should handle getSsoUserState null response', async () => {
+      const mockWindow = { closed: false }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(window, 'open').mockReturnValue(mockWindow as any)
+      vi.spyOn(auth, 'getSsoUserState').mockResolvedValue(ref(null))
+
+      setTimeout(() => {
+        mockWindow.closed = true
+      }, 1)
+
+      const result = await auth.login()
+      expect(result.success).toBe(false)
+      expect(result.errorKey).toBe('error.login')
+    })
+
+    // getSsoUserStateが例外の場合のテスト
+    it('should handle getSsoUserState error', async () => {
+      const mockWindow = { closed: false }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(window, 'open').mockReturnValue(mockWindow as any)
+      vi.spyOn(auth, 'getSsoUserState').mockImplementationOnce(() => {
+        throw new Error('should handle getSsoUserState error')
+      })
+
+      setTimeout(() => {
+        mockWindow.closed = true
+      }, 1)
+
+      const result = await auth.login()
+      expect(result.success).toBe(false)
+    })
+  })
+
+  describe('logout', () => {
+    it('should open logout window and resolve on success', async () => {
+      const mockWindow = { closed: false }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(window, 'open').mockReturnValue(mockWindow as any)
+
+      setTimeout(() => {
+        mockWindow.closed = true
+      }, 1)
+
+      const result = await auth.logout()
+
+      expect(result.success).toBe(true)
+      expect(auth.aliveToken.value).toBeNull()
+    })
+
+    it('should handle popup block error', async () => {
+      vi.spyOn(window, 'open').mockReturnValue(null)
+
+      const result = await auth.logout()
+
+      expect(result.success).toBe(false)
+      expect(result.errorKey).toBe('error.popup-block')
+    })
+  })
+
+  describe('fetchSsoUser', () => {
+    it('should fetch SSO user and set state', async () => {
+      const mockUser = {
+        id: 1,
+        sub: 'sub',
+        vketId: 'vketId',
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt',
+      }
+      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockResolvedValue({ user: mockUser })
+
+      await auth.fetchSsoUser()
+      expect(auth.ssoUser.value).toStrictEqual(mockUser)
+    })
+
+    it('should handle errors and set logout state', async () => {
+      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockRejectedValue(new Error('fetch error'))
+
+      await auth.fetchSsoUser()
+
+      expect(auth.ssoUser.value).toBeNull()
+      expect(auth.isLogout.value).toBe(true)
+    })
+
+    it('should handle errors and set logout state', async () => {
+      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockRejectedValue(new Error('fetch error'))
+      vi.mocked(getSessionStorageValue).mockReturnValue('mockJwt')
+
+      await auth.fetchSsoUser()
+
+      expect(auth.ssoUser.value).toBeNull()
+      expect(auth.isLogout.value).toBe(true)
+    })
+  })
+
+  describe('resetSsoUser', () => {
+    it('should reset SSO user state', () => {
+      auth.resetSsoUser()
+
+      expect(auth.ssoUser.value).toBeNull()
+    })
+  })
+
+  describe('getSsoUserState', () => {
+    it('should return SSO user state', async () => {
+      const mockUser = {
+        id: 1,
+        sub: 'sub',
+        vketId: 'vketId',
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt',
+      }
+      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockResolvedValue({ user: mockUser })
+
+      const state = await auth.getSsoUserState()
+
+      expect(state.value).toStrictEqual(mockUser)
+    })
+  })
+
+  describe('getTokenOrRefresh', () => {
+    it('should return token if valid', async () => {
+      const mockJwt = 'mockJwt'
+      const mockDecodedToken = { exp: new Date().getTime() / 1000 + 1000, iat: new Date().getTime() / 1000 }
+      vi.mocked(decodeJwt).mockReturnValue(mockDecodedToken)
+      vi.mocked(getSessionStorageValue).mockReturnValue(mockJwt)
+
+      const token = await auth.getTokenOrRefresh()
+      expect(token).toBe(mockJwt)
+    })
+
+    it('should fetch token if invalid', async () => {
+      vi.mocked(getSessionStorageValue).mockReturnValue(null)
+      vi.mocked(vketSsoRepository.get.fetchSsoToken).mockResolvedValue({ jwt: '' })
+      const mockDecodedToken = { exp: new Date().getTime() / 1000 + 1000, iat: new Date().getTime() / 1000 }
+      vi.mocked(decodeJwt).mockReturnValue(mockDecodedToken)
+
+      const token = await auth.getTokenOrRefresh()
+      expect(token).toBe(null)
+    })
+
+    // jwtが取得できたが、有効期限が切れている場合
+    it('should fetch token if expired', async () => {
+      const mockJwt = 'mockJwt'
+      const mockDecodedToken = { exp: new Date().getTime() / 1000 - 1000, iat: new Date().getTime() / 1000 }
+      vi.mocked(decodeJwt).mockReturnValue(mockDecodedToken)
+      vi.mocked(getSessionStorageValue).mockReturnValue(mockJwt)
+      vi.mocked(vketSsoRepository.get.fetchSsoToken).mockResolvedValue({ jwt: '' })
+
+      const token = await auth.getTokenOrRefresh()
+      expect(token).toBe(null)
+    })
+
+    // _fetchToken で例外が発生した場合
+    it('should handle errors to _fetchToken', async () => {
+      vi.mocked(getSessionStorageValue).mockReturnValue(null)
+      vi.mocked(vketSsoRepository.get.fetchSsoToken).mockRejectedValue(new Error('should handle errors to _fetchToken'))
+
+      const token = await auth.getTokenOrRefresh()
+      expect(token).toBe(null)
+    })
+  })
+})
+````
+
 ## File: layers/vket-sso/app/_test/models/vketSso.spec.ts
 ````typescript
 import { describe, it, expect } from 'vitest'
@@ -8747,6 +9115,163 @@ describe('vketSsoApi', () => {
     expect(defaultApi.delete).toHaveBeenCalledWith(path, expect.objectContaining(fetchOptions))
   })
 })
+````
+
+## File: layers/vket-sso/app/@types/auto-imports.d.ts
+````typescript
+/* eslint-disable */
+/* prettier-ignore */
+// @ts-nocheck
+// noinspection JSUnusedGlobalSymbols
+// Generated by unplugin-auto-import
+// biome-ignore lint: disable
+export {}
+declare global {
+  const EffectScope: typeof import('vue')['EffectScope']
+  const abortNavigation: typeof import('#app')['abortNavigation']
+  const addRouteMiddleware: typeof import('#app')['addRouteMiddleware']
+  const cancelIdleCallback: typeof import('#app')['cancelIdleCallback']
+  const clearError: typeof import('#app')['clearError']
+  const clearNuxtData: typeof import('#app')['clearNuxtData']
+  const clearNuxtState: typeof import('#app')['clearNuxtState']
+  const computed: typeof import('vue')['computed']
+  const createApp: typeof import('vue')['createApp']
+  const createError: typeof import('#app')['createError']
+  const customRef: typeof import('vue')['customRef']
+  const defineAppConfig: typeof import('#app')['defineAppConfig']
+  const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
+  const defineComponent: typeof import('vue')['defineComponent']
+  const defineI18nConfig: typeof import('#i18n')['defineI18nConfig']
+  const defineI18nLocale: typeof import('#i18n')['defineI18nLocale']
+  const defineI18nRoute: typeof import('#i18n')['defineI18nRoute']
+  const defineNuxtComponent: typeof import('#app')['defineNuxtComponent']
+  const defineNuxtLink: typeof import('#app')['defineNuxtLink']
+  const defineNuxtPlugin: typeof import('#app')['defineNuxtPlugin']
+  const defineNuxtRouteMiddleware: typeof import('#app')['defineNuxtRouteMiddleware']
+  const definePayloadPlugin: typeof import('#app')['definePayloadPlugin']
+  const definePayloadReducer: typeof import('#app')['definePayloadReducer']
+  const definePayloadReviver: typeof import('#app')['definePayloadReviver']
+  const effectScope: typeof import('vue')['effectScope']
+  const getAppManifest: typeof import('#app')['getAppManifest']
+  const getCurrentInstance: typeof import('vue')['getCurrentInstance']
+  const getCurrentScope: typeof import('vue')['getCurrentScope']
+  const getRouteRules: typeof import('#app')['getRouteRules']
+  const h: typeof import('vue')['h']
+  const inject: typeof import('vue')['inject']
+  const isNuxtError: typeof import('#app')['isNuxtError']
+  const isPrerendered: typeof import('#app')['isPrerendered']
+  const isProxy: typeof import('vue')['isProxy']
+  const isReactive: typeof import('vue')['isReactive']
+  const isReadonly: typeof import('vue')['isReadonly']
+  const isRef: typeof import('vue')['isRef']
+  const loadPayload: typeof import('#app')['loadPayload']
+  const markRaw: typeof import('vue')['markRaw']
+  const navigateTo: typeof import('#app')['navigateTo']
+  const nextTick: typeof import('vue')['nextTick']
+  const onActivated: typeof import('vue')['onActivated']
+  const onBeforeMount: typeof import('vue')['onBeforeMount']
+  const onBeforeRouteLeave: typeof import('#app')['onBeforeRouteLeave']
+  const onBeforeRouteUpdate: typeof import('#app')['onBeforeRouteUpdate']
+  const onBeforeUnmount: typeof import('vue')['onBeforeUnmount']
+  const onBeforeUpdate: typeof import('vue')['onBeforeUpdate']
+  const onDeactivated: typeof import('vue')['onDeactivated']
+  const onErrorCaptured: typeof import('vue')['onErrorCaptured']
+  const onMounted: typeof import('vue')['onMounted']
+  const onNuxtReady: typeof import('#app')['onNuxtReady']
+  const onRenderTracked: typeof import('vue')['onRenderTracked']
+  const onRenderTriggered: typeof import('vue')['onRenderTriggered']
+  const onScopeDispose: typeof import('vue')['onScopeDispose']
+  const onServerPrefetch: typeof import('vue')['onServerPrefetch']
+  const onUnmounted: typeof import('vue')['onUnmounted']
+  const onUpdated: typeof import('vue')['onUpdated']
+  const onWatcherCleanup: typeof import('vue')['onWatcherCleanup']
+  const prefetchComponents: typeof import('#app')['prefetchComponents']
+  const preloadComponents: typeof import('#app')['preloadComponents']
+  const preloadPayload: typeof import('#app')['preloadPayload']
+  const preloadRouteComponents: typeof import('#app')['preloadRouteComponents']
+  const prerenderRoutes: typeof import('#app')['prerenderRoutes']
+  const provide: typeof import('vue')['provide']
+  const reactive: typeof import('vue')['reactive']
+  const readonly: typeof import('vue')['readonly']
+  const ref: typeof import('vue')['ref']
+  const refreshNuxtData: typeof import('#app')['refreshNuxtData']
+  const reloadNuxtApp: typeof import('#app')['reloadNuxtApp']
+  const requestIdleCallback: typeof import('#app')['requestIdleCallback']
+  const resolveComponent: typeof import('vue')['resolveComponent']
+  const setPageLayout: typeof import('#app')['setPageLayout']
+  const setResponseStatus: typeof import('#app')['setResponseStatus']
+  const shallowReactive: typeof import('vue')['shallowReactive']
+  const shallowReadonly: typeof import('vue')['shallowReadonly']
+  const shallowRef: typeof import('vue')['shallowRef']
+  const showError: typeof import('#app')['showError']
+  const toRaw: typeof import('vue')['toRaw']
+  const toRef: typeof import('vue')['toRef']
+  const toRefs: typeof import('vue')['toRefs']
+  const toValue: typeof import('vue')['toValue']
+  const triggerRef: typeof import('vue')['triggerRef']
+  const unref: typeof import('vue')['unref']
+  const updateAppConfig: typeof import('#app')['updateAppConfig']
+  const useAppConfig: typeof import('#app')['useAppConfig']
+  const useAsyncData: typeof import('#app')['useAsyncData']
+  const useAttrs: typeof import('vue')['useAttrs']
+  const useBrowserLocale: typeof import('#i18n')['useBrowserLocale']
+  const useCookie: typeof import('#app')['useCookie']
+  const useCookieLocale: typeof import('#i18n')['useCookieLocale']
+  const useCssModule: typeof import('vue')['useCssModule']
+  const useCssVars: typeof import('vue')['useCssVars']
+  const useError: typeof import('#app')['useError']
+  const useFetch: typeof import('#app')['useFetch']
+  const useI18n: typeof import('vue-i18n')['useI18n']
+  const useId: typeof import('vue')['useId']
+  const useLazyAsyncData: typeof import('#app')['useLazyAsyncData']
+  const useLazyFetch: typeof import('#app')['useLazyFetch']
+  const useLocaleHead: typeof import('#i18n')['useLocaleHead']
+  const useLocalePath: typeof import('#i18n')['useLocalePath']
+  const useLocaleRoute: typeof import('#i18n')['useLocaleRoute']
+  const useModel: typeof import('vue')['useModel']
+  const useNuxtApp: typeof import('#app')['useNuxtApp']
+  const useNuxtData: typeof import('#app')['useNuxtData']
+  const useRequestEvent: typeof import('#app')['useRequestEvent']
+  const useRequestFetch: typeof import('#app')['useRequestFetch']
+  const useRequestHeaders: typeof import('#app')['useRequestHeaders']
+  const useRequestURL: typeof import('#app')['useRequestURL']
+  const useRoute: typeof import('#app')['useRoute']
+  const useRouteBaseName: typeof import('#i18n')['useRouteBaseName']
+  const useRouter: typeof import('#app')['useRouter']
+  const useRuntimeConfig: typeof import('#app')['useRuntimeConfig']
+  const useSlots: typeof import('vue')['useSlots']
+  const useState: typeof import('#app')['useState']
+  const useSwitchLocalePath: typeof import('#i18n')['useSwitchLocalePath']
+  const useTemplateRef: typeof import('vue')['useTemplateRef']
+  const watch: typeof import('vue')['watch']
+  const watchEffect: typeof import('vue')['watchEffect']
+  const watchPostEffect: typeof import('vue')['watchPostEffect']
+  const watchSyncEffect: typeof import('vue')['watchSyncEffect']
+}
+// for type re-export
+declare global {
+  // @ts-ignore
+  export type { Component, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
+  import('vue')
+}
+````
+
+## File: layers/vket-sso/app/@types/components.d.ts
+````typescript
+/* eslint-disable */
+// @ts-nocheck
+// Generated by unplugin-vue-components
+// Read more: https://github.com/vuejs/core/pull/3399
+// biome-ignore lint: disable
+export {}
+
+/* prettier-ignore */
+declare module 'vue' {
+  export interface GlobalComponents {
+    RouterLink: typeof import('vue-router')['RouterLink']
+    RouterView: typeof import('vue-router')['RouterView']
+  }
+}
 ````
 
 ## File: layers/vket-sso/app/composables/useAuthVketSso.ts
@@ -21116,151 +21641,6 @@ export default defineNuxtConfig({
 })
 ````
 
-## File: layers/main/vitest.config.mts
-````
-/// <reference types="vitest" />
-import path from 'path'
-import { fileURLToPath } from 'url'
-import VueI18nVitePlugin from '@intlify/unplugin-vue-i18n/vite'
-import Vue from '@vitejs/plugin-vue'
-import AutoImport from 'unplugin-auto-import/vite'
-import Components from 'unplugin-vue-components/vite'
-import svgLoader from 'vite-svg-loader'
-import { defineConfig } from 'vitest/config'
-
-export default defineConfig({
-  plugins: [
-    Vue(),
-    AutoImport({
-      exclude: ['/test/', '/test-e2e/'],
-      include: [/\.[tj]s?$/, /\.[tj]sx?$/, /\.vue$/, /\.vue\?vue/],
-      imports: [
-        'vue',
-        'vue-i18n',
-        {
-          '#app': [
-            /*
-             * NOTE: 自動生成される.nuxt/imports.d.tsから手動移植 https://tech.andpad.co.jp/entry/2023/03/16/100000
-             * export { // .nuxt/imports.d.ts 参照
-             */
-            'useAsyncData',
-            'useLazyAsyncData',
-            'useNuxtData',
-            'refreshNuxtData',
-            'clearNuxtData',
-            'defineNuxtComponent',
-            'useNuxtApp',
-            'defineNuxtPlugin',
-            'definePayloadPlugin',
-            'reloadNuxtApp',
-            'useRuntimeConfig',
-            'useState',
-            'clearNuxtState',
-            'useFetch',
-            'useLazyFetch',
-            'useCookie',
-            'useRequestHeaders',
-            'useRequestEvent',
-            'useRequestFetch',
-            'useRequestURL',
-            'setResponseStatus',
-            'setPageLayout',
-            'prerenderRoutes',
-            'onNuxtReady',
-            'useRouter',
-            'useRoute',
-            'defineNuxtRouteMiddleware',
-            'navigateTo',
-            'abortNavigation',
-            'addRouteMiddleware',
-            'showError',
-            'clearError',
-            'isNuxtError',
-            'useError',
-            'createError',
-            'defineNuxtLink',
-            'useAppConfig',
-            'updateAppConfig',
-            'defineAppConfig',
-            'preloadComponents',
-            'preloadRouteComponents',
-            'prefetchComponents',
-            'loadPayload',
-            'preloadPayload',
-            'isPrerendered',
-            'getAppManifest',
-            'getRouteRules',
-            'definePayloadReducer',
-            'definePayloadReviver',
-            'requestIdleCallback',
-            'cancelIdleCallback',
-            'onBeforeRouteLeave',
-            'onBeforeRouteUpdate',
-            //  } from '#app'; // .nuxt/imports.d.ts 参照
-          ],
-          '#i18n': [
-            'useRouteBaseName',
-            'useLocalePath',
-            'useLocaleRoute',
-            'useSwitchLocalePath',
-            'useLocaleHead',
-            'useBrowserLocale',
-            'useCookieLocale',
-            'defineI18nRoute',
-            'defineI18nLocale',
-            'defineI18nConfig',
-          ],
-        },
-      ],
-      dirs: [
-        'app/composables',
-        'app/utils/**',
-        '#base/app/composables',
-        '#base/app/utils/**',
-      ],
-      dts: './@types/auto-imports.d.ts',
-    }),
-    Components({
-      dirs: ['app/components', '#base/app/components'],
-      dts: './@types/components.d.ts',
-    }),
-    VueI18nVitePlugin({
-      include: [
-        path.resolve(
-          path.dirname(fileURLToPath(import.meta.url)),
-          './i18n/locales/*.json',
-        ),
-      ],
-      defaultSFCLang: 'yaml',
-      runtimeOnly: false,
-    }),
-    svgLoader({
-      defaultImport: 'component', // 'component', 'url', 'raw'
-      svgo: false,
-    }),
-  ],
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    coverage: {
-      include: ['app/**/*.{vue,ts}'],
-    },
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'app'),
-      '#base': path.resolve(__dirname, '../base'),
-      '#main': path.resolve(__dirname, './'),
-      '#app': path.resolve(__dirname, '../../node_modules/nuxt/dist/app'),
-      '#i18n': path.resolve(
-        __dirname,
-        '../../node_modules/@nuxtjs/i18n/dist/runtime/composables',
-      ),
-    },
-  },
-})
-````
-
 ## File: layers/open-api/app/models/openapi/.gitkeep
 ````
 # This directory will contain generated API clients
@@ -22858,386 +23238,6 @@ export default defineConfig({
 })
 ````
 
-## File: layers/vket-sso/app/_test/composables/useAuthVketSso.spec.ts
-````typescript
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getSessionStorageValue } from '#base/app/utils/storage-control'
-import { decodeJwt } from '#base/app/utils/token'
-import { useAuthVketSso } from '#vket-sso/app/composables/useAuthVketSso'
-import { vketSsoRepository } from '#vket-sso/app/repositories/vketSsoRepository'
-
-// FIXME: import.meta.serverのモック化ができないのでそこの分岐テストは出来てない
-vi.mock('#base/app/utils/storage-control')
-vi.mock('#base/app/utils/token')
-vi.mock('#vket-sso/app/repositories/vketSsoRepository')
-
-describe('useAuthVketSso', () => {
-  let auth: ReturnType<typeof useAuthVketSso>
-
-  beforeEach(() => {
-    auth = useAuthVketSso()
-    vi.clearAllMocks() // すべてのモックをクリア
-  })
-
-  afterEach(() => {
-    vi.resetAllMocks() // すべてのモックをリセット
-    clearNuxtState() // テスト間でstateの状態が引き継がれるのでリセット
-  })
-
-  describe('login', () => {
-    it('should open login window and resolve on success', async () => {
-      const mockWindow = { closed: false }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.spyOn(window, 'open').mockReturnValue(mockWindow as any)
-      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockResolvedValue({
-        user: {
-          id: 1,
-          sub: 'sub',
-          vketId: 'vketId',
-          createdAt: 'createdAt',
-          updatedAt: 'updatedAt',
-        },
-      })
-
-      setTimeout(() => {
-        mockWindow.closed = true
-      }, 1)
-
-      const result = await auth.login()
-      expect(result.success).toBe(true)
-    })
-
-    it('should handle popup block error', async () => {
-      vi.spyOn(window, 'open').mockReturnValue(null)
-
-      const result = await auth.login()
-
-      expect(result.success).toBe(false)
-      expect(result.errorKey).toBe('error.popup-block')
-    })
-
-    // getSsoUserStateのresponseがnullの場合のテスト
-    it('should handle getSsoUserState null response', async () => {
-      const mockWindow = { closed: false }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.spyOn(window, 'open').mockReturnValue(mockWindow as any)
-      vi.spyOn(auth, 'getSsoUserState').mockResolvedValue(ref(null))
-
-      setTimeout(() => {
-        mockWindow.closed = true
-      }, 1)
-
-      const result = await auth.login()
-      expect(result.success).toBe(false)
-      expect(result.errorKey).toBe('error.login')
-    })
-
-    // getSsoUserStateが例外の場合のテスト
-    it('should handle getSsoUserState error', async () => {
-      const mockWindow = { closed: false }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.spyOn(window, 'open').mockReturnValue(mockWindow as any)
-      vi.spyOn(auth, 'getSsoUserState').mockImplementationOnce(() => {
-        throw new Error('should handle getSsoUserState error')
-      })
-
-      setTimeout(() => {
-        mockWindow.closed = true
-      }, 1)
-
-      const result = await auth.login()
-      expect(result.success).toBe(false)
-    })
-  })
-
-  describe('logout', () => {
-    it('should open logout window and resolve on success', async () => {
-      const mockWindow = { closed: false }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.spyOn(window, 'open').mockReturnValue(mockWindow as any)
-
-      setTimeout(() => {
-        mockWindow.closed = true
-      }, 1)
-
-      const result = await auth.logout()
-
-      expect(result.success).toBe(true)
-      expect(auth.aliveToken.value).toBeNull()
-    })
-
-    it('should handle popup block error', async () => {
-      vi.spyOn(window, 'open').mockReturnValue(null)
-
-      const result = await auth.logout()
-
-      expect(result.success).toBe(false)
-      expect(result.errorKey).toBe('error.popup-block')
-    })
-  })
-
-  describe('fetchSsoUser', () => {
-    it('should fetch SSO user and set state', async () => {
-      const mockUser = {
-        id: 1,
-        sub: 'sub',
-        vketId: 'vketId',
-        createdAt: 'createdAt',
-        updatedAt: 'updatedAt',
-      }
-      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockResolvedValue({ user: mockUser })
-
-      await auth.fetchSsoUser()
-      expect(auth.ssoUser.value).toStrictEqual(mockUser)
-    })
-
-    it('should handle errors and set logout state', async () => {
-      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockRejectedValue(new Error('fetch error'))
-
-      await auth.fetchSsoUser()
-
-      expect(auth.ssoUser.value).toBeNull()
-      expect(auth.isLogout.value).toBe(true)
-    })
-
-    it('should handle errors and set logout state', async () => {
-      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockRejectedValue(new Error('fetch error'))
-      vi.mocked(getSessionStorageValue).mockReturnValue('mockJwt')
-
-      await auth.fetchSsoUser()
-
-      expect(auth.ssoUser.value).toBeNull()
-      expect(auth.isLogout.value).toBe(true)
-    })
-  })
-
-  describe('resetSsoUser', () => {
-    it('should reset SSO user state', () => {
-      auth.resetSsoUser()
-
-      expect(auth.ssoUser.value).toBeNull()
-    })
-  })
-
-  describe('getSsoUserState', () => {
-    it('should return SSO user state', async () => {
-      const mockUser = {
-        id: 1,
-        sub: 'sub',
-        vketId: 'vketId',
-        createdAt: 'createdAt',
-        updatedAt: 'updatedAt',
-      }
-      vi.mocked(vketSsoRepository.get.fetchSsoProfile).mockResolvedValue({ user: mockUser })
-
-      const state = await auth.getSsoUserState()
-
-      expect(state.value).toStrictEqual(mockUser)
-    })
-  })
-
-  describe('getTokenOrRefresh', () => {
-    it('should return token if valid', async () => {
-      const mockJwt = 'mockJwt'
-      const mockDecodedToken = { exp: new Date().getTime() / 1000 + 1000, iat: new Date().getTime() / 1000 }
-      vi.mocked(decodeJwt).mockReturnValue(mockDecodedToken)
-      vi.mocked(getSessionStorageValue).mockReturnValue(mockJwt)
-
-      const token = await auth.getTokenOrRefresh()
-      expect(token).toBe(mockJwt)
-    })
-
-    it('should fetch token if invalid', async () => {
-      vi.mocked(getSessionStorageValue).mockReturnValue(null)
-      vi.mocked(vketSsoRepository.get.fetchSsoToken).mockResolvedValue({ jwt: '' })
-      const mockDecodedToken = { exp: new Date().getTime() / 1000 + 1000, iat: new Date().getTime() / 1000 }
-      vi.mocked(decodeJwt).mockReturnValue(mockDecodedToken)
-
-      const token = await auth.getTokenOrRefresh()
-      expect(token).toBe(null)
-    })
-
-    // jwtが取得できたが、有効期限が切れている場合
-    it('should fetch token if expired', async () => {
-      const mockJwt = 'mockJwt'
-      const mockDecodedToken = { exp: new Date().getTime() / 1000 - 1000, iat: new Date().getTime() / 1000 }
-      vi.mocked(decodeJwt).mockReturnValue(mockDecodedToken)
-      vi.mocked(getSessionStorageValue).mockReturnValue(mockJwt)
-      vi.mocked(vketSsoRepository.get.fetchSsoToken).mockResolvedValue({ jwt: '' })
-
-      const token = await auth.getTokenOrRefresh()
-      expect(token).toBe(null)
-    })
-
-    // _fetchToken で例外が発生した場合
-    it('should handle errors to _fetchToken', async () => {
-      vi.mocked(getSessionStorageValue).mockReturnValue(null)
-      vi.mocked(vketSsoRepository.get.fetchSsoToken).mockRejectedValue(new Error('should handle errors to _fetchToken'))
-
-      const token = await auth.getTokenOrRefresh()
-      expect(token).toBe(null)
-    })
-  })
-})
-````
-
-## File: layers/vket-sso/app/@types/auto-imports.d.ts
-````typescript
-/* eslint-disable */
-/* prettier-ignore */
-// @ts-nocheck
-// noinspection JSUnusedGlobalSymbols
-// Generated by unplugin-auto-import
-// biome-ignore lint: disable
-export {}
-declare global {
-  const EffectScope: typeof import('vue')['EffectScope']
-  const abortNavigation: typeof import('#app')['abortNavigation']
-  const addRouteMiddleware: typeof import('#app')['addRouteMiddleware']
-  const cancelIdleCallback: typeof import('#app')['cancelIdleCallback']
-  const clearError: typeof import('#app')['clearError']
-  const clearNuxtData: typeof import('#app')['clearNuxtData']
-  const clearNuxtState: typeof import('#app')['clearNuxtState']
-  const computed: typeof import('vue')['computed']
-  const createApp: typeof import('vue')['createApp']
-  const createError: typeof import('#app')['createError']
-  const customRef: typeof import('vue')['customRef']
-  const defineAppConfig: typeof import('#app')['defineAppConfig']
-  const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
-  const defineComponent: typeof import('vue')['defineComponent']
-  const defineI18nConfig: typeof import('#i18n')['defineI18nConfig']
-  const defineI18nLocale: typeof import('#i18n')['defineI18nLocale']
-  const defineI18nRoute: typeof import('#i18n')['defineI18nRoute']
-  const defineNuxtComponent: typeof import('#app')['defineNuxtComponent']
-  const defineNuxtLink: typeof import('#app')['defineNuxtLink']
-  const defineNuxtPlugin: typeof import('#app')['defineNuxtPlugin']
-  const defineNuxtRouteMiddleware: typeof import('#app')['defineNuxtRouteMiddleware']
-  const definePayloadPlugin: typeof import('#app')['definePayloadPlugin']
-  const definePayloadReducer: typeof import('#app')['definePayloadReducer']
-  const definePayloadReviver: typeof import('#app')['definePayloadReviver']
-  const effectScope: typeof import('vue')['effectScope']
-  const getAppManifest: typeof import('#app')['getAppManifest']
-  const getCurrentInstance: typeof import('vue')['getCurrentInstance']
-  const getCurrentScope: typeof import('vue')['getCurrentScope']
-  const getRouteRules: typeof import('#app')['getRouteRules']
-  const h: typeof import('vue')['h']
-  const inject: typeof import('vue')['inject']
-  const isNuxtError: typeof import('#app')['isNuxtError']
-  const isPrerendered: typeof import('#app')['isPrerendered']
-  const isProxy: typeof import('vue')['isProxy']
-  const isReactive: typeof import('vue')['isReactive']
-  const isReadonly: typeof import('vue')['isReadonly']
-  const isRef: typeof import('vue')['isRef']
-  const loadPayload: typeof import('#app')['loadPayload']
-  const markRaw: typeof import('vue')['markRaw']
-  const navigateTo: typeof import('#app')['navigateTo']
-  const nextTick: typeof import('vue')['nextTick']
-  const onActivated: typeof import('vue')['onActivated']
-  const onBeforeMount: typeof import('vue')['onBeforeMount']
-  const onBeforeRouteLeave: typeof import('#app')['onBeforeRouteLeave']
-  const onBeforeRouteUpdate: typeof import('#app')['onBeforeRouteUpdate']
-  const onBeforeUnmount: typeof import('vue')['onBeforeUnmount']
-  const onBeforeUpdate: typeof import('vue')['onBeforeUpdate']
-  const onDeactivated: typeof import('vue')['onDeactivated']
-  const onErrorCaptured: typeof import('vue')['onErrorCaptured']
-  const onMounted: typeof import('vue')['onMounted']
-  const onNuxtReady: typeof import('#app')['onNuxtReady']
-  const onRenderTracked: typeof import('vue')['onRenderTracked']
-  const onRenderTriggered: typeof import('vue')['onRenderTriggered']
-  const onScopeDispose: typeof import('vue')['onScopeDispose']
-  const onServerPrefetch: typeof import('vue')['onServerPrefetch']
-  const onUnmounted: typeof import('vue')['onUnmounted']
-  const onUpdated: typeof import('vue')['onUpdated']
-  const onWatcherCleanup: typeof import('vue')['onWatcherCleanup']
-  const prefetchComponents: typeof import('#app')['prefetchComponents']
-  const preloadComponents: typeof import('#app')['preloadComponents']
-  const preloadPayload: typeof import('#app')['preloadPayload']
-  const preloadRouteComponents: typeof import('#app')['preloadRouteComponents']
-  const prerenderRoutes: typeof import('#app')['prerenderRoutes']
-  const provide: typeof import('vue')['provide']
-  const reactive: typeof import('vue')['reactive']
-  const readonly: typeof import('vue')['readonly']
-  const ref: typeof import('vue')['ref']
-  const refreshNuxtData: typeof import('#app')['refreshNuxtData']
-  const reloadNuxtApp: typeof import('#app')['reloadNuxtApp']
-  const requestIdleCallback: typeof import('#app')['requestIdleCallback']
-  const resolveComponent: typeof import('vue')['resolveComponent']
-  const setPageLayout: typeof import('#app')['setPageLayout']
-  const setResponseStatus: typeof import('#app')['setResponseStatus']
-  const shallowReactive: typeof import('vue')['shallowReactive']
-  const shallowReadonly: typeof import('vue')['shallowReadonly']
-  const shallowRef: typeof import('vue')['shallowRef']
-  const showError: typeof import('#app')['showError']
-  const toRaw: typeof import('vue')['toRaw']
-  const toRef: typeof import('vue')['toRef']
-  const toRefs: typeof import('vue')['toRefs']
-  const toValue: typeof import('vue')['toValue']
-  const triggerRef: typeof import('vue')['triggerRef']
-  const unref: typeof import('vue')['unref']
-  const updateAppConfig: typeof import('#app')['updateAppConfig']
-  const useAppConfig: typeof import('#app')['useAppConfig']
-  const useAsyncData: typeof import('#app')['useAsyncData']
-  const useAttrs: typeof import('vue')['useAttrs']
-  const useBrowserLocale: typeof import('#i18n')['useBrowserLocale']
-  const useCookie: typeof import('#app')['useCookie']
-  const useCookieLocale: typeof import('#i18n')['useCookieLocale']
-  const useCssModule: typeof import('vue')['useCssModule']
-  const useCssVars: typeof import('vue')['useCssVars']
-  const useError: typeof import('#app')['useError']
-  const useFetch: typeof import('#app')['useFetch']
-  const useI18n: typeof import('vue-i18n')['useI18n']
-  const useId: typeof import('vue')['useId']
-  const useLazyAsyncData: typeof import('#app')['useLazyAsyncData']
-  const useLazyFetch: typeof import('#app')['useLazyFetch']
-  const useLocaleHead: typeof import('#i18n')['useLocaleHead']
-  const useLocalePath: typeof import('#i18n')['useLocalePath']
-  const useLocaleRoute: typeof import('#i18n')['useLocaleRoute']
-  const useModel: typeof import('vue')['useModel']
-  const useNuxtApp: typeof import('#app')['useNuxtApp']
-  const useNuxtData: typeof import('#app')['useNuxtData']
-  const useRequestEvent: typeof import('#app')['useRequestEvent']
-  const useRequestFetch: typeof import('#app')['useRequestFetch']
-  const useRequestHeaders: typeof import('#app')['useRequestHeaders']
-  const useRequestURL: typeof import('#app')['useRequestURL']
-  const useRoute: typeof import('#app')['useRoute']
-  const useRouteBaseName: typeof import('#i18n')['useRouteBaseName']
-  const useRouter: typeof import('#app')['useRouter']
-  const useRuntimeConfig: typeof import('#app')['useRuntimeConfig']
-  const useSlots: typeof import('vue')['useSlots']
-  const useState: typeof import('#app')['useState']
-  const useSwitchLocalePath: typeof import('#i18n')['useSwitchLocalePath']
-  const useTemplateRef: typeof import('vue')['useTemplateRef']
-  const watch: typeof import('vue')['watch']
-  const watchEffect: typeof import('vue')['watchEffect']
-  const watchPostEffect: typeof import('vue')['watchPostEffect']
-  const watchSyncEffect: typeof import('vue')['watchSyncEffect']
-}
-// for type re-export
-declare global {
-  // @ts-ignore
-  export type { Component, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
-  import('vue')
-}
-````
-
-## File: layers/vket-sso/app/@types/components.d.ts
-````typescript
-/* eslint-disable */
-// @ts-nocheck
-// Generated by unplugin-vue-components
-// Read more: https://github.com/vuejs/core/pull/3399
-// biome-ignore lint: disable
-export {}
-
-/* prettier-ignore */
-declare module 'vue' {
-  export interface GlobalComponents {
-    RouterLink: typeof import('vue-router')['RouterLink']
-    RouterView: typeof import('vue-router')['RouterView']
-  }
-}
-````
-
 ## File: layers/vket-sso/app/models/vketSso.ts
 ````typescript
 /**
@@ -23277,6 +23277,91 @@ export const resultSchema = z.object({
 })
 
 export type Result = z.infer<typeof resultSchema>
+````
+
+## File: layers/vket-sso/app/repositories/vketSsoRepository.ts
+````typescript
+/**
+ * @group For Developers
+ * @category Repositories
+ * @module Auth (Vket SSO)
+ * @remarks Vket SSO Repository
+ * @ref https://hikky.atlassian.net/wiki/spaces/ACCOUNT/pages/462258411/JS+ID
+ */
+import { defaultApi } from '#base/app/utils/default-api'
+import { raiseError } from '#base/app/utils/error'
+import { ssoUserSchema } from '#vket-sso/app/models/vketSso'
+import { z } from 'zod/v3'
+
+const fetchSsoProfileResponseSchema = z.object({
+  user: ssoUserSchema,
+})
+const fetchSsoTokenResponseSchema = z.object({
+  jwt: z.string(),
+})
+const fetchSsoJwkResponseSchema = z.object({
+  d: z.string(),
+  dp: z.string(),
+  dq: z.string(),
+  e: z.string(),
+  kid: z.string(),
+  kty: z.string(),
+  n: z.string(),
+  p: z.string(),
+  q: z.string(),
+  qi: z.string(),
+})
+
+export const vketSsoRepository = {
+  get: {
+    /**
+     * @remarks VketSSO: 自分のプロフィールを取得する
+     * @ref https://hikky.atlassian.net/wiki/spaces/BKS/pages/668240004/VketSSO
+     */
+    fetchSsoProfile: async () => {
+      const config = useRuntimeConfig()
+      const domain
+        = config?.public?.ssoDomain || raiseError('undefined ssoDomain')
+      if (typeof domain !== 'string') raiseError('not string ssoDomain')
+      const result = await defaultApi.get(`${domain}/profile/me`, {
+        credentials: 'include',
+      })
+      return requireValueOf(fetchSsoProfileResponseSchema, result)
+    },
+    /**
+     * @remarks VketSSO: 自分のトークンを取得する
+     * @ref https://hikky.atlassian.net/wiki/spaces/BKS/pages/668240004/VketSSO
+     */
+    fetchSsoToken: async (origin = '') => {
+      const config = useRuntimeConfig()
+      const domain
+        = config?.public?.ssoDomain || raiseError('undefined ssoDomain')
+      if (typeof domain !== 'string') raiseError('not string ssoDomain')
+      const audience
+        = origin || (window ? window.location.origin : config?.public?.url)
+      if (!audience) raiseError('undefined audience')
+      const result = await defaultApi.get(
+        `${domain}/auth/token?audience=${audience}`,
+        {
+          credentials: 'include',
+        },
+      )
+      return requireValueOf(fetchSsoTokenResponseSchema, result)
+    },
+    /**
+     * @remarks VketSSO: 自分のJWKを取得する
+     * @ref https://hikky.atlassian.net/wiki/spaces/BKS/pages/668240004/VketSSO
+     */
+    fetchSsoJwk: async () => {
+      const config = useRuntimeConfig()
+      const domain
+        = config?.public?.ssoDomain || raiseError('undefined ssoDomain')
+      if (typeof domain !== 'string') raiseError('not string ssoDomain')
+      const result = await defaultApi.get(`${domain}/auth/discovery/keys`)
+      return requireValueOf(fetchSsoJwkResponseSchema, result)
+    },
+  },
+}
 ````
 
 ## File: .gitignore
@@ -23375,7 +23460,7 @@ export default {
     'selector-pseudo-class-no-unknown': [
       true,
       {
-        ignorePseudoClasses: ['deep'],
+        ignorePseudoClasses: ['deep', 'global'],
       },
     ],
     'max-nesting-depth': null,
@@ -27556,91 +27641,6 @@ export default defineNuxtConfig({
 })
 ````
 
-## File: layers/vket-sso/app/repositories/vketSsoRepository.ts
-````typescript
-/**
- * @group For Developers
- * @category Repositories
- * @module Auth (Vket SSO)
- * @remarks Vket SSO Repository
- * @ref https://hikky.atlassian.net/wiki/spaces/ACCOUNT/pages/462258411/JS+ID
- */
-import { defaultApi } from '#base/app/utils/default-api'
-import { raiseError } from '#base/app/utils/error'
-import { ssoUserSchema } from '#vket-sso/app/models/vketSso'
-import { z } from 'zod/v3'
-
-const fetchSsoProfileResponseSchema = z.object({
-  user: ssoUserSchema,
-})
-const fetchSsoTokenResponseSchema = z.object({
-  jwt: z.string(),
-})
-const fetchSsoJwkResponseSchema = z.object({
-  d: z.string(),
-  dp: z.string(),
-  dq: z.string(),
-  e: z.string(),
-  kid: z.string(),
-  kty: z.string(),
-  n: z.string(),
-  p: z.string(),
-  q: z.string(),
-  qi: z.string(),
-})
-
-export const vketSsoRepository = {
-  get: {
-    /**
-     * @remarks VketSSO: 自分のプロフィールを取得する
-     * @ref https://hikky.atlassian.net/wiki/spaces/BKS/pages/668240004/VketSSO
-     */
-    fetchSsoProfile: async () => {
-      const config = useRuntimeConfig()
-      const domain
-        = config?.public?.ssoDomain || raiseError('undefined ssoDomain')
-      if (typeof domain !== 'string') raiseError('not string ssoDomain')
-      const result = await defaultApi.get(`${domain}/profile/me`, {
-        credentials: 'include',
-      })
-      return requireValueOf(fetchSsoProfileResponseSchema, result)
-    },
-    /**
-     * @remarks VketSSO: 自分のトークンを取得する
-     * @ref https://hikky.atlassian.net/wiki/spaces/BKS/pages/668240004/VketSSO
-     */
-    fetchSsoToken: async (origin = '') => {
-      const config = useRuntimeConfig()
-      const domain
-        = config?.public?.ssoDomain || raiseError('undefined ssoDomain')
-      if (typeof domain !== 'string') raiseError('not string ssoDomain')
-      const audience
-        = origin || (window ? window.location.origin : config?.public?.url)
-      if (!audience) raiseError('undefined audience')
-      const result = await defaultApi.get(
-        `${domain}/auth/token?audience=${audience}`,
-        {
-          credentials: 'include',
-        },
-      )
-      return requireValueOf(fetchSsoTokenResponseSchema, result)
-    },
-    /**
-     * @remarks VketSSO: 自分のJWKを取得する
-     * @ref https://hikky.atlassian.net/wiki/spaces/BKS/pages/668240004/VketSSO
-     */
-    fetchSsoJwk: async () => {
-      const config = useRuntimeConfig()
-      const domain
-        = config?.public?.ssoDomain || raiseError('undefined ssoDomain')
-      if (typeof domain !== 'string') raiseError('not string ssoDomain')
-      const result = await defaultApi.get(`${domain}/auth/discovery/keys`)
-      return requireValueOf(fetchSsoJwkResponseSchema, result)
-    },
-  },
-}
-````
-
 ## File: layers/vket-sso/package.json
 ````json
 {
@@ -29174,84 +29174,6 @@ declare global {
 }
 ````
 
-## File: layers/main/i18n/i18n.config.ts
-````typescript
-/*
- * note: i18n by nuxt-i18n i18nの不具合があればこのファイルから参照する
- * ref: https://v8.i18n.nuxtjs.org/
- */
-import type { NuxtI18nOptions } from '@nuxtjs/i18n'
-import Cookies from 'universal-cookie'
-import en from './locales/en.json'
-import ja from './locales/ja.json'
-
-const cookie = new Cookies()
-const jaLanguage = 'ja'
-const enLanguage = 'en'
-const cookieKey = 'VUEI18N_MANUAL_LOCALE'
-const isBrowserLanguageJa = import.meta.client
-  ? navigator?.language?.startsWith(jaLanguage)
-  : false
-const isBrowserLanguageEn = import.meta.client
-  ? navigator?.language?.startsWith(enLanguage)
-  : false
-const defaultLanguageFromCookie = import.meta.client
-  ? cookie.get(cookieKey) ?? null
-  : ''
-const defaultLanguage
-  = defaultLanguageFromCookie === jaLanguage
-    ? jaLanguage
-    : defaultLanguageFromCookie === enLanguage
-      ? enLanguage
-      : isBrowserLanguageJa
-        ? jaLanguage
-        : isBrowserLanguageEn
-          ? enLanguage
-          : jaLanguage
-
-// settings for nuxt-i18n v9~
-export const nuxtI18nOptions: NuxtI18nOptions = {
-  strategy: 'prefix_and_default',
-  locales: [
-    {
-      code: jaLanguage,
-      language: 'ja-JP',
-      file: 'ja.json',
-      isCatchallLocale: true,
-    },
-    {
-      code: enLanguage,
-      language: 'en-US',
-      file: 'en.json',
-    },
-  ],
-  defaultLocale: defaultLanguage,
-  customRoutes: 'config',
-  pages: {
-    api: false,
-    server: false,
-  },
-  detectBrowserLanguage: {
-    useCookie: true,
-    cookieKey: 'i18n_redirected',
-    redirectOn: 'root', // recommended
-    alwaysRedirect: true,
-    cookieCrossOrigin: true,
-    fallbackLocale: defaultLanguage,
-  },
-  vueI18n: '#main/i18n/i18n.config.ts',
-}
-
-export default {
-  legacy: false,
-  locale: defaultLanguage,
-  messages: {
-    ja,
-    en,
-  },
-}
-````
-
 ## File: layers/main/package.json
 ````json
 {
@@ -30288,6 +30210,84 @@ input[type='number'] {
   appearance: textfield;
 }
 </style>
+````
+
+## File: layers/main/i18n/i18n.config.ts
+````typescript
+/*
+ * note: i18n by nuxt-i18n i18nの不具合があればこのファイルから参照する
+ * ref: https://v8.i18n.nuxtjs.org/
+ */
+import type { NuxtI18nOptions } from '@nuxtjs/i18n'
+import Cookies from 'universal-cookie'
+import en from './locales/en.json'
+import ja from './locales/ja.json'
+
+const cookie = new Cookies()
+const jaLanguage = 'ja'
+const enLanguage = 'en'
+const cookieKey = 'VUEI18N_MANUAL_LOCALE'
+const isBrowserLanguageJa = import.meta.client
+  ? navigator?.language?.startsWith(jaLanguage)
+  : false
+const isBrowserLanguageEn = import.meta.client
+  ? navigator?.language?.startsWith(enLanguage)
+  : false
+const defaultLanguageFromCookie = import.meta.client
+  ? cookie.get(cookieKey) ?? null
+  : ''
+const defaultLanguage
+  = defaultLanguageFromCookie === jaLanguage
+    ? jaLanguage
+    : defaultLanguageFromCookie === enLanguage
+      ? enLanguage
+      : isBrowserLanguageJa
+        ? jaLanguage
+        : isBrowserLanguageEn
+          ? enLanguage
+          : jaLanguage
+
+// settings for nuxt-i18n v9~
+export const nuxtI18nOptions: NuxtI18nOptions = {
+  strategy: 'prefix_and_default',
+  locales: [
+    {
+      code: jaLanguage,
+      language: 'ja-JP',
+      file: 'ja.json',
+      isCatchallLocale: true,
+    },
+    {
+      code: enLanguage,
+      language: 'en-US',
+      file: 'en.json',
+    },
+  ],
+  defaultLocale: defaultLanguage,
+  customRoutes: 'config',
+  pages: {
+    api: false,
+    server: false,
+  },
+  detectBrowserLanguage: {
+    useCookie: true,
+    cookieKey: 'i18n_redirected',
+    redirectOn: 'root', // recommended
+    alwaysRedirect: true,
+    cookieCrossOrigin: true,
+    fallbackLocale: defaultLanguage,
+  },
+  vueI18n: '#main/i18n/i18n.config.ts',
+}
+
+export default {
+  legacy: false,
+  locale: defaultLanguage,
+  messages: {
+    ja,
+    en,
+  },
+}
 ````
 
 ## File: layers/showcases/@types/auto-imports.d.ts
