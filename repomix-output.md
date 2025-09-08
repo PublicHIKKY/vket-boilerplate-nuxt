@@ -22461,84 +22461,6 @@ export const repositoryFactory = {
 }
 ````
 
-## File: layers/main/i18n/i18n.config.ts
-````typescript
-/*
- * note: i18n by nuxt-i18n i18nの不具合があればこのファイルから参照する
- * ref: https://v8.i18n.nuxtjs.org/
- */
-import type { NuxtI18nOptions } from '@nuxtjs/i18n'
-import Cookies from 'universal-cookie'
-import en from './locales/en.json'
-import ja from './locales/ja.json'
-
-const cookie = new Cookies()
-const jaLanguage = 'ja'
-const enLanguage = 'en'
-const cookieKey = 'VUEI18N_MANUAL_LOCALE'
-const isBrowserLanguageJa = import.meta.client
-  ? navigator?.language?.startsWith(jaLanguage)
-  : false
-const isBrowserLanguageEn = import.meta.client
-  ? navigator?.language?.startsWith(enLanguage)
-  : false
-const defaultLanguageFromCookie = import.meta.client
-  ? cookie.get(cookieKey) ?? null
-  : ''
-const defaultLanguage
-  = defaultLanguageFromCookie === jaLanguage
-    ? jaLanguage
-    : defaultLanguageFromCookie === enLanguage
-      ? enLanguage
-      : isBrowserLanguageJa
-        ? jaLanguage
-        : isBrowserLanguageEn
-          ? enLanguage
-          : jaLanguage
-
-// settings for nuxt-i18n v9~
-export const nuxtI18nOptions: NuxtI18nOptions = {
-  strategy: 'prefix_and_default',
-  locales: [
-    {
-      code: jaLanguage,
-      language: 'ja-JP',
-      file: 'ja.json',
-      isCatchallLocale: true,
-    },
-    {
-      code: enLanguage,
-      language: 'en-US',
-      file: 'en.json',
-    },
-  ],
-  defaultLocale: defaultLanguage,
-  customRoutes: 'config',
-  pages: {
-    api: false,
-    server: false,
-  },
-  detectBrowserLanguage: {
-    useCookie: true,
-    cookieKey: 'i18n_redirected',
-    redirectOn: 'root', // recommended
-    alwaysRedirect: true,
-    cookieCrossOrigin: true,
-    fallbackLocale: defaultLanguage,
-  },
-  vueI18n: '@/i18n/i18n.config.ts',
-}
-
-export default {
-  legacy: false,
-  locale: defaultLanguage,
-  messages: {
-    ja,
-    en,
-  },
-}
-````
-
 ## File: layers/open-api/scripts/template.hbs
 ````
 {{!-- OpenAPI から Zod スキーマ生成用テンプレート --}}
@@ -25506,6 +25428,84 @@ useHeadSafe({
   ],
 })
 </script>
+````
+
+## File: layers/main/i18n/i18n.config.ts
+````typescript
+/*
+ * note: i18n by nuxt-i18n i18nの不具合があればこのファイルから参照する
+ * ref: https://v8.i18n.nuxtjs.org/
+ */
+import type { NuxtI18nOptions } from '@nuxtjs/i18n'
+import Cookies from 'universal-cookie'
+import en from './locales/en.json'
+import ja from './locales/ja.json'
+
+const cookie = new Cookies()
+const jaLanguage = 'ja'
+const enLanguage = 'en'
+const cookieKey = 'VUEI18N_MANUAL_LOCALE'
+const isBrowserLanguageJa = import.meta.client
+  ? navigator?.language?.startsWith(jaLanguage)
+  : false
+const isBrowserLanguageEn = import.meta.client
+  ? navigator?.language?.startsWith(enLanguage)
+  : false
+const defaultLanguageFromCookie = import.meta.client
+  ? cookie.get(cookieKey) ?? null
+  : ''
+const defaultLanguage
+  = defaultLanguageFromCookie === jaLanguage
+    ? jaLanguage
+    : defaultLanguageFromCookie === enLanguage
+      ? enLanguage
+      : isBrowserLanguageJa
+        ? jaLanguage
+        : isBrowserLanguageEn
+          ? enLanguage
+          : jaLanguage
+
+// settings for nuxt-i18n v9~
+export const nuxtI18nOptions: NuxtI18nOptions = {
+  strategy: 'prefix_and_default',
+  locales: [
+    {
+      code: jaLanguage,
+      language: 'ja-JP',
+      file: 'ja.json',
+      isCatchallLocale: true,
+    },
+    {
+      code: enLanguage,
+      language: 'en-US',
+      file: 'en.json',
+    },
+  ],
+  defaultLocale: defaultLanguage,
+  customRoutes: 'config',
+  pages: {
+    api: false,
+    server: false,
+  },
+  detectBrowserLanguage: {
+    useCookie: true,
+    cookieKey: 'i18n_redirected',
+    redirectOn: 'root', // recommended
+    alwaysRedirect: true,
+    cookieCrossOrigin: true,
+    fallbackLocale: defaultLanguage,
+  },
+  vueI18n: '#main/i18n/i18n.config.ts',
+}
+
+export default {
+  legacy: false,
+  locale: defaultLanguage,
+  messages: {
+    ja,
+    en,
+  },
+}
 ````
 
 ## File: layers/main/nuxt.config.ts
@@ -29092,43 +29092,6 @@ defineExpose({
 </style>
 ````
 
-## File: package.json
-````json
-{
-  "name": "vket-boilerplate-nuxt",
-  "private": true,
-  "version": "1.0.1",
-  "license": "MIT",
-  "workspaces": [
-    "layers/*"
-  ],
-  "scripts": {
-    "prepare": "bun husky",
-    "package-update": "bunx npm-check-updates -i",
-    "repomix": "bunx repomix@latest --style markdown",
-    "typecheck": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present typecheck",
-    "test:ut": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present test:ut",
-    "fix": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present fix",
-    "build:local": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present build:local"
-  },
-  "devDependencies": {
-    "@types/bun": "^1.2.21",
-    "eslint": "^9.34.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.1.6",
-    "stylelint": "^16.23.1"
-  },
-  "lint-staged": {
-    "layers/**/*.+(js|ts|tsx|vue)": [
-      "eslint --cache --cache-strategy content"
-    ]
-  },
-  "resolutions": {
-    "eslint": "9.34.0"
-  }
-}
-````
-
 ## File: layers/base/@types/auto-imports.d.ts
 ````typescript
 /* eslint-disable */
@@ -29447,6 +29410,43 @@ declare global {
   // @ts-ignore
   export type { Self } from '../app/utils/zod'
   import('../app/utils/zod')
+}
+````
+
+## File: package.json
+````json
+{
+  "name": "vket-boilerplate-nuxt",
+  "private": true,
+  "version": "1.0.1",
+  "license": "MIT",
+  "workspaces": [
+    "layers/*"
+  ],
+  "scripts": {
+    "prepare": "bun husky",
+    "package-update": "bunx npm-check-updates -i",
+    "repomix": "bunx repomix@latest --style markdown",
+    "typecheck": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present typecheck",
+    "test:ut": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present test:ut",
+    "fix": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present fix",
+    "build:local": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present build:local"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.21",
+    "eslint": "^9.34.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.6",
+    "stylelint": "^16.23.1"
+  },
+  "lint-staged": {
+    "layers/**/*.+(js|ts|tsx|vue)": [
+      "eslint --cache --cache-strategy content"
+    ]
+  },
+  "resolutions": {
+    "eslint": "9.34.0"
+  }
 }
 ````
 
