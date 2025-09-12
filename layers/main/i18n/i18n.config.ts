@@ -61,7 +61,7 @@ export const nuxtI18nOptions: NuxtI18nOptions = {
     cookieCrossOrigin: true,
     fallbackLocale: defaultLanguage,
   },
-  vueI18n: '#showcases/i18n/i18n.config.ts',
+  vueI18n: '#main/i18n/i18n.config.ts',
 }
 
 export default {

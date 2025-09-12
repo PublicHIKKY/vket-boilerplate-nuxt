@@ -5,14 +5,17 @@
   "version": "0.1.0",
   "scripts": {
     "generate": "bun run scripts/make-zod.ts",
-    "clean": "rm -rf app/models/openapi/*"
+    "clean": "rm -rf app/models/openapi/*",
+    "package-update": "bunx npm-check-updates -i"
   },
   "dependencies": {
-    "zod": "^4.0.17"
+    "zod": "^4.1.5"
   },
   "devDependencies": {
-    "openapi-zod-client": "^1.18.1",
+    "openapi-zod-client": "^1.18.3",
     "js-yaml": "^4.1.0",
-    "@types/js-yaml": "^4.0.9"
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.0.0",
+    "bun-types": "^1.0.14"
   }
 }
