@@ -1,4 +1,2 @@
 #!/bin/sh
 bunx lint-staged
-bun run repomix
-git add repomix-output.md

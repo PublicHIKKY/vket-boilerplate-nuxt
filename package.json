@@ -9,7 +9,7 @@
   "scripts": {
     "prepare": "bun husky",
     "package-update": "bunx npm-check-updates -i",
-    "repomix": "bunx repomix@latest --style markdown",
+    "repomix": "./scripts/generate_context.sh",
     "typecheck": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present typecheck",
     "test:ut": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present test:ut",
     "fix": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present fix",
