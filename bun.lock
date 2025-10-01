@@ -71,7 +71,7 @@
         "snakecase-keys": "^9.0.2",
         "stylelint": "^16.23.1",
         "stylelint-config-clean-order": "^7.0.0",
-        "stylelint-config-standard-scss": "^15.0.1",
+        "stylelint-config-standard-scss": "^16.0.0",
         "stylelint-rscss": "^0.4.0",
         "tsx": "^4.20.5",
         "type-fest": "^4.41.0",
@@ -2339,13 +2339,13 @@
 
     "stylelint-config-clean-order": ["stylelint-config-clean-order@7.0.0", "", { "dependencies": { "stylelint-order": "^6.0.4" }, "peerDependencies": { "stylelint": ">=14" } }, "sha512-R28w1xNliIbem3o+VIrNjAU8cMgxrGlDoXVqWW7lJ1OvSDsmNGj5aKSW6Xm7i5PK4E99T3Hs19BJFni5IbE56g=="],
 
-    "stylelint-config-recommended": ["stylelint-config-recommended@16.0.0", "", { "peerDependencies": { "stylelint": "^16.16.0" } }, "sha512-4RSmPjQegF34wNcK1e1O3Uz91HN8P1aFdFzio90wNK9mjgAI19u5vsU868cVZboKzCaa5XbpvtTzAAGQAxpcXA=="],
+    "stylelint-config-recommended": ["stylelint-config-recommended@17.0.0", "", { "peerDependencies": { "stylelint": "^16.23.0" } }, "sha512-WaMSdEiPfZTSFVoYmJbxorJfA610O0tlYuU2aEwY33UQhSPgFbClrVJYWvy3jGJx+XW37O+LyNLiZOEXhKhJmA=="],
 
-    "stylelint-config-recommended-scss": ["stylelint-config-recommended-scss@15.0.1", "", { "dependencies": { "postcss-scss": "^4.0.9", "stylelint-config-recommended": "^16.0.0", "stylelint-scss": "^6.12.0" }, "peerDependencies": { "postcss": "^8.3.3", "stylelint": "^16.16.0" }, "optionalPeers": ["postcss"] }, "sha512-V24bxkNkFGggqPVJlP9iXaBabwSGEG7QTz+PyxrRtjPkcF+/NsWtB3tKYvFYEmczRkWiIEfuFMhGpJFj9Fxe6Q=="],
+    "stylelint-config-recommended-scss": ["stylelint-config-recommended-scss@16.0.2", "", { "dependencies": { "postcss-scss": "^4.0.9", "stylelint-config-recommended": "^17.0.0", "stylelint-scss": "^6.12.1" }, "peerDependencies": { "postcss": "^8.3.3", "stylelint": "^16.24.0" }, "optionalPeers": ["postcss"] }, "sha512-aUTHhPPWCvFyWaxtckJlCPaXTDFsp4pKO8evXNCsW9OwsaUWyMd6jvcUhSmfGWPrTddvzNqK4rS/UuSLcbVGdQ=="],
 
-    "stylelint-config-standard": ["stylelint-config-standard@38.0.0", "", { "dependencies": { "stylelint-config-recommended": "^16.0.0" }, "peerDependencies": { "stylelint": "^16.18.0" } }, "sha512-uj3JIX+dpFseqd/DJx8Gy3PcRAJhlEZ2IrlFOc4LUxBX/PNMEQ198x7LCOE2Q5oT9Vw8nyc4CIL78xSqPr6iag=="],
+    "stylelint-config-standard": ["stylelint-config-standard@39.0.0", "", { "dependencies": { "stylelint-config-recommended": "^17.0.0" }, "peerDependencies": { "stylelint": "^16.23.0" } }, "sha512-JabShWORb8Bmc1A47ZyJstran60P3yUdI1zWMpGYPeFiC6xzHXJMkpKAd8EjIhq3HPUplIWWMDJ/xu0AiPd+kA=="],
 
-    "stylelint-config-standard-scss": ["stylelint-config-standard-scss@15.0.1", "", { "dependencies": { "stylelint-config-recommended-scss": "^15.0.1", "stylelint-config-standard": "^38.0.0" }, "peerDependencies": { "postcss": "^8.3.3", "stylelint": "^16.18.0" }, "optionalPeers": ["postcss"] }, "sha512-8pmmfutrMlPHukLp+Th9asmk21tBXMVGxskZCzkRVWt1d8Z0SrXjUUQ3vn9KcBj1bJRd5msk6yfEFM0UYHBRdg=="],
+    "stylelint-config-standard-scss": ["stylelint-config-standard-scss@16.0.0", "", { "dependencies": { "stylelint-config-recommended-scss": "^16.0.1", "stylelint-config-standard": "^39.0.0" }, "peerDependencies": { "postcss": "^8.3.3", "stylelint": "^16.23.1" }, "optionalPeers": ["postcss"] }, "sha512-/FHECLUu+med/e6OaPFpprG86ShC4SYT7Tzb2PTVdDjJsehhFBOioSlWqYFqJxmGPIwO3AMBxNo+kY3dxrbczA=="],
 
     "stylelint-order": ["stylelint-order@6.0.4", "", { "dependencies": { "postcss": "^8.4.32", "postcss-sorting": "^8.0.2" }, "peerDependencies": { "stylelint": "^14.0.0 || ^15.0.0 || ^16.0.1" } }, "sha512-0UuKo4+s1hgQ/uAxlYU4h0o0HS4NiQDud0NAUNI0aa8FJdmYHA5ZZTFHiV5FpmE3071e9pZx5j0QpVJW5zOCUA=="],
 
