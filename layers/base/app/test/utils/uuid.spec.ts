@@ -1,3 +1,4 @@
+import { describe, it, test, expect } from 'vitest'
 import { createUuidV4 } from '#base/app/utils/uuid'
 
 describe('createUuidV4', () => {

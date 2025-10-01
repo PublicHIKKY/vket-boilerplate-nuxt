@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, test } from 'vitest'
+import { describe, it, expect, test } from 'vitest'
 import HaDialog from '#base/app/components/ha/HaDialog.vue'
 
 test('ref component', () => {

@@ -1,4 +1,5 @@
 import { mount, shallowMount } from '@vue/test-utils'
+import { describe, it, test, expect } from 'vitest'
 import HmClipping from '#base/app/components/hm/HmClipping.vue'
 
 test('ref component', () => {

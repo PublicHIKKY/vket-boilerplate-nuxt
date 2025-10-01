@@ -1,3 +1,4 @@
+import { describe, it, expect, vi } from 'vitest'
 import type { NitroFetchRequest } from 'nitropack'
 import { useExample } from '#base/app/composables/useExample'
 

@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, test, expect } from 'vitest'
 import HmPopup from '#base/app/components/hm/HmPopup.vue'
 import { raiseError } from '#base/app/utils/error'
 

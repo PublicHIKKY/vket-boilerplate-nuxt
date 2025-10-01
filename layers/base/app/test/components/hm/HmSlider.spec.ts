@@ -363,6 +363,8 @@ describe('HmSlider', () => {
   })
 
   describe('イベントハンドリング', () => {
+    let moveSliderSpy: any
+
     beforeEach(() => {
       wrapper = mount(HmSlider, {
         props: defaultProps,
@@ -375,10 +377,10 @@ describe('HmSlider', () => {
           plugins: [i18n],
         },
       })
+      moveSliderSpy = vi.spyOn(wrapper.vm, 'moveSlider')
     })
 
     it('次へボタンクリックでmoveSliderが呼ばれる', async () => {
-      const moveSliderSpy = vi.spyOn(wrapper.vm, 'moveSlider')
       const nextButton = wrapper.find('.button--next')
       await nextButton.trigger('click')
       expect(moveSliderSpy).toHaveBeenCalledWith('next')
@@ -386,10 +388,11 @@ describe('HmSlider', () => {
 
     it('前へボタンクリックでmoveSliderが呼ばれる', async () => {
       // まず次に進めてから前へボタンを有効にする
+      moveSliderSpy.mockClear() // 既存の呼び出しをクリア
       await (wrapper.vm).moveSlider('next')
       await (wrapper.vm).$nextTick()
 
-      const moveSliderSpy = vi.spyOn(wrapper.vm, 'moveSlider')
+      moveSliderSpy.mockClear() // 上記の呼び出しをクリア
       const prevButton = wrapper.find('.button--previous')
       await prevButton.trigger('click')
       expect(moveSliderSpy).toHaveBeenCalledWith('previous')

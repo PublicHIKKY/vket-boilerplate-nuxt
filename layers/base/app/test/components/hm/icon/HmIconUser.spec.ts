@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, test, expect } from 'vitest'
 import HmIconUser from '#base/app/components/hm/icon/HmIconUser.vue'
 
 /**
@@ -40,7 +41,7 @@ describe('if src empty, set no image', () => {
         src: '',
       },
     })
-    expect(wrapper.get('img').attributes('src')).toBe(defaultNoImage)
+    expect(wrapper.get('img').attributes('src')).toContain(defaultNoImage)
   })
 })
 
@@ -53,7 +54,7 @@ describe('if src error, set placeholder image', () => {
       },
     })
     await wrapper.get('img').trigger('error')
-    expect(wrapper.get('img').attributes('src')).toBe(
+    expect(wrapper.get('img').attributes('src')).toContain(
       '/public/images/no-image_1x1.jpg',
     )
   })

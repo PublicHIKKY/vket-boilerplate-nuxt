@@ -1,4 +1,5 @@
 import { readFileAsBlob, getExtFromType, getBase64ByFile } from '#base/app/utils/file-control'
+import { beforeEach, afterEach, describe, it, test, expect, vi } from 'vitest'
 
 // NOTE: JSDOMでURL.createObjectURLはサポートされていない。その為、本来URL.createObjectURLが返してくれるURLを偽装してテストする。
 beforeEach(() => {

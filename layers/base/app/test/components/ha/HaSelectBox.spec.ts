@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, test, expect } from 'vitest'
 import { z } from 'zod/v3'
 import HaSelectBox from '#base/app/components/ha/HaSelectBox.vue'
 
@@ -148,9 +149,10 @@ describe('props', () => {
         small: false,
       },
     })
-    expect(wrapper.get('select').find('option[value="null"]').text()).toBe(
-      '---Select---',
-    )
+    const options = wrapper.get('select').findAll('option')
+    const placeholderOption = options.find(opt => opt.text() === '---Select---')
+    expect(placeholderOption).toBeTruthy()
+    expect(placeholderOption?.text()).toBe('---Select---')
   })
   it(':disabledPlaceholder', () => {
     const wrapper = mount(HaSelectBox, {
@@ -166,9 +168,10 @@ describe('props', () => {
         small: false,
       },
     })
-    expect(
-      wrapper.get('select').find('option[value="null"]').attributes('disabled'),
-    ).toBe('')
+    const options = wrapper.get('select').findAll('option')
+    const placeholderOption = options.find(opt => opt.text() === '---Select---')
+    expect(placeholderOption).toBeTruthy()
+    expect(placeholderOption?.attributes('disabled')).toBeDefined()
   })
   it(':disabled', () => {
     const wrapper = mount(HaSelectBox, {

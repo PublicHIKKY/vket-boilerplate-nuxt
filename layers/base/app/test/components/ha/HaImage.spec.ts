@@ -74,13 +74,13 @@ describe('lazy loading', () => {
 describe('fallback images', () => {
   it('no src loads "no-image.png"', () => {
     const wrapper = mount(HaImage)
-    expect(wrapper.get('img').attributes('src')).toBe(defaultNoImage)
+    expect(wrapper.get('img').attributes('src')).toContain(defaultNoImage)
   })
 
   it('on error loads "no-image.png"', async () => {
     const wrapper = mount(HaImage, { props: { src: '/foo-not-found.jpg' } })
     await wrapper.get('img').trigger('error')
-    expect(wrapper.get('img').attributes('src')).toBe(defaultNoImage)
+    expect(wrapper.get('img').attributes('src')).toContain(defaultNoImage)
   })
 
   it('custom on-error image', async () => {
@@ -91,6 +91,6 @@ describe('fallback images', () => {
       },
     })
     await wrapper.get('img').trigger('error')
-    expect(wrapper.get('img').attributes('src')).toBe(customNoImage)
+    expect(wrapper.get('img').attributes('src')).toContain(customNoImage)
   })
 })

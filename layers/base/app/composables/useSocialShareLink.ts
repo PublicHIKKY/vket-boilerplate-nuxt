@@ -5,18 +5,19 @@ type ShareProps = {
 }
 
 const useSocialShareLink = () => {
-  const i18n = useI18n()
+  const i18n = useNuxtApp().$i18n
   const config = useRuntimeConfig()
   const route = useRoute()
   const currentPath = computed(() => {
+    const baseUrl = (config.public.NUXT_ENV_BASE_URL ?? '') as string
     const path = !route
-      ? `${config.public.NUXT_ENV_BASE_URL}`
+      ? baseUrl
       : route.path.slice(-4) === '/en/'
         ? route.path.slice(0, -1)
         : route.path.slice(-1) === '/' || route.path.slice(-3) === '/en'
           ? route.path
           : `${route.path}/`
-    return `${config.public.NUXT_ENV_BASE_URL}${path}`
+    return `${baseUrl}${path}`
   })
 
   const getShareUrl = (target: string, props?: ShareProps) => {

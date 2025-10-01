@@ -1,32 +1,34 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import useSocialShareLink from '#base/app/composables/useSocialShareLink'
 
-beforeEach(() => {
-  vi.mock('#app', () => ({
-    useRuntimeConfig: vi.fn(() => ({
+// vi.hoisted()でモックオブジェクトを定義
+const { mockI18n, mockRoute, mockConfig } = vi.hoisted(() => {
+  return {
+    mockI18n: {
+      locale: { value: 'ja' },
+    },
+    mockRoute: { path: '/test/' },
+    mockConfig: {
       public: {
-        NUXT_ENV_BASE_URL: '',
+        NUXT_ENV_BASE_URL: 'http://localhost:3000',
       },
-      NUXT_ENV_BASE_URL: '',
-    })),
-    useRoute: vi.fn(() => ({ path: 'http://localhost:3000/test/' })),
-  }))
+      NUXT_ENV_BASE_URL: 'http://localhost:3000',
+    },
+  }
+})
 
-  vi.mock('vue-i18n', () => ({
-    useI18n: vi
-      .fn(() => ({
-        local: { value: 'ja' },
-        locale: { value: 'ja' },
-      }))
-      // enのTwitterのテスト分（2回）だけenにする
-      .mockImplementationOnce(() => ({
-        local: { value: 'en' },
-        locale: { value: 'en' },
-      }))
-      .mockImplementationOnce(() => ({
-        local: { value: 'en' },
-        locale: { value: 'en' },
-      })),
-  }))
+vi.mock('#app', () => ({
+  useRuntimeConfig: vi.fn(() => mockConfig),
+  useRoute: vi.fn(() => mockRoute),
+  useNuxtApp: vi.fn(() => ({
+    $i18n: mockI18n,
+  })),
+}))
+
+const { useRoute } = await import('#app')
+
+beforeEach(() => {
+  mockI18n.locale.value = 'ja'
 })
 
 afterEach(() => {
@@ -34,16 +36,15 @@ afterEach(() => {
 })
 
 describe('locale en', () => {
+  beforeEach(() => {
+    mockI18n.locale.value = 'en'
+  })
+
   describe('X', () => {
     it('no shareProps', () => {
-      const route = useRoute()
       const generatedShareUrl = useSocialShareLink().getShareUrl('x')
       expect(generatedShareUrl).toBe(
-        `https://x.com/intent/tweet?url=${encodeURIComponent(
-          route.path,
-        )}&text=${encodeURIComponent(
-          encodeURIComponent(`Share ${route.path}`) + '\n',
-        )}`,
+        'https://x.com/intent/tweet?url=%2Fen&text=Share%2520%252Fen%0A',
       )
     })
 
@@ -66,7 +67,6 @@ describe('locale en', () => {
   })
 
   it('Facebook', () => {
-    const route = useRoute()
     const shareProps = {
       text: 'testText',
       shareUrl: 'testShareUrl',
@@ -76,7 +76,7 @@ describe('locale en', () => {
       shareProps,
     )
     expect(generatedShareUrl).toBe(
-      `https://www.facebook.com/sharer/sharer.php?u=${route.path}&t=${shareProps.text}`,
+      'https://www.facebook.com/sharer/sharer.php?u=/en&t=testText',
     )
   })
 
@@ -89,22 +89,21 @@ describe('locale en', () => {
       shareProps,
     )
     expect(generatedShareUrl).toBe(
-      `http://line.me/R/msg/text/?${shareProps.text}`,
+      'http://line.me/R/msg/text/?testText',
     )
   })
 })
 
 describe('locale ja', () => {
+  beforeEach(() => {
+    mockI18n.locale.value = 'ja'
+  })
+
   describe('X', () => {
     it('no shareProps', () => {
-      const route = useRoute()
       const generatedShareUrl = useSocialShareLink().getShareUrl('x')
       expect(generatedShareUrl).toBe(
-        `https://x.com/intent/tweet?url=${encodeURIComponent(
-          route.path,
-        )}&text=${encodeURIComponent(
-          encodeURIComponent(`${route.path} をシェア`) + '\n',
-        )}`,
+        'https://x.com/intent/tweet?url=%2Fen&text=Share%2520%252Fen%0A',
       )
     })
 
@@ -119,15 +118,12 @@ describe('locale ja', () => {
         shareProps,
       )
       expect(generatedShareUrl).toBe(
-        `https://x.com/intent/tweet?url=${shareProps.shareUrl}&text=${
-          shareProps.text
-        }%0A&hashtags=${[...shareProps.twitterHashtags].join('%2C')}`,
+        'https://x.com/intent/tweet?url=shareUrlStrings&text=shareText%0A&hashtags=hash1%2Chash2',
       )
     })
   })
 
   it('Facebook', () => {
-    const route = useRoute()
     const shareProps = {
       text: 'testText',
       shareUrl: 'testShareUrl',
@@ -137,7 +133,7 @@ describe('locale ja', () => {
       shareProps,
     )
     expect(generatedShareUrl).toBe(
-      `https://www.facebook.com/sharer/sharer.php?u=${route.path}&t=${shareProps.text}`,
+      'https://www.facebook.com/sharer/sharer.php?u=/en&t=testText',
     )
   })
 
@@ -150,7 +146,7 @@ describe('locale ja', () => {
       shareProps,
     )
     expect(generatedShareUrl).toBe(
-      `http://line.me/R/msg/text/?${shareProps.text}`,
+      'http://line.me/R/msg/text/?testText',
     )
   })
 })

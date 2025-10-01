@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, test, expect } from 'vitest'
 import HaHamburger from '#base/app/components/ha/HaHamburger.vue'
 
 test('ref component', () => {

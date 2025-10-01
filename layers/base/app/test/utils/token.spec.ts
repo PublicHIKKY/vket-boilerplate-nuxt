@@ -1,4 +1,5 @@
 import { test } from '@fast-check/vitest'
+import { describe, it, expect } from 'vitest'
 import { decodeJwt } from '#base/app/utils/token'
 
 describe('decodeJwt', () => {

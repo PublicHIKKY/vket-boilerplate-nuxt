@@ -1,24 +1,23 @@
 import { mount } from '@vue/test-utils'
+import { beforeEach, afterEach, describe, it, test, expect, vi } from 'vitest'
+import { createI18n } from 'vue-i18n'
 import HmInputSingleImage from '#base/app/components/hm/input/HmInputSingleImage.vue'
 import { waitEffect } from '#base/app/utils/sleep'
 
+// i18nのモックインスタンス
+const i18n = createI18n({
+  legacy: false,
+  locale: 'ja',
+  messages: {
+    ja: {},
+  },
+})
+
+vi.mock('#base/app/utils/file-control', () => ({
+  readFileAsBlob: () => 'dummy-blob',
+}))
+
 beforeEach(() => {
-  vi.mock('vue-i18n', () => ({
-    useI18n: vi.fn(() => ({
-      local: {
-        value: 'ja',
-      },
-      locale: {
-        value: 'ja',
-      },
-      t: (key: string, ..._args: unknown[]) => `dummy-${key}`,
-    })),
-  }))
-
-  vi.mock('#base/app/utils/file-control', () => ({
-    readFileAsBlob: () => 'dummy-blob',
-  }))
-
   URL.createObjectURL = vi.fn(() => 'dummy-for-objectURL')
 })
 
@@ -35,6 +34,9 @@ test('mount component', () => {
     props: {
       defaultImageUrl: null,
     },
+    global: {
+      plugins: [i18n],
+    },
   })
   expect(wrapper.getCurrentComponent()).toBeTruthy()
   expect(wrapper.html()).toMatchSnapshot()
@@ -46,6 +48,9 @@ describe('props', () => {
       props: {
         optionalAccept: 'image/gif',
         defaultImageUrl: null,
+      },
+      global: {
+        plugins: [i18n],
       },
     })
     expect(
@@ -59,6 +64,9 @@ describe('props', () => {
         error: 'test error',
         defaultImageUrl: null,
       },
+      global: {
+        plugins: [i18n],
+      },
     })
     expect(wrapper.find('p[class="error-container"]').text()).toBe('test error')
   })
@@ -69,6 +77,9 @@ describe('props', () => {
         isRemovable: true,
         defaultImageUrl: 'foo.png',
       },
+      global: {
+        plugins: [i18n],
+      },
     })
     expect(wrapper.find('.remove').exists()).toBe(true)
   })
@@ -78,6 +89,9 @@ describe('props', () => {
       props: {
         isRequired: true,
         defaultImageUrl: null,
+      },
+      global: {
+        plugins: [i18n],
       },
     })
     expect(
@@ -92,6 +106,9 @@ describe('props', () => {
         cropWidth: undefined,
         cropHeight: undefined,
         defaultImageUrl: null,
+      },
+      global: {
+        plugins: [i18n],
       },
     })
 
