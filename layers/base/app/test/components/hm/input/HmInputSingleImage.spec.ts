@@ -10,6 +10,7 @@ const i18n = createI18n({
   locale: 'ja',
   messages: {
     ja: {},
+    en: {},
   },
 })
 
