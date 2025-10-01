@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, test, expect } from 'vitest'
+import { describe, test, expect } from 'vitest'
 import HmSkeletonScreen from '#base/app/components/hm/HmSkeletonScreen.vue'
 
 describe('HmSkeletonScreen', () => {

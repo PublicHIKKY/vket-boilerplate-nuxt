@@ -1,5 +1,5 @@
 import { IsEqual } from 'type-fest'
-import { describe, it, test, expect } from 'vitest'
+import { describe, test } from 'vitest'
 import { Nullable, Overwrite, ValueOf } from '#base/app/utils/types/types'
 
 describe('proof', () => {

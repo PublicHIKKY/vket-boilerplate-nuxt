@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { beforeEach, afterEach, describe, it, test, expect, vi } from 'vitest'
+import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest'
 import HmSocialShareLink from '#base/app/components/hm/HmSocialShareLink.vue'
 
 // モックはファイルトップレベルで定義

@@ -1,4 +1,4 @@
-import { describe, it, test, expect } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { sleep } from '#base/app/utils/sleep'
 
 describe('sleep test', () => {

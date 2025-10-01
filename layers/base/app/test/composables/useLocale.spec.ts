@@ -1,4 +1,4 @@
-import { describe, it, test, expect, vi, beforeEach, afterEach } from 'vitest'
+import { test, expect, vi, beforeEach, afterEach } from 'vitest'
 import { ref } from 'vue'
 import type { WritableComputedRef } from 'vue'
 import { useLocale } from '#base/app/composables/useLocale'

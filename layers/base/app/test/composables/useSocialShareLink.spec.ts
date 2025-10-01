@@ -25,8 +25,6 @@ vi.mock('#app', () => ({
   })),
 }))
 
-const { useRoute } = await import('#app')
-
 beforeEach(() => {
   mockI18n.locale.value = 'ja'
 })

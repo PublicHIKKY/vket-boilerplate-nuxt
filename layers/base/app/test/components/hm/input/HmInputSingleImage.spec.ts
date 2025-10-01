@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { beforeEach, afterEach, describe, it, test, expect, vi } from 'vitest'
+import { beforeEach, afterEach, describe, test, expect, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 import HmInputSingleImage from '#base/app/components/hm/input/HmInputSingleImage.vue'
 import { waitEffect } from '#base/app/utils/sleep'

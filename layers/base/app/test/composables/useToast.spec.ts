@@ -18,6 +18,7 @@ vi.mock('#app', () => ({
 
 // テストで使用するためにモックを取得
 const { useNuxtApp } = await import('#app')
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockUseNuxtApp = useNuxtApp as any
 
 describe('useToast composable', () => {

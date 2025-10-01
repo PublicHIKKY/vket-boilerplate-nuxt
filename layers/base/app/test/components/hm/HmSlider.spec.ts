@@ -1,8 +1,8 @@
-import HmSlider from '#base/app/components/hm/HmSlider.vue'
-import { AnyVueWrapper } from '#base/app/test/models/vue'
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
+import { AnyVueWrapper } from '#base/app/test/models/vue'
+import HmSlider from '#base/app/components/hm/HmSlider.vue'
 
 // i18nの設定
 const i18n = createI18n({
@@ -363,6 +363,7 @@ describe('HmSlider', () => {
   })
 
   describe('イベントハンドリング', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let moveSliderSpy: any
 
     beforeEach(() => {

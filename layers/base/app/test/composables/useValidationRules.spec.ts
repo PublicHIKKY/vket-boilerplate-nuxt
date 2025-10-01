@@ -1,5 +1,5 @@
 import { fc, test } from '@fast-check/vitest'
-import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest'
+import { beforeEach, afterEach, expect, vi } from 'vitest'
 import useValidationRules from '#base/app/composables/useValidationRules'
 
 // vue-i18nのモックをトップレベルで定義

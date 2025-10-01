@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, test, expect } from 'vitest'
+import { describe, test, expect } from 'vitest'
 import HmNoteList from '#base/app/components/hm/HmNoteList.vue'
 
 test('ref component', () => {

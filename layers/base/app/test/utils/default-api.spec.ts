@@ -1,4 +1,4 @@
-import { describe, it, test, expect, vi } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import type { NitroFetchRequest } from 'nitropack'
 import api from '#base/app/utils/default-api'
 
