@@ -37,7 +37,7 @@
     "@nuxtjs/robots": "^5.5.1",
     "@vueuse/nuxt": "^13.9.0",
     "dayjs": "^1.11.18",
-    "nuxt": "^4.1.0",
+    "nuxt": "^4.1.2",
     "ress": "^5.0.2",
     "universal-cookie": "^8.0.1",
     "uuid": "^11.1.0",
