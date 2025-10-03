@@ -449,6 +449,19 @@ export default withNuxt(
 )
 ````
 
+## File: layers/showcases/tsconfig.json
+````json
+{
+  // https://nuxt.com/docs/guide/concepts/typescript
+  "extends": [
+    "./.nuxt/tsconfig.server.json",
+    "./.nuxt/tsconfig.json",
+    "../base/tsconfig.shared.json"
+  ],
+  "exclude": ["../base/**/*", "../main/**/*"]
+}
+````
+
 ## File: layers/showcases/app/assets/styles/_functions.scss
 ````scss
 @function strip-unit($number) {
@@ -472,6 +485,159 @@ export default withNuxt(
   $value: (strip-unit($px) / strip-unit($base)) * 1rem;
 
   @return $value;
+}
+````
+
+## File: layers/showcases/app/assets/styles/_variables.scss
+````scss
+/* color palette */
+$violet: #b760eb; // Sidebar button
+$blue: #3ff; // button02, tag, link hover, #33FFFF
+$blue-1: #0c98da; // Sidebar button
+$yellow: #ffba00; // button01 hover, text link hover
+$orange: #ff8500; // button01, tag
+$green: #69b756; // Sidebar button
+$green-1: #47c6ae; // Sidebar button
+$green-2: #1b5e68; // form focus
+$red: #c43232; // alert
+$red-1: #46212a; // form error
+$pink: #ff4e8e; // button03, tag
+$pink-1: #f86464; // Sidebar button
+$gray: #737477; // Button disabled BG
+$black: #111827; // Body BG
+$black-1: #020e1c; // Header Footer BG
+$navy: #101e3c; // Sub BG
+$navy-1: #17385d; // Item Card BG
+$navy-2: #19477f; // Line
+$white: #fff;
+$white-1: rgba(#fff, 0.7);
+
+/* スタイルガイドにないcolor */
+$gray-1: #d1d1d1;
+$gray-2: #505050;
+$gray-3: #ffffff4d; // button
+$green-3: #33ffff80; // button
+$green-4: #228d92; // button
+$green-5: #2bc6ca; // button
+$blue-2: #353e49;
+$black-undercoat: rgb(0 0 0 / 70%);
+
+/* text color */
+$text-body: #fff;
+$text-link: #9a9daa;
+$text-note: #737477;
+$box-shadow: 5px 5px 5px rgba($gray-2, 0.2);
+
+/* SNS Brand Colors */
+$twitter: #1d9bf0;
+$facebook: #1877f2;
+$discord: #5865f2;
+$note: #41c9b4;
+$instagram-gradation: linear-gradient(to right, #febd1c, #f50200, #c10098);
+
+/* color role */
+$primary-color: $orange;
+$primary-hover-color: $yellow;
+$secondary-color: $blue;
+$secondary-hover-color: $pink;
+$base-background-color: $black;
+$base-font-color: $text-body;
+$font-color-note: $text-note;
+$font-color-link: $text-link;
+$font-color-headline: $black;
+$font-color-placeholder: $text-link;
+$base-link-color: $text-link;
+$base-link-hover-color: $blue;
+$primary-button-default-color: $orange;
+$primary-button-active-color: $yellow;
+$secondary-button-default-color: $blue;
+$secondary-button-active-color: $pink;
+$button-disabled-color: $gray;
+
+/* font-settings */
+// 参考： https://ics.media/entry/200317/
+$base-font-family: 'Segoe UI', 'Helvetica Neue', helvetica, arial, 'メイリオ',
+  'ヒラギノ角ゴシック', 'Noto sans JP', 'Segoe UI', '游ゴシック', sans-serif;
+$base-font-weight: 400;
+$base-font-size: 16px;
+
+/* content width */
+$pc-content-max-width: 1920px;
+$pc-content-medium-width: 1280px;
+$pc-content-min-width: 1080px;
+$sp-query-width: 500px;
+$xs-query-width: 370px;
+$media-query-width: 769px;
+$side-menu-width: 90px;
+$side-menu-height-sp: 64px;
+
+// topページ用に追加
+$pc-content-body-width: 1470px;
+
+/* content height */
+$header-height-pc: 80px;
+$header-height-sp: 60px;
+$mypage-header-height-pc: 72px;
+$mypage-header-height-sp: 72px;
+
+/* space-settings */
+$space-base: 16px;
+$space-unit: 4px;
+
+@function space($value) {
+  @return $value * $space-unit;
+}
+
+/* z-index-settings */
+$zindex-main: 1;
+$zindex-dialog: 100;
+$zindex-mypage-header: 200;
+$zindex-side-menu: $zindex-mypage-header + 1;
+$zindex-footer: $zindex-mypage-header + 2;
+$zindex-header: $zindex-mypage-header + 3;
+$zindex-side-menu-button: $zindex-mypage-header + 4;
+$zindex-toast: 300;
+$zindex-loading: 400;
+
+// todo: extend.scss 作成するか記述場所決める
+
+/* 各ページタイトルのデザイン */
+%title {
+  display: flex;
+  font-size: 24px;
+
+  &::before {
+    content: '';
+
+    display: block;
+
+    width: 5px;
+    margin-right: space(2);
+    border-radius: 6px;
+
+    background: $orange;
+  }
+}
+
+/* スクロールバーのデザイン */
+// note: scrollbar-color はソリッドカラーのみ指定可能なので一応旧構文で書いている
+%scroll-bar {
+  // 幅
+  &::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  // 背景
+  &::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 10px $green-4;
+  }
+
+  // ボタン
+  &::-webkit-scrollbar-thumb {
+    border-radius: 5px;
+    background-color: $green-5;
+  }
 }
 ````
 
@@ -1500,19 +1666,6 @@ export default defineAppConfig(
 )
 ````
 
-## File: layers/showcases/tsconfig.json
-````json
-{
-  // https://nuxt.com/docs/guide/concepts/typescript
-  "extends": [
-    "./.nuxt/tsconfig.server.json",
-    "./.nuxt/tsconfig.json",
-    "../base/tsconfig.shared.json"
-  ],
-  "exclude": ["../base/**/*", "../main/**/*"]
-}
-````
-
 ## File: layers/showcases/vitest.config.mts
 ````
 /// <reference types="vitest" />
@@ -1900,159 +2053,6 @@ a {
 }
 ````
 
-## File: layers/showcases/app/assets/styles/_variables.scss
-````scss
-/* color palette */
-$violet: #b760eb; // Sidebar button
-$blue: #3ff; // button02, tag, link hover, #33FFFF
-$blue-1: #0c98da; // Sidebar button
-$yellow: #ffba00; // button01 hover, text link hover
-$orange: #ff8500; // button01, tag
-$green: #69b756; // Sidebar button
-$green-1: #47c6ae; // Sidebar button
-$green-2: #1b5e68; // form focus
-$red: #c43232; // alert
-$red-1: #46212a; // form error
-$pink: #ff4e8e; // button03, tag
-$pink-1: #f86464; // Sidebar button
-$gray: #737477; // Button disabled BG
-$black: #111827; // Body BG
-$black-1: #020e1c; // Header Footer BG
-$navy: #101e3c; // Sub BG
-$navy-1: #17385d; // Item Card BG
-$navy-2: #19477f; // Line
-$white: #fff;
-$white-1: rgba(#fff, 0.7);
-
-/* スタイルガイドにないcolor */
-$gray-1: #d1d1d1;
-$gray-2: #505050;
-$gray-3: #ffffff4d; // button
-$green-3: #33ffff80; // button
-$green-4: #228d92; // button
-$green-5: #2bc6ca; // button
-$blue-2: #353e49;
-$black-undercoat: rgb(0 0 0 / 70%);
-
-/* text color */
-$text-body: #fff;
-$text-link: #9a9daa;
-$text-note: #737477;
-$box-shadow: 5px 5px 5px rgba($gray-2, 0.2);
-
-/* SNS Brand Colors */
-$twitter: #1d9bf0;
-$facebook: #1877f2;
-$discord: #5865f2;
-$note: #41c9b4;
-$instagram-gradation: linear-gradient(to right, #febd1c, #f50200, #c10098);
-
-/* color role */
-$primary-color: $orange;
-$primary-hover-color: $yellow;
-$secondary-color: $blue;
-$secondary-hover-color: $pink;
-$base-background-color: $black;
-$base-font-color: $text-body;
-$font-color-note: $text-note;
-$font-color-link: $text-link;
-$font-color-headline: $black;
-$font-color-placeholder: $text-link;
-$base-link-color: $text-link;
-$base-link-hover-color: $blue;
-$primary-button-default-color: $orange;
-$primary-button-active-color: $yellow;
-$secondary-button-default-color: $blue;
-$secondary-button-active-color: $pink;
-$button-disabled-color: $gray;
-
-/* font-settings */
-// 参考： https://ics.media/entry/200317/
-$base-font-family: 'Segoe UI', 'Helvetica Neue', helvetica, arial, 'メイリオ',
-  'ヒラギノ角ゴシック', 'Noto sans JP', 'Segoe UI', '游ゴシック', sans-serif;
-$base-font-weight: 400;
-$base-font-size: 16px;
-
-/* content width */
-$pc-content-max-width: 1920px;
-$pc-content-medium-width: 1280px;
-$pc-content-min-width: 1080px;
-$sp-query-width: 500px;
-$xs-query-width: 370px;
-$media-query-width: 769px;
-$side-menu-width: 90px;
-$side-menu-height-sp: 64px;
-
-// topページ用に追加
-$pc-content-body-width: 1470px;
-
-/* content height */
-$header-height-pc: 80px;
-$header-height-sp: 60px;
-$mypage-header-height-pc: 72px;
-$mypage-header-height-sp: 72px;
-
-/* space-settings */
-$space-base: 16px;
-$space-unit: 4px;
-
-@function space($value) {
-  @return $value * $space-unit;
-}
-
-/* z-index-settings */
-$zindex-main: 1;
-$zindex-dialog: 100;
-$zindex-mypage-header: 200;
-$zindex-side-menu: $zindex-mypage-header + 1;
-$zindex-footer: $zindex-mypage-header + 2;
-$zindex-header: $zindex-mypage-header + 3;
-$zindex-side-menu-button: $zindex-mypage-header + 4;
-$zindex-toast: 300;
-$zindex-loading: 400;
-
-// todo: extend.scss 作成するか記述場所決める
-
-/* 各ページタイトルのデザイン */
-%title {
-  display: flex;
-  font-size: 24px;
-
-  &::before {
-    content: '';
-
-    display: block;
-
-    width: 5px;
-    margin-right: space(2);
-    border-radius: 6px;
-
-    background: $orange;
-  }
-}
-
-/* スクロールバーのデザイン */
-// note: scrollbar-color はソリッドカラーのみ指定可能なので一応旧構文で書いている
-%scroll-bar {
-  // 幅
-  &::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-
-  // 背景
-  &::-webkit-scrollbar-track {
-    box-shadow: inset 0 0 10px $green-4;
-  }
-
-  // ボタン
-  &::-webkit-scrollbar-thumb {
-    border-radius: 5px;
-    background-color: $green-5;
-  }
-}
-````
-
 ## File: layers/showcases/app/models/json.ts
 ````typescript
 /**
@@ -2191,200 +2191,6 @@ export default {
     ja,
     en,
   },
-}
-````
-
-## File: layers/showcases/@types/auto-imports.d.ts
-````typescript
-/* eslint-disable */
-/* prettier-ignore */
-// @ts-nocheck
-// noinspection JSUnusedGlobalSymbols
-// Generated by unplugin-auto-import
-// biome-ignore lint: disable
-export {}
-declare global {
-  const EffectScope: typeof import('vue')['EffectScope']
-  const abortNavigation: typeof import('#app')['abortNavigation']
-  const addRouteMiddleware: typeof import('#app')['addRouteMiddleware']
-  const api: typeof import('../app/utils/api')['default']
-  const cancelIdleCallback: typeof import('#app')['cancelIdleCallback']
-  const clearError: typeof import('#app')['clearError']
-  const clearNuxtData: typeof import('#app')['clearNuxtData']
-  const clearNuxtState: typeof import('#app')['clearNuxtState']
-  const computed: typeof import('vue')['computed']
-  const createApp: typeof import('vue')['createApp']
-  const createError: typeof import('#app')['createError']
-  const customRef: typeof import('vue')['customRef']
-  const defineAppConfig: typeof import('#app')['defineAppConfig']
-  const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
-  const defineComponent: typeof import('vue')['defineComponent']
-  const defineI18nConfig: typeof import('#i18n')['defineI18nConfig']
-  const defineI18nLocale: typeof import('#i18n')['defineI18nLocale']
-  const defineI18nRoute: typeof import('#i18n')['defineI18nRoute']
-  const defineNuxtComponent: typeof import('#app')['defineNuxtComponent']
-  const defineNuxtLink: typeof import('#app')['defineNuxtLink']
-  const defineNuxtPlugin: typeof import('#app')['defineNuxtPlugin']
-  const defineNuxtRouteMiddleware: typeof import('#app')['defineNuxtRouteMiddleware']
-  const definePayloadPlugin: typeof import('#app')['definePayloadPlugin']
-  const definePayloadReducer: typeof import('#app')['definePayloadReducer']
-  const definePayloadReviver: typeof import('#app')['definePayloadReviver']
-  const effectScope: typeof import('vue')['effectScope']
-  const fetcher: typeof import('../app/composables/useApi')['fetcher']
-  const getAppManifest: typeof import('#app')['getAppManifest']
-  const getCurrentInstance: typeof import('vue')['getCurrentInstance']
-  const getCurrentScope: typeof import('vue')['getCurrentScope']
-  const getCurrentWatcher: typeof import('vue')['getCurrentWatcher']
-  const getI18nArray: typeof import('../app/utils/i18n')['getI18nArray']
-  const getRouteRules: typeof import('#app')['getRouteRules']
-  const h: typeof import('vue')['h']
-  const inject: typeof import('vue')['inject']
-  const isNuxtError: typeof import('#app')['isNuxtError']
-  const isPrerendered: typeof import('#app')['isPrerendered']
-  const isProxy: typeof import('vue')['isProxy']
-  const isReactive: typeof import('vue')['isReactive']
-  const isReadonly: typeof import('vue')['isReadonly']
-  const isRef: typeof import('vue')['isRef']
-  const isShallow: typeof import('vue')['isShallow']
-  const loadPayload: typeof import('#app')['loadPayload']
-  const markRaw: typeof import('vue')['markRaw']
-  const navigateTo: typeof import('#app')['navigateTo']
-  const nextTick: typeof import('vue')['nextTick']
-  const onActivated: typeof import('vue')['onActivated']
-  const onBeforeMount: typeof import('vue')['onBeforeMount']
-  const onBeforeRouteLeave: typeof import('#app')['onBeforeRouteLeave']
-  const onBeforeRouteUpdate: typeof import('#app')['onBeforeRouteUpdate']
-  const onBeforeUnmount: typeof import('vue')['onBeforeUnmount']
-  const onBeforeUpdate: typeof import('vue')['onBeforeUpdate']
-  const onDeactivated: typeof import('vue')['onDeactivated']
-  const onErrorCaptured: typeof import('vue')['onErrorCaptured']
-  const onMounted: typeof import('vue')['onMounted']
-  const onNuxtReady: typeof import('#app')['onNuxtReady']
-  const onRenderTracked: typeof import('vue')['onRenderTracked']
-  const onRenderTriggered: typeof import('vue')['onRenderTriggered']
-  const onScopeDispose: typeof import('vue')['onScopeDispose']
-  const onServerPrefetch: typeof import('vue')['onServerPrefetch']
-  const onUnmounted: typeof import('vue')['onUnmounted']
-  const onUpdated: typeof import('vue')['onUpdated']
-  const onWatcherCleanup: typeof import('vue')['onWatcherCleanup']
-  const prefetchComponents: typeof import('#app')['prefetchComponents']
-  const preloadComponents: typeof import('#app')['preloadComponents']
-  const preloadPayload: typeof import('#app')['preloadPayload']
-  const preloadRouteComponents: typeof import('#app')['preloadRouteComponents']
-  const prerenderRoutes: typeof import('#app')['prerenderRoutes']
-  const provide: typeof import('vue')['provide']
-  const reactive: typeof import('vue')['reactive']
-  const readonly: typeof import('vue')['readonly']
-  const ref: typeof import('vue')['ref']
-  const refreshNuxtData: typeof import('#app')['refreshNuxtData']
-  const reloadNuxtApp: typeof import('#app')['reloadNuxtApp']
-  const repositories: typeof import('../app/utils/factory')['repositories']
-  const repositoryFactory: typeof import('../app/utils/factory')['repositoryFactory']
-  const requestIdleCallback: typeof import('#app')['requestIdleCallback']
-  const resolveComponent: typeof import('vue')['resolveComponent']
-  const setPageLayout: typeof import('#app')['setPageLayout']
-  const setResponseStatus: typeof import('#app')['setResponseStatus']
-  const shallowReactive: typeof import('vue')['shallowReactive']
-  const shallowReadonly: typeof import('vue')['shallowReadonly']
-  const shallowRef: typeof import('vue')['shallowRef']
-  const showError: typeof import('#app')['showError']
-  const toRaw: typeof import('vue')['toRaw']
-  const toRef: typeof import('vue')['toRef']
-  const toRefs: typeof import('vue')['toRefs']
-  const toValue: typeof import('vue')['toValue']
-  const triggerRef: typeof import('vue')['triggerRef']
-  const unref: typeof import('vue')['unref']
-  const updateAppConfig: typeof import('#app')['updateAppConfig']
-  const useApi: typeof import('../app/composables/useApi')['default']
-  const useAppConfig: typeof import('#app')['useAppConfig']
-  const useAsyncData: typeof import('#app')['useAsyncData']
-  const useAttrs: typeof import('vue')['useAttrs']
-  const useBrowserLocale: typeof import('#i18n')['useBrowserLocale']
-  const useCookie: typeof import('#app')['useCookie']
-  const useCookieLocale: typeof import('#i18n')['useCookieLocale']
-  const useCssModule: typeof import('vue')['useCssModule']
-  const useCssVars: typeof import('vue')['useCssVars']
-  const useError: typeof import('#app')['useError']
-  const useFetch: typeof import('#app')['useFetch']
-  const useI18n: typeof import('vue-i18n')['useI18n']
-  const useId: typeof import('vue')['useId']
-  const useLazyAsyncData: typeof import('#app')['useLazyAsyncData']
-  const useLazyFetch: typeof import('#app')['useLazyFetch']
-  const useLocaleHead: typeof import('#i18n')['useLocaleHead']
-  const useLocalePath: typeof import('#i18n')['useLocalePath']
-  const useLocaleRoute: typeof import('#i18n')['useLocaleRoute']
-  const useModel: typeof import('vue')['useModel']
-  const useNuxtApp: typeof import('#app')['useNuxtApp']
-  const useNuxtData: typeof import('#app')['useNuxtData']
-  const useRequestEvent: typeof import('#app')['useRequestEvent']
-  const useRequestFetch: typeof import('#app')['useRequestFetch']
-  const useRequestHeaders: typeof import('#app')['useRequestHeaders']
-  const useRequestURL: typeof import('#app')['useRequestURL']
-  const useRoute: typeof import('#app')['useRoute']
-  const useRouteBaseName: typeof import('#i18n')['useRouteBaseName']
-  const useRouter: typeof import('#app')['useRouter']
-  const useRuntimeConfig: typeof import('#app')['useRuntimeConfig']
-  const useSlots: typeof import('vue')['useSlots']
-  const useState: typeof import('#app')['useState']
-  const useSwitchLocalePath: typeof import('#i18n')['useSwitchLocalePath']
-  const useTemplateRef: typeof import('vue')['useTemplateRef']
-  const watch: typeof import('vue')['watch']
-  const watchEffect: typeof import('vue')['watchEffect']
-  const watchPostEffect: typeof import('vue')['watchPostEffect']
-  const watchSyncEffect: typeof import('vue')['watchSyncEffect']
-}
-// for type re-export
-declare global {
-  // @ts-ignore
-  export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, ShallowRef, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
-  import('vue')
-  // @ts-ignore
-  export type { Method } from '../app/utils/api'
-  import('../app/utils/api')
-  // @ts-ignore
-  export type { Repository, Repositories, RepositoryKey } from '../app/utils/factory'
-  import('../app/utils/factory')
-  // @ts-ignore
-  export type { UseI18nReturnType } from '../app/utils/i18n'
-  import('../app/utils/i18n')
-}
-````
-
-## File: layers/showcases/package.json
-````json
-{
-  "name": "vket-boilerplate-nuxt-showcases",
-  "private": true,
-  "type": "module",
-  "version": "1.0.1",
-  "scripts": {
-    "postinstall": "nuxt prepare",
-    "dev": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt dev",
-    "dev:local": "cross-env VITE_OUTPUT_ENV=local nuxt dev",
-    "build": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt build",
-    "build:local": "cross-env VITE_OUTPUT_ENV=local nuxt build",
-    "generate": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt generate",
-    "generate:local": "cross-env VITE_OUTPUT_ENV=local nuxt generate",
-    "preview": "nuxt preview",
-    "typecheck": "cross-env VITE_OUTPUT_ENV=local nuxt typecheck",
-    "analyze": "cross-env VITE_OUTPUT_ENV=local nuxt analyze",
-    "lint": "bun lint:eslint && bun lint:stylelint",
-    "lint:eslint": "eslint --cache --cache-strategy content ./app",
-    "lint:stylelint": "stylelint --cache --cache-strategy content './app/**/*.{css,scss,sass,vue}'",
-    "fix": "bun fix:eslint && bun fix:stylelint",
-    "fix:eslint": "eslint --cache --cache-strategy content --fix ./app",
-    "fix:stylelint": "stylelint --cache-strategy content --fix './app/**/*.{css,scss,sass,vue}'",
-    "test:ut": "cmd='vitest run --dir ./app/test' bun exec-test",
-    "test:watch": "cmd='vitest --dir ./app/test' bun exec-test",
-    "test:ui": "cmd='vitest --ui --dir ./app/test' bun exec-test",
-    "test:coverage": "cmd='vitest run --dir ./app/test --coverage' bun exec-test",
-    "exec-test": "baseDir='./app/test' ext='\\.spec\\.ts' bun exec-if-file-exists",
-    "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true",
-    "package-update": "bunx npm-check-updates -i"
-  },
-  "dependencies": {
-    "vket-boilerplate-nuxt-base": "workspace:*"
-  }
 }
 ````
 
@@ -2569,4 +2375,198 @@ export default defineNuxtConfig({
   },
   i18n: nuxtI18nOptions,
 })
+````
+
+## File: layers/showcases/package.json
+````json
+{
+  "name": "vket-boilerplate-nuxt-showcases",
+  "private": true,
+  "type": "module",
+  "version": "1.0.1",
+  "scripts": {
+    "postinstall": "nuxt prepare",
+    "dev": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt dev",
+    "dev:local": "cross-env VITE_OUTPUT_ENV=local nuxt dev",
+    "build": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt build",
+    "build:local": "cross-env VITE_OUTPUT_ENV=local nuxt build",
+    "generate": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt generate",
+    "generate:local": "cross-env VITE_OUTPUT_ENV=local nuxt generate",
+    "preview": "nuxt preview",
+    "typecheck": "cross-env VITE_OUTPUT_ENV=local nuxt typecheck",
+    "analyze": "cross-env VITE_OUTPUT_ENV=local nuxt analyze",
+    "lint": "bun lint:eslint && bun lint:stylelint",
+    "lint:eslint": "eslint --cache --cache-strategy content ./app",
+    "lint:stylelint": "stylelint --cache --cache-strategy content './app/**/*.{css,scss,sass,vue}'",
+    "fix": "bun fix:eslint && bun fix:stylelint",
+    "fix:eslint": "eslint --cache --cache-strategy content --fix ./app",
+    "fix:stylelint": "stylelint --cache-strategy content --fix './app/**/*.{css,scss,sass,vue}'",
+    "test:ut": "cmd='vitest run --dir ./app/test' bun exec-test",
+    "test:watch": "cmd='vitest --dir ./app/test' bun exec-test",
+    "test:ui": "cmd='vitest --ui --dir ./app/test' bun exec-test",
+    "test:coverage": "cmd='vitest run --dir ./app/test --coverage' bun exec-test",
+    "exec-test": "baseDir='./app/test' ext='\\.spec\\.ts' bun exec-if-file-exists",
+    "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true",
+    "package-update": "bunx npm-check-updates -i"
+  },
+  "dependencies": {
+    "vket-boilerplate-nuxt-base": "workspace:*"
+  }
+}
+````
+
+## File: layers/showcases/@types/auto-imports.d.ts
+````typescript
+/* eslint-disable */
+/* prettier-ignore */
+// @ts-nocheck
+// noinspection JSUnusedGlobalSymbols
+// Generated by unplugin-auto-import
+// biome-ignore lint: disable
+export {}
+declare global {
+  const EffectScope: typeof import('vue')['EffectScope']
+  const abortNavigation: typeof import('#app')['abortNavigation']
+  const addRouteMiddleware: typeof import('#app')['addRouteMiddleware']
+  const api: typeof import('../app/utils/api')['default']
+  const cancelIdleCallback: typeof import('#app')['cancelIdleCallback']
+  const clearError: typeof import('#app')['clearError']
+  const clearNuxtData: typeof import('#app')['clearNuxtData']
+  const clearNuxtState: typeof import('#app')['clearNuxtState']
+  const computed: typeof import('vue')['computed']
+  const createApp: typeof import('vue')['createApp']
+  const createError: typeof import('#app')['createError']
+  const customRef: typeof import('vue')['customRef']
+  const defineAppConfig: typeof import('#app')['defineAppConfig']
+  const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
+  const defineComponent: typeof import('vue')['defineComponent']
+  const defineI18nConfig: typeof import('#i18n')['defineI18nConfig']
+  const defineI18nLocale: typeof import('#i18n')['defineI18nLocale']
+  const defineI18nRoute: typeof import('#i18n')['defineI18nRoute']
+  const defineNuxtComponent: typeof import('#app')['defineNuxtComponent']
+  const defineNuxtLink: typeof import('#app')['defineNuxtLink']
+  const defineNuxtPlugin: typeof import('#app')['defineNuxtPlugin']
+  const defineNuxtRouteMiddleware: typeof import('#app')['defineNuxtRouteMiddleware']
+  const definePayloadPlugin: typeof import('#app')['definePayloadPlugin']
+  const definePayloadReducer: typeof import('#app')['definePayloadReducer']
+  const definePayloadReviver: typeof import('#app')['definePayloadReviver']
+  const effectScope: typeof import('vue')['effectScope']
+  const fetcher: typeof import('../app/composables/useApi')['fetcher']
+  const getAppManifest: typeof import('#app')['getAppManifest']
+  const getCurrentInstance: typeof import('vue')['getCurrentInstance']
+  const getCurrentScope: typeof import('vue')['getCurrentScope']
+  const getCurrentWatcher: typeof import('vue')['getCurrentWatcher']
+  const getI18nArray: typeof import('../app/utils/i18n')['getI18nArray']
+  const getRouteRules: typeof import('#app')['getRouteRules']
+  const h: typeof import('vue')['h']
+  const inject: typeof import('vue')['inject']
+  const isNuxtError: typeof import('#app')['isNuxtError']
+  const isPrerendered: typeof import('#app')['isPrerendered']
+  const isProxy: typeof import('vue')['isProxy']
+  const isReactive: typeof import('vue')['isReactive']
+  const isReadonly: typeof import('vue')['isReadonly']
+  const isRef: typeof import('vue')['isRef']
+  const isShallow: typeof import('vue')['isShallow']
+  const loadPayload: typeof import('#app')['loadPayload']
+  const markRaw: typeof import('vue')['markRaw']
+  const navigateTo: typeof import('#app')['navigateTo']
+  const nextTick: typeof import('vue')['nextTick']
+  const onActivated: typeof import('vue')['onActivated']
+  const onBeforeMount: typeof import('vue')['onBeforeMount']
+  const onBeforeRouteLeave: typeof import('#app')['onBeforeRouteLeave']
+  const onBeforeRouteUpdate: typeof import('#app')['onBeforeRouteUpdate']
+  const onBeforeUnmount: typeof import('vue')['onBeforeUnmount']
+  const onBeforeUpdate: typeof import('vue')['onBeforeUpdate']
+  const onDeactivated: typeof import('vue')['onDeactivated']
+  const onErrorCaptured: typeof import('vue')['onErrorCaptured']
+  const onMounted: typeof import('vue')['onMounted']
+  const onNuxtReady: typeof import('#app')['onNuxtReady']
+  const onRenderTracked: typeof import('vue')['onRenderTracked']
+  const onRenderTriggered: typeof import('vue')['onRenderTriggered']
+  const onScopeDispose: typeof import('vue')['onScopeDispose']
+  const onServerPrefetch: typeof import('vue')['onServerPrefetch']
+  const onUnmounted: typeof import('vue')['onUnmounted']
+  const onUpdated: typeof import('vue')['onUpdated']
+  const onWatcherCleanup: typeof import('vue')['onWatcherCleanup']
+  const prefetchComponents: typeof import('#app')['prefetchComponents']
+  const preloadComponents: typeof import('#app')['preloadComponents']
+  const preloadPayload: typeof import('#app')['preloadPayload']
+  const preloadRouteComponents: typeof import('#app')['preloadRouteComponents']
+  const prerenderRoutes: typeof import('#app')['prerenderRoutes']
+  const provide: typeof import('vue')['provide']
+  const reactive: typeof import('vue')['reactive']
+  const readonly: typeof import('vue')['readonly']
+  const ref: typeof import('vue')['ref']
+  const refreshNuxtData: typeof import('#app')['refreshNuxtData']
+  const reloadNuxtApp: typeof import('#app')['reloadNuxtApp']
+  const repositories: typeof import('../app/utils/factory')['repositories']
+  const repositoryFactory: typeof import('../app/utils/factory')['repositoryFactory']
+  const requestIdleCallback: typeof import('#app')['requestIdleCallback']
+  const resolveComponent: typeof import('vue')['resolveComponent']
+  const setPageLayout: typeof import('#app')['setPageLayout']
+  const setResponseStatus: typeof import('#app')['setResponseStatus']
+  const shallowReactive: typeof import('vue')['shallowReactive']
+  const shallowReadonly: typeof import('vue')['shallowReadonly']
+  const shallowRef: typeof import('vue')['shallowRef']
+  const showError: typeof import('#app')['showError']
+  const toRaw: typeof import('vue')['toRaw']
+  const toRef: typeof import('vue')['toRef']
+  const toRefs: typeof import('vue')['toRefs']
+  const toValue: typeof import('vue')['toValue']
+  const triggerRef: typeof import('vue')['triggerRef']
+  const unref: typeof import('vue')['unref']
+  const updateAppConfig: typeof import('#app')['updateAppConfig']
+  const useApi: typeof import('../app/composables/useApi')['default']
+  const useAppConfig: typeof import('#app')['useAppConfig']
+  const useAsyncData: typeof import('#app')['useAsyncData']
+  const useAttrs: typeof import('vue')['useAttrs']
+  const useBrowserLocale: typeof import('#i18n')['useBrowserLocale']
+  const useCookie: typeof import('#app')['useCookie']
+  const useCookieLocale: typeof import('#i18n')['useCookieLocale']
+  const useCssModule: typeof import('vue')['useCssModule']
+  const useCssVars: typeof import('vue')['useCssVars']
+  const useError: typeof import('#app')['useError']
+  const useFetch: typeof import('#app')['useFetch']
+  const useI18n: typeof import('vue-i18n')['useI18n']
+  const useId: typeof import('vue')['useId']
+  const useLazyAsyncData: typeof import('#app')['useLazyAsyncData']
+  const useLazyFetch: typeof import('#app')['useLazyFetch']
+  const useLocaleHead: typeof import('#i18n')['useLocaleHead']
+  const useLocalePath: typeof import('#i18n')['useLocalePath']
+  const useLocaleRoute: typeof import('#i18n')['useLocaleRoute']
+  const useModel: typeof import('vue')['useModel']
+  const useNuxtApp: typeof import('#app')['useNuxtApp']
+  const useNuxtData: typeof import('#app')['useNuxtData']
+  const useRequestEvent: typeof import('#app')['useRequestEvent']
+  const useRequestFetch: typeof import('#app')['useRequestFetch']
+  const useRequestHeaders: typeof import('#app')['useRequestHeaders']
+  const useRequestURL: typeof import('#app')['useRequestURL']
+  const useRoute: typeof import('#app')['useRoute']
+  const useRouteBaseName: typeof import('#i18n')['useRouteBaseName']
+  const useRouter: typeof import('#app')['useRouter']
+  const useRuntimeConfig: typeof import('#app')['useRuntimeConfig']
+  const useSlots: typeof import('vue')['useSlots']
+  const useState: typeof import('#app')['useState']
+  const useSwitchLocalePath: typeof import('#i18n')['useSwitchLocalePath']
+  const useTemplateRef: typeof import('vue')['useTemplateRef']
+  const watch: typeof import('vue')['watch']
+  const watchEffect: typeof import('vue')['watchEffect']
+  const watchPostEffect: typeof import('vue')['watchPostEffect']
+  const watchSyncEffect: typeof import('vue')['watchSyncEffect']
+}
+// for type re-export
+declare global {
+  // @ts-ignore
+  export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, ShallowRef, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
+  import('vue')
+  // @ts-ignore
+  export type { Method } from '../app/utils/api'
+  import('../app/utils/api')
+  // @ts-ignore
+  export type { Repository, Repositories, RepositoryKey } from '../app/utils/factory'
+  import('../app/utils/factory')
+  // @ts-ignore
+  export type { UseI18nReturnType } from '../app/utils/i18n'
+  import('../app/utils/i18n')
+}
 ````

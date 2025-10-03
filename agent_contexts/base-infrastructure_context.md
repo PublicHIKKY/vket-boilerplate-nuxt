@@ -196,6 +196,26 @@ export default defineNuxtPlugin(({ vueApp }) => {
 })
 ```
 
+## File: layers/base/app/plugins/toast.server.ts
+```typescript
+import { defineNuxtPlugin } from 'nuxt/app'
+
+export default defineNuxtPlugin(() => {
+  return {
+    provide: {
+      toast: {
+        success: (message: string) => {
+          console.warn(`[toast success]: ${message}`)
+        },
+        error: (message: string) => {
+          console.error(`[toast error]: ${message}`)
+        },
+      },
+    },
+  }
+})
+```
+
 ## File: layers/base/app/app.vue
 ```vue
 <template>
@@ -216,25 +236,5 @@ export default defineNuxtPlugin(({ vueApp }) => {
   const gtm = createGtm({ id: config.public.gtmId })
   vueApp.use(gtm)
   return {} // `provide: { gtm }` is not needed here (is in gtm plugin)
-})
-```
-
-## File: layers/base/app/plugins/toast.server.ts
-```typescript
-import { defineNuxtPlugin } from 'nuxt/app'
-
-export default defineNuxtPlugin(() => {
-  return {
-    provide: {
-      toast: {
-        success: (message: string) => {
-          console.warn(`[toast success]: ${message}`)
-        },
-        error: (message: string) => {
-          console.error(`[toast error]: ${message}`)
-        },
-      },
-    },
-  }
 })
 ```

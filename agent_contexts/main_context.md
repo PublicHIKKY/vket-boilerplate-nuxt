@@ -690,6 +690,32 @@ declare module '*.svg?inline'
 </svg>
 ````
 
+## File: layers/main/app/assets/styles/_functions.scss
+````scss
+@function strip-unit($number) {
+  @if meta.type-of($number) == 'number' and not math.is-unitless($number) {
+    @return $number / ($number * 0 + 1);
+  }
+
+  @return $number;
+}
+
+@function rem($px, $base: 16px) {
+  $value: $px;
+
+  // 単位がpx以外の場合は警告を出してそのまま返す
+  @if math.unit($px) != 'px' {
+    @warn 'rem()の引数にpx以外の値を指定しても計算できません';
+
+    @return $value;
+  }
+
+  $value: (strip-unit($px) / strip-unit($base)) * 1rem;
+
+  @return $value;
+}
+````
+
 ## File: layers/main/app/assets/styles/_mixins.scss
 ````scss
 @use 'variables' as v;
@@ -757,10 +783,225 @@ img {
 }
 ````
 
+## File: layers/main/app/assets/styles/_variables.scss
+````scss
+/* color palette */
+$violet: #b760eb; // Sidebar button
+$blue: #3ff; // button02, tag, link hover, #33FFFF
+$blue-1: #0c98da; // Sidebar button
+$yellow: #ffba00; // button01 hover, text link hover
+$orange: #ff8500; // button01, tag
+$green: #69b756; // Sidebar button
+$green-1: #47c6ae; // Sidebar button
+$green-2: #1b5e68; // form focus
+$red: #c43232; // alert
+$red-1: #46212a; // form error
+$pink: #ff4e8e; // button03, tag
+$pink-1: #f86464; // Sidebar button
+$gray: #737477; // Button disabled BG
+$black: #111827; // Body BG
+$black-1: #020e1c; // Header Footer BG
+$navy: #101e3c; // Sub BG
+$navy-1: #17385d; // Item Card BG
+$navy-2: #19477f; // Line
+$white: #fff;
+$white-1: rgba(#fff, 0.7);
+
+/* スタイルガイドにないcolor */
+$gray-1: #d1d1d1;
+$gray-2: #505050;
+$gray-3: #ffffff4d; // button
+$green-3: #33ffff80; // button
+$green-4: #228d92; // button
+$green-5: #2bc6ca; // button
+$blue-2: #353e49;
+$black-undercoat: rgb(0 0 0 / 70%);
+
+/* text color */
+$text-body: #fff;
+$text-link: #9a9daa;
+$text-note: #737477;
+$box-shadow: 5px 5px 5px rgba($gray-2, 0.2);
+
+/* SNS Brand Colors */
+$twitter: #1d9bf0;
+$facebook: #1877f2;
+$discord: #5865f2;
+$note: #41c9b4;
+$instagram-gradation: linear-gradient(to right, #febd1c, #f50200, #c10098);
+
+/* color role */
+$primary-color: $orange;
+$primary-hover-color: $yellow;
+$secondary-color: $blue;
+$secondary-hover-color: $pink;
+$base-background-color: $black;
+$base-font-color: $text-body;
+$font-color-note: $text-note;
+$font-color-link: $text-link;
+$font-color-headline: $black;
+$font-color-placeholder: $text-link;
+$base-link-color: $text-link;
+$base-link-hover-color: $blue;
+$primary-button-default-color: $orange;
+$primary-button-active-color: $yellow;
+$secondary-button-default-color: $blue;
+$secondary-button-active-color: $pink;
+$button-disabled-color: $gray;
+
+/* font-settings */
+// 参考： https://ics.media/entry/200317/
+$base-font-family: 'Segoe UI', 'Helvetica Neue', helvetica, arial, 'メイリオ',
+  'ヒラギノ角ゴシック', 'Noto sans JP', 'Segoe UI', '游ゴシック', sans-serif;
+$base-font-weight: 400;
+$base-font-size: 16px;
+
+/* content width */
+$pc-content-max-width: 1920px;
+$pc-content-medium-width: 1280px;
+$pc-content-min-width: 1080px;
+$sp-query-width: 500px;
+$xs-query-width: 370px;
+$media-query-width: 769px;
+$side-menu-width: 90px;
+$side-menu-height-sp: 64px;
+
+// topページ用に追加
+$pc-content-body-width: 1470px;
+
+/* content height */
+$header-height-pc: 80px;
+$header-height-sp: 60px;
+$mypage-header-height-pc: 72px;
+$mypage-header-height-sp: 72px;
+
+/* space-settings */
+$space-base: 16px;
+$space-unit: 4px;
+
+@function space($value) {
+  @return $value * $space-unit;
+}
+
+/* z-index-settings */
+$zindex-main: 1;
+$zindex-dialog: 100;
+$zindex-mypage-header: 200;
+$zindex-side-menu: $zindex-mypage-header + 1;
+$zindex-footer: $zindex-mypage-header + 2;
+$zindex-header: $zindex-mypage-header + 3;
+$zindex-side-menu-button: $zindex-mypage-header + 4;
+$zindex-toast: 300;
+$zindex-loading: 400;
+
+// todo: extend.scss 作成するか記述場所決める
+
+/* 各ページタイトルのデザイン */
+%title {
+  display: flex;
+  font-size: 24px;
+
+  &::before {
+    content: '';
+
+    display: block;
+
+    width: 5px;
+    margin-right: space(2);
+    border-radius: 6px;
+
+    background: $orange;
+  }
+}
+
+/* スクロールバーのデザイン */
+// note: scrollbar-color はソリッドカラーのみ指定可能なので一応旧構文で書いている
+%scroll-bar {
+  // 幅
+  &::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  // 背景
+  &::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 10px $green-4;
+  }
+
+  // ボタン
+  &::-webkit-scrollbar-thumb {
+    border-radius: 5px;
+    background-color: $green-5;
+  }
+}
+````
+
 ## File: layers/main/app/assets/styles/style.scss
 ````scss
 @forward 'reset';
 @forward 'base';
+````
+
+## File: layers/main/app/components/ho/HoTheFooter.vue
+````vue
+<i18n lang="yaml">
+ja:
+  mainlogo: ロゴ名サービス名
+en:
+  mainlogo: logo name
+</i18n>
+
+<template>
+  <footer class="ho-the-footer"></footer>
+</template>
+
+<script lang="ts" setup>
+/*
+ * const props = withDefaults(
+ *   defineProps<{
+ *   hoge: boolean
+ *   fuga?: string
+ * }>(),
+ * {
+ *   hoge: false
+ * })
+ */
+</script>
+
+<style scoped lang="scss">
+// .ho-the-footer {}
+</style>
+````
+
+## File: layers/main/app/components/ho/HoTheHeader.vue
+````vue
+<i18n lang="yaml">
+ja:
+  mainlogo: ロゴ名サービス名
+en:
+  mainlogo: logo name
+</i18n>
+
+<template>
+  <header class="ho-the-header"></header>
+</template>
+
+<script lang="ts" setup>
+/*
+ * const props = withDefaults(
+ *   defineProps<{
+ *   hoge: boolean
+ *   fuga?: string
+ * }>(),
+ * {
+ *   hoge: false
+ * })
+ */
+</script>
+
+<style scoped lang="scss">
+// .ho-the-header{}
+</style>
 ````
 
 ## File: layers/main/app/composables/useApi.ts
@@ -793,6 +1034,17 @@ export default function useApi<K extends RepositoryKey>(endpoint: K) {
     repository,
   }
 }
+````
+
+## File: layers/main/app/plugins/gtm.client.ts
+````typescript
+import { createGtm } from '@gtm-support/vue-gtm'
+import { defineNuxtPlugin } from 'nuxt/app'
+
+export default defineNuxtPlugin(() => {
+  const config = useRuntimeConfig()
+  createGtm({ id: config.public?.gtmId, enabled: true })
+})
 ````
 
 ## File: layers/main/app/plugins/runtimeConfig.ts
@@ -832,38 +1084,6 @@ export const requireRuntimeConfig: () => ProcessEnv | RuntimeConfig = () => {
 
   throw new TypeError('@/plugins/runtimeConfig: Not satisfied.')
 }
-````
-
-## File: layers/main/app/test/composables/useApi.spec.ts
-````typescript
-// NOTE: そもそももっといいテストあれば是非
-import { test, expect, vi } from 'vitest'
-import { UseFetchOptions } from 'nuxt/app'
-import { FetchOptions } from 'ofetch'
-import useApi, { fetcher } from '@/composables/useApi'
-
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-  useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
-    return { path, options }
-  }),
-}))
-
-test('useApi', () => {
-  // NOTE: useApiで使用できるRepositoryKeyを入れた際にオブジェクトが返ってくること。この場合useApi('hoge')など存在しない場合はテストが落ちる
-  const useApiExample = useApi('example').repository.value
-  const expectObj = { get: {} }
-  expect(useApiExample).toMatchObject(expectObj)
-})
-
-test('fetcher', () => {
-  const path = '/example'
-  const options = {}
-  // useFetchが発火することを確認。戻り値はmockの戻り値とする
-  expect(fetcher(path, options)).toStrictEqual({ path, options })
-})
 ````
 
 ## File: layers/main/app/test/utils/@types/auto-imports.d.ts
@@ -1020,69 +1240,6 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
   }
 }
-````
-
-## File: layers/main/app/test/utils/factory.spec.ts
-````typescript
-import { describe, expect, it, vi } from 'vitest'
-import exampleRepository from '#base/app/repositories/exampleRepository'
-import {
-  defaultRepositories,
-  defaultRepositoryFactory,
-} from '#base/app/utils/default-factory'
-
-// NOTE: mockを使う際に必要な記述
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-}))
-
-describe('defaultRepositoryFactory', () => {
-  it('should return the correct repository when a valid key is provided', () => {
-    const repository = defaultRepositoryFactory.get('example')
-    expect(repository).toBe(exampleRepository)
-  })
-})
-
-describe('defaultRepositories', () => {
-  it('should contain the example repository', () => {
-    expect(defaultRepositories.example).toBe(exampleRepository)
-  })
-})
-````
-
-## File: layers/main/app/test/utils/i18n.spec.ts
-````typescript
-import { test, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { createI18n } from 'vue-i18n'
-
-test('getI18nArray takes a list from vue-i18n dict', () => {
-  const i18n = createI18n({
-    locale: 'ja',
-    messages: {
-      ja: { list: ['a', 'b', 'c'] },
-      en: { list: ['a', 'b', 'c'] },
-    },
-  })
-
-  // useI18nがコンポーネントのsetup内でのみしか動かないので、コンポーネントを介してテストをする
-  mount(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (defineComponent as any)({
-      template: '<p>Nuxt ha iizo</p>',
-      setup: () => {
-        const i18n = useI18n()
-        expect(getI18nArray(i18n, 'list')).toEqual(['a', 'b', 'c'])
-      },
-    }),
-    {
-      global: {
-        plugins: [i18n],
-      },
-    },
-  )
-})
 ````
 
 ## File: layers/main/app/utils/api.ts
@@ -1336,6 +1493,12 @@ function getProduction(envType: EnvType, _baseEnv: Env) {
 }
 ````
 
+## File: layers/main/public/_robots.txt
+````
+User-agent: *
+Disallow:
+````
+
 ## File: layers/main/server/tsconfig.json
 ````json
 {
@@ -1485,109 +1648,248 @@ export default withNuxt(
 }
 ````
 
-## File: layers/main/vitest.config.mts
-````
-import { defineVitestConfig } from '@nuxt/test-utils/config'
-
-export default defineVitestConfig({
-  test: {
-    environment: 'nuxt',
-    env: {
-      VITEST: 'true',
-    },
-    coverage: {
-      include: ['app/**/*.{vue,ts}'],
-    },
-  },
-})
-````
-
-## File: layers/main/app/assets/styles/_functions.scss
+## File: layers/main/app/assets/styles/_base.scss
 ````scss
-@function strip-unit($number) {
-  @if meta.type-of($number) == 'number' and not math.is-unitless($number) {
-    @return $number / ($number * 0 + 1);
-  }
+@use 'variables' as v;
+@use 'mixins' as m;
 
-  @return $number;
+html,
+body {
+  overflow-x: clip;
+
+  font-family: v.$base-font-family;
+  font-variant-numeric: tabular-nums; // 数字フォントの幅を等幅にする
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  color: v.$base-font-color;
+  word-break: normal; // 単語の分割はブラウザのデフォルトであることを明記
+  line-break: strict; // 約物や小文字を置き去りにして改行させない
+  overflow-wrap: anywhere; // 行内に単語を収められない場合に折り返す
+
+  background: v.$base-background-color;
+
+  text-spacing-trim: trim-start; // 英字や日本語の約物が重複した場合に全角分のスペースを確保させない
 }
 
-@function rem($px, $base: 16px) {
-  $value: $px;
-
-  // 単位がpx以外の場合は警告を出してそのまま返す
-  @if math.unit($px) != 'px' {
-    @warn 'rem()の引数にpx以外の値を指定しても計算できません';
-
-    @return $value;
-  }
-
-  $value: (strip-unit($px) / strip-unit($base)) * 1rem;
-
-  @return $value;
+a {
+  color: v.$base-link-color;
+  text-decoration: none;
 }
 ````
 
-## File: layers/main/app/components/ho/HoTheFooter.vue
-````vue
-<i18n lang="yaml">
-ja:
-  mainlogo: ロゴ名サービス名
-en:
-  mainlogo: logo name
-</i18n>
+## File: layers/main/app/assets/styles/_markdown.scss
+````scss
+// markdown 用スタイリング
+@use 'variables' as v;
 
-<template>
-  <footer class="ho-the-footer"></footer>
-</template>
+.hm-markdowon {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    line-height: 1.3;
+  }
 
-<script lang="ts" setup>
-/*
- * const props = withDefaults(
- *   defineProps<{
- *   hoge: boolean
- *   fuga?: string
- * }>(),
- * {
- *   hoge: false
- * })
- */
-</script>
+  h1 {
+    margin-bottom: 32px;
+  }
 
-<style scoped lang="scss">
-// .ho-the-footer {}
-</style>
+  h2 {
+    margin-bottom: 24px;
+    font-size: 28px;
+  }
+
+  h3 {
+    font-size: 24px;
+  }
+
+  h4 {
+    font-size: 20px;
+  }
+
+  h5 {
+    font-size: 16px;
+  }
+
+  h3,
+  h4,
+  h5 {
+    margin-bottom: 16px;
+    font-weight: 400;
+  }
+
+  ul,
+  ol {
+    margin-bottom: 24px;
+
+    > li {
+      padding-left: 1em;
+      text-indent: -1em;
+
+      &:not(:last-child) {
+        margin-bottom: 16px;
+      }
+    }
+  }
+
+  li {
+    line-height: 1.3;
+    list-style-position: inside;
+
+    > ul {
+      margin: 16px 0;
+      padding-left: 48px;
+    }
+
+    ol {
+      counter-reset: ol-item;
+      margin: 16px 0;
+      padding-left: 28px;
+      list-style: none;
+
+      > li {
+        position: relative;
+        padding-left: 1.5em;
+        text-indent: 0;
+
+        // list-style: none だけで消えないので
+        &::marker {
+          content: '';
+        }
+
+        &::before {
+          // インデントした数値は 「1)」の表示にする
+          content: counter(ol-item) ')  ';
+          counter-increment: ol-item 1;
+
+          position: absolute; // 数値の桁数が違う場合の見た目に対応
+          top: 0;
+          left: 0;
+
+          display: block;
+
+          width: 100px;
+        }
+      }
+    }
+  }
+  /* stylelint-disable selector-max-compound-selectors */
+  ul > li {
+    list-style: none;
+
+    &::before {
+      content: '・';
+    }
+
+    ul > li {
+      list-style: circle;
+
+      ul > li {
+        list-style: disc;
+      }
+    }
+  }
+
+  /* stylelint-ensable selector-max-compound-selectors */
+  ol > li {
+    list-style: decimal;
+    list-style-position: inside;
+  }
+
+  ol[type='a'] > li {
+    list-style: lower-latin;
+    list-style-position: inside;
+  }
+
+  p {
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+
+  img {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    margin: 24px auto;
+  }
+
+  table {
+    border-spacing: 0;
+    border-collapse: collapse;
+
+    width: fit-content;
+    min-width: 50%;
+    max-width: 100%;
+    margin: 24px auto;
+  }
+
+  code {
+    padding: 2px 5px;
+    background-color: v.$violet;
+  }
+
+  table th,
+  table td {
+    padding: 8px 12px;
+    text-align: center;
+  }
+
+  table tr:nth-child(odd) {
+    background-color: v.$blue;
+  }
+
+  thead tr:first-child {
+    background-color: v.$blue;
+  }
+}
 ````
 
-## File: layers/main/app/components/ho/HoTheHeader.vue
-````vue
-<i18n lang="yaml">
-ja:
-  mainlogo: ロゴ名サービス名
-en:
-  mainlogo: logo name
-</i18n>
+## File: layers/main/app/assets/styles/_toast.scss
+````scss
+// @nuxt/toastのスタイリング
+// @see nuxt.config.ts > toast
+// todo: !importantあまり使いたくないので@nuxt/toastに.scss渡せたりするなら修正
 
-<template>
-  <header class="ho-the-header"></header>
-</template>
+@use 'variables' as v;
+@use 'mixins' as m;
 
-<script lang="ts" setup>
-/*
- * const props = withDefaults(
- *   defineProps<{
- *   hoge: boolean
- *   fuga?: string
- * }>(),
- * {
- *   hoge: false
- * })
- */
-</script>
+.hv-toast {
+  z-index: v.$zindex-toast !important;
+  top: v.$header-height-pc !important;
+  width: 100%;
+  margin-top: 0;
 
-<style scoped lang="scss">
-// .ho-the-header{}
-</style>
+  @include m.sp {
+    top: v.$header-height-sp !important;
+  }
+
+  .hv-toast-context {
+    margin-top: 0 !important;
+    word-break: break-all !important;
+    overflow-wrap: break-word !important;
+
+    + .hv-toast-context {
+      margin-top: v.space(2) !important;
+    }
+
+    &.info {
+      background: v.$gray-2 !important;
+    }
+
+    &.success {
+      background: v.$primary-color !important;
+    }
+
+    &.error {
+      background: v.$red !important;
+    }
+
+    &.danger {
+      background: v.$red !important;
+    }
+  }
+}
 ````
 
 ## File: layers/main/app/layouts/default.vue
@@ -1659,22 +1961,59 @@ export const todoSchema = z.object({
 export type Todo = z.infer<typeof todoSchema>
 ````
 
-## File: layers/main/app/plugins/gtm.client.ts
-````typescript
-import { createGtm } from '@gtm-support/vue-gtm'
-import { defineNuxtPlugin } from 'nuxt/app'
+## File: layers/main/app/pages/index.vue
+````vue
+<template>
+  <HtTop />
+</template>
 
-export default defineNuxtPlugin(() => {
-  const config = useRuntimeConfig()
-  createGtm({ id: config.public?.gtmId, enabled: true })
+<script setup lang="ts">
+definePageMeta({
+  layout: 'top',
+})
+</script>
+````
+
+## File: layers/main/app/test/composables/useApi.spec.ts
+````typescript
+// NOTE: そもそももっといいテストあれば是非
+import { test, expect, vi } from 'vitest'
+import { UseFetchOptions } from 'nuxt/app'
+import { FetchOptions } from 'ofetch'
+import useApi, { fetcher } from '@/composables/useApi'
+
+vi.mock('#app', () => ({
+  // NOTE:  defineNuxtPluginでエラーが出るので設置
+  defineNuxtPlugin: vi.fn(),
+  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+  useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
+    return { path, options }
+  }),
+}))
+
+test('useApi', () => {
+  // NOTE: useApiで使用できるRepositoryKeyを入れた際にオブジェクトが返ってくること。この場合useApi('hoge')など存在しない場合はテストが落ちる
+  const useApiExample = useApi('example').repository.value
+  const expectObj = { get: {} }
+  expect(useApiExample).toMatchObject(expectObj)
+})
+
+test('fetcher', () => {
+  const path = '/example'
+  const options = {}
+  // useFetchが発火することを確認。戻り値はmockの戻り値とする
+  expect(fetcher(path, options)).toStrictEqual({ path, options })
 })
 ````
 
-## File: layers/main/app/test/utils/api.spec.ts
+## File: layers/main/app/test/utils/factory.spec.ts
 ````typescript
-import { describe, it, expect, vi } from 'vitest'
-import type { NitroFetchRequest } from 'nitropack'
-import api from '@/utils/api'
+import { describe, expect, it, vi } from 'vitest'
+import exampleRepository from '#base/app/repositories/exampleRepository'
+import {
+  defaultRepositories,
+  defaultRepositoryFactory,
+} from '#base/app/utils/default-factory'
 
 // NOTE: mockを使う際に必要な記述
 vi.mock('#app', () => ({
@@ -1682,121 +2021,51 @@ vi.mock('#app', () => ({
   defineNuxtPlugin: vi.fn(),
 }))
 
-// NOTE: src/utils/api.tsのテストとして当該ファイルがimportしているファイルからの変数「requireRuntimeConfig」をモックする。
-vi.mock('#base/app/plugins/runtimeConfig', () => {
-  return {
-    requireRuntimeConfig: vi.fn(() => {
-      // NOTE: api.tsのテストとしてrequireRuntimeConfigが{public.baseUrl}としてダミーURLを返すだけの処理を行うようにモックする
-      return {
-        public: {
-          baseUrl: '/test-api',
-        },
-      }
-    }),
-  }
+describe('defaultRepositoryFactory', () => {
+  it('should return the correct repository when a valid key is provided', () => {
+    const repository = defaultRepositoryFactory.get('example')
+    expect(repository).toBe(exampleRepository)
+  })
 })
 
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-vi.mock('#base/app/plugins/fetch', () => {
-  return {
-    pluginFetchApi: vi.fn((path: string, options: NitroFetchRequest) => {
-      return { path, options }
-    }),
-  }
+describe('defaultRepositories', () => {
+  it('should contain the example repository', () => {
+    expect(defaultRepositories.example).toBe(exampleRepository)
+  })
 })
+````
 
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-vi.mock('ofetch', () => {
-  return {
-    $fetch: vi.fn((path: string, options: NitroFetchRequest) => {
-      return { path, options }
+## File: layers/main/app/test/utils/i18n.spec.ts
+````typescript
+import { test, expect } from 'vitest'
+import { mount } from '@vue/test-utils'
+import { createI18n } from 'vue-i18n'
+
+test('getI18nArray takes a list from vue-i18n dict', () => {
+  const i18n = createI18n({
+    locale: 'ja',
+    messages: {
+      ja: { list: ['a', 'b', 'c'] },
+      en: { list: ['a', 'b', 'c'] },
+    },
+  })
+
+  // useI18nがコンポーネントのsetup内でのみしか動かないので、コンポーネントを介してテストをする
+  mount(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (defineComponent as any)({
+      template: '<p>Nuxt ha iizo</p>',
+      setup: () => {
+        const i18n = useI18n()
+        expect(getI18nArray(i18n, 'list')).toEqual(['a', 'b', 'c'])
+      },
     }),
-  }
-})
-
-describe('api', () => {
-  // NOTE: api.getの返却値のテストとして、引数のpathやfetchOptionを入力して、返却値として期待するexpectObjと同等かテストする。その際、onRequestとonResponseは複雑化するので、空オブジェクトで省略としてtoMatchObjectで合格するか検査する。
-  it('get', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'GET',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
+    {
+      global: {
+        plugins: [i18n],
       },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('get', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('post', async () => {
-    // NOET: 以下getと同様にテストする。methodはgetではなく、相送信methodに準じた値に変化するので注意
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'POST',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('post', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('put', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'PUT',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('put', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('patch', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'PATCH',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('patch', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('delete', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'DELETE',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('delete', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
+    },
+  )
 })
 ````
 
@@ -1826,6 +2095,114 @@ export type UseI18nReturnType<Options extends UseI18nOptions = UseI18nOptions>
  */
 export const getI18nArray = (i18n: UseI18nReturnType, key: string): string[] =>
   Object.entries<VueMessageType>(i18n.tm(key)).map(([_, term]) => i18n.rt(term))
+````
+
+## File: layers/main/app/app.vue
+````vue
+<i18n lang="yaml">
+  ja:
+    site:
+      title: Vket Boilerplate Nuxt
+      title_template: "{title} - HIKKY Web Frontend"
+      description: Vketのサイト開発で活用しているボイラープレート
+  en:
+    site:
+      title: Vket Boilerplate Nuxt
+      title_template: "{title} - HIKKY Web Frontend"
+      description: A boilerplate used for Vket site development
+</i18n>
+
+<template>
+  <Head>
+    <Link
+      rel="alternate"
+      hreflang="ja"
+      :href="currentJaFullPath"
+    />
+    <Link
+      rel="alternate"
+      hreflang="en"
+      :href="currentEnFullPath"
+    />
+    <Link
+      rel="alternate"
+      hreflang="x-default"
+      :href="currentJaFullPath"
+    />
+    <template v-if="currentLang === 'ja'">
+      <Link
+        rel="canonical"
+        :href="currentJaFullPath"
+      />
+    </template>
+    <template v-if="currentLang === 'en'">
+      <Link
+        rel="canonical"
+        :href="currentEnFullPath"
+      />
+    </template>
+  </Head>
+  <div class="app">
+    <NuxtLayout>
+      <NuxtRouteAnnouncer />
+      <NuxtWelcome />
+      <NuxtPage />
+    </NuxtLayout>
+  </div>
+</template>
+
+<script lang="ts" setup>
+const route = useRoute()
+const i18n = useI18n()
+const currentFullPath = ref(`${useRuntimeConfig().public.url}${route.fullPath}`)
+const currentLang = ref(i18n.locale.value)
+
+const currentJaFullPath = computed(() => {
+  if (currentLang.value === 'ja') {
+    return currentFullPath.value
+  } else {
+    return currentFullPath.value
+      .replace(/\/en(\/|$)/, '/')
+      .replace(/\/{2,}/, '/')
+  }
+})
+
+const currentEnFullPath = computed(() => {
+  if (currentLang.value === 'en') {
+    return currentFullPath.value
+  } else {
+    const path = route.fullPath.endsWith('/')
+      ? route.fullPath
+      : `${route.fullPath}/`
+    return `${useRuntimeConfig().public.url}/en${path}`
+  }
+})
+
+useHeadSafe({
+  htmlAttrs: {
+    lang: currentLang.value,
+  },
+  titleTemplate: (titleChunk) => {
+    return titleChunk
+      ? i18n.t('site.title_template', { title: titleChunk })
+      : i18n.t('site.title')
+  },
+  meta: [
+    {
+      name: 'description',
+      content: i18n.t('site.description'),
+    },
+    {
+      property: 'og:description',
+      content: i18n.t('site.description'),
+    },
+    {
+      property: 'og:site_name',
+      content: i18n.t('site.title'),
+    },
+  ],
+})
+</script>
 ````
 
 ## File: layers/main/app/error.vue
@@ -2110,563 +2487,21 @@ const goBack = async (): Promise<void> => {
 </style>
 ````
 
-## File: layers/main/public/_robots.txt
+## File: layers/main/vitest.config.mts
 ````
-User-agent: *
-Disallow:
-````
-
-## File: layers/main/@types/auto-imports.d.ts
-````typescript
-/* eslint-disable */
-/* prettier-ignore */
-// @ts-nocheck
-// noinspection JSUnusedGlobalSymbols
-// Generated by unplugin-auto-import
-// biome-ignore lint: disable
-export {}
-declare global {
-  const EffectScope: typeof import('vue')['EffectScope']
-  const abortNavigation: typeof import('#app')['abortNavigation']
-  const addRouteMiddleware: typeof import('#app')['addRouteMiddleware']
-  const api: typeof import('../app/utils/api')['default']
-  const cancelIdleCallback: typeof import('#app')['cancelIdleCallback']
-  const clearError: typeof import('#app')['clearError']
-  const clearNuxtData: typeof import('#app')['clearNuxtData']
-  const clearNuxtState: typeof import('#app')['clearNuxtState']
-  const computed: typeof import('vue')['computed']
-  const createApp: typeof import('vue')['createApp']
-  const createError: typeof import('#app')['createError']
-  const customRef: typeof import('vue')['customRef']
-  const defineAppConfig: typeof import('#app')['defineAppConfig']
-  const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
-  const defineComponent: typeof import('vue')['defineComponent']
-  const defineI18nConfig: typeof import('#i18n')['defineI18nConfig']
-  const defineI18nLocale: typeof import('#i18n')['defineI18nLocale']
-  const defineI18nRoute: typeof import('#i18n')['defineI18nRoute']
-  const defineNuxtComponent: typeof import('#app')['defineNuxtComponent']
-  const defineNuxtLink: typeof import('#app')['defineNuxtLink']
-  const defineNuxtPlugin: typeof import('#app')['defineNuxtPlugin']
-  const defineNuxtRouteMiddleware: typeof import('#app')['defineNuxtRouteMiddleware']
-  const definePayloadPlugin: typeof import('#app')['definePayloadPlugin']
-  const definePayloadReducer: typeof import('#app')['definePayloadReducer']
-  const definePayloadReviver: typeof import('#app')['definePayloadReviver']
-  const effectScope: typeof import('vue')['effectScope']
-  const fetcher: typeof import('../app/composables/useApi')['fetcher']
-  const getAppManifest: typeof import('#app')['getAppManifest']
-  const getCurrentInstance: typeof import('vue')['getCurrentInstance']
-  const getCurrentScope: typeof import('vue')['getCurrentScope']
-  const getCurrentWatcher: typeof import('vue')['getCurrentWatcher']
-  const getI18nArray: typeof import('../app/utils/i18n')['getI18nArray']
-  const getRouteRules: typeof import('#app')['getRouteRules']
-  const h: typeof import('vue')['h']
-  const inject: typeof import('vue')['inject']
-  const isNuxtError: typeof import('#app')['isNuxtError']
-  const isPrerendered: typeof import('#app')['isPrerendered']
-  const isProxy: typeof import('vue')['isProxy']
-  const isReactive: typeof import('vue')['isReactive']
-  const isReadonly: typeof import('vue')['isReadonly']
-  const isRef: typeof import('vue')['isRef']
-  const isShallow: typeof import('vue')['isShallow']
-  const loadPayload: typeof import('#app')['loadPayload']
-  const markRaw: typeof import('vue')['markRaw']
-  const navigateTo: typeof import('#app')['navigateTo']
-  const nextTick: typeof import('vue')['nextTick']
-  const onActivated: typeof import('vue')['onActivated']
-  const onBeforeMount: typeof import('vue')['onBeforeMount']
-  const onBeforeRouteLeave: typeof import('#app')['onBeforeRouteLeave']
-  const onBeforeRouteUpdate: typeof import('#app')['onBeforeRouteUpdate']
-  const onBeforeUnmount: typeof import('vue')['onBeforeUnmount']
-  const onBeforeUpdate: typeof import('vue')['onBeforeUpdate']
-  const onDeactivated: typeof import('vue')['onDeactivated']
-  const onErrorCaptured: typeof import('vue')['onErrorCaptured']
-  const onMounted: typeof import('vue')['onMounted']
-  const onNuxtReady: typeof import('#app')['onNuxtReady']
-  const onRenderTracked: typeof import('vue')['onRenderTracked']
-  const onRenderTriggered: typeof import('vue')['onRenderTriggered']
-  const onScopeDispose: typeof import('vue')['onScopeDispose']
-  const onServerPrefetch: typeof import('vue')['onServerPrefetch']
-  const onUnmounted: typeof import('vue')['onUnmounted']
-  const onUpdated: typeof import('vue')['onUpdated']
-  const onWatcherCleanup: typeof import('vue')['onWatcherCleanup']
-  const prefetchComponents: typeof import('#app')['prefetchComponents']
-  const preloadComponents: typeof import('#app')['preloadComponents']
-  const preloadPayload: typeof import('#app')['preloadPayload']
-  const preloadRouteComponents: typeof import('#app')['preloadRouteComponents']
-  const prerenderRoutes: typeof import('#app')['prerenderRoutes']
-  const provide: typeof import('vue')['provide']
-  const reactive: typeof import('vue')['reactive']
-  const readonly: typeof import('vue')['readonly']
-  const ref: typeof import('vue')['ref']
-  const refreshNuxtData: typeof import('#app')['refreshNuxtData']
-  const reloadNuxtApp: typeof import('#app')['reloadNuxtApp']
-  const repositories: typeof import('../app/utils/factory')['repositories']
-  const repositoryFactory: typeof import('../app/utils/factory')['repositoryFactory']
-  const requestIdleCallback: typeof import('#app')['requestIdleCallback']
-  const resolveComponent: typeof import('vue')['resolveComponent']
-  const setPageLayout: typeof import('#app')['setPageLayout']
-  const setResponseStatus: typeof import('#app')['setResponseStatus']
-  const shallowReactive: typeof import('vue')['shallowReactive']
-  const shallowReadonly: typeof import('vue')['shallowReadonly']
-  const shallowRef: typeof import('vue')['shallowRef']
-  const showError: typeof import('#app')['showError']
-  const toRaw: typeof import('vue')['toRaw']
-  const toRef: typeof import('vue')['toRef']
-  const toRefs: typeof import('vue')['toRefs']
-  const toValue: typeof import('vue')['toValue']
-  const triggerRef: typeof import('vue')['triggerRef']
-  const unref: typeof import('vue')['unref']
-  const updateAppConfig: typeof import('#app')['updateAppConfig']
-  const useApi: typeof import('../app/composables/useApi')['default']
-  const useAppConfig: typeof import('#app')['useAppConfig']
-  const useAsyncData: typeof import('#app')['useAsyncData']
-  const useAttrs: typeof import('vue')['useAttrs']
-  const useBrowserLocale: typeof import('#i18n')['useBrowserLocale']
-  const useCookie: typeof import('#app')['useCookie']
-  const useCookieLocale: typeof import('#i18n')['useCookieLocale']
-  const useCssModule: typeof import('vue')['useCssModule']
-  const useCssVars: typeof import('vue')['useCssVars']
-  const useError: typeof import('#app')['useError']
-  const useFetch: typeof import('#app')['useFetch']
-  const useI18n: typeof import('vue-i18n')['useI18n']
-  const useId: typeof import('vue')['useId']
-  const useLazyAsyncData: typeof import('#app')['useLazyAsyncData']
-  const useLazyFetch: typeof import('#app')['useLazyFetch']
-  const useLocaleHead: typeof import('#i18n')['useLocaleHead']
-  const useLocalePath: typeof import('#i18n')['useLocalePath']
-  const useLocaleRoute: typeof import('#i18n')['useLocaleRoute']
-  const useModel: typeof import('vue')['useModel']
-  const useNuxtApp: typeof import('#app')['useNuxtApp']
-  const useNuxtData: typeof import('#app')['useNuxtData']
-  const useRequestEvent: typeof import('#app')['useRequestEvent']
-  const useRequestFetch: typeof import('#app')['useRequestFetch']
-  const useRequestHeaders: typeof import('#app')['useRequestHeaders']
-  const useRequestURL: typeof import('#app')['useRequestURL']
-  const useRoute: typeof import('#app')['useRoute']
-  const useRouteBaseName: typeof import('#i18n')['useRouteBaseName']
-  const useRouter: typeof import('#app')['useRouter']
-  const useRuntimeConfig: typeof import('#app')['useRuntimeConfig']
-  const useSlots: typeof import('vue')['useSlots']
-  const useState: typeof import('#app')['useState']
-  const useSwitchLocalePath: typeof import('#i18n')['useSwitchLocalePath']
-  const useTemplateRef: typeof import('vue')['useTemplateRef']
-  const watch: typeof import('vue')['watch']
-  const watchEffect: typeof import('vue')['watchEffect']
-  const watchPostEffect: typeof import('vue')['watchPostEffect']
-  const watchSyncEffect: typeof import('vue')['watchSyncEffect']
-}
-// for type re-export
-declare global {
-  // @ts-ignore
-  export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, ShallowRef, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
-  import('vue')
-  // @ts-ignore
-  export type { Method } from '../app/utils/api'
-  import('../app/utils/api')
-  // @ts-ignore
-  export type { Repository, Repositories, RepositoryKey } from '../app/utils/factory'
-  import('../app/utils/factory')
-  // @ts-ignore
-  export type { UseI18nReturnType } from '../app/utils/i18n'
-  import('../app/utils/i18n')
-}
-````
-
-## File: layers/main/app/assets/styles/_base.scss
-````scss
-@use 'variables' as v;
-@use 'mixins' as m;
-
-html,
-body {
-  overflow-x: clip;
-
-  font-family: v.$base-font-family;
-  font-variant-numeric: tabular-nums; // 数字フォントの幅を等幅にする
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  color: v.$base-font-color;
-  word-break: normal; // 単語の分割はブラウザのデフォルトであることを明記
-  line-break: strict; // 約物や小文字を置き去りにして改行させない
-  overflow-wrap: anywhere; // 行内に単語を収められない場合に折り返す
-
-  background: v.$base-background-color;
-
-  text-spacing-trim: trim-start; // 英字や日本語の約物が重複した場合に全角分のスペースを確保させない
-}
-
-a {
-  color: v.$base-link-color;
-  text-decoration: none;
-}
-````
-
-## File: layers/main/app/assets/styles/_markdown.scss
-````scss
-// markdown 用スタイリング
-@use 'variables' as v;
-
-.hm-markdowon {
-  h1,
-  h2,
-  h3,
-  h4,
-  h5 {
-    line-height: 1.3;
-  }
-
-  h1 {
-    margin-bottom: 32px;
-  }
-
-  h2 {
-    margin-bottom: 24px;
-    font-size: 28px;
-  }
-
-  h3 {
-    font-size: 24px;
-  }
-
-  h4 {
-    font-size: 20px;
-  }
-
-  h5 {
-    font-size: 16px;
-  }
-
-  h3,
-  h4,
-  h5 {
-    margin-bottom: 16px;
-    font-weight: 400;
-  }
-
-  ul,
-  ol {
-    margin-bottom: 24px;
-
-    > li {
-      padding-left: 1em;
-      text-indent: -1em;
-
-      &:not(:last-child) {
-        margin-bottom: 16px;
-      }
-    }
-  }
-
-  li {
-    line-height: 1.3;
-    list-style-position: inside;
-
-    > ul {
-      margin: 16px 0;
-      padding-left: 48px;
-    }
-
-    ol {
-      counter-reset: ol-item;
-      margin: 16px 0;
-      padding-left: 28px;
-      list-style: none;
-
-      > li {
-        position: relative;
-        padding-left: 1.5em;
-        text-indent: 0;
-
-        // list-style: none だけで消えないので
-        &::marker {
-          content: '';
-        }
-
-        &::before {
-          // インデントした数値は 「1)」の表示にする
-          content: counter(ol-item) ')  ';
-          counter-increment: ol-item 1;
-
-          position: absolute; // 数値の桁数が違う場合の見た目に対応
-          top: 0;
-          left: 0;
-
-          display: block;
-
-          width: 100px;
-        }
-      }
-    }
-  }
-  /* stylelint-disable selector-max-compound-selectors */
-  ul > li {
-    list-style: none;
-
-    &::before {
-      content: '・';
-    }
-
-    ul > li {
-      list-style: circle;
-
-      ul > li {
-        list-style: disc;
-      }
-    }
-  }
-
-  /* stylelint-ensable selector-max-compound-selectors */
-  ol > li {
-    list-style: decimal;
-    list-style-position: inside;
-  }
-
-  ol[type='a'] > li {
-    list-style: lower-latin;
-    list-style-position: inside;
-  }
-
-  p {
-    margin-bottom: 24px;
-    line-height: 1.6;
-  }
-
-  img {
-    display: block;
-    width: fit-content;
-    max-width: 100%;
-    margin: 24px auto;
-  }
-
-  table {
-    border-spacing: 0;
-    border-collapse: collapse;
-
-    width: fit-content;
-    min-width: 50%;
-    max-width: 100%;
-    margin: 24px auto;
-  }
-
-  code {
-    padding: 2px 5px;
-    background-color: v.$violet;
-  }
-
-  table th,
-  table td {
-    padding: 8px 12px;
-    text-align: center;
-  }
-
-  table tr:nth-child(odd) {
-    background-color: v.$blue;
-  }
-
-  thead tr:first-child {
-    background-color: v.$blue;
-  }
-}
-````
-
-## File: layers/main/app/assets/styles/_toast.scss
-````scss
-// @nuxt/toastのスタイリング
-// @see nuxt.config.ts > toast
-// todo: !importantあまり使いたくないので@nuxt/toastに.scss渡せたりするなら修正
-
-@use 'variables' as v;
-@use 'mixins' as m;
-
-.hv-toast {
-  z-index: v.$zindex-toast !important;
-  top: v.$header-height-pc !important;
-  width: 100%;
-  margin-top: 0;
-
-  @include m.sp {
-    top: v.$header-height-sp !important;
-  }
-
-  .hv-toast-context {
-    margin-top: 0 !important;
-    word-break: break-all !important;
-    overflow-wrap: break-word !important;
-
-    + .hv-toast-context {
-      margin-top: v.space(2) !important;
-    }
-
-    &.info {
-      background: v.$gray-2 !important;
-    }
-
-    &.success {
-      background: v.$primary-color !important;
-    }
-
-    &.error {
-      background: v.$red !important;
-    }
-
-    &.danger {
-      background: v.$red !important;
-    }
-  }
-}
-````
-
-## File: layers/main/app/assets/styles/_variables.scss
-````scss
-/* color palette */
-$violet: #b760eb; // Sidebar button
-$blue: #3ff; // button02, tag, link hover, #33FFFF
-$blue-1: #0c98da; // Sidebar button
-$yellow: #ffba00; // button01 hover, text link hover
-$orange: #ff8500; // button01, tag
-$green: #69b756; // Sidebar button
-$green-1: #47c6ae; // Sidebar button
-$green-2: #1b5e68; // form focus
-$red: #c43232; // alert
-$red-1: #46212a; // form error
-$pink: #ff4e8e; // button03, tag
-$pink-1: #f86464; // Sidebar button
-$gray: #737477; // Button disabled BG
-$black: #111827; // Body BG
-$black-1: #020e1c; // Header Footer BG
-$navy: #101e3c; // Sub BG
-$navy-1: #17385d; // Item Card BG
-$navy-2: #19477f; // Line
-$white: #fff;
-$white-1: rgba(#fff, 0.7);
-
-/* スタイルガイドにないcolor */
-$gray-1: #d1d1d1;
-$gray-2: #505050;
-$gray-3: #ffffff4d; // button
-$green-3: #33ffff80; // button
-$green-4: #228d92; // button
-$green-5: #2bc6ca; // button
-$blue-2: #353e49;
-$black-undercoat: rgb(0 0 0 / 70%);
-
-/* text color */
-$text-body: #fff;
-$text-link: #9a9daa;
-$text-note: #737477;
-$box-shadow: 5px 5px 5px rgba($gray-2, 0.2);
-
-/* SNS Brand Colors */
-$twitter: #1d9bf0;
-$facebook: #1877f2;
-$discord: #5865f2;
-$note: #41c9b4;
-$instagram-gradation: linear-gradient(to right, #febd1c, #f50200, #c10098);
-
-/* color role */
-$primary-color: $orange;
-$primary-hover-color: $yellow;
-$secondary-color: $blue;
-$secondary-hover-color: $pink;
-$base-background-color: $black;
-$base-font-color: $text-body;
-$font-color-note: $text-note;
-$font-color-link: $text-link;
-$font-color-headline: $black;
-$font-color-placeholder: $text-link;
-$base-link-color: $text-link;
-$base-link-hover-color: $blue;
-$primary-button-default-color: $orange;
-$primary-button-active-color: $yellow;
-$secondary-button-default-color: $blue;
-$secondary-button-active-color: $pink;
-$button-disabled-color: $gray;
-
-/* font-settings */
-// 参考： https://ics.media/entry/200317/
-$base-font-family: 'Segoe UI', 'Helvetica Neue', helvetica, arial, 'メイリオ',
-  'ヒラギノ角ゴシック', 'Noto sans JP', 'Segoe UI', '游ゴシック', sans-serif;
-$base-font-weight: 400;
-$base-font-size: 16px;
-
-/* content width */
-$pc-content-max-width: 1920px;
-$pc-content-medium-width: 1280px;
-$pc-content-min-width: 1080px;
-$sp-query-width: 500px;
-$xs-query-width: 370px;
-$media-query-width: 769px;
-$side-menu-width: 90px;
-$side-menu-height-sp: 64px;
-
-// topページ用に追加
-$pc-content-body-width: 1470px;
-
-/* content height */
-$header-height-pc: 80px;
-$header-height-sp: 60px;
-$mypage-header-height-pc: 72px;
-$mypage-header-height-sp: 72px;
-
-/* space-settings */
-$space-base: 16px;
-$space-unit: 4px;
-
-@function space($value) {
-  @return $value * $space-unit;
-}
-
-/* z-index-settings */
-$zindex-main: 1;
-$zindex-dialog: 100;
-$zindex-mypage-header: 200;
-$zindex-side-menu: $zindex-mypage-header + 1;
-$zindex-footer: $zindex-mypage-header + 2;
-$zindex-header: $zindex-mypage-header + 3;
-$zindex-side-menu-button: $zindex-mypage-header + 4;
-$zindex-toast: 300;
-$zindex-loading: 400;
-
-// todo: extend.scss 作成するか記述場所決める
-
-/* 各ページタイトルのデザイン */
-%title {
-  display: flex;
-  font-size: 24px;
-
-  &::before {
-    content: '';
-
-    display: block;
-
-    width: 5px;
-    margin-right: space(2);
-    border-radius: 6px;
-
-    background: $orange;
-  }
-}
-
-/* スクロールバーのデザイン */
-// note: scrollbar-color はソリッドカラーのみ指定可能なので一応旧構文で書いている
-%scroll-bar {
-  // 幅
-  &::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-
-  // 背景
-  &::-webkit-scrollbar-track {
-    box-shadow: inset 0 0 10px $green-4;
-  }
-
-  // ボタン
-  &::-webkit-scrollbar-thumb {
-    border-radius: 5px;
-    background-color: $green-5;
-  }
-}
+import { defineVitestConfig } from '@nuxt/test-utils/config'
+
+export default defineVitestConfig({
+  test: {
+    environment: 'nuxt',
+    env: {
+      VITEST: 'true',
+    },
+    coverage: {
+      include: ['app/**/*.{vue,ts}'],
+    },
+  },
+})
 ````
 
 ## File: layers/main/app/components/ht/HtTop.vue
@@ -2697,125 +2532,134 @@ en:
 </style>
 ````
 
-## File: layers/main/app/pages/index.vue
-````vue
-<template>
-  <HtTop />
-</template>
+## File: layers/main/app/test/utils/api.spec.ts
+````typescript
+import { describe, it, expect, vi } from 'vitest'
+import type { NitroFetchRequest } from 'nitropack'
+import api from '@/utils/api'
 
-<script setup lang="ts">
-definePageMeta({
-  layout: 'top',
-})
-</script>
-````
+// NOTE: mockを使う際に必要な記述
+vi.mock('#app', () => ({
+  // NOTE:  defineNuxtPluginでエラーが出るので設置
+  defineNuxtPlugin: vi.fn(),
+}))
 
-## File: layers/main/app/app.vue
-````vue
-<i18n lang="yaml">
-  ja:
-    site:
-      title: Vket Boilerplate Nuxt
-      title_template: "{title} - HIKKY Web Frontend"
-      description: Vketのサイト開発で活用しているボイラープレート
-  en:
-    site:
-      title: Vket Boilerplate Nuxt
-      title_template: "{title} - HIKKY Web Frontend"
-      description: A boilerplate used for Vket site development
-</i18n>
-
-<template>
-  <Head>
-    <Link
-      rel="alternate"
-      hreflang="ja"
-      :href="currentJaFullPath"
-    />
-    <Link
-      rel="alternate"
-      hreflang="en"
-      :href="currentEnFullPath"
-    />
-    <Link
-      rel="alternate"
-      hreflang="x-default"
-      :href="currentJaFullPath"
-    />
-    <template v-if="currentLang === 'ja'">
-      <Link
-        rel="canonical"
-        :href="currentJaFullPath"
-      />
-    </template>
-    <template v-if="currentLang === 'en'">
-      <Link
-        rel="canonical"
-        :href="currentEnFullPath"
-      />
-    </template>
-  </Head>
-  <div class="app">
-    <NuxtLayout>
-      <NuxtRouteAnnouncer />
-      <NuxtWelcome />
-      <NuxtPage />
-    </NuxtLayout>
-  </div>
-</template>
-
-<script lang="ts" setup>
-const route = useRoute()
-const i18n = useI18n()
-const currentFullPath = ref(`${useRuntimeConfig().public.url}${route.fullPath}`)
-const currentLang = ref(i18n.locale.value)
-
-const currentJaFullPath = computed(() => {
-  if (currentLang.value === 'ja') {
-    return currentFullPath.value
-  } else {
-    return currentFullPath.value
-      .replace(/\/en(\/|$)/, '/')
-      .replace(/\/{2,}/, '/')
+// NOTE: src/utils/api.tsのテストとして当該ファイルがimportしているファイルからの変数「requireRuntimeConfig」をモックする。
+vi.mock('#base/app/plugins/runtimeConfig', () => {
+  return {
+    requireRuntimeConfig: vi.fn(() => {
+      // NOTE: api.tsのテストとしてrequireRuntimeConfigが{public.baseUrl}としてダミーURLを返すだけの処理を行うようにモックする
+      return {
+        public: {
+          baseUrl: '/test-api',
+        },
+      }
+    }),
   }
 })
 
-const currentEnFullPath = computed(() => {
-  if (currentLang.value === 'en') {
-    return currentFullPath.value
-  } else {
-    const path = route.fullPath.endsWith('/')
-      ? route.fullPath
-      : `${route.fullPath}/`
-    return `${useRuntimeConfig().public.url}/en${path}`
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+vi.mock('#base/app/plugins/fetch', () => {
+  return {
+    pluginFetchApi: vi.fn((path: string, options: NitroFetchRequest) => {
+      return { path, options }
+    }),
   }
 })
 
-useHeadSafe({
-  htmlAttrs: {
-    lang: currentLang.value,
-  },
-  titleTemplate: (titleChunk) => {
-    return titleChunk
-      ? i18n.t('site.title_template', { title: titleChunk })
-      : i18n.t('site.title')
-  },
-  meta: [
-    {
-      name: 'description',
-      content: i18n.t('site.description'),
-    },
-    {
-      property: 'og:description',
-      content: i18n.t('site.description'),
-    },
-    {
-      property: 'og:site_name',
-      content: i18n.t('site.title'),
-    },
-  ],
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+vi.mock('ofetch', () => {
+  return {
+    $fetch: vi.fn((path: string, options: NitroFetchRequest) => {
+      return { path, options }
+    }),
+  }
 })
-</script>
+
+describe('api', () => {
+  // NOTE: api.getの返却値のテストとして、引数のpathやfetchOptionを入力して、返却値として期待するexpectObjと同等かテストする。その際、onRequestとonResponseは複雑化するので、空オブジェクトで省略としてtoMatchObjectで合格するか検査する。
+  it('get', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'GET',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('get', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('post', async () => {
+    // NOET: 以下getと同様にテストする。methodはgetではなく、相送信methodに準じた値に変化するので注意
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'POST',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('post', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('put', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'PUT',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('put', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('patch', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'PATCH',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('patch', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('delete', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'DELETE',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('delete', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+})
 ````
 
 ## File: layers/main/nuxt.config.ts
@@ -3006,6 +2850,162 @@ export default defineNuxtConfig({
   "dependencies": {
     "vket-boilerplate-nuxt-base": "workspace:*"
   }
+}
+````
+
+## File: layers/main/@types/auto-imports.d.ts
+````typescript
+/* eslint-disable */
+/* prettier-ignore */
+// @ts-nocheck
+// noinspection JSUnusedGlobalSymbols
+// Generated by unplugin-auto-import
+// biome-ignore lint: disable
+export {}
+declare global {
+  const EffectScope: typeof import('vue')['EffectScope']
+  const abortNavigation: typeof import('#app')['abortNavigation']
+  const addRouteMiddleware: typeof import('#app')['addRouteMiddleware']
+  const api: typeof import('../app/utils/api')['default']
+  const cancelIdleCallback: typeof import('#app')['cancelIdleCallback']
+  const clearError: typeof import('#app')['clearError']
+  const clearNuxtData: typeof import('#app')['clearNuxtData']
+  const clearNuxtState: typeof import('#app')['clearNuxtState']
+  const computed: typeof import('vue')['computed']
+  const createApp: typeof import('vue')['createApp']
+  const createError: typeof import('#app')['createError']
+  const customRef: typeof import('vue')['customRef']
+  const defineAppConfig: typeof import('#app')['defineAppConfig']
+  const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
+  const defineComponent: typeof import('vue')['defineComponent']
+  const defineI18nConfig: typeof import('#i18n')['defineI18nConfig']
+  const defineI18nLocale: typeof import('#i18n')['defineI18nLocale']
+  const defineI18nRoute: typeof import('#i18n')['defineI18nRoute']
+  const defineNuxtComponent: typeof import('#app')['defineNuxtComponent']
+  const defineNuxtLink: typeof import('#app')['defineNuxtLink']
+  const defineNuxtPlugin: typeof import('#app')['defineNuxtPlugin']
+  const defineNuxtRouteMiddleware: typeof import('#app')['defineNuxtRouteMiddleware']
+  const definePayloadPlugin: typeof import('#app')['definePayloadPlugin']
+  const definePayloadReducer: typeof import('#app')['definePayloadReducer']
+  const definePayloadReviver: typeof import('#app')['definePayloadReviver']
+  const effectScope: typeof import('vue')['effectScope']
+  const fetcher: typeof import('../app/composables/useApi')['fetcher']
+  const getAppManifest: typeof import('#app')['getAppManifest']
+  const getCurrentInstance: typeof import('vue')['getCurrentInstance']
+  const getCurrentScope: typeof import('vue')['getCurrentScope']
+  const getCurrentWatcher: typeof import('vue')['getCurrentWatcher']
+  const getI18nArray: typeof import('../app/utils/i18n')['getI18nArray']
+  const getRouteRules: typeof import('#app')['getRouteRules']
+  const h: typeof import('vue')['h']
+  const inject: typeof import('vue')['inject']
+  const isNuxtError: typeof import('#app')['isNuxtError']
+  const isPrerendered: typeof import('#app')['isPrerendered']
+  const isProxy: typeof import('vue')['isProxy']
+  const isReactive: typeof import('vue')['isReactive']
+  const isReadonly: typeof import('vue')['isReadonly']
+  const isRef: typeof import('vue')['isRef']
+  const isShallow: typeof import('vue')['isShallow']
+  const loadPayload: typeof import('#app')['loadPayload']
+  const markRaw: typeof import('vue')['markRaw']
+  const navigateTo: typeof import('#app')['navigateTo']
+  const nextTick: typeof import('vue')['nextTick']
+  const onActivated: typeof import('vue')['onActivated']
+  const onBeforeMount: typeof import('vue')['onBeforeMount']
+  const onBeforeRouteLeave: typeof import('#app')['onBeforeRouteLeave']
+  const onBeforeRouteUpdate: typeof import('#app')['onBeforeRouteUpdate']
+  const onBeforeUnmount: typeof import('vue')['onBeforeUnmount']
+  const onBeforeUpdate: typeof import('vue')['onBeforeUpdate']
+  const onDeactivated: typeof import('vue')['onDeactivated']
+  const onErrorCaptured: typeof import('vue')['onErrorCaptured']
+  const onMounted: typeof import('vue')['onMounted']
+  const onNuxtReady: typeof import('#app')['onNuxtReady']
+  const onRenderTracked: typeof import('vue')['onRenderTracked']
+  const onRenderTriggered: typeof import('vue')['onRenderTriggered']
+  const onScopeDispose: typeof import('vue')['onScopeDispose']
+  const onServerPrefetch: typeof import('vue')['onServerPrefetch']
+  const onUnmounted: typeof import('vue')['onUnmounted']
+  const onUpdated: typeof import('vue')['onUpdated']
+  const onWatcherCleanup: typeof import('vue')['onWatcherCleanup']
+  const prefetchComponents: typeof import('#app')['prefetchComponents']
+  const preloadComponents: typeof import('#app')['preloadComponents']
+  const preloadPayload: typeof import('#app')['preloadPayload']
+  const preloadRouteComponents: typeof import('#app')['preloadRouteComponents']
+  const prerenderRoutes: typeof import('#app')['prerenderRoutes']
+  const provide: typeof import('vue')['provide']
+  const reactive: typeof import('vue')['reactive']
+  const readonly: typeof import('vue')['readonly']
+  const ref: typeof import('vue')['ref']
+  const refreshNuxtData: typeof import('#app')['refreshNuxtData']
+  const reloadNuxtApp: typeof import('#app')['reloadNuxtApp']
+  const repositories: typeof import('../app/utils/factory')['repositories']
+  const repositoryFactory: typeof import('../app/utils/factory')['repositoryFactory']
+  const requestIdleCallback: typeof import('#app')['requestIdleCallback']
+  const resolveComponent: typeof import('vue')['resolveComponent']
+  const setPageLayout: typeof import('#app')['setPageLayout']
+  const setResponseStatus: typeof import('#app')['setResponseStatus']
+  const shallowReactive: typeof import('vue')['shallowReactive']
+  const shallowReadonly: typeof import('vue')['shallowReadonly']
+  const shallowRef: typeof import('vue')['shallowRef']
+  const showError: typeof import('#app')['showError']
+  const toRaw: typeof import('vue')['toRaw']
+  const toRef: typeof import('vue')['toRef']
+  const toRefs: typeof import('vue')['toRefs']
+  const toValue: typeof import('vue')['toValue']
+  const triggerRef: typeof import('vue')['triggerRef']
+  const unref: typeof import('vue')['unref']
+  const updateAppConfig: typeof import('#app')['updateAppConfig']
+  const useApi: typeof import('../app/composables/useApi')['default']
+  const useAppConfig: typeof import('#app')['useAppConfig']
+  const useAsyncData: typeof import('#app')['useAsyncData']
+  const useAttrs: typeof import('vue')['useAttrs']
+  const useBrowserLocale: typeof import('#i18n')['useBrowserLocale']
+  const useCookie: typeof import('#app')['useCookie']
+  const useCookieLocale: typeof import('#i18n')['useCookieLocale']
+  const useCssModule: typeof import('vue')['useCssModule']
+  const useCssVars: typeof import('vue')['useCssVars']
+  const useError: typeof import('#app')['useError']
+  const useFetch: typeof import('#app')['useFetch']
+  const useI18n: typeof import('vue-i18n')['useI18n']
+  const useId: typeof import('vue')['useId']
+  const useLazyAsyncData: typeof import('#app')['useLazyAsyncData']
+  const useLazyFetch: typeof import('#app')['useLazyFetch']
+  const useLocaleHead: typeof import('#i18n')['useLocaleHead']
+  const useLocalePath: typeof import('#i18n')['useLocalePath']
+  const useLocaleRoute: typeof import('#i18n')['useLocaleRoute']
+  const useModel: typeof import('vue')['useModel']
+  const useNuxtApp: typeof import('#app')['useNuxtApp']
+  const useNuxtData: typeof import('#app')['useNuxtData']
+  const useRequestEvent: typeof import('#app')['useRequestEvent']
+  const useRequestFetch: typeof import('#app')['useRequestFetch']
+  const useRequestHeaders: typeof import('#app')['useRequestHeaders']
+  const useRequestURL: typeof import('#app')['useRequestURL']
+  const useRoute: typeof import('#app')['useRoute']
+  const useRouteBaseName: typeof import('#i18n')['useRouteBaseName']
+  const useRouter: typeof import('#app')['useRouter']
+  const useRuntimeConfig: typeof import('#app')['useRuntimeConfig']
+  const useSlots: typeof import('vue')['useSlots']
+  const useState: typeof import('#app')['useState']
+  const useSwitchLocalePath: typeof import('#i18n')['useSwitchLocalePath']
+  const useTemplateRef: typeof import('vue')['useTemplateRef']
+  const watch: typeof import('vue')['watch']
+  const watchEffect: typeof import('vue')['watchEffect']
+  const watchPostEffect: typeof import('vue')['watchPostEffect']
+  const watchSyncEffect: typeof import('vue')['watchSyncEffect']
+}
+// for type re-export
+declare global {
+  // @ts-ignore
+  export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, ShallowRef, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
+  import('vue')
+  // @ts-ignore
+  export type { Method } from '../app/utils/api'
+  import('../app/utils/api')
+  // @ts-ignore
+  export type { Repository, Repositories, RepositoryKey } from '../app/utils/factory'
+  import('../app/utils/factory')
+  // @ts-ignore
+  export type { UseI18nReturnType } from '../app/utils/i18n'
+  import('../app/utils/i18n')
 }
 ````
 
