@@ -1,3 +1,4 @@
+import { test, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 

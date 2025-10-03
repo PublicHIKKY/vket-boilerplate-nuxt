@@ -2,7 +2,10 @@
   "compilerOptions": {
     "target": "ES2023",
     "module": "preserve",
-    "lib": ["dom", "ES2023"],
+    "lib": [
+      "dom",
+      "ES2023"
+    ],
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "esModuleInterop": true,
@@ -20,9 +23,6 @@
       "./@types"
     ],
     "types": [
-      "@types/node",
-      "@types/postcss-url",
-      "@types/uuid",
       "vue3-toastify/global",
       "unplugin-icons/types/vue",
       "vite/client",

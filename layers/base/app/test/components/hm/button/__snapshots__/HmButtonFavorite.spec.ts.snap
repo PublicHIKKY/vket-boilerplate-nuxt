@@ -1,8 +1,8 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`mount component 1`] = `
-"<div data-v-f3cd9c7d="" class="hm-button-favorite">
-  <div data-v-f3cd9c7d="" class="button"><svg data-v-f3cd9c7d="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31.02 27.03" class="favorite-icon -active">
+"<div data-v-a38d8311="" class="hm-button-favorite">
+  <div data-v-a38d8311="" class="button"><svg data-v-a38d8311="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31.02 27.03" class="favorite-icon -active">
       <defs>
         <style>
           .body {

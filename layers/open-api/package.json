@@ -15,7 +15,6 @@
     "openapi-zod-client": "^1.18.3",
     "js-yaml": "^4.1.0",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^20.0.0",
-    "bun-types": "^1.0.14"
+    "@types/node": "^24.6.2"
   }
 }

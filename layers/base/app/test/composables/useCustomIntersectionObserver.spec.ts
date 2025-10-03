@@ -1,3 +1,4 @@
+import { test, expect, vi, beforeEach, afterEach } from 'vitest'
 import doObserve from '#base/app/composables/useCustomIntersectionObserver'
 
 /**

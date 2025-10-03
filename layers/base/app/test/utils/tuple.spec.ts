@@ -1,3 +1,4 @@
+import { describe, test } from 'vitest'
 import { tupleWideningDo } from '#base/app/utils/tuple'
 
 describe('tupleWideningDo', () => {

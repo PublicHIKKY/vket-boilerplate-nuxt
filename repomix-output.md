@@ -651,6 +651,149 @@ img {
 @forward 'base';
 ````
 
+## File: layers/base/app/components/ha/HaImage.vue
+````vue
+<template>
+  <img
+    ref="imageElement"
+    class="ha-image"
+    :loading="isLazy ? 'lazy' : 'eager'"
+    :fetchpriority="fetchPriority"
+    :src="imageUrl"
+    :alt="alt || ''"
+    :role="alt ? 'img' : 'presentation'"
+    :decoding="decoding"
+    @error="onError"
+    @load="onImageLoad"
+  />
+</template>
+
+<script setup lang="ts">
+import defaultNoImage from '@@/public/images/no-image.png'
+
+const props = withDefaults(
+  defineProps<{
+    /**
+     * src 属性に渡されるもの。
+     * 無指定で '/images/no-image.png'、
+     * エラー時に「無」の画像に置き換えられる。
+     */
+    src?: string | null
+    alt?: string | null
+    /** デフォルト有効(loading="eager") :is-lazy="true" でloading="lazy" */
+    isLazy?: boolean
+    fetchPriority?: 'low' | 'high' | 'auto' | null
+    decoding?: 'sync' | 'async' | 'auto'
+    /** エラー時の置き換え「無」画像のurl */
+    noImage?: string
+  }>(),
+  {
+    src: '',
+    alt: null,
+    isLazy: false,
+    fetchPriority: 'low',
+    decoding: 'auto',
+    noImage: '',
+  },
+)
+const hasError = ref(false)
+const onError = () => {
+  hasError.value = true
+}
+
+const imageUrl = computed(() =>
+  hasError.value
+    ? props.noImage || defaultNoImage
+    : props.src || defaultNoImage,
+)
+
+// imgにwidthとheightを自動付与する
+const imageElement = ref<HTMLImageElement | null>(null)
+const onImageLoad = (): void => {
+  if (imageElement.value) {
+    const width = imageElement.value.naturalWidth
+    const height = imageElement.value.naturalHeight
+    imageElement.value.width = width
+    imageElement.value.height = height
+  }
+}
+</script>
+````
+
+## File: layers/base/app/components/ha/HaLink.vue
+````vue
+<template>
+  <component
+    :is="component"
+    class="ha-link"
+    v-bind="{ [isNuxtLink ? 'to' : 'href']: linkTo }"
+    :target="blank ? '_blank' : undefined"
+    :rel="rel"
+  >
+    <slot />
+  </component>
+</template>
+
+<script setup lang="ts">
+import { LocationQuery, stringifyQuery } from 'vue-router'
+
+const props = withDefaults(
+  defineProps<{
+    to: string
+    blank?: boolean
+    rel?: HTMLAnchorElement['rel']
+    forceAnchorLink?: boolean
+    noLocale?: boolean
+    // toにqueryパラメータを入れてしまうと、localePathで消えるため、こちらのパラメータを使用してリンクを生成
+    query?: LocationQuery
+    /*
+     * toにhashパラメータを入れてしまうと、localePathで消えるため、こちらのパラメータを使用してリンクを生成
+     * 使う場合は「#」を先頭につけること
+     */
+    hash?: string
+  }>(),
+  {
+    blank: false,
+    rel: undefined,
+    forceAnchorLink: false,
+    noLocale: false,
+    query: undefined,
+    hash: undefined,
+  },
+)
+const isExternalReference = computed(() => !!props.to?.match(/^https?:\/\//))
+const isNuxtLink = computed(
+  // FIXME: isNuxtEnvironment() が壊れている
+  () =>
+    /* isNuxtEnvironment() && */ !props.forceAnchorLink
+    && !isExternalReference.value,
+)
+const component = computed(() =>
+  isNuxtLink.value ? resolveComponent('nuxt-link') : 'a',
+)
+const linkTo = computed(() => {
+  if (!isNuxtLink.value) {
+    return toUrl(props)
+  }
+
+  const localePath = useLocalePath()
+  return localePath({ path: props.to, query: props.query, hash: props.hash })
+})
+const toUrl = ({
+  to,
+  query,
+  hash,
+}: {
+  to: string
+  query?: LocationQuery
+  hash?: string
+}) => {
+  const queryStr = query ? `?${stringifyQuery(query)}` : ''
+  return `${to}${queryStr}${hash ?? ''}`
+}
+</script>
+````
+
 ## File: layers/base/app/components/ha/HaSkewBackground.vue
 ````vue
 <template>
@@ -801,6 +944,93 @@ defineProps<{
 </style>
 ````
 
+## File: layers/base/app/composables/useCustomIntersectionObserver.ts
+````typescript
+const defaultOptions = {
+  root: null,
+  rootMargin: '0px',
+  threshold: 0.1,
+}
+
+const doObserve = (
+  targets: {
+    element: HTMLElement
+    once?: boolean
+    delay?: number
+    inAction?: () => void
+    outAction?: () => void
+    intersectingClass?: string
+  }[],
+  options: IntersectionObserverInit = defaultOptions,
+) =>
+  targets.forEach(
+    (
+      { element, once, delay, inAction, outAction, intersectingClass },
+      index,
+    ) => {
+      const observer = new IntersectionObserver((items) => {
+        items.forEach((item) => {
+          if (item.isIntersecting) {
+            const delayParam = (delay ?? 300) * index
+            setTimeout(() => {
+              inAction?.()
+              item.target.classList.add(intersectingClass || '-intersecting')
+            }, delayParam)
+          } else {
+            outAction?.()
+            item.target.classList.remove(intersectingClass || '-intersecting')
+          }
+
+          if (item.isIntersecting && once) {
+            observer.unobserve(element)
+          }
+        })
+      }, options)
+
+      observer.observe(element)
+    },
+  )
+
+export default () => ({ doObserve })
+````
+
+## File: layers/base/app/composables/useDefaultApi.ts
+````typescript
+/**
+ * Nuxt3 FWにおける API composables。
+ *
+ * @packageDocumentation
+ */
+
+import { useFetch, UseFetchOptions } from 'nuxt/app'
+import type { FetchOptions } from 'ofetch'
+import { ref } from 'vue'
+import {
+  defaultRepositoryFactory,
+  DefaultRepositoryKey,
+} from '#base/app/utils/default-factory'
+
+export const defaultFetcher = (
+  path: string,
+  options: UseFetchOptions<FetchOptions>,
+) => {
+  return useFetch(path, options)
+}
+
+const _getRepo = <K extends DefaultRepositoryKey>(endpoint: K) => {
+  return defaultRepositoryFactory.get(endpoint)
+}
+
+export default function useDefaultApi<K extends DefaultRepositoryKey>(
+  endpoint: K,
+) {
+  const repository = ref(_getRepo(endpoint))
+  return {
+    repository,
+  }
+}
+````
+
 ## File: layers/base/app/composables/useExample.ts
 ````typescript
 import { useState } from 'nuxt/app'
@@ -875,6 +1105,70 @@ export const exampleInjectionKey: InjectionKey<ExampleComposable>
   overflow-x: hidden;
 }
 </style>
+````
+
+## File: layers/base/app/middleware/locales.global.ts
+````typescript
+import { defineNuxtRouteMiddleware, navigateTo, useNuxtApp } from 'nuxt/app'
+import { Composer, VueI18n } from 'vue-i18n'
+import {
+  getSingleCookieValue,
+  setSingleCookieValue,
+} from '../utils/storage-control'
+
+const jaLanguage = 'ja'
+const enLanguage = 'en'
+const cookieKey = 'VUEI18N_MANUAL_LOCALE'
+
+// i18用の管理を行う
+export default defineNuxtRouteMiddleware((to, _from) => {
+  if (import.meta.server) return
+  const globalI18n = useNuxtApp().$i18n as VueI18n | Composer
+  const cookieLanguage = getSingleCookieValue(cookieKey) || null
+  const toFullPath = to?.fullPath.endsWith('/')
+    ? to.fullPath
+    : `${to.fullPath}/`
+  // note: localeはComputedRefであるはず。stringならこの処理は不具合につながるからスキップ
+  if (typeof globalI18n.locale === 'string') return
+  if (!cookieLanguage) {
+    if (toFullPath.includes(`/${enLanguage}/`)) {
+      if (globalI18n.locale.value === enLanguage) {
+        setSingleCookieValue(cookieKey, enLanguage)
+      }
+      if (globalI18n.locale.value === jaLanguage) {
+        setSingleCookieValue(cookieKey, jaLanguage)
+        return navigateTo(toFullPath.replace(`/${enLanguage}/`, '/'))
+      }
+    } else {
+      if (globalI18n.locale.value === jaLanguage) {
+        setSingleCookieValue(cookieKey, jaLanguage)
+      }
+      if (globalI18n.locale.value === enLanguage) {
+        setSingleCookieValue(cookieKey, enLanguage)
+        const path = `/${enLanguage}${to.path}/`.replace('//', '/')
+        return navigateTo(path)
+      }
+    }
+    // pathにlocaleが含まれるかのみで判定。i18nとcookieの両方を確認して言語設定に齟齬がないように調整する。リダイレクトはさせない。
+  } else {
+    if (toFullPath.includes(`/${enLanguage}/`)) {
+      if (globalI18n.locale.value !== enLanguage) {
+        globalI18n.locale.value = enLanguage
+      }
+      if (cookieLanguage !== enLanguage) {
+        setSingleCookieValue(cookieKey, enLanguage)
+      }
+      return
+    }
+    // locale pathが設定されていない場合は、jaとして扱う
+    if (globalI18n.locale.value !== jaLanguage) {
+      globalI18n.locale.value = jaLanguage
+    }
+    if (cookieLanguage !== jaLanguage) {
+      setSingleCookieValue(cookieKey, jaLanguage)
+    }
+  }
+})
 ````
 
 ## File: layers/base/app/plugins/fetch.ts
@@ -1133,6 +1427,573 @@ describe('emits', () => {
 })
 ````
 
+## File: layers/base/app/test/components/ha/base/HaBaseInput.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import HaBaseInput from '#base/app/components/ha/base/HaBaseInput.vue'
+
+test('ref component', () => {
+  expect(HaBaseInput).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HaBaseInput, {
+    props: {
+      type: 'text',
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+describe('props', () => {
+  describe(':type', () => {
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).type).toBe('text')
+    })
+  })
+
+  describe(':accept', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).accept).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          accept: 'image/*',
+        },
+      })
+      expect((wrapper.element as HTMLInputElement).accept).toBe('image/*')
+    })
+  })
+
+  describe(':autocomplete', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).autocomplete).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          autocomplete: 'name',
+        },
+      })
+      expect((wrapper.element as HTMLInputElement).autocomplete).toBe('name')
+    })
+  })
+
+  describe(':autofocus', () => {
+    it('default is false', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).autofocus).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'text', autofocus: true },
+      })
+      expect((wrapper.element as HTMLInputElement).autofocus).toBeTruthy()
+    })
+  })
+
+  describe(':capture', () => {
+    it('default is undefined', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'file' } })
+      expect((wrapper.element as HTMLInputElement).capture).toBeFalsy()
+    })
+    it('pass prop: user', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'file', capture: 'user' },
+      })
+      expect(wrapper.attributes('capture')).toBe('user')
+    })
+    it('pass prop: environment', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'file', capture: 'environment' },
+      })
+      expect(wrapper.attributes('capture')).toBe('environment')
+    })
+  })
+
+  describe(':checked', () => {
+    it('default is false', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'radio' } })
+      expect((wrapper.element as HTMLInputElement).checked).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'radio', checked: true },
+      })
+      expect((wrapper.element as HTMLInputElement).checked).toBeTruthy()
+    })
+  })
+
+  describe(':disabled', () => {
+    it('default is false', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).disabled).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'text', disabled: true },
+      })
+      expect((wrapper.element as HTMLInputElement).disabled).toBeTruthy()
+    })
+  })
+
+  describe(':id', () => {
+    it('default is false', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).id).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'text', id: 'testId' },
+      })
+      expect((wrapper.element as HTMLInputElement).id).toBe('testId')
+    })
+  })
+
+  describe(':list', () => {
+    it('default is false', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).list).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'text', list: 'testDataListId' },
+      })
+      expect(wrapper.attributes('list')).toBe('testDataListId')
+    })
+  })
+
+  describe(':max', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).max).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          max: 10,
+        },
+      })
+      expect((wrapper.element as HTMLInputElement).max).toBe('10')
+    })
+  })
+
+  describe(':maxLength', () => {
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          maxLength: 10,
+        },
+      })
+      expect((wrapper.element as HTMLInputElement).maxLength).toBe(10)
+    })
+  })
+
+  describe(':min', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).min).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          min: 10,
+        },
+      })
+      expect((wrapper.element as HTMLInputElement).min).toBe('10')
+    })
+  })
+
+  describe(':minLength', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).minLength).toBe(-1)
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          minLength: 10,
+        },
+      })
+      expect((wrapper.element as HTMLInputElement).minLength).toBe(10)
+    })
+  })
+
+  describe(':multiple', () => {
+    it('default is false', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).multiple).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'text', multiple: true },
+      })
+      expect((wrapper.element as HTMLInputElement).multiple).toBeTruthy()
+    })
+  })
+
+  describe(':name', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).name).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          name: 'sample',
+        },
+      })
+      expect((wrapper.element as HTMLInputElement).name).toBe('sample')
+    })
+  })
+
+  describe(':placeholder', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).placeholder).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          placeholder: 'sample',
+        },
+      })
+      expect((wrapper.element as HTMLInputElement).placeholder).toBe('sample')
+    })
+  })
+
+  describe(':readonly', () => {
+    it('default is false', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).readOnly).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'text', readonly: true },
+      })
+      expect((wrapper.element as HTMLInputElement).readOnly).toBeTruthy()
+    })
+  })
+
+  describe(':required', () => {
+    it('default is false', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).required).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'text', required: true },
+      })
+      expect((wrapper.element as HTMLInputElement).required).toBeTruthy()
+    })
+  })
+
+  describe(':size', () => {
+    it('default is 20', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).size).toBe(20)
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          size: 10,
+        },
+      })
+      expect((wrapper.element as HTMLInputElement).size).toBe(10)
+    })
+  })
+
+  describe(':value', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect(wrapper.props('value')).toBeFalsy()
+    })
+
+    it('pass prop: string', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          value: 'string test',
+        },
+      })
+      expect(wrapper.props('value')).toBe('string test')
+    })
+
+    it('pass prop: number', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          value: 1,
+        },
+      })
+      expect(wrapper.props('value')).toBe(1)
+    })
+
+    it('pass prop: boolean', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          value: true,
+        },
+      })
+      expect(wrapper.props('value')).toBe(true)
+    })
+  })
+  describe(':modelValue', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect(wrapper.props('modelValue')).toBeFalsy()
+    })
+
+    it('pass prop: string', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          modelValue: 'string test',
+        },
+      })
+      expect(wrapper.props('modelValue')).toBe('string test')
+    })
+
+    it('pass prop: number', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          modelValue: 1,
+        },
+      })
+      expect(wrapper.props('modelValue')).toBe(1)
+    })
+
+    it('pass prop: boolean', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          modelValue: true,
+        },
+      })
+      expect(wrapper.props('modelValue')).toBe(true)
+    })
+  })
+  describe(':files', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect(wrapper.attributes('files')).toBeFalsy()
+    })
+
+    // TODO: propsのfilelistが正しくセットされるかテストを行うが下記問題でコメントアウト中
+    it('pass prop', () => {
+      // 下準備としてFileList型のダミーを作成する
+      const _createDummyFileList = (files: File[]) => {
+        return {
+          length: files.length,
+          item(index: number) {
+            return files[index] || null
+          },
+        }
+      }
+      const _file = new File([''], 'test.png')
+      const _file2 = new File([''], 'test2.png')
+      /*
+       * TODO: fileListは使用されておらず、ESlintのErrorに引っかかったのでコメントアウトしてます。 by saga
+       * const fileList: FileList = createDummyFileList([file, file2])
+       * FileListダミー作成ここまで
+       */
+
+      /*
+       * NOTE: 問題点、上記で作成したfileListをセットするとテストも通り、yarn devやvs codeでエラーも出ないが、yarn test:watchを表示しているターミナルで
+       * [Vue warn]: Failed setting prop "files" on <input>: value [object Object] is invalid. TypeError: Failed to set the 'files' property on 'HTMLInputElement': The provided value is not of type 'FileList'.
+       * が白文字で表示されるのでコメントアウトなどを以下の一部の行で行っている。
+       */
+
+      const _wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'file',
+          multiple: true,
+          /*
+           * NOTE: 下記にてfilesにfilelistを設定すると、テストはとおるが[Vue warn]が表示される
+           * files: fileList,
+           */
+        },
+      })
+      /*
+       * NOTE: 上記mount時ではなく、下記にてfilesにfilelistを設定すると、テストはとおるが[Vue warn]が表示される
+       * await wrapper.setProps({ files: fileList })
+       */
+
+      /*
+       * NOTE: 下記にてfilesにfilelistを設定すると、セットされないのかテストに落ちる。
+       * Object.defineProperty(wrapper, 'files', {
+       *   value: fileList,
+       * })
+       * https://blog.unsweets.net/entries/set-filelist-to-htmlinputelement-files/
+       * 上記参照サイトでObject.definePropertyを使うことで
+       * 「TypeError: Failed to set the 'files' property on 'HTMLInputElement': The provided value is not of type 'FileList
+       * が発生しないと記載されているが、本件ではfileListがセットされずそもそも通らない
+       */
+
+      /*
+       * NOTE: fileListをセットしてテストすると下記が通るが、[Vue warn]がターミナルに白文字で出るのでコメントアウト。
+       * expect(wrapper.props('files')).toStrictEqual(fileList)
+       */
+    })
+  })
+})
+describe('emits', () => {
+  it(':update:modelValue', async () => {
+    const wrapper = mount(HaBaseInput, {
+      props: {
+        type: 'text',
+      },
+    })
+    await wrapper.setValue('test', 'modelValue')
+    expect(wrapper.emitted()).toHaveProperty('update:modelValue')
+    expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
+    expect(wrapper.emitted()['update:modelValue']).toEqual([['test']])
+  })
+  it(':update:value', async () => {
+    const wrapper = mount(HaBaseInput, {
+      props: {
+        type: 'text',
+      },
+    })
+    await wrapper.setValue('test', 'value')
+    expect(wrapper.emitted()['update:value']).toBeTruthy()
+    expect(wrapper.emitted()).toHaveProperty('update:value')
+    expect(wrapper.emitted()['update:value']).toHaveLength(1)
+    expect(wrapper.emitted()['update:value']).toEqual([['test']])
+  })
+  it(':input', async () => {
+    const wrapper = mount(HaBaseInput, {
+      props: {
+        type: 'text',
+      },
+    })
+    // onInput発火
+    await wrapper.trigger('input')
+    expect(wrapper.emitted()).toHaveProperty('input')
+    expect(wrapper.emitted()['input']).toHaveLength(1)
+  })
+  it(':change', async () => {
+    const wrapper = mount(HaBaseInput, {
+      props: {
+        type: 'text',
+      },
+    })
+    // onChange発火
+    await wrapper.trigger('change')
+    expect(wrapper.emitted()).toHaveProperty('change')
+    expect(wrapper.emitted()['change']).toHaveLength(1)
+  })
+  describe(':input[type]', () => {
+    it(':input[type:text]', async () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+        },
+      })
+      /*
+       * NOTE: setValueではupdate:modelValueのみ更新されupdate:valueにfalseが入るので、文字列をupdate:valueでもテストしたいのであれば、setPropsしtriggerで発火する
+       * await wrapper.setValue('test')
+       */
+      await wrapper.setProps({ modelValue: 'test' })
+      // onInput発火
+      await wrapper.trigger('input')
+      // TEST: update:modelValue
+      expect(wrapper.emitted()).toHaveProperty('update:modelValue')
+      expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
+      expect(wrapper.emitted()['update:modelValue']).toEqual([['test']])
+      // TEST: update:value
+      expect(wrapper.emitted()['update:value']).toBeTruthy()
+      expect(wrapper.emitted()).toHaveProperty('update:value')
+      expect(wrapper.emitted()['update:value']).toHaveLength(1)
+      expect(wrapper.emitted()['update:value']).toEqual([['test']])
+      // TEST: input
+      expect(wrapper.emitted()).toHaveProperty('input')
+      expect(wrapper.emitted()['input']).toHaveLength(1)
+    })
+    it(':input[type:checkbox]', async () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'checkbox',
+          checked: false,
+        },
+      })
+      // チェックボックスをクリックすることでChaekedにする
+      await wrapper.trigger('click')
+      // onInput発火
+      await wrapper.trigger('input')
+      // TEST: update:modelValue
+      expect(wrapper.emitted()).toHaveProperty('update:modelValue')
+      expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
+      expect(wrapper.emitted()['update:modelValue']).toEqual([[true]])
+      // TEST: update:value
+      expect(wrapper.emitted()['update:value']).toBeTruthy()
+      expect(wrapper.emitted()).toHaveProperty('update:value')
+      expect(wrapper.emitted()['update:value']).toHaveLength(1)
+      expect(wrapper.emitted()['update:value']).toEqual([[true]])
+      // TEST: input
+      expect(wrapper.emitted()).toHaveProperty('input')
+      expect(wrapper.emitted()['input']).toHaveLength(1)
+    })
+    it(':input[type:radio]', async () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'radio',
+          value: 1,
+          checked: false,
+        },
+      })
+      // 単一のチェックボックスト違い、ラジオボタンなのでラジオボタンのグループのmodelValueを設定する。
+      await wrapper.setProps({ modelValue: 1 })
+      // onInput発火
+      await wrapper.trigger('input')
+      // TEST: update:modelValue
+      expect(wrapper.emitted()).toHaveProperty('update:modelValue')
+      expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
+      expect(wrapper.emitted()['update:modelValue']).toEqual([[1]])
+      // TEST: update:value
+      expect(wrapper.emitted()['update:value']).toBeTruthy()
+      expect(wrapper.emitted()).toHaveProperty('update:value')
+      expect(wrapper.emitted()['update:value']).toHaveLength(1)
+      expect(wrapper.emitted()['update:value']).toEqual([[1]])
+      // TEST: input
+      expect(wrapper.emitted()).toHaveProperty('input')
+      expect(wrapper.emitted()['input']).toHaveLength(1)
+    })
+  })
+})
+````
+
 ## File: layers/base/app/test/components/ha/HaContainer.spec.ts
 ````typescript
 import { mount } from '@vue/test-utils'
@@ -1237,6 +2098,106 @@ describe('emit', () => {
 })
 ````
 
+## File: layers/base/app/test/components/ha/HaImage.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { describe, expect, it, test } from 'vitest'
+import HaImage from '#base/app/components/ha/HaImage.vue'
+
+/**
+ * @see vitest.config.mtsのalias
+ */
+const defaultNoImage = '/images/no-image.png'
+
+const customNoImage = '/images/no-image-custom.png'
+
+test('ref component', () => {
+  expect(HaImage).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HaImage, {
+    props: { src: 'img.png', alt: 'a great img' },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+describe('props', () => {
+  it(':src', () => {
+    const wrapper = mount(HaImage, { props: { src: '/image.png' } })
+    expect(wrapper.get('img').attributes('src')).toBe('/image.png')
+  })
+
+  describe(':alt', () => {
+    it('is not set (alt="")', () => {
+      const wrapper = mount(HaImage)
+      expect(wrapper.get('img').attributes('alt')).toBe('')
+    })
+
+    it('is string', () => {
+      const wrapper = mount(HaImage, { props: { alt: 'alt string' } })
+      expect(wrapper.get('img').attributes('alt')).toBe('alt string')
+    })
+  })
+
+  describe('size', () => {
+    it('no width / height', () => {
+      const wrapper = mount(HaImage)
+      expect(wrapper.get('img').attributes('width')).toBeFalsy()
+      expect(wrapper.get('img').attributes('height')).toBeFalsy()
+    })
+
+    it('set size', () => {
+      const wrapper = mount(HaImage, { props: { width: 120, height: 80 } })
+      expect(wrapper.get('img').attributes('width')).toBe('120')
+      expect(wrapper.get('img').attributes('height')).toBe('80')
+    })
+  })
+})
+
+describe('lazy loading', () => {
+  it('default is eager', () => {
+    const wrapper = mount(HaImage)
+    expect(wrapper.get('img').attributes('loading')).toBe('eager')
+  })
+
+  it(':is-lazy="true" works', () => {
+    const wrapper = mount(HaImage, { props: { isLazy: true } })
+    expect(wrapper.get('img').attributes('loading')).toBe('lazy')
+  })
+
+  it(':is-lazy="false" works', () => {
+    const wrapper = mount(HaImage, { props: { isLazy: false } })
+    expect(wrapper.get('img').attributes('loading')).toBe('eager')
+  })
+})
+
+describe('fallback images', () => {
+  it('no src loads "no-image.png"', () => {
+    const wrapper = mount(HaImage)
+    expect(wrapper.get('img').attributes('src')).toBe(defaultNoImage)
+  })
+
+  it('on error loads "no-image.png"', async () => {
+    const wrapper = mount(HaImage, { props: { src: '/foo-not-found.jpg' } })
+    await wrapper.get('img').trigger('error')
+    expect(wrapper.get('img').attributes('src')).toBe(defaultNoImage)
+  })
+
+  it('custom on-error image', async () => {
+    const wrapper = mount(HaImage, {
+      props: {
+        src: '/foo-not-found.jpg',
+        noImage: customNoImage,
+      },
+    })
+    await wrapper.get('img').trigger('error')
+    expect(wrapper.get('img').attributes('src')).toBe(customNoImage)
+  })
+})
+````
+
 ## File: layers/base/app/test/components/ha/HaLabel.spec.ts
 ````typescript
 import { mount } from '@vue/test-utils'
@@ -1275,6 +2236,234 @@ test('バックグラウンドカラーをフォールバックカラーで表�
   expect(label.attributes().style).toContain(
     `background-color: ${fallbackColor}`,
   )
+})
+````
+
+## File: layers/base/app/test/components/ha/HaLink.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { describe, expect, test, vi } from 'vitest'
+import HaLink from '#base/app/components/ha/HaLink.vue'
+
+import { isNuxtEnvironment } from '#base/app/utils/environment'
+
+// useLocalePath のモック関数を定義
+beforeEach(() => {
+  vi.mock('#i18n', () => ({
+    useLocalePath: vi.fn(
+      () => vi.fn(() => `/mocked-path`), // path: string, query: LocationQuery, hash: string 引数削除 (使う時だけ入れないとreviewdogに怒られる)
+    ),
+  }))
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
+test('ref component', () => {
+  expect(HaLink).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HaLink, {
+    props: {
+      to: 'https://example.com',
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+describe(':to', () => {
+  // 外部サイトリンクのテスト
+  it('set external path', () => {
+    const wrapper = mount(HaLink, {
+      props: { to: 'https://example.com' },
+    })
+    expect(wrapper.find('a').attributes('href')).toBe('https://example.com')
+  })
+
+  // 内部リンクテスト (aタグ)
+  it('set internal path', () => {
+    const wrapper = mount(HaLink, {
+      props: { to: '/internal-path' },
+      // nuxt-linkはwarnとなるので、下記でaタグに置き換える。RouterLinkStubはtoを引き継げなくなるので使わない。
+      global: {
+        stubs: {
+          'nuxt-link': {
+            template: '<a><slot /></a>',
+          },
+        },
+      },
+    })
+    // toで入力したpathをi18nのuseLocalPathで色々変更してpathを吐き出すので、ここではmockのuseLocalPath値が検出されればOK
+    expect(wrapper.find('a').attributes('to')).toBe('/mocked-path')
+  })
+})
+
+describe(':blank', () => {
+  it('not set', () => {
+    const wrapper = mount(HaLink, {
+      props: { to: '' },
+      global: {
+        stubs: {
+          'nuxt-link': {
+            template: '<a><slot /></a>',
+          },
+        },
+      },
+    })
+    expect(wrapper.find('a').attributes('target')).toBeFalsy()
+  })
+
+  it('set true', () => {
+    const wrapper = mount(HaLink, {
+      props: { to: 'https://example.com', blank: true },
+    })
+    expect(wrapper.find('a').attributes('target')).toBe('_blank')
+  })
+
+  // <HaLink blank> って書けてほしい
+  it('set `blank` with no value set target="_blank"', () => {
+    const wrapper = mount(
+      {
+        template: '<HaLink to="https://example.com" blank></HaLink>',
+        components: { HaLink },
+      },
+      {},
+    )
+    expect(wrapper.get('a').attributes('target')).toBe('_blank')
+  })
+})
+
+describe(':rel', () => {
+  it('set rel', () => {
+    const wrapper = mount(HaLink, {
+      props: {
+        to: 'https://example.com',
+        rel: 'noreferrer',
+      },
+    })
+    expect(wrapper.get('a').attributes('rel')).toBe('noreferrer')
+  })
+})
+
+describe(':forceAnchorLink', () => {
+  it('set true', () => {
+    const wrapper = mount(HaLink, {
+      props: { to: '/internal', forceAnchorLink: true },
+    })
+    expect(wrapper.find('a').exists()).toBe(true)
+  })
+})
+
+describe('slot', () => {
+  it('set simple text', () => {
+    const wrapper = mount(HaLink, {
+      props: {
+        to: 'https://example.com',
+      },
+      slots: {
+        default: 'link label',
+      },
+    })
+    // slot入れたらリンク消えたりしない？
+    expect(wrapper.html()).toContain('https://example.com')
+    // slotの中身はきちんと描画されてる？
+    expect(wrapper.text()).toContain('link label')
+  })
+})
+
+// 以下、NuxtLink系のテスト
+vi.mock('#base/app/utils/environment')
+
+/*
+ * TODO: Nuxt依存部分のtoLocalePathをモックしている関係で、戻り値がmocked-pathにしかならずqueryのテストが出来ない
+ * describe(':query', () => {
+ *   it('appends query parameters to internal links', async () => {
+ *     // 環境をNuxtとしてモック
+ *     vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+ */
+
+/*
+ *     const wrapper = mount(HaLink, {
+ *       props: { to: '/intenal', query: { id: '123' } },
+ *     })
+ */
+
+/*
+ *     await nextTick()
+ *     // NuxtLinkを探す
+ *     const nuxtLink = wrapper.find('nuxt-link');
+ *     expect(nuxtLink.exists()).toBe(true);
+ *     // NuxtLinkがクエリパラメータを含む適切なパスでレンダリングされているか検証
+ *     expect(nuxtLink.attributes('to')).toBe('/internal?id=123');
+ *     // モック関数が正しく呼び出されたことを確認
+ *     expect(useLocalePath).toHaveBeenCalled()
+ *   })
+ * })
+ */
+
+/*
+ * TODO: Nuxt依存部分のtoLocalePathをモックしている関係で、戻り値がmocked-pathにしかならずhashのテストが出来ない
+ * describe(':hash', () => {
+ *   it('appends hash parameters to internal links', async () => {
+ *     // 環境をNuxtとしてモック
+ *     vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+ */
+
+/*
+ *     const wrapper = mount(HaLink, {
+ *       props: { to: '/intenal', hash: '#hash'},
+ *     })
+ */
+
+/*
+ *     await nextTick()
+ *     // NuxtLinkを探す
+ *     const nuxtLink = wrapper.find('nuxt-link');
+ *     expect(nuxtLink.exists()).toBe(true);
+ *     // NuxtLinkがクエリパラメータを含む適切なパスでレンダリングされているか検証
+ *     expect(nuxtLink.attributes('to')).toBe('/internal#hash');
+ *     // モック関数が正しく呼び出されたことを確認
+ *     expect(useLocalePath).toHaveBeenCalled()
+ *   })
+ * })
+ */
+
+describe('<nuxt-link>', () => {
+  /*
+   * TODO : テスト自体は通るが[Vue warn]: Failed to resolve component: nuxt-link のWARNが出るのでコメントアウト
+   * it('use router-link', async () => {
+   *   vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+   *   const wrapper = mount(HaLink, {
+   *     props: {
+   *       to: '/link',
+   *     },
+   *   })
+   *   const nuxtLink = wrapper.find('nuxt-link')
+   *   expect(nuxtLink.exists()).toBe(true)
+   * })
+   */
+  it('external link must be <a>', () => {
+    vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+    const wrapper = mount(HaLink, {
+      props: {
+        to: 'https://example.com',
+      },
+    })
+    expect(wrapper.find('a').exists()).toBeTruthy()
+  })
+  it('force <a> link', () => {
+    vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+    const wrapper = mount(HaLink, {
+      props: {
+        to: '/link',
+        forceAnchorLink: true,
+      },
+    })
+    expect(wrapper.find('a').exists()).toBeTruthy()
+  })
 })
 ````
 
@@ -2137,6 +3326,91 @@ exports[`mount component 1`] = `
 `;
 ````
 
+## File: layers/base/app/test/components/hm/input/HmInputRadio.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import HmInputRadio from '#base/app/components/hm/input/HmInputRadio.vue'
+
+test('ref component', () => {
+  expect(HmInputRadio).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HmInputRadio, {
+    props: {
+      name: 'test name',
+      value: 1,
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+describe('props', () => {
+  it(':name', () => {
+    const wrapper = mount(HmInputRadio, {
+      props: {
+        name: 'test name',
+        value: 1,
+      },
+    })
+    expect(wrapper.get('input[type="radio"]').attributes('name')).toBe(
+      'test name',
+    )
+  })
+  it(':value', async () => {
+    const wrapper = mount(HmInputRadio, {
+      props: {
+        name: 'test name',
+        value: 1,
+      },
+    })
+    await wrapper.vm.$nextTick()
+    expect(wrapper.props('value')).toBe(1)
+    /*
+     * NOTE: NG例。propsではなくvalueで取得しようとすると、レンダリングされたDOMのvalueがfalseとなっているので、テスト結果にfalseが返ってくるので取得不可。下記取れそうで取れない例
+     * NOTE: NG例1
+     * expect(
+     *   (wrapper.find('input[type="radio"]').element as HTMLInputElement).value
+     * ).toBe('1')
+     * NOTE: NG例2
+     * expect(wrapper.find('input[type="radio"]').attributes('value')).toBe('1')
+     */
+  })
+  it(':checked', () => {
+    const wrapper = mount(HmInputRadio, {
+      props: {
+        name: 'test name',
+        value: 1,
+        checked: true,
+      },
+    })
+    expect(
+      (wrapper.get('input[type="radio"]').element as HTMLInputElement).checked,
+    ).toBeTruthy()
+  })
+})
+describe('emits', () => {
+  it(':change', async () => {
+    const wrapper = mount(HmInputRadio, {
+      props: {
+        name: 'test name',
+        value: 1,
+      },
+    })
+    await wrapper.setProps({ value: 2 })
+    await wrapper.get('input[type="radio"]').trigger('change')
+    setTimeout(() => {
+      expect(wrapper.emitted()).toHaveProperty('change')
+      expect(wrapper.emitted()['change']).toHaveLength(1)
+      /*
+       * TODO: Zodのエラーメッセージを二重否定で真偽値をemitする際と同様に、emitは行われているが値の変更が正しくテストできず、NaNが検出する。
+       * expect(wrapper.emitted()['change']).toEqual([[2]])
+       */
+    }, 1)
+  })
+})
+````
+
 ## File: layers/base/app/test/components/hm/input/HmInputRadioChangeable.spec.ts
 ````typescript
 import { mount } from '@vue/test-utils'
@@ -2428,6 +3702,96 @@ describe('props', () => {
 })
 ````
 
+## File: layers/base/app/test/components/hm/HmClipping.spec.ts
+````typescript
+import { mount, shallowMount } from '@vue/test-utils'
+import HmClipping from '#base/app/components/hm/HmClipping.vue'
+
+test('ref component', () => {
+  expect(HmClipping).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HmClipping, {
+    props: {
+      src: '',
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+test('props', () => {
+  const wrapper = mount(HmClipping, {
+    props: {
+      src: '',
+      width: 256,
+      height: 256,
+      cropperAreaHeight: 0,
+      doResize: true,
+      stencil: 'RectangleStencil',
+      imageRestriction: 'stencil',
+      autoZoom: false,
+      ext: 'jpeg',
+    },
+  })
+  expect(wrapper.props('src')).toStrictEqual('')
+  expect(wrapper.props('width')).toStrictEqual(256)
+  expect(wrapper.props('height')).toStrictEqual(256)
+  expect(wrapper.props('cropperAreaHeight')).toStrictEqual(0)
+  expect(wrapper.props('doResize')).toStrictEqual(true)
+  expect(wrapper.props('stencil')).toStrictEqual('RectangleStencil')
+  expect(wrapper.props('imageRestriction')).toStrictEqual('stencil')
+  expect(wrapper.props('autoZoom')).toStrictEqual(false)
+  expect(wrapper.props('ext')).toStrictEqual('jpeg')
+})
+
+describe('events', () => {
+  it(':button click to emit clipped', async () => {
+    // NOTE: mountしてcomponentを展開すると、「Error: connect ECONNREFUSED」になる
+    const wrapper = shallowMount(HmClipping, {
+      props: {
+        src: '/dummy',
+        width: 256,
+        height: 256,
+        cropperAreaHeight: 0,
+        doResize: true,
+        stencil: 'RectangleStencil',
+        imageRestriction: 'stencil',
+        autoZoom: false,
+        ext: 'jpeg',
+      },
+    })
+    await wrapper.find('ha-base-button-stub').trigger('click')
+    expect(wrapper.emitted()).toHaveProperty('clipped')
+    expect(wrapper.emitted()['clipped']).toHaveLength(1)
+    expect(wrapper.emitted()['clipped']).toEqual([[[]]])
+  })
+
+  // TODO: Cropperのchangeのテスト
+  it(':Cropper change', () => {
+    // NOTE: mountしてcomponentを展開すると、「Error: connect ECONNREFUSED」になる
+    const _wrapper = shallowMount(HmClipping, {
+      props: {
+        src: '/dummy',
+        width: 256,
+        height: 256,
+        cropperAreaHeight: 0,
+        doResize: true,
+        stencil: 'RectangleStencil',
+        imageRestriction: 'stencil',
+        autoZoom: false,
+        ext: 'jpeg',
+      },
+    })
+    /*
+     * ERROR: 発火はできるが、canvas.toDataURLが読めず、vi.importActualにてcanvas.toDataURLのみを偽装してもエラーとなったのでコメントアウトする
+     * await wrapper.find('cropper-stub').trigger('change')
+     */
+  })
+})
+````
+
 ## File: layers/base/app/test/components/hm/HmMenuExample.spec.ts
 ````typescript
 import { mount } from '@vue/test-utils'
@@ -2693,6 +4057,191 @@ test('doObserve', () => {
     doObserve: {},
   }
   expect(doObserve()).toMatchObject(expectObj)
+})
+````
+
+## File: layers/base/app/test/composables/useDefaultApi.spec.ts
+````typescript
+// NOTE: そもそももっといいテストあれば是非
+import { UseFetchOptions } from 'nuxt/app'
+import { FetchOptions } from 'ofetch'
+import useDefaultApi, { defaultFetcher } from '#base/app/composables/useDefaultApi'
+
+vi.mock('#app', () => ({
+  // NOTE:  defineNuxtPluginでエラーが出るので設置
+  defineNuxtPlugin: vi.fn(),
+  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+  useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
+    return { path, options }
+  }),
+}))
+
+test('useDefaultApi', () => {
+  // NOTE: useDefaultApiで使用できるRepositoryKeyを入れた際にオブジェクトが返ってくること。この場合useDefaultApi('hoge')など存在しない場合はテストが落ちる
+  const useApiExample = useDefaultApi('example').repository.value
+  const expectObj = { get: {} }
+  expect(useApiExample).toMatchObject(expectObj)
+})
+
+test('defaultFetcher', () => {
+  const path = '/example'
+  const options = {}
+  // useFetchが発火することを確認。戻り値はmockの戻り値とする
+  expect(defaultFetcher(path, options)).toStrictEqual({ path, options })
+})
+````
+
+## File: layers/base/app/test/composables/useExample.spec.ts
+````typescript
+import type { NitroFetchRequest } from 'nitropack'
+import { useExample } from '#base/app/composables/useExample'
+
+// Nuxtのpayloadの一部をmockする
+const useStateState: Record<string, any> = {} // eslint-disable-line @typescript-eslint/no-explicit-any
+
+vi.mock('#app', () => ({
+  defineNuxtPlugin: vi.fn(),
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  useState: vi.fn((key: string, init?: () => any) => {
+    useStateState[key] = { value: init?.() }
+    return useStateState[key]
+  }),
+
+  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+  useFetch: vi.fn(() => ({
+    status: 'ok',
+    data: {
+      todos: [
+        {
+          userId: 0,
+          id: 0,
+          title: 'Do something!',
+          completed: true,
+        },
+        {
+          userId: '1',
+          id: '1',
+          title: 'Say hello',
+          completed: false,
+        },
+      ],
+    },
+  })),
+}))
+
+vi.mock('#base/app/plugins/runtimeConfig', () => ({
+  requireRuntimeConfig: vi.fn(() => ({
+    public: {
+      baseUrl: 'http://localhost:3000',
+      apiPrefix: '/mock',
+    },
+  })),
+}))
+
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、fetchをすげ替えたいのでダミーとなるmock作成
+vi.mock('#base/app/plugins/fetch', () => {
+  return {
+    pluginFetchApi: vi.fn((_path: string, _options: NitroFetchRequest) => {
+      return {
+        status: 'ok',
+        data: {
+          todos: [
+            {
+              userId: 0,
+              id: 0,
+              title: 'Do something!',
+              completed: true,
+            },
+            {
+              userId: '1',
+              id: '1',
+              title: 'Say hello',
+              completed: false,
+            },
+          ],
+        },
+      }
+    }),
+  }
+})
+
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、 ofetch をすげ替えたいのでダミーとなるmock作成
+vi.mock('ofetch', () => {
+  return {
+    $fetch: vi.fn((_path: string, _options: NitroFetchRequest) => {
+      return {
+        status: 'ok',
+        data: {
+          todos: [
+            {
+              userId: 0,
+              id: 0,
+              title: 'Do something!',
+              completed: true,
+            },
+            {
+              userId: '1',
+              id: '1',
+              title: 'Say hello',
+              completed: false,
+            },
+          ],
+        },
+      }
+    }),
+  }
+})
+
+describe('useExample', () => {
+  it('should be able to get example', () => {
+    const { exampleRef, exampleState } = useExample()
+    expect(exampleRef.value).toEqual(undefined)
+    expect(exampleState.value).toEqual(undefined)
+  })
+
+  it('should be able to change example', async () => {
+    const { exampleRef, exampleState, getExample } = useExample()
+    const result = await getExample()
+    const checkObject = [
+      {
+        userId: 0,
+        id: 0,
+        title: 'Do something!',
+        completed: true,
+      },
+      {
+        userId: '1',
+        id: '1',
+        title: 'Say hello',
+        completed: false,
+      },
+    ]
+    expect(result).toEqual(checkObject)
+    expect(exampleState.value).toEqual(checkObject)
+    expect(exampleRef.value).toEqual(checkObject)
+  })
+
+  /*
+   * TODO: このテストはしたいけど、現状はuseStateモックのテストになってしまっているので、コメントアウトしておく。うまい方法があればコメントアウトを解除して、実装して、このコメントを削除してください
+   * it("should share example's latest state", () => {
+   *   const { example } = useExample()
+   *   expect(example.value).toEqual([
+   *     {
+   *       userId: 0,
+   *       id: 0,
+   *       title: 'Do something!',
+   *       completed: true,
+   *     },
+   *     {
+   *       userId: '1',
+   *       id: '1',
+   *       title: 'Say hello',
+   *       completed: false,
+   *     },
+   *   ])
+   * })
+   */
 })
 ````
 
@@ -3270,6 +4819,27 @@ describe('defaultRepositories', () => {
 })
 ````
 
+## File: layers/base/app/test/utils/error.spec.ts
+````typescript
+import { unreachable } from '#base/app/utils/error'
+
+test('unreachable', () => {
+  const x: number = 10
+  if (typeof x === 'number') {
+    // ここにしか来ない
+  } else {
+    unreachable(x)
+  }
+})
+
+test('raiseError', () => {
+  const xs: number[] = []
+  expect(() => {
+    const _ = xs[0] ?? raiseError('0th element is nothing')
+  }).toThrow()
+})
+````
+
 ## File: layers/base/app/test/utils/i18n.spec.ts
 ````typescript
 test('関数のexportがないので、#base/app/utils/i18nモジュールへのテストはなし', () => {})
@@ -3296,6 +4866,30 @@ describe('writableClone', () => {
     // その他、nullになるもの。
     expect(writableClone([NaN])).not.toStrictEqual([NaN])
     expect(writableClone([Infinity])).not.toStrictEqual([Infinity])
+  })
+})
+````
+
+## File: layers/base/app/test/utils/sleep.spec.ts
+````typescript
+import { sleep } from '#base/app/utils/sleep'
+
+describe('sleep test', () => {
+  it('diff of start time and end time', async () => {
+    const startTime = Date.now()
+    await sleep(100)
+    const endTime = Date.now()
+    const diffTime = endTime - startTime
+    /**
+     * @privateRemarks
+     * startTimeから100ミリ秒離してendTimeを測って
+     * 100ミリ秒差をテスト判定基準としているが、
+     * setTimeout自体が処理の重さなど環境で変わる不安定なため、
+     * 100ミリ秒より一割余裕をみて90ミリ秒でテストする
+     * https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#timers
+     * 「この API は、タイマーがスケジュールどおりに正確に実行されることを保証しません。CPU 負荷や他のタスクなどによる遅延が予想されます。」
+     */
+    expect(diffTime).toBeGreaterThanOrEqual(90)
   })
 })
 ````
@@ -3416,6 +5010,60 @@ describe('session storage control test', () => {
     setSessionStorageValue(key, value)
     removeSessionStorageValue(key)
     expect(getSessionStorageValue(key)).toBe(null)
+  })
+})
+````
+
+## File: layers/base/app/test/utils/token.spec.ts
+````typescript
+import { test } from '@fast-check/vitest'
+import { decodeJwt } from '#base/app/utils/token'
+
+describe('decodeJwt', () => {
+  test('decode valid jwt', () => {
+    const jwt
+      = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzWXcXNrz0ogtVhfEd2o'
+    const decoded = decodeJwt(jwt)
+    expect(decoded).toMatchObject({
+      sub: '1234567890',
+      name: 'John Doe',
+      iat: 1516239022,
+    })
+  })
+  describe('decode invalid jwt', () => {
+    // 正直これは null になってほしいなあ
+    test.fails('invalid jwt (verify fails)', () => {
+      const jwt
+        = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzWXcXNrz0ogtVhfEd2p'
+      const decoded = decodeJwt(jwt)
+      expect(decoded, '検証が失敗したら null が返ってほしい').toBe(null)
+    })
+    test('decode valid (non-secure) jwt', () => {
+      const jwt
+        = 'eyJhbGciOiJub25lIn0.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.'
+      const decoded = decodeJwt(jwt)
+      expect(decoded, 'alg: none とかでも通る（これええんか？）').toMatchObject(
+        {
+          'iss': 'joe',
+          'exp': 1300819380,
+          'http://example.com/is_root': true,
+        },
+      )
+    })
+    test('invalid jwt', () => {
+      const decoded = decodeJwt('.eyJmb28iOiJiYXIifQ.')
+      expect(decoded, 'なんならalg無くても通る').toMatchObject({
+        foo: 'bar',
+      })
+    })
+    /*
+     * ERROR: テストとして正しいが、ターミナルにエラーが出るためコメントアウト。
+     * test('decode failes', () => {
+     *   const jwt = '################'
+     *   const decoded = decodeJwt(jwt)
+     *   expect(decoded, '失敗してnullが返る').toBe(null)
+     * })
+     */
   })
 })
 ````
@@ -3561,6 +5209,21 @@ export const equal = <T>(xs: T[], ys: T[]): boolean => {
 }
 ````
 
+## File: layers/base/app/utils/constant.ts
+````typescript
+/**
+ * runtimeConfig・appConfigに置けない・置かない定数を置く場所。
+ * 内容がこれなのでユニットテストは必要ない。
+ */
+export const constant = {
+  /**
+   * [[constant]] を{}型にしないためのダミー。
+   * 他の項目が追加されたら、これを削除してください。
+   */
+  dummy: 'dummy',
+} as const
+````
+
 ## File: layers/base/app/utils/environment.ts
 ````typescript
 import { getCurrentInstance } from 'vue'
@@ -3614,6 +5277,40 @@ import { WritableDeep } from 'type-fest'
  */
 export const writableClone = <T>(object: T): WritableDeep<T> => {
   return JSON.parse(JSON.stringify(object)) as WritableDeep<T>
+}
+````
+
+## File: layers/base/app/utils/sleep.ts
+````typescript
+import { nextTick } from 'vue'
+
+/**
+ * @desc 特定のミリ秒処理を止める。testなどでDOM改変などの非同期に使用
+ * @param { number } ms
+ */
+export const sleep = (ms: number): Promise<void> =>
+  new Promise<void>(resolve =>
+    setTimeout(() => {
+      resolve()
+    }, ms),
+  )
+
+// NOTE: どうしてこれで直っているのかは不明
+/**
+ * `await wrapper.get('input[type="text"]').setValue('12345678901')`
+ * などのアクションを待った時に、後続の`expect()`が失敗する場合に使う関数。
+ * ```ts
+ * await wrapper.get('input[type="text"]').setValue('12345678901')
+ * await waitEffect()
+ * expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
+ * ```
+ * https://github.com/vuejs/vue-test-utils/issues/1406
+ */
+export const waitEffect = async () => {
+  await nextTick()
+  await new Promise(resolve =>
+    requestAnimationFrame(resolve),
+  )
 }
 ````
 
@@ -3728,6 +5425,32 @@ export const setSessionStorageValue = (key: string, value: string) => {
  */
 export const removeSessionStorageValue = (key: string) => {
   sessionStorage.removeItem(key)
+}
+````
+
+## File: layers/base/app/utils/token.ts
+````typescript
+/**
+ * JWTのデコード
+ */
+export const decodeJwt = (jwt: string): unknown => {
+  try {
+    const base64Url = jwt.split('.')[1]
+    const base64 = base64Url?.replace(/-/g, '+').replace(/_/g, '/')
+    if (!base64) throw new Error('Failed to decode base64')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        })
+        .join(''),
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    console.error(`${e}`)
+    return null
+  }
 }
 ````
 
@@ -5005,6 +6728,128 @@ export default {
 };
 ````
 
+## File: layers/main/app.config.ts
+````typescript
+// ref: https://v3.nuxtjs.org/guide/directory-structure/app.config
+// note: Do not put any secret values inside app.config file. It is exposed to the user client bundle.
+
+import { readEnvType } from './config/models/EnvType'
+import { getAppConfigOfEnvType } from './config/appConfig'
+
+// eslint-disable-next-line no-undef
+export default defineAppConfig(
+  getAppConfigOfEnvType(readEnvType(process.env), process.env)
+)
+````
+
+## File: layers/main/eslint.config.mjs
+````
+import typescriptEslint from '@typescript-eslint/eslint-plugin'
+import globals from 'globals'
+import stylistic from '@stylistic/eslint-plugin'
+import sharedConfig, { basicConfig } from '../../eslint.config.shared.mjs'
+import withNuxt from './.nuxt/eslint.config.mjs'
+
+export default withNuxt(
+  ...sharedConfig,
+
+  // VueとNuxtの基本設定
+  {
+    files: ['**/*.vue'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        // NOTE: eslint実行時に `error 'something' is not defined no-undef` のようなエラーが出て、'something'が既知のものだったら（例えばauto-importなどでimportされることがわかっている・標準ライブラリに載っている、など。）、ここ（もしくは下の「オーバーライド」）に `something: true` と追加してください
+        IntersectionObserverInit: true,
+      },
+    },
+    rules: {
+      'vue/no-unused-components': 'off',
+      'vue/no-multiple-template-root': 'off',
+      'vue/no-v-model-argument': 'off',
+      'vue/no-v-html': 'error',
+      'vue/multi-word-component-names': 'off',
+      'vue/html-self-closing': 'off', // prettierと競合するため、off
+    },
+  },
+  // composablesやplugins・middlewareなども含む設定
+  {
+    files: ['**/*.vue', '**/*.ts'],
+    languageOptions: {
+      globals: {
+        // NOTE: eslint実行時に `error 'something' is not defined no-undef` のようなエラーが出て、'something'が既知のものだったら（例えばauto-importなどでimportされることがわかっている・標準ライブラリに載っている、など。）、ここ（もしくは下の「オーバーライド」）に `something: true` と追加してください
+        WritableComputedRef: true,
+        defineNuxtConfig: true,
+      },
+    },
+    rules: {
+      /*
+       * ERROR  Cannot use 'import.meta' outside a module                                                                                                                                                                                                                                                               9:08:45 PM
+       * asyncContext: !!__NUXT_ASYNC_CONTEXT__ && import.meta.server
+       * ^^^^
+       * `yarn fix`すると`process.server`が`import.meta.server`に置き換えられて↑が発生するので、off
+       */
+      'nuxt/prefer-import-meta': 'off',
+    },
+  },
+
+  // tsconfigが必要なルールの設定
+  {
+    files: [
+      '**/*.ts',
+      '**/*.mts',
+      '**/*.cts',
+      '**/*.vue',
+      // 'Parsing error: Type expected'するので.tsxは除外
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: './tsconfig.json',
+      },
+    },
+    rules: {
+      ...typescriptEslint.configs.recommended.rules,
+      ...typescriptEslint.configs['recommended-type-checked'].rules,
+      ...basicConfig.rules,
+      '@typescript-eslint/restrict-template-expressions': 'off', // string interpolation `${e}` のeには、任意の型の値を許す
+      '@typescript-eslint/no-unsafe-call': 'off', // auto-importした関数がanyに推測されるので、off
+      // .vueの下記TODOコメントを参照 -- TODO: 「下記TODOコメント」はどこにいった？
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+    },
+  },
+
+  /*
+   * コーディングスタイルの設定（そのうちnuxt.config.tsに書けないもの）
+   * https://eslint.style/rules
+   */
+  {
+    plugins: {
+      '@stylistic': stylistic,
+    },
+    rules: {
+      '@stylistic/multiline-comment-style': ['warn', 'starred-block'],
+    },
+  },
+
+  // その他オーバーライド
+  {
+    files: ['**/test/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.jest,
+        vi: true,
+      },
+    },
+    rules: {
+      '@typescript-eslint/unbound-method': 'off', // テスト内でvi.fn()などを注入するために許可
+    },
+  },
+)
+````
+
 ## File: layers/main/tsconfig.json
 ````json
 {
@@ -5722,6 +7567,67 @@ bun run repomix
 git add repomix-output.md
 ````
 
+## File: layers/base/@types/components.d.ts
+````typescript
+/* eslint-disable */
+// @ts-nocheck
+// Generated by unplugin-vue-components
+// Read more: https://github.com/vuejs/core/pull/3399
+// biome-ignore lint: disable
+export {}
+
+/* prettier-ignore */
+declare module 'vue' {
+  export interface GlobalComponents {
+    HaBaseButton: typeof import('./../app/components/ha/base/HaBaseButton.vue')['default']
+    HaBaseInput: typeof import('./../app/components/ha/base/HaBaseInput.vue')['default']
+    HaContainer: typeof import('./../app/components/ha/HaContainer.vue')['default']
+    HaDialog: typeof import('./../app/components/ha/HaDialog.vue')['default']
+    HaDialogElement: typeof import('./../app/components/ha/HaDialogElement.vue')['default']
+    HaHamburger: typeof import('./../app/components/ha/HaHamburger.vue')['default']
+    HaImage: typeof import('./../app/components/ha/HaImage.vue')['default']
+    HaLabel: typeof import('./../app/components/ha/HaLabel.vue')['default']
+    HaLink: typeof import('./../app/components/ha/HaLink.vue')['default']
+    HaLoading: typeof import('./../app/components/ha/HaLoading.vue')['default']
+    HaLoadingIcon: typeof import('./../app/components/ha/HaLoadingIcon.vue')['default']
+    HaModal: typeof import('./../app/components/ha/HaModal.vue')['default']
+    HaSelectBox: typeof import('./../app/components/ha/HaSelectBox.vue')['default']
+    HaSkewBackground: typeof import('./../app/components/ha/HaSkewBackground.vue')['default']
+    HaTag: typeof import('./../app/components/ha/HaTag.vue')['default']
+    HaTextarea: typeof import('./../app/components/ha/HaTextarea.vue')['default']
+    HaVideo: typeof import('./../app/components/ha/HaVideo.vue')['default']
+    HmAccordion: typeof import('./../app/components/hm/HmAccordion.vue')['default']
+    HmAutoCarousel: typeof import('./../app/components/hm/HmAutoCarousel.vue')['default']
+    HmButton: typeof import('./../app/components/hm/button/HmButton.vue')['default']
+    HmButtonClose: typeof import('./../app/components/hm/button/HmButtonClose.vue')['default']
+    HmButtonFavorite: typeof import('./../app/components/hm/button/HmButtonFavorite.vue')['default']
+    HmClipping: typeof import('./../app/components/hm/HmClipping.vue')['default']
+    HmDialogElement: typeof import('./../app/components/hm/HmDialogElement.vue')['default']
+    HmIconUser: typeof import('./../app/components/hm/icon/HmIconUser.vue')['default']
+    HmInputCheckbox: typeof import('./../app/components/hm/input/HmInputCheckbox.vue')['default']
+    HmInputDatetime: typeof import('./../app/components/hm/input/HmInputDatetime.vue')['default']
+    HmInputFile: typeof import('./../app/components/hm/input/HmInputFile.vue')['default']
+    HmInputRadio: typeof import('./../app/components/hm/input/HmInputRadio.vue')['default']
+    HmInputRadioChangeable: typeof import('./../app/components/hm/input/HmInputRadioChangeable.vue')['default']
+    HmInputSingleImage: typeof import('./../app/components/hm/input/HmInputSingleImage.vue')['default']
+    HmInputText: typeof import('./../app/components/hm/input/HmInputText.vue')['default']
+    HmMenuExample: typeof import('./../app/components/hm/HmMenuExample.vue')['default']
+    HmNoteList: typeof import('./../app/components/hm/HmNoteList.vue')['default']
+    HmPaging: typeof import('./../app/components/hm/HmPaging.vue')['default']
+    HmPicture: typeof import('./../app/components/hm/HmPicture.vue')['default']
+    HmPopup: typeof import('./../app/components/hm/HmPopup.vue')['default']
+    HmSkeletonScreen: typeof import('./../app/components/hm/HmSkeletonScreen.vue')['default']
+    HmSlider: typeof import('./../app/components/hm/HmSlider.vue')['default']
+    HmSliderItem: typeof import('./../app/components/hm/HmSliderItem.vue')['default']
+    HmSocialShareLink: typeof import('./../app/components/hm/HmSocialShareLink.vue')['default']
+    HmTab: typeof import('./../app/components/hm/HmTab.vue')['default']
+    HmTsx: typeof import('./../app/components/hm/HmTsx.vue')['default']
+    RouterLink: typeof import('vue-router')['RouterLink']
+    RouterView: typeof import('vue-router')['RouterView']
+  }
+}
+````
+
 ## File: layers/base/app/assets/styles/_base.scss
 ````scss
 @use 'variables' as v;
@@ -6206,75 +8112,6 @@ const onClick = () => emits('click')
 </style>
 ````
 
-## File: layers/base/app/components/ha/HaImage.vue
-````vue
-<template>
-  <img
-    ref="imageElement"
-    class="ha-image"
-    :loading="isLazy ? 'lazy' : 'eager'"
-    :fetchpriority="fetchPriority"
-    :src="imageUrl"
-    :alt="alt || ''"
-    :role="alt ? 'img' : 'presentation'"
-    :decoding="decoding"
-    @error="onError"
-    @load="onImageLoad"
-  />
-</template>
-
-<script setup lang="ts">
-import defaultNoImage from '@@/public/images/no-image.png'
-
-const props = withDefaults(
-  defineProps<{
-    /**
-     * src 属性に渡されるもの。
-     * 無指定で '/images/no-image.png'、
-     * エラー時に「無」の画像に置き換えられる。
-     */
-    src?: string | null
-    alt?: string | null
-    /** デフォルト有効(loading="eager") :is-lazy="true" でloading="lazy" */
-    isLazy?: boolean
-    fetchPriority?: 'low' | 'high' | 'auto' | null
-    decoding?: 'sync' | 'async' | 'auto'
-    /** エラー時の置き換え「無」画像のurl */
-    noImage?: string
-  }>(),
-  {
-    src: '',
-    alt: null,
-    isLazy: false,
-    fetchPriority: 'low',
-    decoding: 'auto',
-    noImage: '',
-  },
-)
-const hasError = ref(false)
-const onError = () => {
-  hasError.value = true
-}
-
-const imageUrl = computed(() =>
-  hasError.value
-    ? props.noImage || defaultNoImage
-    : props.src || defaultNoImage,
-)
-
-// imgにwidthとheightを自動付与する
-const imageElement = ref<HTMLImageElement | null>(null)
-const onImageLoad = (): void => {
-  if (imageElement.value) {
-    const width = imageElement.value.naturalWidth
-    const height = imageElement.value.naturalHeight
-    imageElement.value.width = width
-    imageElement.value.height = height
-  }
-}
-</script>
-````
-
 ## File: layers/base/app/components/ha/HaLabel.vue
 ````vue
 <template>
@@ -6312,78 +8149,107 @@ const style = computed(() => ({
 </script>
 ````
 
-## File: layers/base/app/components/ha/HaLink.vue
+## File: layers/base/app/components/ha/HaLoading.vue
 ````vue
 <template>
-  <component
-    :is="component"
-    class="ha-link"
-    v-bind="{ [isNuxtLink ? 'to' : 'href']: linkTo }"
-    :target="blank ? '_blank' : undefined"
-    :rel="rel"
+  <div
+    v-if="loading"
+    class="ha-loading"
   >
-    <slot />
-  </component>
+    <template v-if="cover">
+      <div class="cover" />
+    </template>
+    <div class="loader spinner-container">
+      <svg
+        class="spinner"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 70 70"
+        width="120px"
+        height="120px"
+      >
+        <path
+          d="M65,35c0-16.57-13.43-30-30-30S5,18.43,5,35H0C0,15.67,15.67,0,35,0s35,15.67,35,35h-5Z"
+          style="fill: #0583f2"
+        >
+          <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="rotate"
+            from="0,35,35"
+            to="360,35,35"
+            dur="2s"
+            repeatCount="indefinite"
+          />
+        </path>
+      </svg>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { LocationQuery, stringifyQuery } from 'vue-router'
-
 const props = withDefaults(
   defineProps<{
-    to: string
-    blank?: boolean
-    rel?: HTMLAnchorElement['rel']
-    forceAnchorLink?: boolean
-    noLocale?: boolean
-    // toにqueryパラメータを入れてしまうと、localePathで消えるため、こちらのパラメータを使用してリンクを生成
-    query?: LocationQuery
-    /*
-     * toにhashパラメータを入れてしまうと、localePathで消えるため、こちらのパラメータを使用してリンクを生成
-     * 使う場合は「#」を先頭につけること
-     */
-    hash?: string
+    manual?: boolean
+    cover?: boolean
   }>(),
   {
-    blank: false,
-    rel: undefined,
-    forceAnchorLink: false,
-    noLocale: false,
-    query: undefined,
-    hash: undefined,
+    manual: false,
+    cover: false,
   },
 )
-const isExternalReference = computed(() => !!props.to?.match(/^https?:\/\//))
-const isNuxtLink = computed(
-  // FIXME: isNuxtEnvironment() が壊れている
-  () =>
-    /* isNuxtEnvironment() && */ !props.forceAnchorLink
-    && !isExternalReference.value,
-)
-const component = computed(() =>
-  isNuxtLink.value ? resolveComponent('nuxt-link') : 'a',
-)
-const linkTo = computed(() => {
-  if (!isNuxtLink.value) {
-    return toUrl(props)
-  }
 
-  const localePath = useLocalePath()
-  return localePath({ path: props.to, query: props.query, hash: props.hash })
-})
-const toUrl = ({
-  to,
-  query,
-  hash,
-}: {
-  to: string
-  query?: LocationQuery
-  hash?: string
-}) => {
-  const queryStr = query ? `?${stringifyQuery(query)}` : ''
-  return `${to}${queryStr}${hash ?? ''}`
-}
+/*
+ * ここでの `manual` とは auto start の意味であり、Nuxtのloading機能を使わず
+ * 自前で（外側からv-ifを使って）loadingを出すためのもの
+ */
+const loading = ref(props.manual)
 </script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+
+.ha-loading {
+  position: fixed;
+  z-index: v.$zindex-loading;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100vw;
+  height: 100vh;
+
+  background: rgb(0 0 0 / 70%);
+
+  > .cover {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    background-color: v.$white;
+  }
+}
+
+.spinner-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 120px;
+  height: 120px;
+  margin: auto;
+
+  > .spinner {
+    display: block;
+
+    width: 120px;
+    max-width: 50%;
+    height: 120px;
+    max-height: 50%;
+    margin: auto;
+  }
+}
+</style>
 ````
 
 ## File: layers/base/app/components/ha/HaLoadingIcon.vue
@@ -6586,6 +8452,151 @@ const onClick = () => {
   }
 }
 </style>
+````
+
+## File: layers/base/app/components/ha/HaVideo.vue
+````vue
+<template>
+  <video
+    ref="haVideoRef"
+    class="ha-video"
+    :src="src"
+    :autoplay="autoplay"
+    :autopictureinpicture="autopictureinpicture"
+    :controls="controls"
+    :disablepictureinpicture="disablepictureinpicture"
+    :controlslist="controlslist"
+    :crossorigin="crossorigin"
+    :disableremoteplayback="disableremoteplayback"
+    :x-webkit-airplay="disableremoteplayback ? 'deny' : false"
+    :width="width"
+    :height="height"
+    :loop="loop"
+    :muted="muted"
+    :playsinline="playsinline"
+    :poster="poster"
+    :preload="preload"
+  />
+</template>
+
+<script setup lang="ts">
+const props = withDefaults(
+  defineProps<{
+    src: string
+    height?: string
+    width?: string
+    play?: boolean
+    autoplay?: boolean
+    autopictureinpicture?: boolean
+    controls?: boolean
+    disablepictureinpicture?: boolean
+    disableremoteplayback?: boolean
+    loop?: boolean
+    muted?: boolean
+    playsinline?: boolean
+    poster?: string
+    // nodownload, nofullscreen, noremoteplayback
+    controlslist?: string
+    // anonymous, use-credentials
+    crossorigin?: string
+    // none, metadata, auto
+    preload?: string
+  }>(),
+  {
+    height: '',
+    width: '',
+    autoplay: false,
+    play: false,
+    autopictureinpicture: false,
+    controls: false,
+    disablepictureinpicture: false,
+    disableremoteplayback: false,
+    loop: false,
+    muted: false,
+    playsinline: false,
+    poster: '',
+    controlslist: '',
+    crossorigin: '',
+    preload: 'auto',
+  },
+)
+const emit = defineEmits<{
+  (
+    emit:
+      | 'progress'
+      | 'suspend'
+      | 'durationchange'
+      | 'loadedmetadata'
+      | 'loadeddata'
+      | 'canplay'
+      | 'playing'
+      | 'pause'
+      | 'ended'
+      | 'seeking'
+      | 'timeupdate'
+      | 'volumechange'
+      | 'ratechange'
+      | 'waiting',
+    e: Event
+  ): void
+}>()
+
+const haVideoRef = ref<HTMLVideoElement | null>(null)
+
+// note: HaVideoがmounted後にpropsを変えないとwatchされない
+watch(props, async () => {
+  if (haVideoRef.value === null) {
+    return
+  }
+
+  if (props.play) {
+    await haVideoRef.value.play()
+  } else {
+    haVideoRef.value.pause()
+  }
+})
+
+onMounted(() => {
+  haVideoRef.value?.addEventListener('progress', (e: Event) =>
+    emit('progress', e),
+  )
+  haVideoRef.value?.addEventListener('suspend', (e: Event) =>
+    emit('suspend', e),
+  )
+  haVideoRef.value?.addEventListener('durationchange', (e: Event) =>
+    emit('durationchange', e),
+  )
+  haVideoRef.value?.addEventListener('loadedmetadata', (e: Event) =>
+    emit('loadedmetadata', e),
+  )
+  haVideoRef.value?.addEventListener('loadeddata', (e: Event) =>
+    emit('loadeddata', e),
+  )
+  haVideoRef.value?.addEventListener('canplay', (e: Event) =>
+    emit('canplay', e),
+  )
+  haVideoRef.value?.addEventListener('playing', (e: Event) =>
+    emit('playing', e),
+  )
+  haVideoRef.value?.addEventListener('pause', (e: Event) => emit('pause', e))
+  haVideoRef.value?.addEventListener('ended', (e: Event) => emit('ended', e))
+  haVideoRef.value?.addEventListener('seeking', (e: Event) =>
+    emit('seeking', e),
+  )
+  haVideoRef.value?.addEventListener('timeupdate', (e: Event) =>
+    emit('timeupdate', e),
+  )
+  haVideoRef.value?.addEventListener('volumechange', (e: Event) =>
+    emit('volumechange', e),
+  )
+  haVideoRef.value?.addEventListener('ratechange', (e: Event) =>
+    emit('ratechange', e),
+  )
+  haVideoRef.value?.addEventListener('waiting', (e: Event) =>
+    emit('waiting', e),
+  )
+})
+</script>
 ````
 
 ## File: layers/base/app/components/hm/button/HmButton.vue
@@ -6840,6 +8851,118 @@ function onClick(): void {
 </style>
 ````
 
+## File: layers/base/app/components/hm/HmAccordion.vue
+````vue
+<template>
+  <button
+    :id="props.buttonname"
+    ref="accordionTrigger"
+    class="accordion-trigger"
+    :aria-expanded="isOpen"
+    role="tab"
+    :aria-controls="props.panelname"
+    type="button"
+    @click="changeExpanded"
+  >
+    <slot name="title"></slot>
+    <slot name="icon"></slot>
+  </button>
+  <div
+    :id="props.panelname"
+    ref="accordionBody"
+    class="accordion-body"
+    role="tabpanel"
+    :aria-labelledby="props.buttonname"
+  >
+    <div class="accordion-inner">
+      <slot name="content" />
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+const props = defineProps<{
+  buttonname: string
+  panelname: string
+  open?: boolean
+}>()
+
+const accordionTrigger = ref<HTMLButtonElement | null>(null)
+const accordionBody = ref<HTMLDivElement | null>(null)
+const isOpen = ref(false)
+
+onMounted(() => {
+  if (accordionBody.value && !props.open) {
+    accordionBody.value.setAttribute('hidden', 'until-found')
+  } else {
+    isOpen.value = true
+  }
+  const observer = new MutationObserver((mutationsList) => {
+    mutationsList.forEach(() => {
+      if (
+        accordionBody.value
+        && accordionTrigger.value
+        && !accordionBody.value.getAttribute('hidden')
+        && accordionTrigger.value.getAttribute('aria-expanded') === 'false'
+      ) {
+        isOpen.value = !isOpen.value
+      }
+    })
+  })
+  const config = {
+    attributes: true, // 属性の変更を監視
+    childList: false, // 直下子要素の変更を監視
+    subtree: false, // 全ての子孫要素の変更を監視
+    characterData: false, // テキストの変更を監視
+  }
+  if (accordionBody.value && accordionBody.value instanceof HTMLElement) {
+    observer.observe(accordionBody.value, config)
+  }
+})
+
+const changeExpanded = () => {
+  isOpen.value = !isOpen.value
+  if (accordionBody.value && isOpen.value) {
+    accordionBody.value.removeAttribute('hidden')
+  } else if (isOpen.value) {
+    setTimeout(() => {
+      if (accordionBody.value) {
+        accordionBody.value.setAttribute('hidden', 'until-found')
+      }
+    }, 300)
+  }
+}
+</script>
+
+<style scoped lang="scss">
+.accordion-trigger {
+  position: relative;
+  width: 100%;
+
+  &[aria-expanded='true'] {
+    + .accordion-body {
+      grid-template-rows: 1fr;
+    }
+  }
+
+  &[aria-expanded='false'] {
+    + .accordion-body {
+      grid-template-rows: 0fr;
+    }
+  }
+}
+
+.accordion-body {
+  display: grid;
+  transition: grid-template-rows 0.3s;
+
+  .accordion-inner {
+    overflow: hidden;
+  }
+}
+</style>
+````
+
 ## File: layers/base/app/components/hm/HmMenuExample.vue
 ````vue
 <template>
@@ -6916,6 +9039,65 @@ import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
   }
 }
 </style>
+````
+
+## File: layers/base/app/components/hm/HmPicture.vue
+````vue
+<template>
+  <picture classs="hm-picture">
+    <source
+      media="(max-width: 767px)"
+      :srcset="imageUrlSp"
+      class="src"
+      @error="onError"
+    />
+    <HaImage
+      :isLazy="isLazy"
+      :fetchpriority="fetchPriority"
+      :src="srcPc"
+      :alt="alt ? alt : ''"
+      :decoding="decoding"
+    />
+  </picture>
+</template>
+
+<script setup lang="ts">
+import defaultNoImage from '@@/public/images/no-image.png'
+
+const props = withDefaults(
+  defineProps<{
+    srcPc?: string | null
+    srcSp?: string | null
+    alt?: string | null
+    isLazy?: boolean
+    fetchPriority?: 'low' | 'high' | 'auto' | null
+    decoding?: 'sync' | 'async' | 'auto'
+    noImage?: string
+  }>(),
+  {
+    srcPc: '',
+    srcSp: '',
+    alt: null,
+    isLazy: true,
+    fetchPriority: 'low',
+    decoding: 'auto',
+    noImage: '',
+  },
+)
+
+// エラーハンドリング
+const hasError = ref(false)
+const onError = () => {
+  hasError.value = true
+}
+
+// SP用の画像URL
+const imageUrlSp = computed(() =>
+  hasError.value
+    ? props.noImage || defaultNoImage
+    : props.srcSp || defaultNoImage,
+)
+</script>
 ````
 
 ## File: layers/base/app/components/hm/HmPopup.vue
@@ -7207,93 +9389,6 @@ export const useStrictI18n = (
 })
 ````
 
-## File: layers/base/app/composables/useCustomIntersectionObserver.ts
-````typescript
-const defaultOptions = {
-  root: null,
-  rootMargin: '0px',
-  threshold: 0.1,
-}
-
-const doObserve = (
-  targets: {
-    element: HTMLElement
-    once?: boolean
-    delay?: number
-    inAction?: () => void
-    outAction?: () => void
-    intersectingClass?: string
-  }[],
-  options: IntersectionObserverInit = defaultOptions,
-) =>
-  targets.forEach(
-    (
-      { element, once, delay, inAction, outAction, intersectingClass },
-      index,
-    ) => {
-      const observer = new IntersectionObserver((items) => {
-        items.forEach((item) => {
-          if (item.isIntersecting) {
-            const delayParam = (delay ?? 300) * index
-            setTimeout(() => {
-              inAction?.()
-              item.target.classList.add(intersectingClass || '-intersecting')
-            }, delayParam)
-          } else {
-            outAction?.()
-            item.target.classList.remove(intersectingClass || '-intersecting')
-          }
-
-          if (item.isIntersecting && once) {
-            observer.unobserve(element)
-          }
-        })
-      }, options)
-
-      observer.observe(element)
-    },
-  )
-
-export default () => ({ doObserve })
-````
-
-## File: layers/base/app/composables/useDefaultApi.ts
-````typescript
-/**
- * Nuxt3 FWにおける API composables。
- *
- * @packageDocumentation
- */
-
-import { useFetch, UseFetchOptions } from 'nuxt/app'
-import type { FetchOptions } from 'ofetch'
-import { ref } from 'vue'
-import {
-  defaultRepositoryFactory,
-  DefaultRepositoryKey,
-} from '#base/app/utils/default-factory'
-
-export const defaultFetcher = (
-  path: string,
-  options: UseFetchOptions<FetchOptions>,
-) => {
-  return useFetch(path, options)
-}
-
-const _getRepo = <K extends DefaultRepositoryKey>(endpoint: K) => {
-  return defaultRepositoryFactory.get(endpoint)
-}
-
-export default function useDefaultApi<K extends DefaultRepositoryKey>(
-  endpoint: K,
-) {
-  const repository = ref(_getRepo(endpoint))
-  return {
-    repository,
-  }
-}
-````
-
 ## File: layers/base/app/composables/useSocialShareLink.ts
 ````typescript
 type ShareProps = {
@@ -7395,68 +9490,131 @@ export type ToastComposable = ReturnType<typeof useToast>
 export const toastInjectionKey: InjectionKey<ToastComposable> = Symbol('toast')
 ````
 
-## File: layers/base/app/middleware/locales.global.ts
+## File: layers/base/app/composables/useValidationRules.ts
 ````typescript
-import { defineNuxtRouteMiddleware, navigateTo, useNuxtApp } from 'nuxt/app'
-import { Composer, VueI18n } from 'vue-i18n'
-import {
-  getSingleCookieValue,
-  setSingleCookieValue,
-} from '../utils/storage-control'
+import { useI18n } from 'vue-i18n'
+import { z } from 'zod/v3'
 
-const jaLanguage = 'ja'
-const enLanguage = 'en'
-const cookieKey = 'VUEI18N_MANUAL_LOCALE'
+const useValidationRules = () => {
+  const i18n = useI18n()
 
-// i18用の管理を行う
-export default defineNuxtRouteMiddleware((to, _from) => {
-  if (import.meta.server) return
-  const globalI18n = useNuxtApp().$i18n as VueI18n | Composer
-  const cookieLanguage = getSingleCookieValue(cookieKey) || null
-  const toFullPath = to?.fullPath.endsWith('/')
-    ? to.fullPath
-    : `${to.fullPath}/`
-  // note: localeはComputedRefであるはず。stringならこの処理は不具合につながるからスキップ
-  if (typeof globalI18n.locale === 'string') return
-  if (!cookieLanguage) {
-    if (toFullPath.includes(`/${enLanguage}/`)) {
-      if (globalI18n.locale.value === enLanguage) {
-        setSingleCookieValue(cookieKey, enLanguage)
+  return {
+    required: z.coerce.string().nonempty({
+      message: i18n.t('validation.required'),
+    }),
+
+    /**
+     * 必須(文字列)
+     * ->文字列を選ばせるSelectBox等の必須チェックで使用する
+     */
+    stringRequired: z
+      .string({
+        invalid_type_error: i18n.t('validation.excluded'),
+      })
+      .nullable()
+      .optional()
+      .refine(
+        val => val !== null && val !== undefined,
+        i18n.t('validation.required'),
+      ),
+
+    /**
+     * 必須(数値)
+     * ->数値を選ばせるSelectBox等の必須チェックで使用する
+     */
+    numberRequired: z
+      .number({
+        invalid_type_error: i18n.t('validation.excluded'),
+      })
+      .nullable()
+      .optional()
+      .refine(
+        val => val !== null && val !== undefined,
+        i18n.t('validation.required'),
+      ),
+
+    minValue: (minimum: number) =>
+      z.coerce.string().refine(x => Number(x) >= minimum, {
+        message: i18n.t('validation.min_value', { min: minimum }),
+      }),
+
+    /**
+     * 数値・数値を表す文字列が引数に指定された値以上。
+     */
+    maxValue: (maximum: number) =>
+      z.coerce.string().refine(x => Number(x) <= maximum, {
+        message: i18n.t('validation.max_value', { max: maximum }),
+      }),
+
+    /**
+     * stringのlengthが引数に指定された値以上。
+     */
+    max: (maximum: number) =>
+      z.coerce.string().max(maximum, {
+        message: i18n.t('validation.max', { length: maximum }),
+      }),
+
+    url: z.string().url({
+      message: i18n.t('validation.url'),
+    }),
+
+    /**
+     * URLチェックをしたいが、空文字は通したい場合。
+     */
+    nonRequiredUrl: z.string().superRefine((value, ctx) => {
+      if (!value) return true // 空文字/null/undefinedは、バリデーションをスキップ
+      try {
+        z.string()
+          .url({
+            message: i18n.t('validation.url'),
+          })
+          .parse(value)
+        return true
+      } catch (_e) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: i18n.t('validation.url'),
+        })
       }
-      if (globalI18n.locale.value === jaLanguage) {
-        setSingleCookieValue(cookieKey, jaLanguage)
-        return navigateTo(toFullPath.replace(`/${enLanguage}/`, '/'))
-      }
-    } else {
-      if (globalI18n.locale.value === jaLanguage) {
-        setSingleCookieValue(cookieKey, jaLanguage)
-      }
-      if (globalI18n.locale.value === enLanguage) {
-        setSingleCookieValue(cookieKey, enLanguage)
-        const path = `/${enLanguage}${to.path}/`.replace('//', '/')
-        return navigateTo(path)
-      }
-    }
-    // pathにlocaleが含まれるかのみで判定。i18nとcookieの両方を確認して言語設定に齟齬がないように調整する。リダイレクトはさせない。
-  } else {
-    if (toFullPath.includes(`/${enLanguage}/`)) {
-      if (globalI18n.locale.value !== enLanguage) {
-        globalI18n.locale.value = enLanguage
-      }
-      if (cookieLanguage !== enLanguage) {
-        setSingleCookieValue(cookieKey, enLanguage)
-      }
-      return
-    }
-    // locale pathが設定されていない場合は、jaとして扱う
-    if (globalI18n.locale.value !== jaLanguage) {
-      globalI18n.locale.value = jaLanguage
-    }
-    if (cookieLanguage !== jaLanguage) {
-      setSingleCookieValue(cookieKey, jaLanguage)
-    }
+    }),
+
+    /**
+     * 値が引数の配列に含まれないこと。
+     */
+    excluded: <T>(excludedItems: T[]) =>
+      z.unknown().refine(
+        (x) => {
+          const items: unknown[] = excludedItems
+          return !items.includes(x)
+        },
+        {
+          message: i18n.t('validation.excluded'),
+        },
+      ),
+
+    image: (rules: { required?: boolean, maxSize?: number }) =>
+      z
+        .instanceof(File)
+        .optional()
+        .refine(data => (rules.required ? !!data : true), {
+          message: i18n.t('validation.required'),
+        })
+        .refine(
+          data =>
+            // MB単位で指定できるようにしています。
+            data && rules.maxSize !== undefined
+              ? data.size < rules.maxSize * 1024 * 1024
+              : true,
+          {
+            message: i18n.t('validation.max_value', {
+              max: `${rules.maxSize}MB`,
+            }),
+          },
+        ),
   }
-})
+}
+
+export default useValidationRules
 ````
 
 ## File: layers/base/app/models/json.ts
@@ -7556,573 +9714,6 @@ export default {
     },
   } as const,
 }
-````
-
-## File: layers/base/app/test/components/ha/base/HaBaseInput.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import HaBaseInput from '#base/app/components/ha/base/HaBaseInput.vue'
-
-test('ref component', () => {
-  expect(HaBaseInput).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HaBaseInput, {
-    props: {
-      type: 'text',
-    },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-describe('props', () => {
-  describe(':type', () => {
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).type).toBe('text')
-    })
-  })
-
-  describe(':accept', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).accept).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          accept: 'image/*',
-        },
-      })
-      expect((wrapper.element as HTMLInputElement).accept).toBe('image/*')
-    })
-  })
-
-  describe(':autocomplete', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).autocomplete).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          autocomplete: 'name',
-        },
-      })
-      expect((wrapper.element as HTMLInputElement).autocomplete).toBe('name')
-    })
-  })
-
-  describe(':autofocus', () => {
-    it('default is false', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).autofocus).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'text', autofocus: true },
-      })
-      expect((wrapper.element as HTMLInputElement).autofocus).toBeTruthy()
-    })
-  })
-
-  describe(':capture', () => {
-    it('default is undefined', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'file' } })
-      expect((wrapper.element as HTMLInputElement).capture).toBeFalsy()
-    })
-    it('pass prop: user', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'file', capture: 'user' },
-      })
-      expect(wrapper.attributes('capture')).toBe('user')
-    })
-    it('pass prop: environment', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'file', capture: 'environment' },
-      })
-      expect(wrapper.attributes('capture')).toBe('environment')
-    })
-  })
-
-  describe(':checked', () => {
-    it('default is false', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'radio' } })
-      expect((wrapper.element as HTMLInputElement).checked).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'radio', checked: true },
-      })
-      expect((wrapper.element as HTMLInputElement).checked).toBeTruthy()
-    })
-  })
-
-  describe(':disabled', () => {
-    it('default is false', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).disabled).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'text', disabled: true },
-      })
-      expect((wrapper.element as HTMLInputElement).disabled).toBeTruthy()
-    })
-  })
-
-  describe(':id', () => {
-    it('default is false', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).id).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'text', id: 'testId' },
-      })
-      expect((wrapper.element as HTMLInputElement).id).toBe('testId')
-    })
-  })
-
-  describe(':list', () => {
-    it('default is false', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).list).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'text', list: 'testDataListId' },
-      })
-      expect(wrapper.attributes('list')).toBe('testDataListId')
-    })
-  })
-
-  describe(':max', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).max).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          max: 10,
-        },
-      })
-      expect((wrapper.element as HTMLInputElement).max).toBe('10')
-    })
-  })
-
-  describe(':maxLength', () => {
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          maxLength: 10,
-        },
-      })
-      expect((wrapper.element as HTMLInputElement).maxLength).toBe(10)
-    })
-  })
-
-  describe(':min', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).min).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          min: 10,
-        },
-      })
-      expect((wrapper.element as HTMLInputElement).min).toBe('10')
-    })
-  })
-
-  describe(':minLength', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).minLength).toBe(-1)
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          minLength: 10,
-        },
-      })
-      expect((wrapper.element as HTMLInputElement).minLength).toBe(10)
-    })
-  })
-
-  describe(':multiple', () => {
-    it('default is false', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).multiple).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'text', multiple: true },
-      })
-      expect((wrapper.element as HTMLInputElement).multiple).toBeTruthy()
-    })
-  })
-
-  describe(':name', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).name).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          name: 'sample',
-        },
-      })
-      expect((wrapper.element as HTMLInputElement).name).toBe('sample')
-    })
-  })
-
-  describe(':placeholder', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).placeholder).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          placeholder: 'sample',
-        },
-      })
-      expect((wrapper.element as HTMLInputElement).placeholder).toBe('sample')
-    })
-  })
-
-  describe(':readonly', () => {
-    it('default is false', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).readOnly).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'text', readonly: true },
-      })
-      expect((wrapper.element as HTMLInputElement).readOnly).toBeTruthy()
-    })
-  })
-
-  describe(':required', () => {
-    it('default is false', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).required).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'text', required: true },
-      })
-      expect((wrapper.element as HTMLInputElement).required).toBeTruthy()
-    })
-  })
-
-  describe(':size', () => {
-    it('default is 20', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).size).toBe(20)
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          size: 10,
-        },
-      })
-      expect((wrapper.element as HTMLInputElement).size).toBe(10)
-    })
-  })
-
-  describe(':value', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect(wrapper.props('value')).toBeFalsy()
-    })
-
-    it('pass prop: string', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          value: 'string test',
-        },
-      })
-      expect(wrapper.props('value')).toBe('string test')
-    })
-
-    it('pass prop: number', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          value: 1,
-        },
-      })
-      expect(wrapper.props('value')).toBe(1)
-    })
-
-    it('pass prop: boolean', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          value: true,
-        },
-      })
-      expect(wrapper.props('value')).toBe(true)
-    })
-  })
-  describe(':modelValue', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect(wrapper.props('modelValue')).toBeFalsy()
-    })
-
-    it('pass prop: string', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          modelValue: 'string test',
-        },
-      })
-      expect(wrapper.props('modelValue')).toBe('string test')
-    })
-
-    it('pass prop: number', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          modelValue: 1,
-        },
-      })
-      expect(wrapper.props('modelValue')).toBe(1)
-    })
-
-    it('pass prop: boolean', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          modelValue: true,
-        },
-      })
-      expect(wrapper.props('modelValue')).toBe(true)
-    })
-  })
-  describe(':files', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect(wrapper.attributes('files')).toBeFalsy()
-    })
-
-    // TODO: propsのfilelistが正しくセットされるかテストを行うが下記問題でコメントアウト中
-    it('pass prop', () => {
-      // 下準備としてFileList型のダミーを作成する
-      const _createDummyFileList = (files: File[]) => {
-        return {
-          length: files.length,
-          item(index: number) {
-            return files[index] || null
-          },
-        }
-      }
-      const _file = new File([''], 'test.png')
-      const _file2 = new File([''], 'test2.png')
-      /*
-       * TODO: fileListは使用されておらず、ESlintのErrorに引っかかったのでコメントアウトしてます。 by saga
-       * const fileList: FileList = createDummyFileList([file, file2])
-       * FileListダミー作成ここまで
-       */
-
-      /*
-       * NOTE: 問題点、上記で作成したfileListをセットするとテストも通り、yarn devやvs codeでエラーも出ないが、yarn test:watchを表示しているターミナルで
-       * [Vue warn]: Failed setting prop "files" on <input>: value [object Object] is invalid. TypeError: Failed to set the 'files' property on 'HTMLInputElement': The provided value is not of type 'FileList'.
-       * が白文字で表示されるのでコメントアウトなどを以下の一部の行で行っている。
-       */
-
-      const _wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'file',
-          multiple: true,
-          /*
-           * NOTE: 下記にてfilesにfilelistを設定すると、テストはとおるが[Vue warn]が表示される
-           * files: fileList,
-           */
-        },
-      })
-      /*
-       * NOTE: 上記mount時ではなく、下記にてfilesにfilelistを設定すると、テストはとおるが[Vue warn]が表示される
-       * await wrapper.setProps({ files: fileList })
-       */
-
-      /*
-       * NOTE: 下記にてfilesにfilelistを設定すると、セットされないのかテストに落ちる。
-       * Object.defineProperty(wrapper, 'files', {
-       *   value: fileList,
-       * })
-       * https://blog.unsweets.net/entries/set-filelist-to-htmlinputelement-files/
-       * 上記参照サイトでObject.definePropertyを使うことで
-       * 「TypeError: Failed to set the 'files' property on 'HTMLInputElement': The provided value is not of type 'FileList
-       * が発生しないと記載されているが、本件ではfileListがセットされずそもそも通らない
-       */
-
-      /*
-       * NOTE: fileListをセットしてテストすると下記が通るが、[Vue warn]がターミナルに白文字で出るのでコメントアウト。
-       * expect(wrapper.props('files')).toStrictEqual(fileList)
-       */
-    })
-  })
-})
-describe('emits', () => {
-  it(':update:modelValue', async () => {
-    const wrapper = mount(HaBaseInput, {
-      props: {
-        type: 'text',
-      },
-    })
-    await wrapper.setValue('test', 'modelValue')
-    expect(wrapper.emitted()).toHaveProperty('update:modelValue')
-    expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
-    expect(wrapper.emitted()['update:modelValue']).toEqual([['test']])
-  })
-  it(':update:value', async () => {
-    const wrapper = mount(HaBaseInput, {
-      props: {
-        type: 'text',
-      },
-    })
-    await wrapper.setValue('test', 'value')
-    expect(wrapper.emitted()['update:value']).toBeTruthy()
-    expect(wrapper.emitted()).toHaveProperty('update:value')
-    expect(wrapper.emitted()['update:value']).toHaveLength(1)
-    expect(wrapper.emitted()['update:value']).toEqual([['test']])
-  })
-  it(':input', async () => {
-    const wrapper = mount(HaBaseInput, {
-      props: {
-        type: 'text',
-      },
-    })
-    // onInput発火
-    await wrapper.trigger('input')
-    expect(wrapper.emitted()).toHaveProperty('input')
-    expect(wrapper.emitted()['input']).toHaveLength(1)
-  })
-  it(':change', async () => {
-    const wrapper = mount(HaBaseInput, {
-      props: {
-        type: 'text',
-      },
-    })
-    // onChange発火
-    await wrapper.trigger('change')
-    expect(wrapper.emitted()).toHaveProperty('change')
-    expect(wrapper.emitted()['change']).toHaveLength(1)
-  })
-  describe(':input[type]', () => {
-    it(':input[type:text]', async () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-        },
-      })
-      /*
-       * NOTE: setValueではupdate:modelValueのみ更新されupdate:valueにfalseが入るので、文字列をupdate:valueでもテストしたいのであれば、setPropsしtriggerで発火する
-       * await wrapper.setValue('test')
-       */
-      await wrapper.setProps({ modelValue: 'test' })
-      // onInput発火
-      await wrapper.trigger('input')
-      // TEST: update:modelValue
-      expect(wrapper.emitted()).toHaveProperty('update:modelValue')
-      expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
-      expect(wrapper.emitted()['update:modelValue']).toEqual([['test']])
-      // TEST: update:value
-      expect(wrapper.emitted()['update:value']).toBeTruthy()
-      expect(wrapper.emitted()).toHaveProperty('update:value')
-      expect(wrapper.emitted()['update:value']).toHaveLength(1)
-      expect(wrapper.emitted()['update:value']).toEqual([['test']])
-      // TEST: input
-      expect(wrapper.emitted()).toHaveProperty('input')
-      expect(wrapper.emitted()['input']).toHaveLength(1)
-    })
-    it(':input[type:checkbox]', async () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'checkbox',
-          checked: false,
-        },
-      })
-      // チェックボックスをクリックすることでChaekedにする
-      await wrapper.trigger('click')
-      // onInput発火
-      await wrapper.trigger('input')
-      // TEST: update:modelValue
-      expect(wrapper.emitted()).toHaveProperty('update:modelValue')
-      expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
-      expect(wrapper.emitted()['update:modelValue']).toEqual([[true]])
-      // TEST: update:value
-      expect(wrapper.emitted()['update:value']).toBeTruthy()
-      expect(wrapper.emitted()).toHaveProperty('update:value')
-      expect(wrapper.emitted()['update:value']).toHaveLength(1)
-      expect(wrapper.emitted()['update:value']).toEqual([[true]])
-      // TEST: input
-      expect(wrapper.emitted()).toHaveProperty('input')
-      expect(wrapper.emitted()['input']).toHaveLength(1)
-    })
-    it(':input[type:radio]', async () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'radio',
-          value: 1,
-          checked: false,
-        },
-      })
-      // 単一のチェックボックスト違い、ラジオボタンなのでラジオボタンのグループのmodelValueを設定する。
-      await wrapper.setProps({ modelValue: 1 })
-      // onInput発火
-      await wrapper.trigger('input')
-      // TEST: update:modelValue
-      expect(wrapper.emitted()).toHaveProperty('update:modelValue')
-      expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
-      expect(wrapper.emitted()['update:modelValue']).toEqual([[1]])
-      // TEST: update:value
-      expect(wrapper.emitted()['update:value']).toBeTruthy()
-      expect(wrapper.emitted()).toHaveProperty('update:value')
-      expect(wrapper.emitted()['update:value']).toHaveLength(1)
-      expect(wrapper.emitted()['update:value']).toEqual([[1]])
-      // TEST: input
-      expect(wrapper.emitted()).toHaveProperty('input')
-      expect(wrapper.emitted()['input']).toHaveLength(1)
-    })
-  })
-})
 ````
 
 ## File: layers/base/app/test/components/ha/HaDialogElement.spec.ts
@@ -8490,334 +10081,6 @@ describe('HaDialogElement', () => {
         wrapper.vm.closeDialog()
       }).toThrow('dialog要素はnull')
     })
-  })
-})
-````
-
-## File: layers/base/app/test/components/ha/HaImage.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { describe, expect, it, test } from 'vitest'
-import HaImage from '#base/app/components/ha/HaImage.vue'
-
-/**
- * @see vitest.config.mtsのalias
- */
-const defaultNoImage = '/images/no-image.png'
-
-const customNoImage = '/images/no-image-custom.png'
-
-test('ref component', () => {
-  expect(HaImage).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HaImage, {
-    props: { src: 'img.png', alt: 'a great img' },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-describe('props', () => {
-  it(':src', () => {
-    const wrapper = mount(HaImage, { props: { src: '/image.png' } })
-    expect(wrapper.get('img').attributes('src')).toBe('/image.png')
-  })
-
-  describe(':alt', () => {
-    it('is not set (alt="")', () => {
-      const wrapper = mount(HaImage)
-      expect(wrapper.get('img').attributes('alt')).toBe('')
-    })
-
-    it('is string', () => {
-      const wrapper = mount(HaImage, { props: { alt: 'alt string' } })
-      expect(wrapper.get('img').attributes('alt')).toBe('alt string')
-    })
-  })
-
-  describe('size', () => {
-    it('no width / height', () => {
-      const wrapper = mount(HaImage)
-      expect(wrapper.get('img').attributes('width')).toBeFalsy()
-      expect(wrapper.get('img').attributes('height')).toBeFalsy()
-    })
-
-    it('set size', () => {
-      const wrapper = mount(HaImage, { props: { width: 120, height: 80 } })
-      expect(wrapper.get('img').attributes('width')).toBe('120')
-      expect(wrapper.get('img').attributes('height')).toBe('80')
-    })
-  })
-})
-
-describe('lazy loading', () => {
-  it('default is eager', () => {
-    const wrapper = mount(HaImage)
-    expect(wrapper.get('img').attributes('loading')).toBe('eager')
-  })
-
-  it(':is-lazy="true" works', () => {
-    const wrapper = mount(HaImage, { props: { isLazy: true } })
-    expect(wrapper.get('img').attributes('loading')).toBe('lazy')
-  })
-
-  it(':is-lazy="false" works', () => {
-    const wrapper = mount(HaImage, { props: { isLazy: false } })
-    expect(wrapper.get('img').attributes('loading')).toBe('eager')
-  })
-})
-
-describe('fallback images', () => {
-  it('no src loads "no-image.png"', () => {
-    const wrapper = mount(HaImage)
-    expect(wrapper.get('img').attributes('src')).toBe(defaultNoImage)
-  })
-
-  it('on error loads "no-image.png"', async () => {
-    const wrapper = mount(HaImage, { props: { src: '/foo-not-found.jpg' } })
-    await wrapper.get('img').trigger('error')
-    expect(wrapper.get('img').attributes('src')).toBe(defaultNoImage)
-  })
-
-  it('custom on-error image', async () => {
-    const wrapper = mount(HaImage, {
-      props: {
-        src: '/foo-not-found.jpg',
-        noImage: customNoImage,
-      },
-    })
-    await wrapper.get('img').trigger('error')
-    expect(wrapper.get('img').attributes('src')).toBe(customNoImage)
-  })
-})
-````
-
-## File: layers/base/app/test/components/ha/HaLink.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { describe, expect, test, vi } from 'vitest'
-import HaLink from '#base/app/components/ha/HaLink.vue'
-
-import { isNuxtEnvironment } from '#base/app/utils/environment'
-
-// useLocalePath のモック関数を定義
-beforeEach(() => {
-  vi.mock('#i18n', () => ({
-    useLocalePath: vi.fn(
-      () => vi.fn(() => `/mocked-path`), // path: string, query: LocationQuery, hash: string 引数削除 (使う時だけ入れないとreviewdogに怒られる)
-    ),
-  }))
-})
-
-afterEach(() => {
-  vi.restoreAllMocks()
-})
-
-test('ref component', () => {
-  expect(HaLink).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HaLink, {
-    props: {
-      to: 'https://example.com',
-    },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-describe(':to', () => {
-  // 外部サイトリンクのテスト
-  it('set external path', () => {
-    const wrapper = mount(HaLink, {
-      props: { to: 'https://example.com' },
-    })
-    expect(wrapper.find('a').attributes('href')).toBe('https://example.com')
-  })
-
-  // 内部リンクテスト (aタグ)
-  it('set internal path', () => {
-    const wrapper = mount(HaLink, {
-      props: { to: '/internal-path' },
-      // nuxt-linkはwarnとなるので、下記でaタグに置き換える。RouterLinkStubはtoを引き継げなくなるので使わない。
-      global: {
-        stubs: {
-          'nuxt-link': {
-            template: '<a><slot /></a>',
-          },
-        },
-      },
-    })
-    // toで入力したpathをi18nのuseLocalPathで色々変更してpathを吐き出すので、ここではmockのuseLocalPath値が検出されればOK
-    expect(wrapper.find('a').attributes('to')).toBe('/mocked-path')
-  })
-})
-
-describe(':blank', () => {
-  it('not set', () => {
-    const wrapper = mount(HaLink, {
-      props: { to: '' },
-      global: {
-        stubs: {
-          'nuxt-link': {
-            template: '<a><slot /></a>',
-          },
-        },
-      },
-    })
-    expect(wrapper.find('a').attributes('target')).toBeFalsy()
-  })
-
-  it('set true', () => {
-    const wrapper = mount(HaLink, {
-      props: { to: 'https://example.com', blank: true },
-    })
-    expect(wrapper.find('a').attributes('target')).toBe('_blank')
-  })
-
-  // <HaLink blank> って書けてほしい
-  it('set `blank` with no value set target="_blank"', () => {
-    const wrapper = mount(
-      {
-        template: '<HaLink to="https://example.com" blank></HaLink>',
-        components: { HaLink },
-      },
-      {},
-    )
-    expect(wrapper.get('a').attributes('target')).toBe('_blank')
-  })
-})
-
-describe(':rel', () => {
-  it('set rel', () => {
-    const wrapper = mount(HaLink, {
-      props: {
-        to: 'https://example.com',
-        rel: 'noreferrer',
-      },
-    })
-    expect(wrapper.get('a').attributes('rel')).toBe('noreferrer')
-  })
-})
-
-describe(':forceAnchorLink', () => {
-  it('set true', () => {
-    const wrapper = mount(HaLink, {
-      props: { to: '/internal', forceAnchorLink: true },
-    })
-    expect(wrapper.find('a').exists()).toBe(true)
-  })
-})
-
-describe('slot', () => {
-  it('set simple text', () => {
-    const wrapper = mount(HaLink, {
-      props: {
-        to: 'https://example.com',
-      },
-      slots: {
-        default: 'link label',
-      },
-    })
-    // slot入れたらリンク消えたりしない？
-    expect(wrapper.html()).toContain('https://example.com')
-    // slotの中身はきちんと描画されてる？
-    expect(wrapper.text()).toContain('link label')
-  })
-})
-
-// 以下、NuxtLink系のテスト
-vi.mock('#base/app/utils/environment')
-
-/*
- * TODO: Nuxt依存部分のtoLocalePathをモックしている関係で、戻り値がmocked-pathにしかならずqueryのテストが出来ない
- * describe(':query', () => {
- *   it('appends query parameters to internal links', async () => {
- *     // 環境をNuxtとしてモック
- *     vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
- */
-
-/*
- *     const wrapper = mount(HaLink, {
- *       props: { to: '/intenal', query: { id: '123' } },
- *     })
- */
-
-/*
- *     await nextTick()
- *     // NuxtLinkを探す
- *     const nuxtLink = wrapper.find('nuxt-link');
- *     expect(nuxtLink.exists()).toBe(true);
- *     // NuxtLinkがクエリパラメータを含む適切なパスでレンダリングされているか検証
- *     expect(nuxtLink.attributes('to')).toBe('/internal?id=123');
- *     // モック関数が正しく呼び出されたことを確認
- *     expect(useLocalePath).toHaveBeenCalled()
- *   })
- * })
- */
-
-/*
- * TODO: Nuxt依存部分のtoLocalePathをモックしている関係で、戻り値がmocked-pathにしかならずhashのテストが出来ない
- * describe(':hash', () => {
- *   it('appends hash parameters to internal links', async () => {
- *     // 環境をNuxtとしてモック
- *     vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
- */
-
-/*
- *     const wrapper = mount(HaLink, {
- *       props: { to: '/intenal', hash: '#hash'},
- *     })
- */
-
-/*
- *     await nextTick()
- *     // NuxtLinkを探す
- *     const nuxtLink = wrapper.find('nuxt-link');
- *     expect(nuxtLink.exists()).toBe(true);
- *     // NuxtLinkがクエリパラメータを含む適切なパスでレンダリングされているか検証
- *     expect(nuxtLink.attributes('to')).toBe('/internal#hash');
- *     // モック関数が正しく呼び出されたことを確認
- *     expect(useLocalePath).toHaveBeenCalled()
- *   })
- * })
- */
-
-describe('<nuxt-link>', () => {
-  /*
-   * TODO : テスト自体は通るが[Vue warn]: Failed to resolve component: nuxt-link のWARNが出るのでコメントアウト
-   * it('use router-link', async () => {
-   *   vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
-   *   const wrapper = mount(HaLink, {
-   *     props: {
-   *       to: '/link',
-   *     },
-   *   })
-   *   const nuxtLink = wrapper.find('nuxt-link')
-   *   expect(nuxtLink.exists()).toBe(true)
-   * })
-   */
-  it('external link must be <a>', () => {
-    vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
-    const wrapper = mount(HaLink, {
-      props: {
-        to: 'https://example.com',
-      },
-    })
-    expect(wrapper.find('a').exists()).toBeTruthy()
-  })
-  it('force <a> link', () => {
-    vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
-    const wrapper = mount(HaLink, {
-      props: {
-        to: '/link',
-        forceAnchorLink: true,
-      },
-    })
-    expect(wrapper.find('a').exists()).toBeTruthy()
   })
 })
 ````
@@ -9195,6 +10458,557 @@ describe('HaModal', () => {
 })
 ````
 
+## File: layers/base/app/test/components/ha/HaSelectBox.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { z } from 'zod/v3'
+import HaSelectBox from '#base/app/components/ha/HaSelectBox.vue'
+
+test('ref component', () => {
+  expect(HaSelectBox).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HaSelectBox, {
+    props: {
+      modelValue: null,
+      validatorName: '',
+      validatorRules: undefined,
+      options: [],
+      placeholder: '---Select---',
+      disabledPlaceholder: false,
+      disabled: false,
+      required: false,
+      small: false,
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+describe('props', () => {
+  it(':modelValue', () => {
+    const wrapper = mount(HaSelectBox, {
+      props: {
+        modelValue: 'testModelValue',
+        validatorName: '',
+        validatorRules: undefined,
+        options: [],
+        placeholder: '---Select---',
+        disabledPlaceholder: false,
+        disabled: false,
+        required: false,
+        small: false,
+      },
+    })
+    expect(wrapper.props('modelValue')).toBe('testModelValue')
+  })
+  it(':validatorName', () => {
+    const wrapper = mount(HaSelectBox, {
+      props: {
+        modelValue: null,
+        validatorName: 'test:validatorName',
+        validatorRules: undefined,
+        options: [],
+        placeholder: '---Select---',
+        disabledPlaceholder: false,
+        disabled: false,
+        required: false,
+        small: false,
+      },
+    })
+    expect(wrapper.get('select').attributes('name')).toBe('test:validatorName')
+  })
+  it(':validatorRules', () => {
+    const testValidatorRules = z.string()
+    const wrapper = mount(HaSelectBox, {
+      props: {
+        modelValue: null,
+        validatorName: '',
+        validatorRules: testValidatorRules,
+        options: [],
+        placeholder: '---Select---',
+        disabledPlaceholder: false,
+        disabled: false,
+        required: false,
+        small: false,
+      },
+    })
+    expect(wrapper.props('validatorRules')).toStrictEqual(testValidatorRules)
+  })
+  it(':options', () => {
+    const testOptions = [
+      {
+        value: 1,
+        text: 'test option name',
+        disabled: true,
+      },
+    ]
+    const wrapper = mount(HaSelectBox, {
+      props: {
+        modelValue: null,
+        validatorName: '',
+        validatorRules: undefined,
+        options: testOptions,
+        placeholder: '---Select---',
+        disabledPlaceholder: false,
+        disabled: false,
+        required: false,
+        small: false,
+      },
+    })
+    // NOTE: valueテスト
+    expect(wrapper.get('select').find('option[value="1"]')).toBeTruthy()
+    // NOTE: textテスト
+    expect(wrapper.get('select').find('option[value="1"]').text()).toBe(
+      'test option name',
+    )
+    /*
+     * NOTE: disabledテスト
+     * NOTE: optionタグのdisabledはdisabled属性自体の記載なのでその中身は空。なのでattrでdisabled属性が拾えたことでOKであり、その値を参照するのであれば空であることを確認する。disabledをpropsでfalseにしている場合はdisabled属性自体ないのでattr探した時点でエラーとなる（属性ないことがdisabled指定無いことの証明）
+     */
+    expect(
+      wrapper.get('select').find('option[value="1"]').attributes('disabled'),
+    ).toBe('')
+  })
+  it(':example-options-disabled-false ', () => {
+    const testOptions = [
+      {
+        value: 1,
+        text: 'test option name',
+        disabled: false,
+      },
+    ]
+    const wrapper = mount(HaSelectBox, {
+      props: {
+        modelValue: null,
+        validatorName: '',
+        validatorRules: undefined,
+        options: testOptions,
+        placeholder: '---Select---',
+        disabledPlaceholder: false,
+        disabled: false,
+        required: false,
+        small: false,
+      },
+    })
+    expect(
+      wrapper.get('select').find('option[value="1"]').attributes('disabled'),
+    ).toBeFalsy()
+  })
+  it(':placeholder', () => {
+    const wrapper = mount(HaSelectBox, {
+      props: {
+        modelValue: null,
+        validatorName: '',
+        validatorRules: undefined,
+        options: [],
+        placeholder: '---Select---',
+        disabledPlaceholder: false,
+        disabled: false,
+        required: false,
+        small: false,
+      },
+    })
+    expect(wrapper.get('select').find('option[value="null"]').text()).toBe(
+      '---Select---',
+    )
+  })
+  it(':disabledPlaceholder', () => {
+    const wrapper = mount(HaSelectBox, {
+      props: {
+        modelValue: null,
+        validatorName: '',
+        validatorRules: undefined,
+        options: [],
+        placeholder: '---Select---',
+        disabledPlaceholder: true,
+        disabled: false,
+        required: false,
+        small: false,
+      },
+    })
+    expect(
+      wrapper.get('select').find('option[value="null"]').attributes('disabled'),
+    ).toBe('')
+  })
+  it(':disabled', () => {
+    const wrapper = mount(HaSelectBox, {
+      props: {
+        modelValue: null,
+        validatorName: '',
+        validatorRules: undefined,
+        options: [],
+        placeholder: '---Select---',
+        disabledPlaceholder: false,
+        disabled: true,
+        required: false,
+        small: false,
+      },
+    })
+    expect(wrapper.get('select').attributes('disabled')).toBe('')
+  })
+  it(':required', () => {
+    const wrapper = mount(HaSelectBox, {
+      props: {
+        modelValue: null,
+        validatorName: '',
+        validatorRules: undefined,
+        options: [],
+        placeholder: '---Select---',
+        disabledPlaceholder: false,
+        disabled: false,
+        required: true,
+        small: false,
+      },
+    })
+    expect(wrapper.get('select').attributes('required')).toBe('')
+  })
+  it(':small', () => {
+    const wrapper = mount(HaSelectBox, {
+      props: {
+        modelValue: null,
+        validatorName: '',
+        validatorRules: undefined,
+        options: [],
+        placeholder: '---Select---',
+        disabledPlaceholder: false,
+        disabled: false,
+        required: true,
+        small: true,
+      },
+    })
+    expect(wrapper.get('select').attributes('class')).toBe('select -small')
+  })
+  it(':keepValueOnUnmount', () => {
+    const wrapper = mount(HaSelectBox, {
+      props: {
+        modelValue: null,
+        validatorName: '',
+        validatorRules: undefined,
+        options: [],
+        placeholder: '---Select---',
+        disabledPlaceholder: false,
+        disabled: false,
+        required: true,
+        small: false,
+        keepValueOnUnmount: true,
+      },
+    })
+    expect(wrapper.props().keepValueOnUnmount).toBe(true)
+  })
+})
+
+describe('emit', () => {
+  it(':update:modelValue', () => {
+    const wrapper = mount(HaSelectBox, {
+      props: {
+        modelValue: null,
+        validatorName: '',
+        validatorRules: undefined,
+        options: [],
+        placeholder: '---Select---',
+        disabledPlaceholder: false,
+        disabled: false,
+        required: false,
+        small: false,
+      },
+    })
+    wrapper.vm.$emit('update:modelValue', 'testModelValue')
+    expect(wrapper.emitted()).toHaveProperty('update:modelValue')
+    expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
+    expect(wrapper.emitted()['update:modelValue']).toEqual([['testModelValue']])
+  })
+  it(':input', () => {
+    const wrapper = mount(HaSelectBox, {
+      props: {
+        modelValue: null,
+        validatorName: '',
+        validatorRules: undefined,
+        options: [],
+        placeholder: '---Select---',
+        disabledPlaceholder: false,
+        disabled: false,
+        required: false,
+        small: false,
+      },
+    })
+    wrapper.vm.$emit('input', 'testInputValue')
+    expect(wrapper.emitted()).toHaveProperty('input')
+    expect(wrapper.emitted()['input']).toHaveLength(1)
+    expect(wrapper.emitted()['input']).toEqual([['testInputValue']])
+  })
+})
+
+test('error display', async () => {
+  const testValidatorRules = z.coerce.string().nonempty({
+    message: '必須項目です',
+  })
+  const testOptions = [
+    {
+      // NOTE: testValidatorRulesで空でエラーを出るようにしているので、valueに空を指定すること
+      value: '',
+      text: 'test option name',
+      disabled: false,
+    },
+  ]
+  const wrapper = mount(HaSelectBox, {
+    props: {
+      modelValue: null,
+      validatorName: '',
+      validatorRules: testValidatorRules,
+      options: testOptions,
+      placeholder: '---Select---',
+      disabledPlaceholder: false,
+      disabled: false,
+      required: false,
+      small: false,
+    },
+  })
+  await wrapper.find('select').setValue('')
+  setTimeout(() => {
+    expect(wrapper.get('span[class="error"]').text()).toBe('必須項目です')
+  }, 1)
+
+  /*
+   * NOET: v-modelに空を入れてエラーを発火させたいが、現状下記手段にてエラーを発火させようとするも<!--v-if-->となったままエラーブロックがが発火しない。下記トライ履歴
+   * NOTE: 前提条件としてHaSelectBoxをapp.vueに設置したところ、optionのvalueに空を設定したものをセレクトボックスから選択するとエラーの挙動が確認できる
+   */
+
+  /*
+   * 発火手段１→vscode赤波線エラー。オブジェクトは 'undefined' である可能性があります
+   * wrapper.findAll('option').at(1).trigger('change')
+   */
+
+  /*
+   * 発火手段２ 違うエラーになる。かつsetSelectedはv-modelの際に使えない
+   * const options = wrapper.get('select').findAll('option')
+   * options.at(1).setSelected()
+   */
+
+  /*
+   * 発火手段３→v-if動作せず
+   * await wrapper.setProps({ modelValue: '' })
+   */
+
+  /*
+   * 発火手段４→動作OK！
+   * await wrapper.find('select').setValue('')
+   */
+
+  /*
+   * 発火手段５→vscodeで赤波線エラー出る。
+   * https://v1.test-utils.vuejs.org/api/wrapper/#setselected
+   * 注記：
+   * v-modelbyを介して state に値を設定しようとしてもoption.element.selected = true; parentSelect.trigger('input')、v-modelはトリガーされません。v-modelイベントによってトリガーされます
+   * await wrapper.get('select').find('option[value=""]').setSelected()
+   */
+
+  /*
+   * 発火手段６
+   * const options = wrapper.get('select').findAll('option')
+   * options.at(1).setSelected()
+   * wrapper.get('select').trigger('change')
+   */
+
+  /*
+   * 上記でv-ifでエラーブロックが出現していれば下記で取得したい
+   * DOMの更新を待つawaitでnexttick→効果なし
+   * await wrapper.vm.$nextTick()
+   */
+
+  /*
+   * 取得方法１→エラーのv-ifが開かず効果なし
+   * expect(wrapper.get('span[class="error"]').text()).toBe('必須項目です')
+   */
+
+  /*
+   * 取得方法２→エラーのv-ifが開かず効果なし
+   * const errorSpan = wrapper.get('span.error')
+   * expect(errorSpan.text()).toBe('必須項目です')
+   */
+
+  /*
+   * 取得方法３→エラーのv-ifが開かず効果なし
+   * wrapper.vm.$nextTick(() => {
+   *   expect(wrapper.get('span[class="error"]').text()).toBe('必須項目です')
+   * })
+   */
+
+  /*
+   * 取得方法４→エラーのv-ifが開かず効果なし
+   * setTimeout(() => {
+   *   expect(wrapper.get('span[class="error"]').text()).toBe('必須項目です')
+   * })
+   */
+
+  /*
+   * 取得方法５→動作OK！エラーのv-if取得可能
+   * setTimeout(() => {
+   *   expect(wrapper.get('span[class="error"]').text()).toBe('必須項目です')
+   * }, 1)
+   */
+})
+````
+
+## File: layers/base/app/test/components/ha/HaTextarea.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { z } from 'zod/v3'
+import HaTextarea from '#base/app/components/ha/HaTextarea.vue'
+import { waitEffect } from '#base/app/utils/sleep'
+
+test('ref component', () => {
+  expect(HaTextarea).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HaTextarea, {
+    props: {
+      placeholder: 'Input Text',
+      type: 'text',
+      validatorName: 'FileInput',
+      validatorRules: undefined,
+      required: false,
+      modelValue: '',
+      disabled: false,
+      rows: 5,
+      counter: false,
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+test('props', () => {
+  // it(':placeholder', () => {
+  const testValidatorRules = z.string()
+  const wrapper = mount(HaTextarea, {
+    props: {
+      placeholder: 'Input Text',
+      type: 'text',
+      validatorName: 'validatorName',
+      validatorRules: testValidatorRules,
+      required: true,
+      modelValue: '1234567890',
+      disabled: true,
+      rows: 5,
+      counter: true,
+      hideDetails: true,
+      keepValueOnUnmount: true,
+    },
+  })
+  // NOTE: placeholder
+  expect(wrapper.get('textarea').attributes('placeholder')).toBe('Input Text')
+  // NOTE: type
+  expect(wrapper.get('textarea').attributes('type')).toBe('text')
+  // NOTE: validatorName
+  expect(wrapper.props('validatorName')).toBe('validatorName')
+  // NOTE: validatorRules
+  expect(wrapper.props('validatorRules')).toStrictEqual(testValidatorRules)
+  // NOTE: required
+  expect(wrapper.get('textarea').attributes('required')).toBe('')
+  // NOTE: modelValue
+  expect(wrapper.props('modelValue')).toBe('1234567890')
+  // NOTE: disabled
+  expect(wrapper.get('textarea').attributes('disabled')).toBe('')
+  // NOTE: rows
+  expect(wrapper.get('textarea').attributes('rows')).toBe('5')
+  // NOTE: counter
+  expect(wrapper.get('span[class="counter"]').text()).toBe('10')
+  // NOTE: hideDetails
+  expect(wrapper.get('p').attributes('class')).toBe('error-container -hide')
+  // NOTE: keepValueOnUnmount
+  expect(wrapper.props().keepValueOnUnmount).toBe(true)
+})
+
+describe('emit', () => {
+  it(':update:modelValue, :input', async () => {
+    const wrapper = mount(HaTextarea, {
+      props: {
+        placeholder: 'Input Text',
+        type: 'text',
+        validatorName: 'validatorName',
+        validatorRules: undefined,
+        required: false,
+        modelValue: '',
+        disabled: false,
+        rows: 5,
+        counter: false,
+      },
+    })
+    /*
+     * wrapper.vm.$emit('update:modelValue', 'testModelValue')
+     * await wrapper.setValue('testModelValue', 'modelValue')
+     */
+    await wrapper.find('textarea').setValue('1234567890')
+    // NOTE: update:modelValue
+    expect(wrapper.emitted()).toHaveProperty('update:modelValue')
+    expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
+    expect(wrapper.emitted()['update:modelValue']).toEqual([['1234567890']])
+    // NOTE: input
+    expect(wrapper.emitted()).toHaveProperty('input')
+    expect(wrapper.emitted()['input']).toHaveLength(1)
+    expect(wrapper.emitted()['input']).toEqual([['1234567890']])
+  })
+  it(':validate', async () => {
+    const maxRule = (maximum: number) => {
+      return z.coerce.string().max(maximum, {
+        message: 'error max ' + maximum + ' strings',
+      })
+    }
+    const wrapper = mount(HaTextarea, {
+      props: {
+        placeholder: 'Input Text',
+        type: 'text',
+        validatorName: 'validatorName',
+        validatorRules: maxRule(10),
+        required: false,
+        modelValue: '',
+        disabled: false,
+        rows: 5,
+        counter: false,
+      },
+    })
+    await wrapper.find('textarea').setValue('12345678901')
+    expect(wrapper.emitted()).toHaveProperty('validate')
+    expect(wrapper.emitted()['validate']).toHaveLength(1)
+    /*
+     * TODO: emitでcomputedで処理される送信値を正しく取得できないのでコメントアウト
+     * expect(wrapper.emitted()['validate']).toEqual([[true]])
+     */
+  })
+})
+
+test('error display', async () => {
+  const maxRule = (maximum: number) => {
+    return z.coerce.string().max(maximum, {
+      message: 'error max ' + maximum + ' strings',
+    })
+  }
+  const stringsMaxLength = 10
+  const wrapper = mount(HaTextarea, {
+    props: {
+      placeholder: 'Input Text',
+      type: 'text',
+      validatorName: 'validatorName',
+      validatorRules: maxRule(stringsMaxLength),
+      required: false,
+      modelValue: '',
+      disabled: false,
+      rows: 5,
+      counter: false,
+    },
+  })
+  await wrapper.find('textarea').setValue('12345678901')
+  await waitEffect()
+  expect(wrapper.get('label').attributes('class')).toBe(`label -error`)
+  expect(wrapper.get('span[class="error"]').text()).toBe(
+    `error max ${stringsMaxLength} strings`,
+  )
+})
+````
+
 ## File: layers/base/app/test/components/hm/__snapshots__/HmClipping.spec.ts.snap
 ````
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
@@ -9298,6 +11112,70 @@ exports[`mount component 1`] = `
 `;
 ````
 
+## File: layers/base/app/test/components/hm/icon/HmIconUser.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import HmIconUser from '#base/app/components/hm/icon/HmIconUser.vue'
+
+/**
+ * @see vitest.config.mtsのalias
+ */
+const defaultNoImage = '/images/no-image.png'
+
+test('ref component', () => {
+  expect(HmIconUser).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HmIconUser, {
+    props: {
+      src: '/image.png',
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+// propsのsrcが指定されている場合、その値が設定される
+describe('props', () => {
+  it(':src', () => {
+    const wrapper = mount(HmIconUser, {
+      props: {
+        src: '/image.png',
+      },
+    })
+    expect(wrapper.get('img').attributes('src')).toBe('/image.png')
+  })
+})
+
+// propsのsrcが空文字の場合、no image画像が設定される
+describe('if src empty, set no image', () => {
+  it(':src', () => {
+    const wrapper = mount(HmIconUser, {
+      props: {
+        src: '',
+      },
+    })
+    expect(wrapper.get('img').attributes('src')).toBe(defaultNoImage)
+  })
+})
+
+// propsのsrcに指定した画像でエラーが発生した場合、placeholder画像が設定される
+describe('if src error, set placeholder image', () => {
+  it(':src error', async () => {
+    const wrapper = mount(HmIconUser, {
+      props: {
+        src: '/foo-not-found.jpg',
+      },
+    })
+    await wrapper.get('img').trigger('error')
+    expect(wrapper.get('img').attributes('src')).toBe(
+      '/public/images/no-image_1x1.jpg',
+    )
+  })
+})
+````
+
 ## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadio.spec.ts.snap
 ````
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
@@ -9309,86 +11187,602 @@ exports[`mount component 1`] = `
 `;
 ````
 
-## File: layers/base/app/test/components/hm/input/HmInputRadio.spec.ts
+## File: layers/base/app/test/components/hm/input/HmInputCheckbox.spec.ts
 ````typescript
 import { mount } from '@vue/test-utils'
-import HmInputRadio from '#base/app/components/hm/input/HmInputRadio.vue'
+import z from 'zod/v3'
+import HmInputCheckbox from '#base/app/components/hm/input/HmInputCheckbox.vue'
+
+const checkboxSchema = z.boolean().refine(value => value, {
+  message: 'チェックボックスを選択してください。',
+})
 
 test('ref component', () => {
-  expect(HmInputRadio).toBeTruthy()
+  expect(HmInputCheckbox).toBeTruthy()
 })
 
 test('mount component', () => {
-  const wrapper = mount(HmInputRadio, {
+  const wrapper = mount(HmInputCheckbox, {
     props: {
       name: 'test name',
-      value: 1,
+      modelValue: false,
     },
   })
   expect(wrapper.getCurrentComponent()).toBeTruthy()
   expect(wrapper.html()).toMatchSnapshot()
 })
+
 describe('props', () => {
-  it(':name', () => {
-    const wrapper = mount(HmInputRadio, {
+  it(':validatorName', () => {
+    const wrapper = mount(HmInputCheckbox, {
       props: {
+        validatorName: 'test',
         name: 'test name',
-        value: 1,
+        modelValue: false,
       },
     })
-    expect(wrapper.get('input[type="radio"]').attributes('name')).toBe(
+    expect(wrapper.props('validatorName')).toBe('test')
+  })
+
+  it(':validatorRules', () => {
+    const wrapper = mount(HmInputCheckbox, {
+      props: {
+        validatorRules: checkboxSchema,
+        name: 'test name',
+        modelValue: true,
+      },
+    })
+    expect(wrapper.props('validatorRules')).toStrictEqual(checkboxSchema)
+  })
+
+  it(':name', () => {
+    const wrapper = mount(HmInputCheckbox, {
+      props: {
+        name: 'test name',
+        modelValue: false,
+      },
+    })
+    expect(wrapper.get('input[type="checkbox"]').attributes('name')).toBe(
       'test name',
     )
   })
-  it(':value', async () => {
-    const wrapper = mount(HmInputRadio, {
+
+  it(':modelValue', () => {
+    const wrapper = mount(HmInputCheckbox, {
       props: {
         name: 'test name',
-        value: 1,
+        modelValue: true,
       },
     })
-    await wrapper.vm.$nextTick()
-    expect(wrapper.props('value')).toBe(1)
-    /*
-     * NOTE: NG例。propsではなくvalueで取得しようとすると、レンダリングされたDOMのvalueがfalseとなっているので、テスト結果にfalseが返ってくるので取得不可。下記取れそうで取れない例
-     * NOTE: NG例1
-     * expect(
-     *   (wrapper.find('input[type="radio"]').element as HTMLInputElement).value
-     * ).toBe('1')
-     * NOTE: NG例2
-     * expect(wrapper.find('input[type="radio"]').attributes('value')).toBe('1')
-     */
+    expect(wrapper.get('input[type="checkbox"]').attributes('value')).toBe(
+      'true',
+    )
   })
-  it(':checked', () => {
-    const wrapper = mount(HmInputRadio, {
+
+  it(':required', () => {
+    const wrapper = mount(HmInputCheckbox, {
       props: {
         name: 'test name',
-        value: 1,
-        checked: true,
+        modelValue: false,
+        required: true,
+      },
+    })
+    expect(wrapper.get('input[type="checkbox"]').attributes('required')).toBe(
+      '',
+    )
+  })
+
+  it(':disabled', () => {
+    const wrapper = mount(HmInputCheckbox, {
+      props: {
+        name: 'test name',
+        modelValue: false,
+        disabled: true,
+      },
+    })
+    expect(wrapper.get('input[type="checkbox"]').attributes('disabled')).toBe(
+      '',
+    )
+  })
+})
+
+describe('emits', () => {
+  it(':update:modelValue, :input', async () => {
+    const wrapper = mount(HmInputCheckbox, {
+      props: {
+        name: 'test name',
+        modelValue: false,
+      },
+    })
+    await wrapper.get('input[type="checkbox"]').setValue(true)
+    setTimeout(() => {
+      // :update:modelValue
+      expect(wrapper.emitted()).toHaveProperty('update:modelValue')
+      expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
+      expect(wrapper.emitted()['update:modelValue']).toEqual([[true]])
+      // :input
+      expect(wrapper.emitted()).toHaveProperty('input')
+      expect(wrapper.emitted()['input']).toHaveLength(1)
+      expect(wrapper.emitted()['input']).toEqual([[true]])
+    }, 1)
+  })
+
+  it(':validate at error', async () => {
+    const wrapper = mount(HmInputCheckbox, {
+      props: {
+        validatorRules: checkboxSchema,
+        name: 'test name',
+        modelValue: true,
+      },
+    })
+    await wrapper.get('input[type="checkbox"]').setValue(false)
+    setTimeout(() => {
+      expect(wrapper.emitted()).toHaveProperty('validate')
+      expect(wrapper.emitted()['validate']).toHaveLength(1)
+      /*
+       * TODO: バリデーションエラー時にZodエラーメッセージを二重否定の真偽値として送信するが、正しい値を送信しないのでコメントアウト
+       * expect(wrapper.emitted()['validate']).toEqual([[true]])
+       */
+    }, 1)
+  })
+})
+
+describe('DOM check for error display', () => {
+  it(':validatorRules:no check error', async () => {
+    const wrapper = mount(HmInputCheckbox, {
+      props: {
+        validatorRules: checkboxSchema,
+        name: 'test name',
+        modelValue: true,
+      },
+    })
+
+    await wrapper.get('input[type="checkbox"]').setValue(false)
+    setTimeout(() => {
+      expect(wrapper.get('span[class="error"]').text()).toBe(
+        'チェックボックスを選択してください。',
+      )
+    }, 1)
+  })
+})
+````
+
+## File: layers/base/app/test/components/hm/input/HmInputDatetime.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import z from 'zod/v3'
+import HmInputDatetime from '#base/app/components/hm/input/HmInputDatetime.vue'
+
+test('ref component', () => {
+  expect(HmInputDatetime).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HmInputDatetime)
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+describe('props', () => {
+  it(':type', async () => {
+    const wrapper = mount(HmInputDatetime, {
+      props: {
+        type: 'datetime-local',
+      },
+    })
+    expect(wrapper.get('input').attributes('type')).toBe('datetime-local')
+    await wrapper.setProps({ type: 'date' })
+    expect(wrapper.get('input').attributes('type')).toBe('date')
+    await wrapper.setProps({ type: 'time' })
+    expect(wrapper.get('input').attributes('type')).toBe('time')
+  })
+
+  it(':validatorName', () => {
+    const wrapper = mount(HmInputDatetime, {
+      props: {
+        validatorName: 'name-test',
+      },
+    })
+    expect(wrapper.attributes('name')).toBe('name-test')
+  })
+
+  it(':validatorRules', () => {
+    const testValidatorRules = z.string()
+    const wrapper = mount(HmInputDatetime, {
+      props: {
+        validatorRules: testValidatorRules,
+      },
+    })
+    expect(wrapper.props('validatorRules')).toStrictEqual(testValidatorRules)
+  })
+
+  it(':required', () => {
+    const wrapper = mount(HmInputDatetime, {
+      props: {
+        required: true,
       },
     })
     expect(
-      (wrapper.get('input[type="radio"]').element as HTMLInputElement).checked,
-    ).toBeTruthy()
+      wrapper.get('input[type="datetime-local"]').attributes('required'),
+    ).toBe('')
   })
-})
-describe('emits', () => {
-  it(':change', async () => {
-    const wrapper = mount(HmInputRadio, {
+
+  it(':modelValue', () => {
+    const dateValue = '2023-09-28T14:48'
+    const wrapper = mount(HmInputDatetime, {
       props: {
-        name: 'test name',
-        value: 1,
+        modelValue: dateValue,
       },
     })
-    await wrapper.setProps({ value: 2 })
-    await wrapper.get('input[type="radio"]').trigger('change')
+    expect(wrapper.props('modelValue')).toBe(dateValue)
+  })
+
+  it(':disabled', () => {
+    const wrapper = mount(HmInputDatetime, {
+      props: {
+        disabled: true,
+      },
+    })
+    expect(
+      wrapper.get('input[type="datetime-local"]').attributes('disabled'),
+    ).toBe('')
+  })
+
+  it(':min(number)', () => {
+    const wrapper = mount(HmInputDatetime, {
+      props: {
+        min: 2,
+      },
+    })
+    expect(wrapper.get('input[type="datetime-local"]').attributes('min')).toBe(
+      '2',
+    )
+  })
+
+  it(':min(string)', () => {
+    const wrapper = mount(HmInputDatetime, {
+      props: {
+        min: '2020-01-01',
+      },
+    })
+    expect(wrapper.get('input[type="datetime-local"]').attributes('min')).toBe(
+      '2020-01-01',
+    )
+  })
+
+  it(':max(number)', () => {
+    const wrapper = mount(HmInputDatetime, {
+      props: {
+        max: 2,
+      },
+    })
+    expect(wrapper.get('input[type="datetime-local"]').attributes('max')).toBe(
+      '2',
+    )
+  })
+
+  it(':max(string)', () => {
+    const wrapper = mount(HmInputDatetime, {
+      props: {
+        max: '2020-01-01',
+      },
+    })
+    expect(wrapper.get('input[type="datetime-local"]').attributes('max')).toBe(
+      '2020-01-01',
+    )
+  })
+
+  it(':keyupEnter', () => {
+    const wrapper = mount(HmInputDatetime, {
+      props: {
+        keyupEnter: true,
+      },
+    })
+    expect(wrapper.props('keyupEnter')).toBe(true)
+  })
+
+  it(':validateOnMount', () => {
+    const wrapper = mount(HmInputDatetime, {
+      props: {
+        validateOnMount: true,
+      },
+    })
+    expect(wrapper.props().validateOnMount).toBe(true)
+  })
+})
+
+describe('emits', () => {
+  it(':update:modelValue, :input', async () => {
+    const dateValue = '2023-09-28T14:48'
+    const wrapper = mount(HmInputDatetime, {
+      props: {
+        modelValue: '',
+        keyupEnter: true,
+      },
+    })
+    await wrapper.get('input[type="datetime-local"]').setValue(dateValue)
     setTimeout(() => {
-      expect(wrapper.emitted()).toHaveProperty('change')
-      expect(wrapper.emitted()['change']).toHaveLength(1)
+      // :update:modelValue
+      expect(wrapper.emitted()).toHaveProperty('update:modelValue')
+      expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
+      expect(wrapper.emitted()['update:modelValue']).toEqual([[dateValue]])
+      // :input
+      expect(wrapper.emitted()).toHaveProperty('input')
+      expect(wrapper.emitted()['input']).toHaveLength(1)
+      expect(wrapper.emitted()['input']).toEqual([[dateValue]])
+    }, 1)
+  })
+
+  it(':enter', async () => {
+    const dateValue = '2023-09-28T14:48'
+    const wrapper = mount(HmInputDatetime, {
+      props: {
+        modelValue: dateValue,
+        keyupEnter: true,
+      },
+    })
+
+    await wrapper.get('input[type="datetime-local"]').trigger('keyup.enter')
+    setTimeout(() => {
+      expect(wrapper.emitted()).toHaveProperty('enter')
+      expect(wrapper.emitted()['enter']).toHaveLength(1)
       /*
-       * TODO: Zodのエラーメッセージを二重否定で真偽値をemitする際と同様に、emitは行われているが値の変更が正しくテストできず、NaNが検出する。
-       * expect(wrapper.emitted()['change']).toEqual([[2]])
+       * TODO: emitでcomputedで処理される送信値を正しく取得できないのでコメントアウト
+       * expect(wrapper.emitted()['enter']).toEqual([[dateValue]])
        */
+    }, 1)
+  })
+
+  it(':validation', async () => {
+    const dateValue = '2023-09-28T14:48withErrorString'
+    const datetimeLocalSchema = z.string().refine(
+      (value) => {
+        const regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/
+        return regex.test(value)
+      },
+      {
+        message: 'Error:Date format (YYYY-MM-DDThh:mm)',
+      },
+    )
+    const wrapper = mount(HmInputDatetime, {
+      props: {
+        validatorRules: datetimeLocalSchema,
+        modelValue: '',
+      },
+    })
+    await wrapper.get('input[type="datetime-local"]').setValue(dateValue)
+    setTimeout(() => {
+      expect(wrapper.emitted()).toHaveProperty('validation')
+      expect(wrapper.emitted()['validation']).toHaveLength(1)
+      /*
+       * TODO: emitでcomputedで処理される送信値を正しく取得できないのでコメントアウト
+       * expect(wrapper.emitted()['validation']).toEqual([[true]])
+       */
+    }, 1)
+  })
+})
+test('DOM check for error display', async () => {
+  const dateValue = '2023-09-28T14:48withErrorString'
+  const datetimeLocalSchema = z.string().refine(
+    (value) => {
+      const regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/
+      return regex.test(value)
+    },
+    {
+      message: 'Error:Date format (YYYY-MM-DDThh:mm)',
+    },
+  )
+  const wrapper = mount(HmInputDatetime, {
+    props: {
+      validatorRules: datetimeLocalSchema,
+      modelValue: '',
+    },
+  })
+  await wrapper.get('input[type="datetime-local"]').setValue(dateValue)
+  setTimeout(() => {
+    expect(
+      wrapper.find('label[class="hm-input-datetime__label --error"]').exists(),
+    ).toBe(true)
+    expect(wrapper.find('p[class="error-container"]').exists()).toBe(true)
+    expect(wrapper.find('span[class="error"]').exists()).toBe(true)
+    expect(wrapper.find('span[class="error"]').text()).toBe(
+      'Error:Date format (YYYY-MM-DDThh:mm)',
+    )
+  }, 1)
+})
+````
+
+## File: layers/base/app/test/components/hm/input/HmInputFile.spec.ts
+````typescript
+import HmInputFile from '#base/app/components/hm/input/HmInputFile.vue'
+import { mount } from '@vue/test-utils'
+
+/*
+ * NOTE: 下準備としてFileList型のダミーを作成する
+ * const createDummyFileList = (files: File[]) => {
+ *   return {
+ *     length: files.length,
+ *     item(index: number) {
+ *       return files[index] || null
+ *     },
+ *   }
+ * }
+ * const file = new File([''], 'test.png')
+ * const file2 = new File([''], 'test2.png')
+ * const fileList: FileList = createDummyFileList([file, file2])
+ * const singleFileList: FileList = createDummyFileList([file])
+ * FileListダミー作成ここまで
+ */
+
+test('ref component', () => {
+  expect(HmInputFile).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HmInputFile)
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+test('props', () => {
+  const wrapper = mount(HmInputFile, {
+    props: {
+      required: true,
+      accept: 'image/*',
+      multiple: true,
+      propFiles: undefined,
+    },
+  })
+  expect(wrapper.get('input[type="file"]').attributes('required')).toBe('')
+  expect(wrapper.get('input[type="file"]').attributes('accept')).toBe('image/*')
+  expect(wrapper.get('input[type="file"]').attributes('multiple')).toBe('')
+
+  /*
+   * NOTE: FileListをセットすると[Vue warn]が出現する
+   * await wrapper.setProps({ propFiles: fileList })
+   * NOTE: テストは通るがHaBaseInputと同様にFileListをセットすると[Vue warn]が出現するのでコメントアウト
+   * expect(wrapper.props('propFiles')).toStrictEqual(fileList)
+   */
+})
+
+// TODO: emit系がFileListの問題が関連しているのか、全て通らない。emit自体発行されない。FileListは親から受け取るものでは一方的に送るものという記載もあり、[Vue warn]自体と関係しているかもしれない。
+describe('emits', () => {
+  it(':input:multiple', () => {
+    const _wrapper = mount(HmInputFile, {
+      props: {
+        multiple: true,
+        propFiles: undefined,
+      },
+    })
+    /*
+     * // NOTE: FileListをセットすると[Vue warn]が出現する
+     * await wrapper.setProps({ propFiles: fileList })
+     * // await wrapper.get('input[type="file"]').trigger('click')
+     * // await flushPromises()
+     * setTimeout(() => {
+     *   // NOTE: .toHavePropertyの時点で取れない。emitが発生していない
+     *   expect(wrapper.emitted()).toHaveProperty('input:multiple')
+     *   expect(wrapper.emitted()['input:multiple']).toHaveLength(1)
+     *   // expect(wrapper.emitted()['input:multiple']).toEqual([[fileList]])
+     * }, 1)
+     */
+  })
+
+  it(':input:single', () => {
+    const _wrapper = mount(HmInputFile, {
+      props: {
+        multiple: true,
+        propFiles: undefined,
+      },
+    })
+    /*
+     * // NOTE: FileListをセットすると[Vue warn]が出現する
+     * await wrapper.setProps({ propFiles: singleFileList })
+     * // await wrapper.get('input[type="file"]').trigger('click')
+     * // await flushPromises()
+     * setTimeout(() => {
+     *   // NOTE: .toHavePropertyの時点で取れない。emitが発生していない
+     *   expect(wrapper.emitted()).toHaveProperty('input:single')
+     *   expect(wrapper.emitted()['input:single']).toHaveLength(1)
+     *   expect(wrapper.emitted()['input:single']).toEqual([[singleFileList]])
+     * }, 1)
+     */
+  })
+
+  // TODO: cancelのemitにおいて問題多数
+  it(':cancel', () => {
+    /*
+     * NOTE: focusイベントのためにはattachToが必要らしい https://github.com/vitest-dev/vitest/issues/2013#issuecomment-1250272103
+     * NOTE: vue-test-utils v1の古い書き方
+     */
+    const div = document.createElement('div')
+    div.id = 'root'
+    document.body.appendChild(div)
+    /*
+     * NOTE: https://test-utils.vuejs.org/api/#attachTo での記載方法。attachToに型エラーでて使えず
+     * document.body.innerHTML = `
+     *   <div>
+     *     <h1>Non Vue app</h1>
+     *     <div id="app"></div>
+     *   </div>
+     * `
+     */
+    const _wrapper = mount(HmInputFile, {
+      // NOTE: vue-test-utils v1の古い書き方
+      attachTo: '#root',
+      /*
+       * NOTE: https://test-utils.vuejs.org/api/#attachTo での記載方法。attachToに型エラーでて使えず
+       * attachTo: document.getElementById('app'),
+       */
+      props: {
+        multiple: true,
+        propFiles: undefined,
+      },
+    })
+    /*
+     * // NOTE: 不要かもしれないが一応セット。
+     * await wrapper.setProps({ propFiles: fileList })
+     * await wrapper.find('input').trigger('focus')
+     * // NOTE; setTimeoutは30ms前後以上を入れると、テストが全て通るので、本件ではコンポーネント側に500ms後にemitなので使えない
+     * // NOTE: flushPromisesにてtoriggerイベントの非同期を解決する
+     * await flushPromises()
+     * // NOTE: attachToが動作していないように見える
+     * console.info(wrapper.html())
+     * // NOTE: .toHavePropertyの時点で取れない。emitが発生していない
+     * expect(wrapper.emitted()).toHaveProperty('cancel')
+     * expect(wrapper.emitted()['cancel']).toHaveLength(1)
+     * expect(wrapper.emitted()['cancel']).toEqual([[]])
+     * // attachToの後は破壊する必要があるらしい。しかしdestroyは存在しないと言われる
+     * // wrapper.destroy()
+     */
+  })
+})
+
+describe('event test', () => {
+  // TODO: 可能であればclickしたことによる挙動をとりたい。DOMには変化が現れないので、クリックした関数が発火した回数など
+  it('@click="onClick"', async () => {
+    const wrapper = mount(HmInputFile)
+    // const onClickSpy = vi.spyOn(wrapper.vm, 'onClick')
+    await wrapper.trigger('click')
+    setTimeout(() => {
+      /*
+       * expect(onClickSpy).toHaveBeenCalled()
+       * expect(onClickSpy).toBeCalledTimes(1)
+       */
+    }, 1)
+  })
+
+  // TODO: ドラッグイベントを検知できるようにする
+  it('@dragenter.prevent="toggleDragOver(true)"', async () => {
+    const wrapper = mount(HmInputFile)
+    await wrapper.trigger('dragenter')
+    setTimeout(() => {
+      /*
+       * NOTE: JSDOMで生成されたDOMには幅や座標が無いためドラッグなどを認識できないというvue-test-Libraryでのやりとり
+       * NOTE: https://github.com/testing-library/vue-testing-library/issues/145#issuecomment-633713719
+       * expect(wrapper.get('label').attributes('class')).toBe(
+       *   'hm-input-file isDragOver'
+       * )
+       */
+    }, 1)
+  })
+
+  it('@dragleave.prevent="toggleDragOver(false)"', async () => {
+    const wrapper = mount(HmInputFile)
+    await wrapper.trigger('dragleave')
+    setTimeout(() => {
+      // NOTE: ドラッグイベントが検知できないが、初期値の状態なのでテストは通る
+      expect(wrapper.get('label').attributes('class')).toBe('hm-input-file')
+    }, 1)
+  })
+
+  // TODO: JSDOMで
+  it('@drop.prevent="onDrop($event)"', async () => {
+    const wrapper = mount(HmInputFile)
+    await wrapper.trigger('drop')
+    setTimeout(() => {
+      // NOTE: ドロップイベントが検知できないが、初期値の状態なのでテストは通る。また、JSDOMはdataTransferを扱えない
+      expect(wrapper.get('label').attributes('class')).toBe('hm-input-file')
     }, 1)
   })
 })
@@ -9674,96 +12068,6 @@ describe('HmAutoCarousel', () => {
       expect(lists[1]?.attributes('aria-hidden')).toBeUndefined() // メインリスト
       expect(lists[2]?.attributes('aria-hidden')).toBe('true') // -after
     })
-  })
-})
-````
-
-## File: layers/base/app/test/components/hm/HmClipping.spec.ts
-````typescript
-import { mount, shallowMount } from '@vue/test-utils'
-import HmClipping from '#base/app/components/hm/HmClipping.vue'
-
-test('ref component', () => {
-  expect(HmClipping).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HmClipping, {
-    props: {
-      src: '',
-    },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-test('props', () => {
-  const wrapper = mount(HmClipping, {
-    props: {
-      src: '',
-      width: 256,
-      height: 256,
-      cropperAreaHeight: 0,
-      doResize: true,
-      stencil: 'RectangleStencil',
-      imageRestriction: 'stencil',
-      autoZoom: false,
-      ext: 'jpeg',
-    },
-  })
-  expect(wrapper.props('src')).toStrictEqual('')
-  expect(wrapper.props('width')).toStrictEqual(256)
-  expect(wrapper.props('height')).toStrictEqual(256)
-  expect(wrapper.props('cropperAreaHeight')).toStrictEqual(0)
-  expect(wrapper.props('doResize')).toStrictEqual(true)
-  expect(wrapper.props('stencil')).toStrictEqual('RectangleStencil')
-  expect(wrapper.props('imageRestriction')).toStrictEqual('stencil')
-  expect(wrapper.props('autoZoom')).toStrictEqual(false)
-  expect(wrapper.props('ext')).toStrictEqual('jpeg')
-})
-
-describe('events', () => {
-  it(':button click to emit clipped', async () => {
-    // NOTE: mountしてcomponentを展開すると、「Error: connect ECONNREFUSED」になる
-    const wrapper = shallowMount(HmClipping, {
-      props: {
-        src: '/dummy',
-        width: 256,
-        height: 256,
-        cropperAreaHeight: 0,
-        doResize: true,
-        stencil: 'RectangleStencil',
-        imageRestriction: 'stencil',
-        autoZoom: false,
-        ext: 'jpeg',
-      },
-    })
-    await wrapper.find('ha-base-button-stub').trigger('click')
-    expect(wrapper.emitted()).toHaveProperty('clipped')
-    expect(wrapper.emitted()['clipped']).toHaveLength(1)
-    expect(wrapper.emitted()['clipped']).toEqual([[[]]])
-  })
-
-  // TODO: Cropperのchangeのテスト
-  it(':Cropper change', () => {
-    // NOTE: mountしてcomponentを展開すると、「Error: connect ECONNREFUSED」になる
-    const _wrapper = shallowMount(HmClipping, {
-      props: {
-        src: '/dummy',
-        width: 256,
-        height: 256,
-        cropperAreaHeight: 0,
-        doResize: true,
-        stencil: 'RectangleStencil',
-        imageRestriction: 'stencil',
-        autoZoom: false,
-        ext: 'jpeg',
-      },
-    })
-    /*
-     * ERROR: 発火はできるが、canvas.toDataURLが読めず、vi.importActualにてcanvas.toDataURLのみを偽装してもエラーとなったのでコメントアウトする
-     * await wrapper.find('cropper-stub').trigger('change')
-     */
   })
 })
 ````
@@ -12178,191 +14482,6 @@ describe('use-strict-i18n.ts', () => {
 })
 ````
 
-## File: layers/base/app/test/composables/useDefaultApi.spec.ts
-````typescript
-// NOTE: そもそももっといいテストあれば是非
-import { UseFetchOptions } from 'nuxt/app'
-import { FetchOptions } from 'ofetch'
-import useDefaultApi, { defaultFetcher } from '#base/app/composables/useDefaultApi'
-
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-  useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
-    return { path, options }
-  }),
-}))
-
-test('useDefaultApi', () => {
-  // NOTE: useDefaultApiで使用できるRepositoryKeyを入れた際にオブジェクトが返ってくること。この場合useDefaultApi('hoge')など存在しない場合はテストが落ちる
-  const useApiExample = useDefaultApi('example').repository.value
-  const expectObj = { get: {} }
-  expect(useApiExample).toMatchObject(expectObj)
-})
-
-test('defaultFetcher', () => {
-  const path = '/example'
-  const options = {}
-  // useFetchが発火することを確認。戻り値はmockの戻り値とする
-  expect(defaultFetcher(path, options)).toStrictEqual({ path, options })
-})
-````
-
-## File: layers/base/app/test/composables/useExample.spec.ts
-````typescript
-import type { NitroFetchRequest } from 'nitropack'
-import { useExample } from '#base/app/composables/useExample'
-
-// Nuxtのpayloadの一部をmockする
-const useStateState: Record<string, any> = {} // eslint-disable-line @typescript-eslint/no-explicit-any
-
-vi.mock('#app', () => ({
-  defineNuxtPlugin: vi.fn(),
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useState: vi.fn((key: string, init?: () => any) => {
-    useStateState[key] = { value: init?.() }
-    return useStateState[key]
-  }),
-
-  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-  useFetch: vi.fn(() => ({
-    status: 'ok',
-    data: {
-      todos: [
-        {
-          userId: 0,
-          id: 0,
-          title: 'Do something!',
-          completed: true,
-        },
-        {
-          userId: '1',
-          id: '1',
-          title: 'Say hello',
-          completed: false,
-        },
-      ],
-    },
-  })),
-}))
-
-vi.mock('#base/app/plugins/runtimeConfig', () => ({
-  requireRuntimeConfig: vi.fn(() => ({
-    public: {
-      baseUrl: 'http://localhost:3000',
-      apiPrefix: '/mock',
-    },
-  })),
-}))
-
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、fetchをすげ替えたいのでダミーとなるmock作成
-vi.mock('#base/app/plugins/fetch', () => {
-  return {
-    pluginFetchApi: vi.fn((_path: string, _options: NitroFetchRequest) => {
-      return {
-        status: 'ok',
-        data: {
-          todos: [
-            {
-              userId: 0,
-              id: 0,
-              title: 'Do something!',
-              completed: true,
-            },
-            {
-              userId: '1',
-              id: '1',
-              title: 'Say hello',
-              completed: false,
-            },
-          ],
-        },
-      }
-    }),
-  }
-})
-
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、 ofetch をすげ替えたいのでダミーとなるmock作成
-vi.mock('ofetch', () => {
-  return {
-    $fetch: vi.fn((_path: string, _options: NitroFetchRequest) => {
-      return {
-        status: 'ok',
-        data: {
-          todos: [
-            {
-              userId: 0,
-              id: 0,
-              title: 'Do something!',
-              completed: true,
-            },
-            {
-              userId: '1',
-              id: '1',
-              title: 'Say hello',
-              completed: false,
-            },
-          ],
-        },
-      }
-    }),
-  }
-})
-
-describe('useExample', () => {
-  it('should be able to get example', () => {
-    const { exampleRef, exampleState } = useExample()
-    expect(exampleRef.value).toEqual(undefined)
-    expect(exampleState.value).toEqual(undefined)
-  })
-
-  it('should be able to change example', async () => {
-    const { exampleRef, exampleState, getExample } = useExample()
-    const result = await getExample()
-    const checkObject = [
-      {
-        userId: 0,
-        id: 0,
-        title: 'Do something!',
-        completed: true,
-      },
-      {
-        userId: '1',
-        id: '1',
-        title: 'Say hello',
-        completed: false,
-      },
-    ]
-    expect(result).toEqual(checkObject)
-    expect(exampleState.value).toEqual(checkObject)
-    expect(exampleRef.value).toEqual(checkObject)
-  })
-
-  /*
-   * TODO: このテストはしたいけど、現状はuseStateモックのテストになってしまっているので、コメントアウトしておく。うまい方法があればコメントアウトを解除して、実装して、このコメントを削除してください
-   * it("should share example's latest state", () => {
-   *   const { example } = useExample()
-   *   expect(example.value).toEqual([
-   *     {
-   *       userId: 0,
-   *       id: 0,
-   *       title: 'Do something!',
-   *       completed: true,
-   *     },
-   *     {
-   *       userId: '1',
-   *       id: '1',
-   *       title: 'Say hello',
-   *       completed: false,
-   *     },
-   *   ])
-   * })
-   */
-})
-````
-
 ## File: layers/base/app/test/composables/useLocale.spec.ts
 ````typescript
 import { useLocale } from '#base/app/composables/useLocale'
@@ -13985,27 +16104,6 @@ describe('environment.ts', () => {
 })
 ````
 
-## File: layers/base/app/test/utils/error.spec.ts
-````typescript
-import { unreachable } from '#base/app/utils/error'
-
-test('unreachable', () => {
-  const x: number = 10
-  if (typeof x === 'number') {
-    // ここにしか来ない
-  } else {
-    unreachable(x)
-  }
-})
-
-test('raiseError', () => {
-  const xs: number[] = []
-  expect(() => {
-    const _ = xs[0] ?? raiseError('0th element is nothing')
-  }).toThrow()
-})
-````
-
 ## File: layers/base/app/test/utils/file-control.spec.ts
 ````typescript
 import { readFileAsBlob, getExtFromType, getBase64ByFile } from '#base/app/utils/file-control'
@@ -14737,84 +16835,6 @@ describe('response.ts', () => {
 })
 ````
 
-## File: layers/base/app/test/utils/sleep.spec.ts
-````typescript
-import { sleep } from '#base/app/utils/sleep'
-
-describe('sleep test', () => {
-  it('diff of start time and end time', async () => {
-    const startTime = Date.now()
-    await sleep(100)
-    const endTime = Date.now()
-    const diffTime = endTime - startTime
-    /**
-     * @privateRemarks
-     * startTimeから100ミリ秒離してendTimeを測って
-     * 100ミリ秒差をテスト判定基準としているが、
-     * setTimeout自体が処理の重さなど環境で変わる不安定なため、
-     * 100ミリ秒より一割余裕をみて90ミリ秒でテストする
-     * https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#timers
-     * 「この API は、タイマーがスケジュールどおりに正確に実行されることを保証しません。CPU 負荷や他のタスクなどによる遅延が予想されます。」
-     */
-    expect(diffTime).toBeGreaterThanOrEqual(90)
-  })
-})
-````
-
-## File: layers/base/app/test/utils/token.spec.ts
-````typescript
-import { test } from '@fast-check/vitest'
-import { decodeJwt } from '#base/app/utils/token'
-
-describe('decodeJwt', () => {
-  test('decode valid jwt', () => {
-    const jwt
-      = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzWXcXNrz0ogtVhfEd2o'
-    const decoded = decodeJwt(jwt)
-    expect(decoded).toMatchObject({
-      sub: '1234567890',
-      name: 'John Doe',
-      iat: 1516239022,
-    })
-  })
-  describe('decode invalid jwt', () => {
-    // 正直これは null になってほしいなあ
-    test.fails('invalid jwt (verify fails)', () => {
-      const jwt
-        = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzWXcXNrz0ogtVhfEd2p'
-      const decoded = decodeJwt(jwt)
-      expect(decoded, '検証が失敗したら null が返ってほしい').toBe(null)
-    })
-    test('decode valid (non-secure) jwt', () => {
-      const jwt
-        = 'eyJhbGciOiJub25lIn0.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.'
-      const decoded = decodeJwt(jwt)
-      expect(decoded, 'alg: none とかでも通る（これええんか？）').toMatchObject(
-        {
-          'iss': 'joe',
-          'exp': 1300819380,
-          'http://example.com/is_root': true,
-        },
-      )
-    })
-    test('invalid jwt', () => {
-      const decoded = decodeJwt('.eyJmb28iOiJiYXIifQ.')
-      expect(decoded, 'なんならalg無くても通る').toMatchObject({
-        foo: 'bar',
-      })
-    })
-    /*
-     * ERROR: テストとして正しいが、ターミナルにエラーが出るためコメントアウト。
-     * test('decode failes', () => {
-     *   const jwt = '################'
-     *   const decoded = decodeJwt(jwt)
-     *   expect(decoded, '失敗してnullが返る').toBe(null)
-     * })
-     */
-  })
-})
-````
-
 ## File: layers/base/app/test/utils/url.spec.ts
 ````typescript
 import { describe, expect, it } from 'vitest'
@@ -14851,6 +16871,93 @@ describe('vue-reactive.ts', () => {
      * リアクティブ処理関数が存在することを確認
      * 実際の関数に応じてテストケースを追加
      */
+  })
+})
+````
+
+## File: layers/base/app/test/utils/zod.spec.ts
+````typescript
+import { fc, test } from '@fast-check/vitest'
+import { z } from 'zod/v3'
+import { ensureValueOf, getMax, isValueOf, makeRecursiveSchema } from '#base/app/utils/zod'
+
+describe('isValueOf', () => {
+  test('returns true if schema parses successfully', () => {
+    const schema = z.object({
+      a: z.number(),
+    })
+    const value = {
+      a: 42,
+    }
+    expect(isValueOf(schema, value)).toEqual(true)
+  })
+
+  test('returns false if schema failed to parse', () => {
+    const schema = z.object({
+      a: z.number().negative(),
+    })
+    const value = {
+      a: 42,
+    }
+    expect(isValueOf(schema, value)).toEqual(false)
+  })
+})
+
+describe('ensureValueOf', () => {
+  test('throws an error if schema failed to parse', () => {
+    const schema = z.object({
+      a: z.number().negative(),
+    })
+    const value = {
+      a: 42,
+    }
+    expect(() => ensureValueOf(schema, value)).toThrow()
+  })
+})
+
+describe('getMax', () => {
+  test.prop([fc.nat()])(
+    'takes the num of z.string().max(num) from the _def',
+    (n) => {
+      expect(getMax(z.string().max(n)._def)).toBe(n)
+    },
+  )
+
+  test('takes nothing from the zod schema does not have .max(num)', () => {
+    expect(getMax(z.string()._def)).toBeUndefined()
+  })
+})
+
+describe('makeRecursiveSchema', () => {
+  test('can make a recursive schema and the schema can validate values recursively', () => {
+    const treeSchema = makeRecursiveSchema(self =>
+      z.union([
+        z.object({ type: z.literal('leaf'), value: z.string() }),
+        z.object({ type: z.literal('branch'), children: self.array() }),
+      ]),
+    )
+
+    // treeSchemaは再帰構造のうち **一階層** だけバリデーションできる
+    const x: unknown = {
+      type: 'branch',
+      children: [{ type: 'leaf', value: 'foo' }],
+    }
+    const tree = treeSchema.parse(x)
+    if (tree.type !== 'branch') {
+      throw new Error('Expected a branch, but got a leaf.')
+    }
+    /*
+     * treeSchemaは一階層だけしかバリデーションできないので、yはSelf型になる
+     * Self型は実質Record<never, unknown>な型。@/utils/zodがselfKeyをexportしていないため
+     */
+    const y = tree.children[0] ?? raiseError('Fatal error')
+
+    // さらに階層を深堀したい場合は、再パースする必要がある
+    const subTree = treeSchema.parse(y)
+    if (subTree.type !== 'leaf') {
+      throw new Error('Expected a leaf, but got a branch.')
+    }
+    expect(subTree.value).toBe('foo')
   })
 })
 ````
@@ -15264,21 +17371,6 @@ if (typeof window === 'undefined') {
   // Server-side
   configureLoggerForEnvironment()
 }
-````
-
-## File: layers/base/app/utils/constant.ts
-````typescript
-/**
- * runtimeConfig・appConfigに置けない・置かない定数を置く場所。
- * 内容がこれなのでユニットテストは必要ない。
- */
-export const constant = {
-  /**
-   * [[constant]] を{}型にしないためのダミー。
-   * 他の項目が追加されたら、これを削除してください。
-   */
-  dummy: 'dummy',
-} as const
 ````
 
 ## File: layers/base/app/utils/date-control.ts
@@ -15793,66 +17885,6 @@ export function toImage(blob: File | Blob): Promise<HTMLImageElement> {
 }
 ````
 
-## File: layers/base/app/utils/sleep.ts
-````typescript
-import { nextTick } from 'vue'
-
-/**
- * @desc 特定のミリ秒処理を止める。testなどでDOM改変などの非同期に使用
- * @param { number } ms
- */
-export const sleep = (ms: number): Promise<void> =>
-  new Promise<void>(resolve =>
-    setTimeout(() => {
-      resolve()
-    }, ms),
-  )
-
-// NOTE: どうしてこれで直っているのかは不明
-/**
- * `await wrapper.get('input[type="text"]').setValue('12345678901')`
- * などのアクションを待った時に、後続の`expect()`が失敗する場合に使う関数。
- * ```ts
- * await wrapper.get('input[type="text"]').setValue('12345678901')
- * await waitEffect()
- * expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
- * ```
- * https://github.com/vuejs/vue-test-utils/issues/1406
- */
-export const waitEffect = async () => {
-  await nextTick()
-  await new Promise(resolve =>
-    requestAnimationFrame(resolve),
-  )
-}
-````
-
-## File: layers/base/app/utils/token.ts
-````typescript
-/**
- * JWTのデコード
- */
-export const decodeJwt = (jwt: string): unknown => {
-  try {
-    const base64Url = jwt.split('.')[1]
-    const base64 = base64Url?.replace(/-/g, '+').replace(/_/g, '/')
-    if (!base64) throw new Error('Failed to decode base64')
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map((c) => {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-        })
-        .join(''),
-    )
-    return JSON.parse(jsonPayload)
-  } catch (e) {
-    console.error(`${e}`)
-    return null
-  }
-}
-````
-
 ## File: layers/base/app/utils/vue-reactive.ts
 ````typescript
 import type { DeepReadonly, Reactive } from 'vue'
@@ -16157,6 +18189,17 @@ export const todoSchema = z.object({
 export type Todo = z.infer<typeof todoSchema>
 ````
 
+## File: layers/main/app/plugins/gtm.client.ts
+````typescript
+import { createGtm } from '@gtm-support/vue-gtm'
+import { defineNuxtPlugin } from 'nuxt/app'
+
+export default defineNuxtPlugin(() => {
+  const config = useRuntimeConfig()
+  createGtm({ id: config.public?.gtmId, enabled: true })
+})
+````
+
 ## File: layers/main/app/test/utils/api.spec.ts
 ````typescript
 import type { NitroFetchRequest } from 'nitropack'
@@ -16318,6 +18361,26 @@ export default (
     default:
       return defaultApi.get(path, fetchOptions)
   }
+}
+````
+
+## File: layers/main/app/utils/factory.ts
+````typescript
+import { type MakeRepository, defaultRepositories } from '#base/app/utils/default-factory'
+import { Method } from '@/utils/api'
+
+export type Repository = MakeRepository<Method>
+export type Repositories = Record<string, Repository>
+
+export const repositories = {
+  ...defaultRepositories,
+  // Add non-default repositories here
+} as const satisfies Repositories
+
+export type RepositoryKey = keyof typeof repositories
+
+export const repositoryFactory = {
+  get: <K extends keyof typeof repositories>(name: K) => repositories[name],
 }
 ````
 
@@ -16635,128 +18698,6 @@ const goBack = async (): Promise<void> => {
 ````
 User-agent: *
 Disallow:
-````
-
-## File: layers/main/app.config.ts
-````typescript
-// ref: https://v3.nuxtjs.org/guide/directory-structure/app.config
-// note: Do not put any secret values inside app.config file. It is exposed to the user client bundle.
-
-import { readEnvType } from './config/models/EnvType'
-import { getAppConfigOfEnvType } from './config/appConfig'
-
-// eslint-disable-next-line no-undef
-export default defineAppConfig(
-  getAppConfigOfEnvType(readEnvType(process.env), process.env)
-)
-````
-
-## File: layers/main/eslint.config.mjs
-````
-import typescriptEslint from '@typescript-eslint/eslint-plugin'
-import globals from 'globals'
-import stylistic from '@stylistic/eslint-plugin'
-import sharedConfig, { basicConfig } from '../../eslint.config.shared.mjs'
-import withNuxt from './.nuxt/eslint.config.mjs'
-
-export default withNuxt(
-  ...sharedConfig,
-
-  // VueとNuxtの基本設定
-  {
-    files: ['**/*.vue'],
-    languageOptions: {
-      globals: {
-        ...globals.browser,
-        // NOTE: eslint実行時に `error 'something' is not defined no-undef` のようなエラーが出て、'something'が既知のものだったら（例えばauto-importなどでimportされることがわかっている・標準ライブラリに載っている、など。）、ここ（もしくは下の「オーバーライド」）に `something: true` と追加してください
-        IntersectionObserverInit: true,
-      },
-    },
-    rules: {
-      'vue/no-unused-components': 'off',
-      'vue/no-multiple-template-root': 'off',
-      'vue/no-v-model-argument': 'off',
-      'vue/no-v-html': 'error',
-      'vue/multi-word-component-names': 'off',
-      'vue/html-self-closing': 'off', // prettierと競合するため、off
-    },
-  },
-  // composablesやplugins・middlewareなども含む設定
-  {
-    files: ['**/*.vue', '**/*.ts'],
-    languageOptions: {
-      globals: {
-        // NOTE: eslint実行時に `error 'something' is not defined no-undef` のようなエラーが出て、'something'が既知のものだったら（例えばauto-importなどでimportされることがわかっている・標準ライブラリに載っている、など。）、ここ（もしくは下の「オーバーライド」）に `something: true` と追加してください
-        WritableComputedRef: true,
-        defineNuxtConfig: true,
-      },
-    },
-    rules: {
-      /*
-       * ERROR  Cannot use 'import.meta' outside a module                                                                                                                                                                                                                                                               9:08:45 PM
-       * asyncContext: !!__NUXT_ASYNC_CONTEXT__ && import.meta.server
-       * ^^^^
-       * `yarn fix`すると`process.server`が`import.meta.server`に置き換えられて↑が発生するので、off
-       */
-      'nuxt/prefer-import-meta': 'off',
-    },
-  },
-
-  // tsconfigが必要なルールの設定
-  {
-    files: [
-      '**/*.ts',
-      '**/*.mts',
-      '**/*.cts',
-      '**/*.vue',
-      // 'Parsing error: Type expected'するので.tsxは除外
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: './tsconfig.json',
-      },
-    },
-    rules: {
-      ...typescriptEslint.configs.recommended.rules,
-      ...typescriptEslint.configs['recommended-type-checked'].rules,
-      ...basicConfig.rules,
-      '@typescript-eslint/restrict-template-expressions': 'off', // string interpolation `${e}` のeには、任意の型の値を許す
-      '@typescript-eslint/no-unsafe-call': 'off', // auto-importした関数がanyに推測されるので、off
-      // .vueの下記TODOコメントを参照 -- TODO: 「下記TODOコメント」はどこにいった？
-      '@typescript-eslint/no-unsafe-argument': 'off',
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off',
-    },
-  },
-
-  /*
-   * コーディングスタイルの設定（そのうちnuxt.config.tsに書けないもの）
-   * https://eslint.style/rules
-   */
-  {
-    plugins: {
-      '@stylistic': stylistic,
-    },
-    rules: {
-      '@stylistic/multiline-comment-style': ['warn', 'starred-block'],
-    },
-  },
-
-  // その他オーバーライド
-  {
-    files: ['**/test/**/*.ts'],
-    languageOptions: {
-      globals: {
-        ...globals.jest,
-        vi: true,
-      },
-    },
-    rules: {
-      '@typescript-eslint/unbound-method': 'off', // テスト内でvi.fn()などを注入するために許可
-    },
-  },
-)
 ````
 
 ## File: layers/open-api/app/models/openapi/.gitkeep
@@ -18291,55 +20232,6 @@ app/models/openapi.ts
 .serena
 ````
 
-## File: .stylelintrc.shared.mjs
-````
-export default {
-  extends: ['stylelint-config-standard-scss', 'stylelint-rscss', 'stylelint-config-clean-order'],
-  rules: {
-    'at-rule-no-unknown': [
-      true,
-      {
-        ignoreAtRules: ['/^.*/'],
-      },
-    ],
-    'scss/dollar-variable-pattern': null,
-    'selector-pseudo-class-no-unknown': [
-      true,
-      {
-        ignorePseudoClasses: ['deep', 'global'],
-      },
-    ],
-    'max-nesting-depth': null,
-    'property-no-vendor-prefix': null,
-    'selector-pseudo-element-no-unknown': null,
-    'no-descending-specificity': null,
-    'selector-class-pattern': null,
-    'selector-no-qualifying-type': [
-      true,
-      {
-        ignore: ['attribute', 'class'],
-      },
-    ],
-    'value-no-vendor-prefix': null,
-    'selector-max-compound-selectors': 5,
-    'function-no-unknown': null,
-    'declaration-property-value-disallowed-list': [
-      {
-        '// noneを許可する': '',
-        '/^border/': [],
-      },
-    ],
-    'media-query-no-invalid': null,
-  },
-  overrides: [
-    {
-      files: ['**/*.vue'],
-      customSyntax: 'postcss-html',
-    },
-  ],
-}
-````
-
 ## File: README.md
 ````markdown
 # Vket Boilerplate Nuxt
@@ -18710,67 +20602,6 @@ en:
 MITライセンス - 詳細は[LICENSE](LICENSE)ファイルをご覧ください。
 ````
 
-## File: layers/base/@types/components.d.ts
-````typescript
-/* eslint-disable */
-// @ts-nocheck
-// Generated by unplugin-vue-components
-// Read more: https://github.com/vuejs/core/pull/3399
-// biome-ignore lint: disable
-export {}
-
-/* prettier-ignore */
-declare module 'vue' {
-  export interface GlobalComponents {
-    HaBaseButton: typeof import('./../app/components/ha/base/HaBaseButton.vue')['default']
-    HaBaseInput: typeof import('./../app/components/ha/base/HaBaseInput.vue')['default']
-    HaContainer: typeof import('./../app/components/ha/HaContainer.vue')['default']
-    HaDialog: typeof import('./../app/components/ha/HaDialog.vue')['default']
-    HaDialogElement: typeof import('./../app/components/ha/HaDialogElement.vue')['default']
-    HaHamburger: typeof import('./../app/components/ha/HaHamburger.vue')['default']
-    HaImage: typeof import('./../app/components/ha/HaImage.vue')['default']
-    HaLabel: typeof import('./../app/components/ha/HaLabel.vue')['default']
-    HaLink: typeof import('./../app/components/ha/HaLink.vue')['default']
-    HaLoading: typeof import('./../app/components/ha/HaLoading.vue')['default']
-    HaLoadingIcon: typeof import('./../app/components/ha/HaLoadingIcon.vue')['default']
-    HaModal: typeof import('./../app/components/ha/HaModal.vue')['default']
-    HaSelectBox: typeof import('./../app/components/ha/HaSelectBox.vue')['default']
-    HaSkewBackground: typeof import('./../app/components/ha/HaSkewBackground.vue')['default']
-    HaTag: typeof import('./../app/components/ha/HaTag.vue')['default']
-    HaTextarea: typeof import('./../app/components/ha/HaTextarea.vue')['default']
-    HaVideo: typeof import('./../app/components/ha/HaVideo.vue')['default']
-    HmAccordion: typeof import('./../app/components/hm/HmAccordion.vue')['default']
-    HmAutoCarousel: typeof import('./../app/components/hm/HmAutoCarousel.vue')['default']
-    HmButton: typeof import('./../app/components/hm/button/HmButton.vue')['default']
-    HmButtonClose: typeof import('./../app/components/hm/button/HmButtonClose.vue')['default']
-    HmButtonFavorite: typeof import('./../app/components/hm/button/HmButtonFavorite.vue')['default']
-    HmClipping: typeof import('./../app/components/hm/HmClipping.vue')['default']
-    HmDialogElement: typeof import('./../app/components/hm/HmDialogElement.vue')['default']
-    HmIconUser: typeof import('./../app/components/hm/icon/HmIconUser.vue')['default']
-    HmInputCheckbox: typeof import('./../app/components/hm/input/HmInputCheckbox.vue')['default']
-    HmInputDatetime: typeof import('./../app/components/hm/input/HmInputDatetime.vue')['default']
-    HmInputFile: typeof import('./../app/components/hm/input/HmInputFile.vue')['default']
-    HmInputRadio: typeof import('./../app/components/hm/input/HmInputRadio.vue')['default']
-    HmInputRadioChangeable: typeof import('./../app/components/hm/input/HmInputRadioChangeable.vue')['default']
-    HmInputSingleImage: typeof import('./../app/components/hm/input/HmInputSingleImage.vue')['default']
-    HmInputText: typeof import('./../app/components/hm/input/HmInputText.vue')['default']
-    HmMenuExample: typeof import('./../app/components/hm/HmMenuExample.vue')['default']
-    HmNoteList: typeof import('./../app/components/hm/HmNoteList.vue')['default']
-    HmPaging: typeof import('./../app/components/hm/HmPaging.vue')['default']
-    HmPicture: typeof import('./../app/components/hm/HmPicture.vue')['default']
-    HmPopup: typeof import('./../app/components/hm/HmPopup.vue')['default']
-    HmSkeletonScreen: typeof import('./../app/components/hm/HmSkeletonScreen.vue')['default']
-    HmSlider: typeof import('./../app/components/hm/HmSlider.vue')['default']
-    HmSliderItem: typeof import('./../app/components/hm/HmSliderItem.vue')['default']
-    HmSocialShareLink: typeof import('./../app/components/hm/HmSocialShareLink.vue')['default']
-    HmTab: typeof import('./../app/components/hm/HmTab.vue')['default']
-    HmTsx: typeof import('./../app/components/hm/HmTsx.vue')['default']
-    RouterLink: typeof import('vue-router')['RouterLink']
-    RouterView: typeof import('vue-router')['RouterView']
-  }
-}
-````
-
 ## File: layers/base/app/assets/styles/_variables.scss
 ````scss
 /* color palette */
@@ -18924,252 +20755,340 @@ $zindex-loading: 400;
 }
 ````
 
-## File: layers/base/app/components/ha/HaLoading.vue
+## File: layers/base/app/components/ha/base/HaBaseInput.vue
 ````vue
 <template>
-  <div
-    v-if="loading"
-    class="ha-loading"
-  >
-    <template v-if="cover">
-      <div class="cover" />
-    </template>
-    <div class="loader spinner-container">
-      <svg
-        class="spinner"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 70 70"
-        width="120px"
-        height="120px"
-      >
-        <path
-          d="M65,35c0-16.57-13.43-30-30-30S5,18.43,5,35H0C0,15.67,15.67,0,35,0s35,15.67,35,35h-5Z"
-          style="fill: #0583f2"
-        >
-          <animateTransform
-            attributeName="transform"
-            attributeType="XML"
-            type="rotate"
-            from="0,35,35"
-            to="360,35,35"
-            dur="2s"
-            repeatCount="indefinite"
-          />
-        </path>
-      </svg>
-    </div>
-  </div>
-</template>
-
-<script setup lang="ts">
-const props = withDefaults(
-  defineProps<{
-    manual?: boolean
-    cover?: boolean
-  }>(),
-  {
-    manual: false,
-    cover: false,
-  },
-)
-
-/*
- * ここでの `manual` とは auto start の意味であり、Nuxtのloading機能を使わず
- * 自前で（外側からv-ifを使って）loadingを出すためのもの
- */
-const loading = ref(props.manual)
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-
-.ha-loading {
-  position: fixed;
-  z-index: v.$zindex-loading;
-  inset: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 100vw;
-  height: 100vh;
-
-  background: rgb(0 0 0 / 70%);
-
-  > .cover {
-    position: absolute;
-    width: 100vw;
-    height: 100vh;
-    background-color: v.$white;
-  }
-}
-
-.spinner-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 120px;
-  height: 120px;
-  margin: auto;
-
-  > .spinner {
-    display: block;
-
-    width: 120px;
-    max-width: 50%;
-    height: 120px;
-    max-height: 50%;
-    margin: auto;
-  }
-}
-</style>
-````
-
-## File: layers/base/app/components/ha/HaVideo.vue
-````vue
-<template>
-  <video
-    ref="haVideoRef"
-    class="ha-video"
-    :src="src"
-    :autoplay="autoplay"
-    :autopictureinpicture="autopictureinpicture"
-    :controls="controls"
-    :disablepictureinpicture="disablepictureinpicture"
-    :controlslist="controlslist"
-    :crossorigin="crossorigin"
-    :disableremoteplayback="disableremoteplayback"
-    :x-webkit-airplay="disableremoteplayback ? 'deny' : false"
-    :width="width"
-    :height="height"
-    :loop="loop"
-    :muted="muted"
-    :playsinline="playsinline"
-    :poster="poster"
-    :preload="preload"
+  <input
+    :id="props.id"
+    v-bind="valueProp"
+    class="ha-base-input"
+    :type="props.type"
+    :accept="props.accept"
+    :autocomplete="props.autocomplete"
+    :autofocus="props.autofocus"
+    :capture="capture_"
+    :checked="props.checked"
+    :disabled="props.disabled"
+    :list="props.list"
+    :max="props.max"
+    :maxLength="props.maxLength"
+    :min="props.min"
+    :minLength="props.minLength"
+    :multiple="props.multiple"
+    :name="props.name"
+    :placeholder="props.placeholder"
+    :readonly="props.readonly"
+    :required="props.required"
+    :size="props.size"
+    :files="props.files"
+    @input="onInput"
+    @change="onChange"
   />
 </template>
 
 <script setup lang="ts">
-const props = withDefaults(
-  defineProps<{
-    src: string
-    height?: string
-    width?: string
-    play?: boolean
-    autoplay?: boolean
-    autopictureinpicture?: boolean
-    controls?: boolean
-    disablepictureinpicture?: boolean
-    disableremoteplayback?: boolean
-    loop?: boolean
-    muted?: boolean
-    playsinline?: boolean
-    poster?: string
-    // nodownload, nofullscreen, noremoteplayback
-    controlslist?: string
-    // anonymous, use-credentials
-    crossorigin?: string
-    // none, metadata, auto
-    preload?: string
-  }>(),
-  {
-    height: '',
-    width: '',
-    autoplay: false,
-    play: false,
-    autopictureinpicture: false,
-    controls: false,
-    disablepictureinpicture: false,
-    disableremoteplayback: false,
-    loop: false,
-    muted: false,
-    playsinline: false,
-    poster: '',
-    controlslist: '',
-    crossorigin: '',
-    preload: 'auto',
-  },
-)
-const emit = defineEmits<{
+export type InputType
+  = | 'button'
+    | 'checkbox'
+    | 'email'
+    | 'file'
+    | 'number'
+    | 'password'
+    | 'radio'
+    | 'search'
+    | 'tel'
+    | 'text'
+    | 'url'
+    | 'date'
+    | 'datetime-local'
+    | 'time'
+
+type Props = {
+  type: InputType
+  accept?: string
+  autocomplete?: string
+  autofocus?: boolean
+  capture?: boolean | 'user' | 'environment'
+  checked?: boolean
+  disabled?: boolean
+  id?: string
+  list?: string
+  max?: number | string
+  maxLength?: number
+  min?: number | string
+  minLength?: number
+  multiple?: boolean
+  name?: string
+  placeholder?: string
+  readonly?: boolean
+  required?: boolean
+  size?: number
+  value?: string | number | boolean
+  modelValue?: string | number | boolean
+  files?: FileList | undefined
+}
+type Emits = {
   (
-    emit:
-      | 'progress'
-      | 'suspend'
-      | 'durationchange'
-      | 'loadedmetadata'
-      | 'loadeddata'
-      | 'canplay'
-      | 'playing'
-      | 'pause'
-      | 'ended'
-      | 'seeking'
-      | 'timeupdate'
-      | 'volumechange'
-      | 'ratechange'
-      | 'waiting',
-    e: Event
+    e: 'update:modelValue' | 'update:value',
+    eventValue: string | number | boolean
   ): void
-}>()
+  (e: 'input' | 'change', event: Event): void
+}
 
-const haVideoRef = ref<HTMLVideoElement | null>(null)
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
 
-// note: HaVideoがmounted後にpropsを変えないとwatchされない
-watch(props, async () => {
-  if (haVideoRef.value === null) {
-    return
+const typeofInputValue = () => {
+  if (props.type === 'checkbox') return 'boolean'
+
+  if (props.type === 'radio' && typeof props.value === 'number') return 'number'
+
+  return 'string'
+}
+
+const onInput = (event: Event) => {
+  emit('input', event)
+  if (event.target instanceof HTMLInputElement) {
+    const returnType = typeofInputValue()
+
+    const checked = event.target.checked
+    if (returnType === 'boolean') {
+      emit('update:modelValue', checked)
+      emit('update:value', checked)
+      return
+    }
+
+    const value = event.target.value
+    if (returnType === 'number') {
+      emit('update:modelValue', Number(value))
+      emit('update:value', Number(value))
+      return
+    }
+
+    emit('update:modelValue', value)
+    emit('update:value', value)
   }
+}
 
-  if (props.play) {
-    await haVideoRef.value.play()
-  } else {
-    haVideoRef.value.pause()
+const onChange = (event: Event) => {
+  emit('change', event)
+}
+
+const valueProp = computed(() => {
+  /*
+   * props.value の型にbooleanが含まれているからかflagとして解釈されている？
+   * 指定しない時のデフォルト値がundefinedでなくfalseになってつらいので対処
+   */
+  if (props.type === 'file' && props.value === false) return {}
+  if (props.modelValue !== undefined) return { value: props.modelValue }
+  return {
+    value: props.value,
   }
 })
 
-onMounted(() => {
-  haVideoRef.value?.addEventListener('progress', (e: Event) =>
-    emit('progress', e),
-  )
-  haVideoRef.value?.addEventListener('suspend', (e: Event) =>
-    emit('suspend', e),
-  )
-  haVideoRef.value?.addEventListener('durationchange', (e: Event) =>
-    emit('durationchange', e),
-  )
-  haVideoRef.value?.addEventListener('loadedmetadata', (e: Event) =>
-    emit('loadedmetadata', e),
-  )
-  haVideoRef.value?.addEventListener('loadeddata', (e: Event) =>
-    emit('loadeddata', e),
-  )
-  haVideoRef.value?.addEventListener('canplay', (e: Event) =>
-    emit('canplay', e),
-  )
-  haVideoRef.value?.addEventListener('playing', (e: Event) =>
-    emit('playing', e),
-  )
-  haVideoRef.value?.addEventListener('pause', (e: Event) => emit('pause', e))
-  haVideoRef.value?.addEventListener('ended', (e: Event) => emit('ended', e))
-  haVideoRef.value?.addEventListener('seeking', (e: Event) =>
-    emit('seeking', e),
-  )
-  haVideoRef.value?.addEventListener('timeupdate', (e: Event) =>
-    emit('timeupdate', e),
-  )
-  haVideoRef.value?.addEventListener('volumechange', (e: Event) =>
-    emit('volumechange', e),
-  )
-  haVideoRef.value?.addEventListener('ratechange', (e: Event) =>
-    emit('ratechange', e),
-  )
-  haVideoRef.value?.addEventListener('waiting', (e: Event) =>
-    emit('waiting', e),
-  )
+/**
+ * https://developer.mozilla.org/ja/docs/Web/HTML/Attributes/capture
+ * capture属性はどうも論理属性でなくなっていて？  falseでもカメラが起動するので対応
+ */
+const capture_ = computed<'user' | 'environment' | true | undefined>(() => {
+  switch (props.capture) {
+    case false:
+      return undefined
+    default:
+      return props.capture
+  }
 })
 </script>
+
+<style lang="scss" scoped>
+.ha-base-input {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+}
+</style>
+````
+
+## File: layers/base/app/components/ha/HaModal.vue
+````vue
+<template>
+  <!-- モーダルを開くボタン -->
+  <button
+    class="open"
+    type="button"
+    :aria-controls="'popup' + props.index.toString()"
+    aria-expanded="false"
+    @click="togglePopup"
+  >
+    <slot name="button">
+      <span class="text">モーダルを開く</span>
+    </slot>
+  </button>
+  <!-- モーダル -->
+  <section
+    :id="'popup' + props.index.toString()"
+    class="ha-modal"
+    :aria-hidden="!popupVisibility"
+  >
+    <button
+      ref="close"
+      class="close"
+      type="button"
+      :aria-label="
+        i18n.locale.value === 'ja' ? `モーダルを閉じる` : `Close the dialog`
+      "
+      @click="togglePopup"
+    >
+      <!-- 閉じるボタンのアイコン -->
+      <slot name="close">
+        <RiCloseLine class="icon" />
+      </slot>
+    </button>
+    <div
+      class="inner"
+      role="presentation"
+    >
+      <!-- モーダルの背景 -->
+      <div
+        class="background"
+        aria-hidden="true"
+        @click="togglePopup"
+      ></div>
+      <div
+        class="modal"
+        role="presentation"
+      >
+        <slot name="inner">
+          <div>モーダルの中身</div>
+        </slot>
+      </div>
+    </div>
+    <div
+      tabindex="0"
+      class="modal-end"
+      @focus="handleEndFocus"
+    ></div>
+  </section>
+</template>
+
+<script lang="ts" setup>
+import RiCloseLine from '~icons/ri/close-line'
+
+type Props = {
+  index: string
+}
+const props = defineProps<Props>()
+const i18n = useI18n()
+
+/* ポップアップの開閉はrefで制御 */
+const popupVisibility = ref(false)
+const togglePopup = () => {
+  // html要素とbody要素の両方にoverflowを記述
+  if (!popupVisibility.value) {
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+    document.documentElement.style.overflow = ''
+  }
+  popupVisibility.value = !popupVisibility.value
+}
+/* フォーカスを制御する要素を定義 */
+const close = ref<HTMLElement | null>(null)
+// modal-endにフォーカスが当たったらcloseにフォーカスを移す(ポップアップを開いている最中にポップアップの外にアクセスさせない)
+const handleEndFocus = () => {
+  if (close.value === null) {
+    throw new Error('close要素はnull')
+  }
+  close.value.focus()
+}
+
+/* モーダルが開いている状態でESCキーを押すとモーダルを閉じる */
+onMounted(() => {
+  window.addEventListener('keydown', (e) => {
+    if (popupVisibility.value === true && e.key === 'Escape') {
+      popupVisibility.value = false
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
+  })
+})
+
+defineExpose({
+  close,
+  handleEndFocus,
+  togglePopup,
+  popupVisibility,
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+@use '#base/app/assets/styles/mixins' as m;
+
+.open {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+}
+
+.ha-modal {
+  position: fixed;
+  z-index: 2147483647;
+  inset: 0;
+
+  &[aria-hidden='true'] {
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0.4s, opacity 0.4s;
+  }
+
+  &[aria-hidden='false'] {
+    visibility: visible;
+    opacity: 1;
+    transition: visibility 0.4s, opacity 0.4s;
+  }
+
+  > .inner {
+    position: absolute;
+    inset: 0;
+
+    > .background {
+      position: absolute;
+      inset: 0;
+    }
+
+    > .modal {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      translate: -50% -50%;
+
+      overflow-y: auto; /* モーダルの中身はスクロール可能に */
+
+      width: 90%;
+      height: 90vh;
+    }
+  }
+
+  > .close {
+    position: absolute;
+    z-index: 2;
+    top: 2%;
+    right: 2%;
+
+    aspect-ratio: 1/1;
+
+    > .icon {
+      font-size: 24px;
+
+      &:deep(path) {
+        fill: v.$white;
+      }
+    }
+  }
+}
+</style>
 ````
 
 ## File: layers/base/app/components/hm/button/HmButtonFavorite.vue
@@ -19573,175 +21492,429 @@ function onChange(e: Event): void {
 </style>
 ````
 
-## File: layers/base/app/components/hm/HmAccordion.vue
+## File: layers/base/app/components/hm/HmClipping.vue
 ````vue
 <template>
-  <button
-    :id="props.buttonname"
-    ref="accordionTrigger"
-    class="accordion-trigger"
-    :aria-expanded="isOpen"
-    role="tab"
-    :aria-controls="props.panelname"
-    type="button"
-    @click="changeExpanded"
-  >
-    <slot name="title"></slot>
-    <slot name="icon"></slot>
-  </button>
-  <div
-    :id="props.panelname"
-    ref="accordionBody"
-    class="accordion-body"
-    role="tabpanel"
-    :aria-labelledby="props.buttonname"
-  >
-    <div class="accordion-inner">
-      <slot name="content" />
+  <div class="hm-clipping">
+    <div class="cropper-container">
+      <Cropper
+        ref="cropper"
+        class="cropper"
+        :src="src"
+        :autoZoom="autoZoom"
+        :stencilSize="{
+          width: width,
+          height: height,
+        }"
+        v-bind="cropperOptions"
+        defaultBoundaries="fit"
+        :imageRestriction="imageRestriction"
+        :style="forceStyle"
+        @change="onChange"
+      />
     </div>
+    <template v-if="src">
+      <HaBaseButton
+        class="button"
+        @click="clip"
+      >
+        <!-- {{ i18n.t('label') }} -->
+        切り抜く
+      </HaBaseButton>
+    </template>
   </div>
 </template>
 
 <script lang="ts" setup>
-const props = defineProps<{
-  buttonname: string
-  panelname: string
-  open?: boolean
-}>()
+import { Cropper } from 'vue-advanced-cropper'
+import 'vue-advanced-cropper/dist/style.css'
 
-const accordionTrigger = ref<HTMLButtonElement | null>(null)
-const accordionBody = ref<HTMLDivElement | null>(null)
-const isOpen = ref(false)
+type Props = {
+  src: string
+  width?: number
+  height?: number
+  cropperAreaHeight?: number
+  doResize?: boolean
+  stencil?: string
+  imageRestriction?: 'fill-area' | 'fit-area' | 'stencil' | 'none'
+  autoZoom?: boolean
+  ext?: string
+}
 
-onMounted(() => {
-  if (accordionBody.value && !props.open) {
-    accordionBody.value.setAttribute('hidden', 'until-found')
-  } else {
-    isOpen.value = true
-  }
-  const observer = new MutationObserver((mutationsList) => {
-    mutationsList.forEach(() => {
-      if (
-        accordionBody.value
-        && accordionTrigger.value
-        && !accordionBody.value.getAttribute('hidden')
-        && accordionTrigger.value.getAttribute('aria-expanded') === 'false'
-      ) {
-        isOpen.value = !isOpen.value
-      }
-    })
-  })
-  const config = {
-    attributes: true, // 属性の変更を監視
-    childList: false, // 直下子要素の変更を監視
-    subtree: false, // 全ての子孫要素の変更を監視
-    characterData: false, // テキストの変更を監視
-  }
-  if (accordionBody.value && accordionBody.value instanceof HTMLElement) {
-    observer.observe(accordionBody.value, config)
-  }
+const props = withDefaults(defineProps<Props>(), {
+  width: 256,
+  height: 256,
+  cropperAreaHeight: undefined,
+  doResize: true,
+  stencil: 'RectangleStencil',
+  imageRestriction: 'stencil',
+  autoZoom: false,
+  ext: 'jpeg',
 })
 
-const changeExpanded = () => {
-  isOpen.value = !isOpen.value
-  if (accordionBody.value && isOpen.value) {
-    accordionBody.value.removeAttribute('hidden')
-  } else if (isOpen.value) {
-    setTimeout(() => {
-      if (accordionBody.value) {
-        accordionBody.value.setAttribute('hidden', 'until-found')
-      }
-    }, 300)
+type Emits = {
+  (e: 'clipped', image: File[]): void
+}
+const emit = defineEmits<Emits>()
+
+const croppedImage = ref<File[]>([])
+
+const forceStyle = computed(() => {
+  if (props.cropperAreaHeight === undefined) return {}
+  const cropperAreaHeight = props.cropperAreaHeight || props.height * 1.4
+  return {
+    height: `${cropperAreaHeight}px`,
   }
+})
+const cropperOptions = computed(() => {
+  return props.doResize
+    ? {
+        canvas: {
+          width: props.width,
+          height: props.height,
+        },
+      }
+    : {}
+})
+
+const onChange = ({ canvas }: { canvas: HTMLCanvasElement }) => {
+  /*
+   * this.coordinates = coordinates
+   * note: canvas to DataURI
+   * this.croppedImage = canvas.toDataURL(`image/${this.ext}`)
+   */
+  const data = canvas.toDataURL(`image/${props.ext}`)
+  // note: DataURL to File
+  const bytes = atob(data.split(',')[1] ?? raiseError('Invalid bytes'))
+  const mime
+    = data.split(',')[0]?.split(':')[1]?.split(';')[0]
+      ?? raiseError('Invalid mime')
+  const name = `tmp-${new Date().getTime()}.${mime.split('/')[1]}`
+  const writer = new Uint8Array(new ArrayBuffer(bytes.length))
+  for (let i = 0; i < bytes.length; i++) {
+    writer[i] = bytes.charCodeAt(i)
+  }
+  const file = new File([writer.buffer], name, { type: mime })
+  croppedImage.value[0] = file
+}
+
+const clip = () => {
+  emit('clipped', croppedImage.value)
 }
 </script>
 
-<style scoped lang="scss">
-.accordion-trigger {
-  position: relative;
+<style lang="scss" scoped>
+@use '@/assets/styles/variables' as v;
+@use '@/assets/styles/mixins' as m;
+
+.hm-clipping {
   width: 100%;
+  height: 100%;
 
-  &[aria-expanded='true'] {
-    + .accordion-body {
-      grid-template-rows: 1fr;
-    }
+  > .cropper-container {
+    height: calc(100% - 70px);
+    min-height: 300px;
+    margin-bottom: 20px;
+    padding: v.space(2);
+
+    background: #000;
   }
 
-  &[aria-expanded='false'] {
-    + .accordion-body {
-      grid-template-rows: 0fr;
-    }
+  > .cropper-container > .cropper {
+    height: 100%;
+    background: #000;
   }
-}
 
-.accordion-body {
-  display: grid;
-  transition: grid-template-rows 0.3s;
+  > .button {
+    width: 100%;
+    padding: v.$space-small;
+    color: v.$white;
+    background-color: v.$primary-button-default-color;
 
-  .accordion-inner {
-    overflow: hidden;
+    :hover {
+      background-color: v.$primary-button-active-color;
+    }
   }
 }
 </style>
 ````
 
-## File: layers/base/app/components/hm/HmPicture.vue
+## File: layers/base/app/components/hm/HmPaging.vue
 ````vue
+<i18n lang="yaml">
+ja:
+  next: 次へ
+  prev: 前へ
+en:
+  next: Next
+  prev: Prev
+</i18n>
+
 <template>
-  <picture classs="hm-picture">
-    <source
-      media="(max-width: 767px)"
-      :srcset="imageUrlSp"
-      class="src"
-      @error="onError"
-    />
-    <HaImage
-      :isLazy="isLazy"
-      :fetchpriority="fetchPriority"
-      :src="srcPc"
-      :alt="alt ? alt : ''"
-      :decoding="decoding"
-    />
-  </picture>
+  <nav
+    aria-label="Pagination Navigation"
+    class="pagination"
+  >
+    <!-- 前へ -->
+    <HaLink
+      :to="route.path"
+      :query="createPageQuery(currentPage - 1)"
+      class="pagination-prev"
+      :class="{
+        ['link-disabled text-disabled']: currentPage <= 1,
+      }"
+      :aria-disabled="currentPage >= totalPages"
+      @click="goToPage(currentPage - 1)"
+    >
+      <slot name="prev-icon">
+        &lt;
+      </slot>
+      {{ i18n.t('prev') }}
+    </HaLink>
+    <!-- 各ページへのリンク表示 -->
+    <ul class="pagination-list">
+      <li
+        v-for="(page, i) in pages"
+        :key="`${page}_${i}`"
+        :aria-disabled="currentPage == page"
+        @click="goToPage(Number(page))"
+      >
+        <HaLink
+          class="pagination-item"
+          :class="{
+            ['link-disabled active']: currentPage == page,
+            ['link-disabled ellipsis']: page == '...',
+          }"
+          :to="route.path"
+          :query="createPageQuery(Number(page))"
+        >
+          {{ page }}
+        </HaLink>
+      </li>
+    </ul>
+    <!-- 次へ -->
+    <HaLink
+      :to="route.path"
+      :query="createPageQuery(currentPage + 1)"
+      class="pagination-next"
+      :class="{ ['link-disabled']: currentPage >= totalPages }"
+      :aria-disabled="currentPage >= totalPages"
+      @click="goToPage(currentPage + 1)"
+    >
+      {{ i18n.t('next') }}
+      <slot name="next-icon">
+        &gt;
+      </slot>
+    </HaLink>
+  </nav>
 </template>
 
-<script setup lang="ts">
-import defaultNoImage from '@@/public/images/no-image.png'
+<script lang="ts" setup>
+import { Paging } from '#base/app/utils/response'
+
+export type PageChangedEventObject = {
+  page: number // 新しいページ番号
+  offset: number // 新しいページのオフセット
+}
+
+const i18n = useI18n()
+const route = useRoute()
 
 const props = withDefaults(
   defineProps<{
-    srcPc?: string | null
-    srcSp?: string | null
-    alt?: string | null
-    isLazy?: boolean
-    fetchPriority?: 'low' | 'high' | 'auto' | null
-    decoding?: 'sync' | 'async' | 'auto'
-    noImage?: string
+    paging: Paging
+    totalVisible?: number
+    ellipsis?: string
   }>(),
   {
-    srcPc: '',
-    srcSp: '',
-    alt: null,
-    isLazy: true,
-    fetchPriority: 'low',
-    decoding: 'auto',
-    noImage: '',
+    totalVisible: 7,
+    ellipsis: '...',
   },
 )
 
-// エラーハンドリング
-const hasError = ref(false)
-const onError = () => {
-  hasError.value = true
+const emit = defineEmits<{
+  (e: 'changed', paging: PageChangedEventObject): void
+}>()
+
+const currentPage = computed(
+  () => Math.ceil(props.paging.offset / props.paging.limit) + 1,
+)
+const totalPages = computed(() =>
+  Math.ceil(props.paging.total / props.paging.limit),
+)
+
+const createPageQuery = (page: number) => {
+  return { ...route.query, page: page.toString() }
 }
 
-// SP用の画像URL
-const imageUrlSp = computed(() =>
-  hasError.value
-    ? props.noImage || defaultNoImage
-    : props.srcSp || defaultNoImage,
-)
+const createRange = (length: number, start = 0): number[] => {
+  return Array.from({ length }, (_, i) => start + i)
+}
+
+/*
+ * 表示すべきページ番号の配列を作成 ( ロジックの大元はVuetifyライブラリのPaginationコンポーネント参考 )
+ * https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/components/VPagination/VPagination.tsx
+ */
+const pages = computed(() => {
+  if (
+    totalPages.value <= 0
+    || isNaN(totalPages.value)
+    || isNaN(currentPage.value)
+    || totalPages.value > Number.MAX_SAFE_INTEGER
+  )
+    return []
+
+  if (props.totalVisible <= 0) return []
+  if (props.totalVisible === 1) return [currentPage.value]
+  if (totalPages.value <= props.totalVisible) {
+    return createRange(totalPages.value, 1)
+  }
+
+  // 表示するページ数とellipsisの合計数量を固定するためのロジック ( これがないとページ遷移のたびにページボタンの位置がずれて使いにくい )
+  const even = props.totalVisible % 2 === 0
+  const middle = even
+    ? props.totalVisible / 2
+    : Math.floor(props.totalVisible / 2)
+  const left = even ? middle : middle + 1
+  const right = totalPages.value - middle
+
+  if (left - currentPage.value >= 0) {
+    return [
+      ...createRange(Math.max(1, props.totalVisible - 1), 1),
+      props.ellipsis,
+      totalPages.value,
+    ]
+  } else if (currentPage.value - right >= (even ? 1 : 0)) {
+    const rangeLength = props.totalVisible - 1
+    const rangeStart = totalPages.value - rangeLength + 1
+    return [1, props.ellipsis, ...createRange(rangeLength, rangeStart)]
+  } else {
+    const rangeLength = Math.max(1, props.totalVisible - 3)
+    const rangeStart
+      = rangeLength === 1
+        ? currentPage.value
+        : currentPage.value - Math.ceil(rangeLength / 2) + 1
+    return [
+      1,
+      props.ellipsis,
+      ...createRange(rangeLength, rangeStart),
+      props.ellipsis,
+      totalPages.value,
+    ]
+  }
+})
+
+// ページ番号がクリックされた時に実行される関数
+const goToPage = (page: number) => {
+  // 有効なページ番号の時のみ処理を行う
+  if (page >= 1 && page <= totalPages.value) {
+    const newOffset = (page - 1) * props.paging.limit
+    emit('changed', { page, offset: newOffset })
+  }
+}
 </script>
+
+<style lang="scss" scoped>
+@use '@/assets/styles/variables' as v;
+@use '@/assets/styles/mixins' as m;
+
+.pagination {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+
+  .link-disabled {
+    pointer-events: none;
+    cursor: default;
+  }
+
+  .pagination-prev,
+  .pagination-next {
+    cursor: pointer;
+    user-select: none;
+
+    display: flex;
+    align-items: center;
+
+    width: auto;
+    height: 32px;
+    padding: 4px 8px;
+
+    color: v.$base-font-color;
+
+    :deep(svg path) {
+      fill: v.$base-font-color;
+    }
+
+    &.text-disabled {
+      color: v.$button-disabled-color;
+
+      :deep(svg path) {
+        fill: v.$button-disabled-color;
+      }
+    }
+
+    &:hover {
+      color: v.$primary-button-default-color;
+
+      :deep(svg path) {
+        fill: v.$primary-button-default-color;
+      }
+    }
+  }
+
+  .pagination-list {
+    user-select: none;
+
+    display: flex;
+    gap: 4px;
+
+    padding: 0;
+
+    list-style: none;
+
+    .pagination-item {
+      cursor: pointer;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+
+      color: v.$base-font-color;
+
+      background: v.$white;
+
+      &.active {
+        font-weight: bold;
+        color: v.$white;
+        background-color: v.$primary-button-default-color;
+      }
+
+      &:hover:not(.active) {
+        color: v.$white;
+        background-color: v.$primary-button-default-color;
+      }
+
+      &.ellipsis {
+        pointer-events: none;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        width: 30px;
+
+        background: none;
+      }
+    }
+  }
+}
+</style>
 ````
 
 ## File: layers/base/app/components/hm/HmTab.vue
@@ -19900,133 +22073,6 @@ export type LocaleComposable = ReturnType<typeof useLocale>
 
 export const localeInjectionKey: InjectionKey<LocaleComposable>
   = Symbol('locale')
-````
-
-## File: layers/base/app/composables/useValidationRules.ts
-````typescript
-import { useI18n } from 'vue-i18n'
-import { z } from 'zod/v3'
-
-const useValidationRules = () => {
-  const i18n = useI18n()
-
-  return {
-    required: z.coerce.string().nonempty({
-      message: i18n.t('validation.required'),
-    }),
-
-    /**
-     * 必須(文字列)
-     * ->文字列を選ばせるSelectBox等の必須チェックで使用する
-     */
-    stringRequired: z
-      .string({
-        invalid_type_error: i18n.t('validation.excluded'),
-      })
-      .nullable()
-      .optional()
-      .refine(
-        val => val !== null && val !== undefined,
-        i18n.t('validation.required'),
-      ),
-
-    /**
-     * 必須(数値)
-     * ->数値を選ばせるSelectBox等の必須チェックで使用する
-     */
-    numberRequired: z
-      .number({
-        invalid_type_error: i18n.t('validation.excluded'),
-      })
-      .nullable()
-      .optional()
-      .refine(
-        val => val !== null && val !== undefined,
-        i18n.t('validation.required'),
-      ),
-
-    minValue: (minimum: number) =>
-      z.coerce.string().refine(x => Number(x) >= minimum, {
-        message: i18n.t('validation.min_value', { min: minimum }),
-      }),
-
-    /**
-     * 数値・数値を表す文字列が引数に指定された値以上。
-     */
-    maxValue: (maximum: number) =>
-      z.coerce.string().refine(x => Number(x) <= maximum, {
-        message: i18n.t('validation.max_value', { max: maximum }),
-      }),
-
-    /**
-     * stringのlengthが引数に指定された値以上。
-     */
-    max: (maximum: number) =>
-      z.coerce.string().max(maximum, {
-        message: i18n.t('validation.max', { length: maximum }),
-      }),
-
-    url: z.string().url({
-      message: i18n.t('validation.url'),
-    }),
-
-    /**
-     * URLチェックをしたいが、空文字は通したい場合。
-     */
-    nonRequiredUrl: z.string().superRefine((value, ctx) => {
-      if (!value) return true // 空文字/null/undefinedは、バリデーションをスキップ
-      try {
-        z.string()
-          .url({
-            message: i18n.t('validation.url'),
-          })
-          .parse(value)
-        return true
-      } catch (_e) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: i18n.t('validation.url'),
-        })
-      }
-    }),
-
-    /**
-     * 値が引数の配列に含まれないこと。
-     */
-    excluded: <T>(excludedItems: T[]) =>
-      z.unknown().refine(
-        (x) => {
-          const items: unknown[] = excludedItems
-          return !items.includes(x)
-        },
-        {
-          message: i18n.t('validation.excluded'),
-        },
-      ),
-
-    image: (rules: { required?: boolean, maxSize?: number }) =>
-      z
-        .instanceof(File)
-        .optional()
-        .refine(data => (rules.required ? !!data : true), {
-          message: i18n.t('validation.required'),
-        })
-        .refine(
-          data =>
-            // MB単位で指定できるようにしています。
-            data && rules.maxSize !== undefined
-              ? data.size < rules.maxSize * 1024 * 1024
-              : true,
-          {
-            message: i18n.t('validation.max_value', {
-              max: `${rules.maxSize}MB`,
-            }),
-          },
-        ),
-  }
-}
-
-export default useValidationRules
 ````
 
 ## File: layers/base/app/models/error-message.ts
@@ -20206,621 +22252,6 @@ export const safeSync = <T, E extends string = string>(
 }
 ````
 
-## File: layers/base/app/test/components/ha/HaSelectBox.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { z } from 'zod/v3'
-import HaSelectBox from '#base/app/components/ha/HaSelectBox.vue'
-
-test('ref component', () => {
-  expect(HaSelectBox).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HaSelectBox, {
-    props: {
-      modelValue: null,
-      validatorName: '',
-      validatorRules: undefined,
-      options: [],
-      placeholder: '---Select---',
-      disabledPlaceholder: false,
-      disabled: false,
-      required: false,
-      small: false,
-    },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-describe('props', () => {
-  it(':modelValue', () => {
-    const wrapper = mount(HaSelectBox, {
-      props: {
-        modelValue: 'testModelValue',
-        validatorName: '',
-        validatorRules: undefined,
-        options: [],
-        placeholder: '---Select---',
-        disabledPlaceholder: false,
-        disabled: false,
-        required: false,
-        small: false,
-      },
-    })
-    expect(wrapper.props('modelValue')).toBe('testModelValue')
-  })
-  it(':validatorName', () => {
-    const wrapper = mount(HaSelectBox, {
-      props: {
-        modelValue: null,
-        validatorName: 'test:validatorName',
-        validatorRules: undefined,
-        options: [],
-        placeholder: '---Select---',
-        disabledPlaceholder: false,
-        disabled: false,
-        required: false,
-        small: false,
-      },
-    })
-    expect(wrapper.get('select').attributes('name')).toBe('test:validatorName')
-  })
-  it(':validatorRules', () => {
-    const testValidatorRules = z.string()
-    const wrapper = mount(HaSelectBox, {
-      props: {
-        modelValue: null,
-        validatorName: '',
-        validatorRules: testValidatorRules,
-        options: [],
-        placeholder: '---Select---',
-        disabledPlaceholder: false,
-        disabled: false,
-        required: false,
-        small: false,
-      },
-    })
-    expect(wrapper.props('validatorRules')).toStrictEqual(testValidatorRules)
-  })
-  it(':options', () => {
-    const testOptions = [
-      {
-        value: 1,
-        text: 'test option name',
-        disabled: true,
-      },
-    ]
-    const wrapper = mount(HaSelectBox, {
-      props: {
-        modelValue: null,
-        validatorName: '',
-        validatorRules: undefined,
-        options: testOptions,
-        placeholder: '---Select---',
-        disabledPlaceholder: false,
-        disabled: false,
-        required: false,
-        small: false,
-      },
-    })
-    // NOTE: valueテスト
-    expect(wrapper.get('select').find('option[value="1"]')).toBeTruthy()
-    // NOTE: textテスト
-    expect(wrapper.get('select').find('option[value="1"]').text()).toBe(
-      'test option name',
-    )
-    /*
-     * NOTE: disabledテスト
-     * NOTE: optionタグのdisabledはdisabled属性自体の記載なのでその中身は空。なのでattrでdisabled属性が拾えたことでOKであり、その値を参照するのであれば空であることを確認する。disabledをpropsでfalseにしている場合はdisabled属性自体ないのでattr探した時点でエラーとなる（属性ないことがdisabled指定無いことの証明）
-     */
-    expect(
-      wrapper.get('select').find('option[value="1"]').attributes('disabled'),
-    ).toBe('')
-  })
-  it(':example-options-disabled-false ', () => {
-    const testOptions = [
-      {
-        value: 1,
-        text: 'test option name',
-        disabled: false,
-      },
-    ]
-    const wrapper = mount(HaSelectBox, {
-      props: {
-        modelValue: null,
-        validatorName: '',
-        validatorRules: undefined,
-        options: testOptions,
-        placeholder: '---Select---',
-        disabledPlaceholder: false,
-        disabled: false,
-        required: false,
-        small: false,
-      },
-    })
-    expect(
-      wrapper.get('select').find('option[value="1"]').attributes('disabled'),
-    ).toBeFalsy()
-  })
-  it(':placeholder', () => {
-    const wrapper = mount(HaSelectBox, {
-      props: {
-        modelValue: null,
-        validatorName: '',
-        validatorRules: undefined,
-        options: [],
-        placeholder: '---Select---',
-        disabledPlaceholder: false,
-        disabled: false,
-        required: false,
-        small: false,
-      },
-    })
-    expect(wrapper.get('select').find('option[value="null"]').text()).toBe(
-      '---Select---',
-    )
-  })
-  it(':disabledPlaceholder', () => {
-    const wrapper = mount(HaSelectBox, {
-      props: {
-        modelValue: null,
-        validatorName: '',
-        validatorRules: undefined,
-        options: [],
-        placeholder: '---Select---',
-        disabledPlaceholder: true,
-        disabled: false,
-        required: false,
-        small: false,
-      },
-    })
-    expect(
-      wrapper.get('select').find('option[value="null"]').attributes('disabled'),
-    ).toBe('')
-  })
-  it(':disabled', () => {
-    const wrapper = mount(HaSelectBox, {
-      props: {
-        modelValue: null,
-        validatorName: '',
-        validatorRules: undefined,
-        options: [],
-        placeholder: '---Select---',
-        disabledPlaceholder: false,
-        disabled: true,
-        required: false,
-        small: false,
-      },
-    })
-    expect(wrapper.get('select').attributes('disabled')).toBe('')
-  })
-  it(':required', () => {
-    const wrapper = mount(HaSelectBox, {
-      props: {
-        modelValue: null,
-        validatorName: '',
-        validatorRules: undefined,
-        options: [],
-        placeholder: '---Select---',
-        disabledPlaceholder: false,
-        disabled: false,
-        required: true,
-        small: false,
-      },
-    })
-    expect(wrapper.get('select').attributes('required')).toBe('')
-  })
-  it(':small', () => {
-    const wrapper = mount(HaSelectBox, {
-      props: {
-        modelValue: null,
-        validatorName: '',
-        validatorRules: undefined,
-        options: [],
-        placeholder: '---Select---',
-        disabledPlaceholder: false,
-        disabled: false,
-        required: true,
-        small: true,
-      },
-    })
-    expect(wrapper.get('select').attributes('class')).toBe('select -small')
-  })
-  it(':keepValueOnUnmount', () => {
-    const wrapper = mount(HaSelectBox, {
-      props: {
-        modelValue: null,
-        validatorName: '',
-        validatorRules: undefined,
-        options: [],
-        placeholder: '---Select---',
-        disabledPlaceholder: false,
-        disabled: false,
-        required: true,
-        small: false,
-        keepValueOnUnmount: true,
-      },
-    })
-    expect(wrapper.props().keepValueOnUnmount).toBe(true)
-  })
-})
-
-describe('emit', () => {
-  it(':update:modelValue', () => {
-    const wrapper = mount(HaSelectBox, {
-      props: {
-        modelValue: null,
-        validatorName: '',
-        validatorRules: undefined,
-        options: [],
-        placeholder: '---Select---',
-        disabledPlaceholder: false,
-        disabled: false,
-        required: false,
-        small: false,
-      },
-    })
-    wrapper.vm.$emit('update:modelValue', 'testModelValue')
-    expect(wrapper.emitted()).toHaveProperty('update:modelValue')
-    expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
-    expect(wrapper.emitted()['update:modelValue']).toEqual([['testModelValue']])
-  })
-  it(':input', () => {
-    const wrapper = mount(HaSelectBox, {
-      props: {
-        modelValue: null,
-        validatorName: '',
-        validatorRules: undefined,
-        options: [],
-        placeholder: '---Select---',
-        disabledPlaceholder: false,
-        disabled: false,
-        required: false,
-        small: false,
-      },
-    })
-    wrapper.vm.$emit('input', 'testInputValue')
-    expect(wrapper.emitted()).toHaveProperty('input')
-    expect(wrapper.emitted()['input']).toHaveLength(1)
-    expect(wrapper.emitted()['input']).toEqual([['testInputValue']])
-  })
-})
-
-test('error display', async () => {
-  const testValidatorRules = z.coerce.string().nonempty({
-    message: '必須項目です',
-  })
-  const testOptions = [
-    {
-      // NOTE: testValidatorRulesで空でエラーを出るようにしているので、valueに空を指定すること
-      value: '',
-      text: 'test option name',
-      disabled: false,
-    },
-  ]
-  const wrapper = mount(HaSelectBox, {
-    props: {
-      modelValue: null,
-      validatorName: '',
-      validatorRules: testValidatorRules,
-      options: testOptions,
-      placeholder: '---Select---',
-      disabledPlaceholder: false,
-      disabled: false,
-      required: false,
-      small: false,
-    },
-  })
-  await wrapper.find('select').setValue('')
-  setTimeout(() => {
-    expect(wrapper.get('span[class="error"]').text()).toBe('必須項目です')
-  }, 1)
-
-  /*
-   * NOET: v-modelに空を入れてエラーを発火させたいが、現状下記手段にてエラーを発火させようとするも<!--v-if-->となったままエラーブロックがが発火しない。下記トライ履歴
-   * NOTE: 前提条件としてHaSelectBoxをapp.vueに設置したところ、optionのvalueに空を設定したものをセレクトボックスから選択するとエラーの挙動が確認できる
-   */
-
-  /*
-   * 発火手段１→vscode赤波線エラー。オブジェクトは 'undefined' である可能性があります
-   * wrapper.findAll('option').at(1).trigger('change')
-   */
-
-  /*
-   * 発火手段２ 違うエラーになる。かつsetSelectedはv-modelの際に使えない
-   * const options = wrapper.get('select').findAll('option')
-   * options.at(1).setSelected()
-   */
-
-  /*
-   * 発火手段３→v-if動作せず
-   * await wrapper.setProps({ modelValue: '' })
-   */
-
-  /*
-   * 発火手段４→動作OK！
-   * await wrapper.find('select').setValue('')
-   */
-
-  /*
-   * 発火手段５→vscodeで赤波線エラー出る。
-   * https://v1.test-utils.vuejs.org/api/wrapper/#setselected
-   * 注記：
-   * v-modelbyを介して state に値を設定しようとしてもoption.element.selected = true; parentSelect.trigger('input')、v-modelはトリガーされません。v-modelイベントによってトリガーされます
-   * await wrapper.get('select').find('option[value=""]').setSelected()
-   */
-
-  /*
-   * 発火手段６
-   * const options = wrapper.get('select').findAll('option')
-   * options.at(1).setSelected()
-   * wrapper.get('select').trigger('change')
-   */
-
-  /*
-   * 上記でv-ifでエラーブロックが出現していれば下記で取得したい
-   * DOMの更新を待つawaitでnexttick→効果なし
-   * await wrapper.vm.$nextTick()
-   */
-
-  /*
-   * 取得方法１→エラーのv-ifが開かず効果なし
-   * expect(wrapper.get('span[class="error"]').text()).toBe('必須項目です')
-   */
-
-  /*
-   * 取得方法２→エラーのv-ifが開かず効果なし
-   * const errorSpan = wrapper.get('span.error')
-   * expect(errorSpan.text()).toBe('必須項目です')
-   */
-
-  /*
-   * 取得方法３→エラーのv-ifが開かず効果なし
-   * wrapper.vm.$nextTick(() => {
-   *   expect(wrapper.get('span[class="error"]').text()).toBe('必須項目です')
-   * })
-   */
-
-  /*
-   * 取得方法４→エラーのv-ifが開かず効果なし
-   * setTimeout(() => {
-   *   expect(wrapper.get('span[class="error"]').text()).toBe('必須項目です')
-   * })
-   */
-
-  /*
-   * 取得方法５→動作OK！エラーのv-if取得可能
-   * setTimeout(() => {
-   *   expect(wrapper.get('span[class="error"]').text()).toBe('必須項目です')
-   * }, 1)
-   */
-})
-````
-
-## File: layers/base/app/test/components/ha/HaTextarea.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { z } from 'zod/v3'
-import HaTextarea from '#base/app/components/ha/HaTextarea.vue'
-import { waitEffect } from '#base/app/utils/sleep'
-
-test('ref component', () => {
-  expect(HaTextarea).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HaTextarea, {
-    props: {
-      placeholder: 'Input Text',
-      type: 'text',
-      validatorName: 'FileInput',
-      validatorRules: undefined,
-      required: false,
-      modelValue: '',
-      disabled: false,
-      rows: 5,
-      counter: false,
-    },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-test('props', () => {
-  // it(':placeholder', () => {
-  const testValidatorRules = z.string()
-  const wrapper = mount(HaTextarea, {
-    props: {
-      placeholder: 'Input Text',
-      type: 'text',
-      validatorName: 'validatorName',
-      validatorRules: testValidatorRules,
-      required: true,
-      modelValue: '1234567890',
-      disabled: true,
-      rows: 5,
-      counter: true,
-      hideDetails: true,
-      keepValueOnUnmount: true,
-    },
-  })
-  // NOTE: placeholder
-  expect(wrapper.get('textarea').attributes('placeholder')).toBe('Input Text')
-  // NOTE: type
-  expect(wrapper.get('textarea').attributes('type')).toBe('text')
-  // NOTE: validatorName
-  expect(wrapper.props('validatorName')).toBe('validatorName')
-  // NOTE: validatorRules
-  expect(wrapper.props('validatorRules')).toStrictEqual(testValidatorRules)
-  // NOTE: required
-  expect(wrapper.get('textarea').attributes('required')).toBe('')
-  // NOTE: modelValue
-  expect(wrapper.props('modelValue')).toBe('1234567890')
-  // NOTE: disabled
-  expect(wrapper.get('textarea').attributes('disabled')).toBe('')
-  // NOTE: rows
-  expect(wrapper.get('textarea').attributes('rows')).toBe('5')
-  // NOTE: counter
-  expect(wrapper.get('span[class="counter"]').text()).toBe('10')
-  // NOTE: hideDetails
-  expect(wrapper.get('p').attributes('class')).toBe('error-container -hide')
-  // NOTE: keepValueOnUnmount
-  expect(wrapper.props().keepValueOnUnmount).toBe(true)
-})
-
-describe('emit', () => {
-  it(':update:modelValue, :input', async () => {
-    const wrapper = mount(HaTextarea, {
-      props: {
-        placeholder: 'Input Text',
-        type: 'text',
-        validatorName: 'validatorName',
-        validatorRules: undefined,
-        required: false,
-        modelValue: '',
-        disabled: false,
-        rows: 5,
-        counter: false,
-      },
-    })
-    /*
-     * wrapper.vm.$emit('update:modelValue', 'testModelValue')
-     * await wrapper.setValue('testModelValue', 'modelValue')
-     */
-    await wrapper.find('textarea').setValue('1234567890')
-    // NOTE: update:modelValue
-    expect(wrapper.emitted()).toHaveProperty('update:modelValue')
-    expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
-    expect(wrapper.emitted()['update:modelValue']).toEqual([['1234567890']])
-    // NOTE: input
-    expect(wrapper.emitted()).toHaveProperty('input')
-    expect(wrapper.emitted()['input']).toHaveLength(1)
-    expect(wrapper.emitted()['input']).toEqual([['1234567890']])
-  })
-  it(':validate', async () => {
-    const maxRule = (maximum: number) => {
-      return z.coerce.string().max(maximum, {
-        message: 'error max ' + maximum + ' strings',
-      })
-    }
-    const wrapper = mount(HaTextarea, {
-      props: {
-        placeholder: 'Input Text',
-        type: 'text',
-        validatorName: 'validatorName',
-        validatorRules: maxRule(10),
-        required: false,
-        modelValue: '',
-        disabled: false,
-        rows: 5,
-        counter: false,
-      },
-    })
-    await wrapper.find('textarea').setValue('12345678901')
-    expect(wrapper.emitted()).toHaveProperty('validate')
-    expect(wrapper.emitted()['validate']).toHaveLength(1)
-    /*
-     * TODO: emitでcomputedで処理される送信値を正しく取得できないのでコメントアウト
-     * expect(wrapper.emitted()['validate']).toEqual([[true]])
-     */
-  })
-})
-
-test('error display', async () => {
-  const maxRule = (maximum: number) => {
-    return z.coerce.string().max(maximum, {
-      message: 'error max ' + maximum + ' strings',
-    })
-  }
-  const stringsMaxLength = 10
-  const wrapper = mount(HaTextarea, {
-    props: {
-      placeholder: 'Input Text',
-      type: 'text',
-      validatorName: 'validatorName',
-      validatorRules: maxRule(stringsMaxLength),
-      required: false,
-      modelValue: '',
-      disabled: false,
-      rows: 5,
-      counter: false,
-    },
-  })
-  await wrapper.find('textarea').setValue('12345678901')
-  await waitEffect()
-  expect(wrapper.get('label').attributes('class')).toBe(`label -error`)
-  expect(wrapper.get('span[class="error"]').text()).toBe(
-    `error max ${stringsMaxLength} strings`,
-  )
-})
-````
-
-## File: layers/base/app/test/components/hm/icon/HmIconUser.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import HmIconUser from '#base/app/components/hm/icon/HmIconUser.vue'
-
-/**
- * @see vitest.config.mtsのalias
- */
-const defaultNoImage = '/images/no-image.png'
-
-test('ref component', () => {
-  expect(HmIconUser).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HmIconUser, {
-    props: {
-      src: '/image.png',
-    },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-// propsのsrcが指定されている場合、その値が設定される
-describe('props', () => {
-  it(':src', () => {
-    const wrapper = mount(HmIconUser, {
-      props: {
-        src: '/image.png',
-      },
-    })
-    expect(wrapper.get('img').attributes('src')).toBe('/image.png')
-  })
-})
-
-// propsのsrcが空文字の場合、no image画像が設定される
-describe('if src empty, set no image', () => {
-  it(':src', () => {
-    const wrapper = mount(HmIconUser, {
-      props: {
-        src: '',
-      },
-    })
-    expect(wrapper.get('img').attributes('src')).toBe(defaultNoImage)
-  })
-})
-
-// propsのsrcに指定した画像でエラーが発生した場合、placeholder画像が設定される
-describe('if src error, set placeholder image', () => {
-  it(':src error', async () => {
-    const wrapper = mount(HmIconUser, {
-      props: {
-        src: '/foo-not-found.jpg',
-      },
-    })
-    await wrapper.get('img').trigger('error')
-    expect(wrapper.get('img').attributes('src')).toBe(
-      '/public/images/no-image_1x1.jpg',
-    )
-  })
-})
-````
-
 ## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadioChangeable.spec.ts.snap
 ````
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
@@ -20835,302 +22266,256 @@ exports[`mount component 1`] = `
 `;
 ````
 
-## File: layers/base/app/test/components/hm/input/HmInputCheckbox.spec.ts
+## File: layers/base/app/test/components/hm/input/HmInputText.spec.ts
 ````typescript
+import HmInputText from '#base/app/components/hm/input/HmInputText.vue'
+import useValidationRules from '#base/app/composables/useValidationRules'
+import { waitEffect } from '#base/app/utils/sleep'
 import { mount } from '@vue/test-utils'
 import z from 'zod/v3'
-import HmInputCheckbox from '#base/app/components/hm/input/HmInputCheckbox.vue'
 
-const checkboxSchema = z.boolean().refine(value => value, {
-  message: 'チェックボックスを選択してください。',
+const rules = useValidationRules()
+
+beforeEach(() => {
+  vi.mock('vue-i18n', () => ({
+    useI18n: vi.fn(() => ({
+      local: {
+        value: 'ja',
+      },
+      locale: {
+        value: 'ja',
+      },
+      t: (key: string, ..._args: unknown[]) => `dummy-${key}`,
+    })),
+  }))
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
 })
 
 test('ref component', () => {
-  expect(HmInputCheckbox).toBeTruthy()
+  expect(HmInputText).toBeTruthy()
 })
 
 test('mount component', () => {
-  const wrapper = mount(HmInputCheckbox, {
-    props: {
-      name: 'test name',
-      modelValue: false,
-    },
-  })
+  const wrapper = mount(HmInputText)
   expect(wrapper.getCurrentComponent()).toBeTruthy()
   expect(wrapper.html()).toMatchSnapshot()
 })
 
 describe('props', () => {
-  it(':validatorName', () => {
-    const wrapper = mount(HmInputCheckbox, {
+  it(':placeholder', () => {
+    const wrapper = mount(HmInputText, {
       props: {
-        validatorName: 'test',
-        name: 'test name',
-        modelValue: false,
+        type: 'text',
+        placeholder: 'placeholder text',
       },
     })
-    expect(wrapper.props('validatorName')).toBe('test')
-  })
-
-  it(':validatorRules', () => {
-    const wrapper = mount(HmInputCheckbox, {
-      props: {
-        validatorRules: checkboxSchema,
-        name: 'test name',
-        modelValue: true,
-      },
-    })
-    expect(wrapper.props('validatorRules')).toStrictEqual(checkboxSchema)
-  })
-
-  it(':name', () => {
-    const wrapper = mount(HmInputCheckbox, {
-      props: {
-        name: 'test name',
-        modelValue: false,
-      },
-    })
-    expect(wrapper.get('input[type="checkbox"]').attributes('name')).toBe(
-      'test name',
+    expect(wrapper.get('input[type="text"]').attributes('placeholder')).toBe(
+      'placeholder text',
     )
   })
 
-  it(':modelValue', () => {
-    const wrapper = mount(HmInputCheckbox, {
+  it(':type', () => {
+    const wrapper = mount(HmInputText, {
       props: {
-        name: 'test name',
-        modelValue: true,
+        type: 'text',
       },
     })
-    expect(wrapper.get('input[type="checkbox"]').attributes('value')).toBe(
-      'true',
-    )
-  })
-
-  it(':required', () => {
-    const wrapper = mount(HmInputCheckbox, {
-      props: {
-        name: 'test name',
-        modelValue: false,
-        required: true,
-      },
-    })
-    expect(wrapper.get('input[type="checkbox"]').attributes('required')).toBe(
-      '',
-    )
-  })
-
-  it(':disabled', () => {
-    const wrapper = mount(HmInputCheckbox, {
-      props: {
-        name: 'test name',
-        modelValue: false,
-        disabled: true,
-      },
-    })
-    expect(wrapper.get('input[type="checkbox"]').attributes('disabled')).toBe(
-      '',
-    )
-  })
-})
-
-describe('emits', () => {
-  it(':update:modelValue, :input', async () => {
-    const wrapper = mount(HmInputCheckbox, {
-      props: {
-        name: 'test name',
-        modelValue: false,
-      },
-    })
-    await wrapper.get('input[type="checkbox"]').setValue(true)
-    setTimeout(() => {
-      // :update:modelValue
-      expect(wrapper.emitted()).toHaveProperty('update:modelValue')
-      expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
-      expect(wrapper.emitted()['update:modelValue']).toEqual([[true]])
-      // :input
-      expect(wrapper.emitted()).toHaveProperty('input')
-      expect(wrapper.emitted()['input']).toHaveLength(1)
-      expect(wrapper.emitted()['input']).toEqual([[true]])
-    }, 1)
-  })
-
-  it(':validate at error', async () => {
-    const wrapper = mount(HmInputCheckbox, {
-      props: {
-        validatorRules: checkboxSchema,
-        name: 'test name',
-        modelValue: true,
-      },
-    })
-    await wrapper.get('input[type="checkbox"]').setValue(false)
-    setTimeout(() => {
-      expect(wrapper.emitted()).toHaveProperty('validate')
-      expect(wrapper.emitted()['validate']).toHaveLength(1)
-      /*
-       * TODO: バリデーションエラー時にZodエラーメッセージを二重否定の真偽値として送信するが、正しい値を送信しないのでコメントアウト
-       * expect(wrapper.emitted()['validate']).toEqual([[true]])
-       */
-    }, 1)
-  })
-})
-
-describe('DOM check for error display', () => {
-  it(':validatorRules:no check error', async () => {
-    const wrapper = mount(HmInputCheckbox, {
-      props: {
-        validatorRules: checkboxSchema,
-        name: 'test name',
-        modelValue: true,
-      },
-    })
-
-    await wrapper.get('input[type="checkbox"]').setValue(false)
-    setTimeout(() => {
-      expect(wrapper.get('span[class="error"]').text()).toBe(
-        'チェックボックスを選択してください。',
-      )
-    }, 1)
-  })
-})
-````
-
-## File: layers/base/app/test/components/hm/input/HmInputDatetime.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import z from 'zod/v3'
-import HmInputDatetime from '#base/app/components/hm/input/HmInputDatetime.vue'
-
-test('ref component', () => {
-  expect(HmInputDatetime).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HmInputDatetime)
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-describe('props', () => {
-  it(':type', async () => {
-    const wrapper = mount(HmInputDatetime, {
-      props: {
-        type: 'datetime-local',
-      },
-    })
-    expect(wrapper.get('input').attributes('type')).toBe('datetime-local')
-    await wrapper.setProps({ type: 'date' })
-    expect(wrapper.get('input').attributes('type')).toBe('date')
-    await wrapper.setProps({ type: 'time' })
-    expect(wrapper.get('input').attributes('type')).toBe('time')
+    expect(wrapper.get('input[type="text"]').attributes('type')).toBe('text')
   })
 
   it(':validatorName', () => {
-    const wrapper = mount(HmInputDatetime, {
+    const wrapper = mount(HmInputText, {
       props: {
-        validatorName: 'name-test',
+        type: 'text',
+        validatorName: 'testValidatorName',
       },
     })
-    expect(wrapper.attributes('name')).toBe('name-test')
+    expect(wrapper.props('validatorName' as never)).toBe('testValidatorName')
   })
 
   it(':validatorRules', () => {
-    const testValidatorRules = z.string()
-    const wrapper = mount(HmInputDatetime, {
+    const testValidatorRules = rules.required
+    const wrapper = mount(HmInputText, {
       props: {
+        type: 'text',
+        validatorName: 'testValidatorName',
         validatorRules: testValidatorRules,
       },
     })
-    expect(wrapper.props('validatorRules')).toStrictEqual(testValidatorRules)
+    expect(wrapper.props('validatorRules' as never)).toStrictEqual(
+      testValidatorRules,
+    )
   })
 
   it(':required', () => {
-    const wrapper = mount(HmInputDatetime, {
+    const wrapper = mount(HmInputText, {
       props: {
+        type: 'text',
         required: true,
       },
     })
-    expect(
-      wrapper.get('input[type="datetime-local"]').attributes('required'),
-    ).toBe('')
+    expect(wrapper.get('input[type="text"]').attributes('required')).toBe('')
   })
 
   it(':modelValue', () => {
-    const dateValue = '2023-09-28T14:48'
-    const wrapper = mount(HmInputDatetime, {
+    const wrapper = mount(HmInputText, {
       props: {
-        modelValue: dateValue,
+        type: 'text',
+        modelValue: 'modelValue text',
       },
     })
-    expect(wrapper.props('modelValue')).toBe(dateValue)
+    expect(wrapper.props('modelValue' as never)).toBe('modelValue text')
   })
 
   it(':disabled', () => {
-    const wrapper = mount(HmInputDatetime, {
+    const wrapper = mount(HmInputText, {
       props: {
+        type: 'text',
         disabled: true,
       },
     })
-    expect(
-      wrapper.get('input[type="datetime-local"]').attributes('disabled'),
-    ).toBe('')
+    expect(wrapper.get('input[type="text"]').attributes('disabled')).toBe('')
   })
 
-  it(':min(number)', () => {
-    const wrapper = mount(HmInputDatetime, {
+  it(':counter:length display', async () => {
+    const wrapper = mount(HmInputText, {
       props: {
-        min: 2,
+        type: 'text',
+        counter: true,
       },
     })
-    expect(wrapper.get('input[type="datetime-local"]').attributes('min')).toBe(
-      '2',
-    )
+    await wrapper.get('input[type="text"]').setValue('1234567890')
+    await waitEffect()
+    expect(wrapper.get('span[class="counter"]').text()).toBe('10')
   })
 
-  it(':min(string)', () => {
-    const wrapper = mount(HmInputDatetime, {
+  it(':counter:length/max display', async () => {
+    const wrapper = mount(HmInputText, {
       props: {
-        min: '2020-01-01',
+        type: 'text',
+        counter: { max: 50 },
       },
     })
-    expect(wrapper.get('input[type="datetime-local"]').attributes('min')).toBe(
-      '2020-01-01',
-    )
+    await wrapper.get('input[type="text"]').setValue('1234567890')
+    await waitEffect()
+    expect(wrapper.get('span[class="counter"]').text()).toBe('10/50')
   })
 
-  it(':max(number)', () => {
-    const wrapper = mount(HmInputDatetime, {
+  it(':min', () => {
+    const wrapper = mount(HmInputText, {
       props: {
-        max: 2,
+        type: 'text',
+        min: 3,
       },
     })
-    expect(wrapper.get('input[type="datetime-local"]').attributes('max')).toBe(
-      '2',
-    )
-  })
-
-  it(':max(string)', () => {
-    const wrapper = mount(HmInputDatetime, {
-      props: {
-        max: '2020-01-01',
-      },
-    })
-    expect(wrapper.get('input[type="datetime-local"]').attributes('max')).toBe(
-      '2020-01-01',
-    )
+    expect(wrapper.get('input[type="text"]').attributes('min')).toBe('3')
   })
 
   it(':keyupEnter', () => {
-    const wrapper = mount(HmInputDatetime, {
+    const wrapper = mount(HmInputText, {
       props: {
+        type: 'text',
         keyupEnter: true,
       },
     })
-    expect(wrapper.props('keyupEnter')).toBe(true)
+    expect(wrapper.props('keyupEnter' as never)).toBe(true)
+  })
+
+  it(':isLazy', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        isLazy: true,
+      },
+    })
+    expect(wrapper.props('isLazy' as never)).toBe(true)
+  })
+
+  it(':isTrim', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        isTrim: true,
+      },
+    })
+    expect(wrapper.props('isTrim' as never)).toBe(true)
+  })
+
+  it(':small', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        small: true,
+      },
+    })
+    expect(wrapper.get('input[type="text"]').attributes('class')).toBe(
+      'ha-base-input input -small',
+    )
+  })
+
+  it(':name', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        name: 'testName',
+      },
+    })
+    expect(wrapper.get('input[type="text"]').attributes('name')).toBe(
+      'testName',
+    )
+  })
+
+  it(':error', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        error: 'testError',
+      },
+    })
+    expect(wrapper.props('error')).toBe('testError')
+  })
+
+  it(':hideDetails', () => {
+    // -hide classを確認するためには、validatorRulesが必要
+    const testValidatorRules = rules.required
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        hideDetails: true,
+        validatorRules: testValidatorRules,
+      },
+    })
+    expect(wrapper.props('hideDetails')).toBe(true)
+    // -hide classが付与されていることを確認
+    expect(wrapper.get('p').attributes('class')).toBe('error-container -hide')
+  })
+
+  it(':list', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        list: 'testList',
+      },
+    })
+    expect(wrapper.get('input[type="text"]').attributes('list')).toBe(
+      'testList',
+    )
+  })
+
+  it(':keepValueOnUnmount', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        keepValueOnUnmount: true,
+      },
+    })
+    expect(wrapper.props().keepValueOnUnmount).toBe(true)
   })
 
   it(':validateOnMount', () => {
-    const wrapper = mount(HmInputDatetime, {
+    const wrapper = mount(HmInputText, {
       props: {
         validateOnMount: true,
       },
@@ -21140,387 +22525,276 @@ describe('props', () => {
 })
 
 describe('emits', () => {
-  it(':update:modelValue, :input', async () => {
-    const dateValue = '2023-09-28T14:48'
-    const wrapper = mount(HmInputDatetime, {
+  it(':update:modelValue', async () => {
+    const wrapper = mount(HmInputText, {
       props: {
-        modelValue: '',
+        type: 'text',
+      },
+    })
+    await wrapper.setValue('test', 'modelValue')
+    expect(wrapper.emitted()).toHaveProperty('update:modelValue')
+    expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
+    expect(wrapper.emitted()['update:modelValue']).toEqual([['test']])
+  })
+
+  it(':validate', async () => {
+    // NOTE: 最大10文字。超えたらエラーを出す
+    const maxRule = (maximum: number) => {
+      return rules.max(maximum)
+    }
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        validatorRules: maxRule(10),
+        modelValue: 'test',
+      },
+    })
+    // NOTE: 最大10文字なので11文字入れてエラーを出す
+    await wrapper.get('input[type="text"]').setValue('12345678901')
+    await waitEffect()
+    expect(wrapper.emitted()).toHaveProperty('validate')
+    expect(wrapper.emitted()['validate']).toHaveLength(1)
+    /*
+     * TODO: バリデーションエラー時にZodエラーメッセージを二重否定の真偽値として送信するが、正しい値を送信しないのでコメントアウト
+     * expect(wrapper.emitted()['validate']).toStrictEqual([[true]])
+     */
+  })
+
+  it(':keyupEnter', async () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
         keyupEnter: true,
       },
     })
-    await wrapper.get('input[type="datetime-local"]').setValue(dateValue)
-    setTimeout(() => {
-      // :update:modelValue
-      expect(wrapper.emitted()).toHaveProperty('update:modelValue')
-      expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
-      expect(wrapper.emitted()['update:modelValue']).toEqual([[dateValue]])
-      // :input
-      expect(wrapper.emitted()).toHaveProperty('input')
-      expect(wrapper.emitted()['input']).toHaveLength(1)
-      expect(wrapper.emitted()['input']).toEqual([[dateValue]])
-    }, 1)
-  })
-
-  it(':enter', async () => {
-    const dateValue = '2023-09-28T14:48'
-    const wrapper = mount(HmInputDatetime, {
-      props: {
-        modelValue: dateValue,
-        keyupEnter: true,
-      },
-    })
-
-    await wrapper.get('input[type="datetime-local"]').trigger('keyup.enter')
-    setTimeout(() => {
-      expect(wrapper.emitted()).toHaveProperty('enter')
-      expect(wrapper.emitted()['enter']).toHaveLength(1)
-      /*
-       * TODO: emitでcomputedで処理される送信値を正しく取得できないのでコメントアウト
-       * expect(wrapper.emitted()['enter']).toEqual([[dateValue]])
-       */
-    }, 1)
-  })
-
-  it(':validation', async () => {
-    const dateValue = '2023-09-28T14:48withErrorString'
-    const datetimeLocalSchema = z.string().refine(
-      (value) => {
-        const regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/
-        return regex.test(value)
-      },
-      {
-        message: 'Error:Date format (YYYY-MM-DDThh:mm)',
-      },
-    )
-    const wrapper = mount(HmInputDatetime, {
-      props: {
-        validatorRules: datetimeLocalSchema,
-        modelValue: '',
-      },
-    })
-    await wrapper.get('input[type="datetime-local"]').setValue(dateValue)
-    setTimeout(() => {
-      expect(wrapper.emitted()).toHaveProperty('validation')
-      expect(wrapper.emitted()['validation']).toHaveLength(1)
-      /*
-       * TODO: emitでcomputedで処理される送信値を正しく取得できないのでコメントアウト
-       * expect(wrapper.emitted()['validation']).toEqual([[true]])
-       */
-    }, 1)
+    await wrapper.get('input[type="text"]').trigger('keyup.enter')
+    expect(wrapper.emitted()).toHaveProperty('enter')
+    expect(wrapper.emitted()['enter']).toHaveLength(1)
   })
 })
-test('DOM check for error display', async () => {
-  const dateValue = '2023-09-28T14:48withErrorString'
-  const datetimeLocalSchema = z.string().refine(
-    (value) => {
-      const regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/
-      return regex.test(value)
-    },
-    {
-      message: 'Error:Date format (YYYY-MM-DDThh:mm)',
-    },
-  )
-  const wrapper = mount(HmInputDatetime, {
-    props: {
-      validatorRules: datetimeLocalSchema,
-      modelValue: '',
-    },
-  })
-  await wrapper.get('input[type="datetime-local"]').setValue(dateValue)
-  setTimeout(() => {
+
+describe('DOM check for error display', () => {
+  // NOTE: validatorName有りかつvalidatorRule無しをテスト
+  it(':validatorName', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        validatorName: 'testValidatorName',
+      },
+    })
+    // NOTE: <p class="error-container">が存在する確認
+    expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
+    // NOTE: <p class="error-container">の中の<span class="error">は存在しないことを確認
     expect(
-      wrapper.find('label[class="hm-input-datetime__label --error"]').exists(),
-    ).toBe(true)
-    expect(wrapper.find('p[class="error-container"]').exists()).toBe(true)
-    expect(wrapper.find('span[class="error"]').exists()).toBe(true)
-    expect(wrapper.find('span[class="error"]').text()).toBe(
-      'Error:Date format (YYYY-MM-DDThh:mm)',
-    )
-  }, 1)
-})
-````
-
-## File: layers/base/app/test/components/hm/input/HmInputFile.spec.ts
-````typescript
-import HmInputFile from '#base/app/components/hm/input/HmInputFile.vue'
-import { mount } from '@vue/test-utils'
-
-/*
- * NOTE: 下準備としてFileList型のダミーを作成する
- * const createDummyFileList = (files: File[]) => {
- *   return {
- *     length: files.length,
- *     item(index: number) {
- *       return files[index] || null
- *     },
- *   }
- * }
- * const file = new File([''], 'test.png')
- * const file2 = new File([''], 'test2.png')
- * const fileList: FileList = createDummyFileList([file, file2])
- * const singleFileList: FileList = createDummyFileList([file])
- * FileListダミー作成ここまで
- */
-
-test('ref component', () => {
-  expect(HmInputFile).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HmInputFile)
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-test('props', () => {
-  const wrapper = mount(HmInputFile, {
-    props: {
-      required: true,
-      accept: 'image/*',
-      multiple: true,
-      propFiles: undefined,
-    },
-  })
-  expect(wrapper.get('input[type="file"]').attributes('required')).toBe('')
-  expect(wrapper.get('input[type="file"]').attributes('accept')).toBe('image/*')
-  expect(wrapper.get('input[type="file"]').attributes('multiple')).toBe('')
-
-  /*
-   * NOTE: FileListをセットすると[Vue warn]が出現する
-   * await wrapper.setProps({ propFiles: fileList })
-   * NOTE: テストは通るがHaBaseInputと同様にFileListをセットすると[Vue warn]が出現するのでコメントアウト
-   * expect(wrapper.props('propFiles')).toStrictEqual(fileList)
-   */
-})
-
-// TODO: emit系がFileListの問題が関連しているのか、全て通らない。emit自体発行されない。FileListは親から受け取るものでは一方的に送るものという記載もあり、[Vue warn]自体と関係しているかもしれない。
-describe('emits', () => {
-  it(':input:multiple', () => {
-    const _wrapper = mount(HmInputFile, {
-      props: {
-        multiple: true,
-        propFiles: undefined,
-      },
-    })
-    /*
-     * // NOTE: FileListをセットすると[Vue warn]が出現する
-     * await wrapper.setProps({ propFiles: fileList })
-     * // await wrapper.get('input[type="file"]').trigger('click')
-     * // await flushPromises()
-     * setTimeout(() => {
-     *   // NOTE: .toHavePropertyの時点で取れない。emitが発生していない
-     *   expect(wrapper.emitted()).toHaveProperty('input:multiple')
-     *   expect(wrapper.emitted()['input:multiple']).toHaveLength(1)
-     *   // expect(wrapper.emitted()['input:multiple']).toEqual([[fileList]])
-     * }, 1)
-     */
+      wrapper
+        .get('p[class="error-container"]')
+        .find('span[class="error"]')
+        .exists(),
+    ).toBe(false)
   })
 
-  it(':input:single', () => {
-    const _wrapper = mount(HmInputFile, {
+  it(':validatorRules:max 10 strings', async () => {
+    const maxRule = (maximum: number) => {
+      return z.coerce.string().max(maximum, {
+        message: 'error max ' + maximum + ' strings',
+      })
+    }
+    const wrapper = mount(HmInputText, {
       props: {
-        multiple: true,
-        propFiles: undefined,
+        type: 'text',
+        validatorName: 'testValidatorName',
+        validatorRules: maxRule(10),
       },
     })
+    // NOTE: input欄、v-ifで絶対に居るのが確定してないので一応getでinput見つけて、バリデートで落ちる値を代入
+    await wrapper.get('input[type="text"]').setValue('12345678901')
     /*
-     * // NOTE: FileListをセットすると[Vue warn]が出現する
-     * await wrapper.setProps({ propFiles: singleFileList })
-     * // await wrapper.get('input[type="file"]').trigger('click')
-     * // await flushPromises()
-     * setTimeout(() => {
-     *   // NOTE: .toHavePropertyの時点で取れない。emitが発生していない
-     *   expect(wrapper.emitted()).toHaveProperty('input:single')
-     *   expect(wrapper.emitted()['input:single']).toHaveLength(1)
-     *   expect(wrapper.emitted()['input:single']).toEqual([[singleFileList]])
-     * }, 1)
+     * NOTE: NG例として下記。modelValueを見てそうなので、modelValueにテスト値いれてinputイベントを強制発火。これは動作せず
+     * await wrapper.setValue('12345678901', 'modelValue')
+     * await wrapper.get('input[type="text"]').trigger('input')
      */
-  })
 
-  // TODO: cancelのemitにおいて問題多数
-  it(':cancel', () => {
+    // NOTE: setValueでinput欄に値を入れたのでsettimeoutのsleep関数で1ミリ秒以上で待つ。nextTickは効かない
+    await waitEffect()
     /*
-     * NOTE: focusイベントのためにはattachToが必要らしい https://github.com/vitest-dev/vitest/issues/2013#issuecomment-1250272103
-     * NOTE: vue-test-utils v1の古い書き方
-     */
-    const div = document.createElement('div')
-    div.id = 'root'
-    document.body.appendChild(div)
-    /*
-     * NOTE: https://test-utils.vuejs.org/api/#attachTo での記載方法。attachToに型エラーでて使えず
-     * document.body.innerHTML = `
-     *   <div>
-     *     <h1>Non Vue app</h1>
-     *     <div id="app"></div>
-     *   </div>
-     * `
-     */
-    const _wrapper = mount(HmInputFile, {
-      // NOTE: vue-test-utils v1の古い書き方
-      attachTo: '#root',
-      /*
-       * NOTE: https://test-utils.vuejs.org/api/#attachTo での記載方法。attachToに型エラーでて使えず
-       * attachTo: document.getElementById('app'),
-       */
-      props: {
-        multiple: true,
-        propFiles: undefined,
-      },
-    })
-    /*
-     * // NOTE: 不要かもしれないが一応セット。
-     * await wrapper.setProps({ propFiles: fileList })
-     * await wrapper.find('input').trigger('focus')
-     * // NOTE; setTimeoutは30ms前後以上を入れると、テストが全て通るので、本件ではコンポーネント側に500ms後にemitなので使えない
-     * // NOTE: flushPromisesにてtoriggerイベントの非同期を解決する
-     * await flushPromises()
-     * // NOTE: attachToが動作していないように見える
+     * NOTE: DOMの変化を確かめたい時は下記でターミナルに表示させて確認する
      * console.info(wrapper.html())
-     * // NOTE: .toHavePropertyの時点で取れない。emitが発生していない
-     * expect(wrapper.emitted()).toHaveProperty('cancel')
-     * expect(wrapper.emitted()['cancel']).toHaveLength(1)
-     * expect(wrapper.emitted()['cancel']).toEqual([[]])
-     * // attachToの後は破壊する必要があるらしい。しかしdestroyは存在しないと言われる
-     * // wrapper.destroy()
+     * NOTE: <p class="error-container">が存在する確認
      */
-  })
-})
-
-describe('event test', () => {
-  // TODO: 可能であればclickしたことによる挙動をとりたい。DOMには変化が現れないので、クリックした関数が発火した回数など
-  it('@click="onClick"', async () => {
-    const wrapper = mount(HmInputFile)
-    // const onClickSpy = vi.spyOn(wrapper.vm, 'onClick')
-    await wrapper.trigger('click')
-    setTimeout(() => {
-      /*
-       * expect(onClickSpy).toHaveBeenCalled()
-       * expect(onClickSpy).toBeCalledTimes(1)
-       */
-    }, 1)
-  })
-
-  // TODO: ドラッグイベントを検知できるようにする
-  it('@dragenter.prevent="toggleDragOver(true)"', async () => {
-    const wrapper = mount(HmInputFile)
-    await wrapper.trigger('dragenter')
-    setTimeout(() => {
-      /*
-       * NOTE: JSDOMで生成されたDOMには幅や座標が無いためドラッグなどを認識できないというvue-test-Libraryでのやりとり
-       * NOTE: https://github.com/testing-library/vue-testing-library/issues/145#issuecomment-633713719
-       * expect(wrapper.get('label').attributes('class')).toBe(
-       *   'hm-input-file isDragOver'
-       * )
-       */
-    }, 1)
+    expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
+    // <p class="error-container">の中の<span class="error">が存在してエラーメッセージでてること確認
+    expect(
+      wrapper
+        .get('p[class="error-container"]')
+        .find('span[class="error"]')
+        .exists(),
+    ).toBe(true)
+    // NOTE: エラー文言の照合
+    expect(
+      wrapper
+        .get('p[class="error-container"]')
+        .find('span[class="error"]')
+        .text(),
+    ).toBe('error max 10 strings')
   })
 
-  it('@dragleave.prevent="toggleDragOver(false)"', async () => {
-    const wrapper = mount(HmInputFile)
-    await wrapper.trigger('dragleave')
-    setTimeout(() => {
-      // NOTE: ドラッグイベントが検知できないが、初期値の状態なのでテストは通る
-      expect(wrapper.get('label').attributes('class')).toBe('hm-input-file')
-    }, 1)
+  it(':props.error', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        validatorName: 'error test',
+        error: 'error message test',
+      },
+    })
+    expect(wrapper.props('error')).toBe('error message test')
+    expect(wrapper.get('label').attributes('class')).toBe('label -error')
+    expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
+    expect(
+      wrapper
+        .get('p[class="error-container"]')
+        .find('span[class="error"]')
+        .exists(),
+    ).toBe(true)
+    expect(
+      wrapper
+        .get('p[class="error-container"]')
+        .find('span[class="error"]')
+        .text(),
+    ).toBe('error message test')
   })
 
-  // TODO: JSDOMで
-  it('@drop.prevent="onDrop($event)"', async () => {
-    const wrapper = mount(HmInputFile)
-    await wrapper.trigger('drop')
-    setTimeout(() => {
-      // NOTE: ドロップイベントが検知できないが、初期値の状態なのでテストは通る。また、JSDOMはdataTransferを扱えない
-      expect(wrapper.get('label').attributes('class')).toBe('hm-input-file')
-    }, 1)
+  it(':hideDetails', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        validatorName: 'error test',
+        error: 'error message test',
+        hideDetails: true,
+      },
+    })
+    expect(wrapper.props('error')).toBe('error message test')
+    expect(wrapper.get('label').attributes('class')).toBe('label -error')
+    expect(wrapper.get('p[class="error-container -hide"]')).toBeTruthy()
+    expect(
+      wrapper
+        .get('p[class="error-container -hide"]')
+        .find('span[class="error"]')
+        .exists(),
+    ).toBe(true)
+    expect(
+      wrapper
+        .get('p[class="error-container -hide"]')
+        .find('span[class="error"]')
+        .text(),
+    ).toBe('error message test')
   })
 })
 ````
 
-## File: layers/base/app/test/utils/zod.spec.ts
+## File: layers/base/app/utils/default-factory.ts
 ````typescript
-import { fc, test } from '@fast-check/vitest'
-import { z } from 'zod/v3'
-import { ensureValueOf, getMax, isValueOf, makeRecursiveSchema } from '#base/app/utils/zod'
+import exampleRepository from '#base/app/repositories/exampleRepository'
+import type { Method as DefaultMethods } from '#base/app/utils/default-api'
 
-describe('isValueOf', () => {
-  test('returns true if schema parses successfully', () => {
-    const schema = z.object({
-      a: z.number(),
-    })
-    const value = {
-      a: 42,
-    }
-    expect(isValueOf(schema, value)).toEqual(true)
-  })
+/**
+ * The parent type for each method of `'get' | 'post' | 'put' | 'delete'` in each repository
+ */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+export type ApiAccess = Function
 
-  test('returns false if schema failed to parse', () => {
-    const schema = z.object({
-      a: z.number().negative(),
-    })
-    const value = {
-      a: 42,
-    }
-    expect(isValueOf(schema, value)).toEqual(false)
-  })
+/**
+ * For use when creating `#main/app/utils/factory.ts`.
+ * See [[DefaultRepository]] for usage.
+ */
+export type MakeRepository<Methods extends string | symbol> = {
+  [key in Methods]?: Record<string, ApiAccess>
+}
+
+/**
+ * NOTE:.
+ * Naming of "DefaultRepository" because it is the repository type of default-factory.
+ * The name is like "default type of some repository", but it is not intended.
+ */
+export type DefaultRepository = MakeRepository<DefaultMethods>
+export type DefaultRepositories = Record<string, DefaultRepository>
+
+export const defaultRepositories = {
+  example: exampleRepository,
+} as const satisfies DefaultRepositories
+
+export type DefaultRepositoryKey = keyof typeof defaultRepositories
+
+export const defaultRepositoryFactory = {
+  get: <K extends keyof typeof defaultRepositories>(name: K) =>
+    defaultRepositories[name],
+}
+````
+
+## File: layers/base/app/utils/response.ts
+````typescript
+import type { useFetch } from 'nuxt/dist/app/composables/fetch'
+import type { FetchError } from 'ofetch'
+import { z, ZodType, ZodTypeDef } from 'zod/v3'
+
+export const statusSchema = z.union([z.literal('ok'), z.literal('ng')])
+
+export const pagingSchema = z.object({
+  limit: z.number(),
+  offset: z.number(),
+  total: z.number(),
 })
 
-describe('ensureValueOf', () => {
-  test('throws an error if schema failed to parse', () => {
-    const schema = z.object({
-      a: z.number().negative(),
-    })
-    const value = {
-      a: 42,
-    }
-    expect(() => ensureValueOf(schema, value)).toThrow()
-  })
-})
+export type ResponseStatus = z.infer<typeof statusSchema>
+export type Paging = z.infer<typeof pagingSchema>
 
-describe('getMax', () => {
-  test.prop([fc.nat()])(
-    'takes the num of z.string().max(num) from the _def',
-    (n) => {
-      expect(getMax(z.string().max(n)._def)).toBe(n)
-    },
+export const makeResponseSchema = <
+  T extends Record<string, z.ZodType<unknown>>,
+>(
+  schemaObject: T,
+) => z.object({ status: statusSchema }).extend(schemaObject)
+
+export type AsyncDataResponse<T> = ReturnType<
+  typeof useFetch<T, FetchError<unknown> | null>
+>
+
+export function isFetchError(x: unknown): x is FetchError<unknown> {
+  return (
+    typeof x === 'object'
+    && !!x
+    && 'name' in x
+    && (x as { name: string }).name === 'FetchError'
   )
+}
+export const fetchErrorSchema = z.custom(isFetchError)
 
-  test('takes nothing from the zod schema does not have .max(num)', () => {
-    expect(getMax(z.string()._def)).toBeUndefined()
-  })
-})
+export function ensureAsyncDataOf<T>(
+  responseSchema: ZodType<T, ZodTypeDef>,
+  y: unknown,
+): asserts y is AsyncDataResponse<T> {
+  // 型ガードでオブジェクトかチェック
+  if (typeof y !== 'object' || y === null) {
+    throw new Error('Expected object with data and error properties')
+  }
 
-describe('makeRecursiveSchema', () => {
-  test('can make a recursive schema and the schema can validate values recursively', () => {
-    const treeSchema = makeRecursiveSchema(self =>
-      z.union([
-        z.object({ type: z.literal('leaf'), value: z.string() }),
-        z.object({ type: z.literal('branch'), children: self.array() }),
-      ]),
-    )
+  const obj = y as Record<string, unknown>
+  if (typeof obj.data !== 'object' || obj.data === null
+    || typeof obj.error !== 'object' || obj.error === null) {
+    throw new Error('Expected object with data and error properties')
+  }
 
-    // treeSchemaは再帰構造のうち **一階層** だけバリデーションできる
-    const x: unknown = {
-      type: 'branch',
-      children: [{ type: 'leaf', value: 'foo' }],
-    }
-    const tree = treeSchema.parse(x)
-    if (tree.type !== 'branch') {
-      throw new Error('Expected a branch, but got a leaf.')
-    }
-    /*
-     * treeSchemaは一階層だけしかバリデーションできないので、yはSelf型になる
-     * Self型は実質Record<never, unknown>な型。@/utils/zodがselfKeyをexportしていないため
-     */
-    const y = tree.children[0] ?? raiseError('Fatal error')
-
-    // さらに階層を深堀したい場合は、再パースする必要がある
-    const subTree = treeSchema.parse(y)
-    if (subTree.type !== 'leaf') {
-      throw new Error('Expected a leaf, but got a branch.')
-    }
-    expect(subTree.value).toBe('foo')
-  })
-})
+  const data = obj.data as Record<string, unknown>
+  const error = obj.error as Record<string, unknown>
+  // デバッグの便利のため型のどこが不整合になっているか情報を上げたいのでparse直接使用
+  responseSchema.nullable().parse(data.value)
+  fetchErrorSchema.nullable().parse(error.value)
+}
+export function requireAsyncDataOf<T>(
+  x: ZodType<T, ZodTypeDef>,
+  y: unknown,
+): AsyncDataResponse<T> {
+  ensureAsyncDataOf(x, y)
+  return y
+}
 ````
 
 ## File: layers/base/app/utils/url.ts
@@ -21758,6 +23032,187 @@ export const getRouteQueries = <T extends Record<string, unknown>>(
 }
 ````
 
+## File: layers/base/app/utils/zod.ts
+````typescript
+import { DeepReadonly } from 'vue'
+import {
+  z,
+  ZodFirstPartyTypeKind,
+  ZodStringDef,
+  ZodType,
+  ZodTypeDef,
+  ZodUnionDef,
+} from 'zod/v3'
+
+export function isValueOf<T>(x: ZodType<T, ZodTypeDef>, y: unknown): y is T {
+  return x.safeParse(y).success
+}
+
+export function ensureValueOf<T>(
+  x: ZodType<T, ZodTypeDef>,
+  y: unknown,
+): asserts y is T {
+  x.parse(y)
+}
+
+export function requireValueOf<T>(x: ZodType<T, ZodTypeDef>, y: unknown): T {
+  return x.parse(y)
+}
+
+// const language = { 0: 'ja', 1: 'en'} as const みたいなオブジェクトのValueのunion型をzodでつかえるようにするメソッド
+export function objectToValueArray<T>(obj: { [key: number]: T }): [T, ...T[]] {
+  const first = obj[0]
+  if (first === undefined) {
+    throw new Error('objectToValueArray: obj[0] is undefined.')
+  }
+
+  //  z.enumは空でない配列を期待するので、それを回避するために
+  return [
+    first,
+    ...Object.values(obj)
+      .slice(1)
+      .map(v => v),
+  ]
+}
+
+/**
+ * 雑多に整数値を表す。
+ */
+export const integral = z.number().or(z.string())
+
+/** z.infer した結果に readonly を付けるためのヘルパー。渡した objectSchema 以上の検証はしない */
+export const makeSchemaReadOnly = <T>(objectSchema: ZodType<T, ZodTypeDef>) =>
+  z.custom<Readonly<T>>(x => objectSchema.safeParse(x).success)
+
+/** z.infer した結果に再帰的に readonly を付けるためのヘルパー。渡した objectSchema 以上の検証はしない */
+export const makeSchemaDeepReadOnly = <T>(
+  objectSchema: ZodType<T, ZodTypeDef>,
+) => z.custom<DeepReadonly<T>>(x => objectSchema.safeParse(x).success)
+
+/**
+ * maxバリデーションの数値を取得
+ *
+ * ```typescript
+ * getMax(z.string().max(30)._def) // 30
+ *
+ * // .max()の指定がないスキーマ
+ * getMax(z.string()._def) // undefined
+ * ```
+ */
+export const getMax = (def: ZodTypeDef | undefined): number | undefined => {
+  if (!def) return undefined
+
+  const zodTypeDefSchema = z.object({
+    errorMap: z.unknown().optional(),
+    description: z.string().optional(),
+    typeName: z.string(),
+  })
+  const zodStringDefSchema = z.custom<ZodStringDef>((x: unknown) => {
+    const result = zodTypeDefSchema.safeParse(x)
+    if (!result.success) return false
+    return result.data.typeName === String(ZodFirstPartyTypeKind.ZodString)
+  })
+  const zodUnionDefSchema = z.custom<ZodUnionDef>((x: unknown) => {
+    const result = zodTypeDefSchema.safeParse(x)
+    if (!result.success) return false
+    return result.data.typeName === String(ZodFirstPartyTypeKind.ZodUnion)
+  })
+  const tryGetValue = (x: object | undefined): number | undefined => {
+    const result = z.object({ value: z.number() }).safeParse(x)
+    return result.success ? result.data.value : undefined
+  }
+
+  const resultUnion = zodUnionDefSchema.safeParse(def)
+  if (resultUnion.success)
+    return resultUnion.data.options
+      .map(({ _def }) => getMax(_def))
+      .find((n: number | undefined) => n)
+
+  const resultString = zodStringDefSchema.safeParse(def)
+  if (resultString.success)
+    return tryGetValue(
+      resultString.data.checks.find(({ kind }) => kind === 'max'),
+    )
+
+  return undefined
+}
+
+/**
+ * @see {@link Self}
+ * 意図的にexportしていない。
+ * Self型に具体的にアクセスされたくないため。
+ */
+const selfKey = Symbol()
+
+/**
+ * 疑似的に自己参照を表現するための型。
+ * （これ自体は自己参照ではない。示しているだけ。）
+ */
+export type Self = { [selfKey]: string }
+
+/**
+ * Tの中のSelfをTT[0]で置き換える。
+ * ```ts
+ * type T = ReplaceSelf<{ a: { b: Self } }, [number]> // { a: { b: number } }
+ * ```
+ */
+/*
+ * TTが直接型を受け取るのではなく、1次元タプルとして受け取るのは、TypeScriptの再帰型を許すためです。
+ * ```ts
+ * type F<_> = number
+ * type X = F<X> // これはTypeScriptではできない
+ * type X = F<[X]> // これはTypeScriptではできる
+ * ```
+ */
+type ReplaceSelf<T, TT extends [unknown]> = T extends Self
+  ? TT[0]
+  : T extends Record<string, unknown>
+    ? { [K in keyof T]: ReplaceSelf<T[K], TT> }
+    : T
+
+/**
+ * 再帰的なスキーマを作成する。
+ * https://zenn.dev/odiak/articles/0b963664a4f8cd
+ *
+ * @example
+ * ```ts
+ * const treeSchema = makeRecursiveSchema((self) =>
+ *   z.union([
+ *     z.object({ type: z.literal('leaf'), value: z.string() }),
+ *     z.object({ type: z.literal('branch'), children: self.array() })
+ *   ])
+ * )
+ * ```
+ *
+ * さらなる使い方はテストを見てください。
+ */
+export function makeRecursiveSchema<T>(
+  builder: (self: ZodType<Self>) => ZodType<T>,
+) {
+  /*
+   * type Item = {
+   *   name: string
+   *   addtionalItems: Self[]
+   * }
+   * みたいなやつを
+   * type Item = {
+   *   name: string
+   *   addtionalItems: Item[]
+   * }
+   * みたいなやつに置き換えている。
+   * つまり疑似的な再帰型（T）を、実際の再帰型（R）に変換している。
+   */
+  type R = ReplaceSelf<T, [R]>
+
+  // 疑似的な再帰型スキーマビルダー（builder）を、実際の再帰型スキーマビルダー（builder_）に変換している。
+  const builder_ = builder as (self: ZodType<R>) => ZodType<T>
+
+  // 再帰をぶん回して
+  const rec = (): ZodType<R> => builder_(z.lazy(rec)) as unknown as ZodType<R>
+  return rec()
+}
+````
+
 ## File: layers/base/i18n/i18n.config.ts
 ````typescript
 /*
@@ -21834,6 +23289,264 @@ export default {
     en,
   },
 }
+````
+
+## File: layers/base/eslint.config.mjs
+````
+import stylistic from '@stylistic/eslint-plugin'
+import typescriptEslint from '@typescript-eslint/eslint-plugin'
+import globals from 'globals'
+import sharedConfig, { basicConfig } from '../../eslint.config.shared.mjs'
+import withNuxt from './.nuxt/eslint.config.mjs'
+
+export default withNuxt(
+  ...sharedConfig,
+
+  // VueとNuxtの基本設定
+  {
+    files: ['**/*.vue'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        // NOTE: eslint実行時に `error 'something' is not defined no-undef` のようなエラーが出て、'something'が既知のものだったら（例えばauto-importなどでimportされることがわかっている・標準ライブラリに載っている、など。）、ここ（もしくは下の「オーバーライド」）に `something: true` と追加してください
+        IntersectionObserverInit: true,
+      },
+    },
+    rules: {
+      'vue/no-unused-components': 'off',
+      'vue/no-multiple-template-root': 'off',
+      'vue/no-v-model-argument': 'off',
+      'vue/no-v-html': 'error',
+      'vue/multi-word-component-names': 'off',
+      'vue/html-self-closing': 'off', // prettierと競合するため、off
+      'vue/attribute-hyphenation': ['error', 'never'], // camelCase属性を強制
+      'vue/v-on-event-hyphenation': ['error', 'never', { autofix: true }], // camelCaseイベントを強制
+    },
+  },
+  // composablesやplugins・middlewareなども含む設定
+  {
+    files: ['**/*.vue', '**/*.ts'],
+    languageOptions: {
+      globals: {
+        // NOTE: eslint実行時に `error 'something' is not defined no-undef` のようなエラーが出て、'something'が既知のものだったら（例えばauto-importなどでimportされることがわかっている・標準ライブラリに載っている、など。）、ここ（もしくは下の「オーバーライド」）に `something: true` と追加してください
+        WritableComputedRef: true,
+        defineNuxtConfig: true,
+      },
+    },
+    rules: {
+      /*
+       * ERROR  Cannot use 'import.meta' outside a module                                                                                                                                                                                                                                                               9:08:45 PM
+       * asyncContext: !!__NUXT_ASYNC_CONTEXT__ && import.meta.server
+       * ^^^^
+       * `yarn fix`すると`process.server`が`import.meta.server`に置き換えられて↑が発生するので、off
+       */
+      'nuxt/prefer-import-meta': 'off',
+    },
+  },
+
+  // tsconfigが必要なルールの設定
+  {
+    files: [
+      '**/*.ts',
+      '**/*.mts',
+      '**/*.cts',
+      '**/*.vue',
+      // 'Parsing error: Type expected'するので.tsxは除外
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: './tsconfig.json',
+      },
+    },
+    rules: {
+      ...typescriptEslint.configs.recommended.rules,
+      ...typescriptEslint.configs['recommended-type-checked'].rules,
+      ...basicConfig.rules,
+      '@typescript-eslint/restrict-template-expressions': 'off', // string interpolation `${e}` のeには、任意の型の値を許す
+      '@typescript-eslint/no-unsafe-call': 'off', // auto-importした関数がanyに推測されるので、off
+      // .vueの下記TODOコメントを参照 -- TODO: 「下記TODOコメント」はどこにいった？
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+    },
+  },
+
+  /*
+   * コーディングスタイルの設定（そのうちnuxt.config.tsに書けないもの）
+   * https://eslint.style/rules
+   */
+  {
+    plugins: {
+      '@stylistic': stylistic,
+    },
+    rules: {
+      '@stylistic/multiline-comment-style': ['warn', 'starred-block'],
+    },
+  },
+
+  // その他オーバーライド
+  {
+    files: ['**/test/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.jest,
+        vi: true,
+      },
+    },
+    rules: {
+      '@typescript-eslint/unbound-method': 'off', // テスト内でvi.fn()などを注入するために許可
+    },
+  },
+)
+````
+
+## File: layers/base/vitest.config.mts
+````
+import path from 'path'
+import Vue from '@vitejs/plugin-vue'
+import AutoImport from 'unplugin-auto-import/vite'
+import Components from 'unplugin-vue-components/vite'
+import Icons from 'unplugin-icons/vite'
+import { defineConfig } from 'vitest/config'
+import svgLoader from 'vite-svg-loader'
+
+export default defineConfig({
+  plugins: [
+    Vue(),
+    {
+      name: 'mock-svg-icons',
+      transform(_, id) {
+        if (id.includes('~icons/')) {
+          return 'export default { name: "MockIcon", template: "<svg><path /></svg>", props: ["class"] }';
+        }
+      },
+    },
+    AutoImport({
+      exclude: ['/test/', '/test-e2e/'],
+      include: [/\.[tj]s?$/, /\.[tj]sx?$/, /\.vue$/, /\.vue\?vue/],
+      imports: [
+        'vue',
+        'vue-i18n',
+        {
+          '#app': [
+            /*
+             * NOTE: 自動生成される.nuxt/imports.d.tsから手動移植 https://tech.andpad.co.jp/entry/2023/03/16/100000
+             * export { // .nuxt/imports.d.ts 参照
+             */
+            'useAsyncData',
+            'useLazyAsyncData',
+            'useNuxtData',
+            'refreshNuxtData',
+            'clearNuxtData',
+            'defineNuxtComponent',
+            'useNuxtApp',
+            'defineNuxtPlugin',
+            'definePayloadPlugin',
+            'reloadNuxtApp',
+            'useRuntimeConfig',
+            'useState',
+            'clearNuxtState',
+            'useFetch',
+            'useLazyFetch',
+            'useCookie',
+            'useRequestHeaders',
+            'useRequestEvent',
+            'useRequestFetch',
+            'useRequestURL',
+            'setResponseStatus',
+            'setPageLayout',
+            'prerenderRoutes',
+            'onNuxtReady',
+            'useRouter',
+            'useRoute',
+            'defineNuxtRouteMiddleware',
+            'navigateTo',
+            'abortNavigation',
+            'addRouteMiddleware',
+            'showError',
+            'clearError',
+            'isNuxtError',
+            'useError',
+            'createError',
+            'defineNuxtLink',
+            'useAppConfig',
+            'updateAppConfig',
+            'defineAppConfig',
+            'preloadComponents',
+            'preloadRouteComponents',
+            'prefetchComponents',
+            'loadPayload',
+            'preloadPayload',
+            'isPrerendered',
+            'getAppManifest',
+            'getRouteRules',
+            'definePayloadReducer',
+            'definePayloadReviver',
+            'requestIdleCallback',
+            'cancelIdleCallback',
+            'onBeforeRouteLeave',
+            'onBeforeRouteUpdate',
+            //  } from '#app'; // .nuxt/imports.d.ts 参照
+          ],
+          '#i18n': [
+            'useRouteBaseName',
+            'useLocalePath',
+            'useLocaleRoute',
+            'useSwitchLocalePath',
+            'useLocaleHead',
+            'useBrowserLocale',
+            'useCookieLocale',
+            'defineI18nRoute',
+            'defineI18nLocale',
+            'defineI18nConfig',
+          ],
+        },
+      ],
+      dirs: ['app/composables', 'app/utils/**'],
+      dts: './@types/auto-imports.d.ts',
+    }),
+    Components({
+      dirs: ['app/components'],
+      dts: './@types/components.d.ts',
+    }),
+    svgLoader({
+      defaultImport: 'component', // 'component', 'url', 'raw'
+      svgo: false,
+    }),
+    Icons({
+      autoInstall: true,
+      compiler: 'vue3',
+    }),
+  ],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    coverage: {
+      include: ['app/**/*.{vue,ts}'],
+      exclude: [
+        'app/plugins/**',
+        'app/middleware/**',
+        'app/layouts/**',
+        'app/test/**'
+      ],
+    },
+    setupFiles: ['./app/test/setup.ts'],
+  },
+  resolve: {
+    alias: {
+      '#base': path.resolve(__dirname),
+      '#main': path.resolve(__dirname, '../main'),
+      '#app': path.resolve(__dirname, '../../node_modules/nuxt/dist/app'),
+      '#i18n': path.resolve(
+        __dirname,
+        '../../node_modules/@nuxtjs/i18n/dist/runtime/composables',
+      ),
+      '#imports': path.resolve(__dirname, 'app/test/mocks/imports.ts'),
+      '@@/public/images/no-image.png': '/images/no-image.png',
+    },
+  },
+})
 ````
 
 ## File: layers/main/@types/auto-imports.d.ts
@@ -22430,35 +24143,263 @@ definePageMeta({
 </script>
 ````
 
-## File: layers/main/app/plugins/gtm.client.ts
-````typescript
-import { createGtm } from '@gtm-support/vue-gtm'
-import { defineNuxtPlugin } from 'nuxt/app'
+## File: layers/main/app/app.vue
+````vue
+<i18n lang="yaml">
+  ja:
+    site:
+      title: Vket Boilerplate Nuxt
+      title_template: "{title} - HIKKY Web Frontend"
+      description: Vketのサイト開発で活用しているボイラープレート
+  en:
+    site:
+      title: Vket Boilerplate Nuxt
+      title_template: "{title} - HIKKY Web Frontend"
+      description: A boilerplate used for Vket site development
+</i18n>
 
-export default defineNuxtPlugin(() => {
-  const config = useRuntimeConfig()
-  createGtm({ id: config.public?.gtmId, enabled: true })
+<template>
+  <Head>
+    <Link
+      rel="alternate"
+      hreflang="ja"
+      :href="currentJaFullPath"
+    />
+    <Link
+      rel="alternate"
+      hreflang="en"
+      :href="currentEnFullPath"
+    />
+    <Link
+      rel="alternate"
+      hreflang="x-default"
+      :href="currentJaFullPath"
+    />
+    <template v-if="currentLang === 'ja'">
+      <Link
+        rel="canonical"
+        :href="currentJaFullPath"
+      />
+    </template>
+    <template v-if="currentLang === 'en'">
+      <Link
+        rel="canonical"
+        :href="currentEnFullPath"
+      />
+    </template>
+  </Head>
+  <div class="app">
+    <NuxtLayout>
+      <NuxtRouteAnnouncer />
+      <NuxtWelcome />
+      <NuxtPage />
+    </NuxtLayout>
+  </div>
+</template>
+
+<script lang="ts" setup>
+const route = useRoute()
+const i18n = useI18n()
+const currentFullPath = ref(`${useRuntimeConfig().public.url}${route.fullPath}`)
+const currentLang = ref(i18n.locale.value)
+
+const currentJaFullPath = computed(() => {
+  if (currentLang.value === 'ja') {
+    return currentFullPath.value
+  } else {
+    return currentFullPath.value
+      .replace(/\/en(\/|$)/, '/')
+      .replace(/\/{2,}/, '/')
+  }
 })
+
+const currentEnFullPath = computed(() => {
+  if (currentLang.value === 'en') {
+    return currentFullPath.value
+  } else {
+    const path = route.fullPath.endsWith('/')
+      ? route.fullPath
+      : `${route.fullPath}/`
+    return `${useRuntimeConfig().public.url}/en${path}`
+  }
+})
+
+useHeadSafe({
+  htmlAttrs: {
+    lang: currentLang.value,
+  },
+  titleTemplate: (titleChunk) => {
+    return titleChunk
+      ? i18n.t('site.title_template', { title: titleChunk })
+      : i18n.t('site.title')
+  },
+  meta: [
+    {
+      name: 'description',
+      content: i18n.t('site.description'),
+    },
+    {
+      property: 'og:description',
+      content: i18n.t('site.description'),
+    },
+    {
+      property: 'og:site_name',
+      content: i18n.t('site.title'),
+    },
+  ],
+})
+</script>
 ````
 
-## File: layers/main/app/utils/factory.ts
+## File: layers/main/nuxt.config.ts
 ````typescript
-import { type MakeRepository, defaultRepositories } from '#base/app/utils/default-factory'
-import { Method } from '@/utils/api'
+import path from 'path'
+import { defineNuxtConfig } from 'nuxt/config'
+import { readEnvType } from './config/models/EnvType'
+import { getRuntimeConfigOfEnvType } from './config/runtimeConfig'
+import { nuxtI18nOptions } from './i18n/i18n.config'
 
-export type Repository = MakeRepository<Method>
-export type Repositories = Record<string, Repository>
-
-export const repositories = {
-  ...defaultRepositories,
-  // Add non-default repositories here
-} as const satisfies Repositories
-
-export type RepositoryKey = keyof typeof repositories
-
-export const repositoryFactory = {
-  get: <K extends keyof typeof repositories>(name: K) => repositories[name],
+type MetaInfo = {
+  title: string
+  description: string
+  robots: string
+  siteName: string
+  ogImageUrl: string
+  ogUrl: string
+  twitterSite: string
+  twitterCreator: string
 }
+
+const NUXT_ENV_OUTPUT_ENV = readEnvType(process.env)
+const runtimeConfig = getRuntimeConfigOfEnvType(
+  NUXT_ENV_OUTPUT_ENV,
+  process.env,
+)
+const cssUrls = [`@/assets/styles/style.scss`]
+const srcDir = 'app'
+const isSsr = false
+const checkTypeCheckOnBuild = true
+const needAnalyze = NUXT_ENV_OUTPUT_ENV === 'local'
+const needSourcemap = NUXT_ENV_OUTPUT_ENV !== 'production'
+const enableDebug = NUXT_ENV_OUTPUT_ENV === 'local'
+
+const meta: MetaInfo = {
+  title: '',
+  description: '',
+  robots: NUXT_ENV_OUTPUT_ENV === 'production' ? 'all' : 'none',
+  siteName: '',
+  ogImageUrl: `${runtimeConfig.public.url}/images/ogp.jpg`,
+  ogUrl: runtimeConfig.public.url,
+  twitterSite: '',
+  twitterCreator: '',
+}
+
+// https://nuxt.com/docs/api/configuration/nuxt-config
+export default defineNuxtConfig({
+  extends: path.resolve(__dirname, '../base'),
+  modules: [
+    '@nuxtjs/google-fonts',
+  ],
+  ssr: isSsr,
+
+  imports: {
+    dirs: ['utils/types/**'],
+    global: false,
+  },
+
+  app: {
+    head: {
+      meta: [
+        { name: 'robots', content: meta.robots },
+        {
+          name: 'description',
+          content: meta.description,
+        },
+        {
+          property: 'og:site_name',
+          content: meta.siteName,
+        },
+        {
+          property: 'og:url',
+          content: meta.ogUrl,
+        },
+        {
+          property: 'og:title',
+          content: meta.title,
+        },
+        {
+          property: 'og:description',
+          content: meta.description,
+        },
+        {
+          property: 'og:image',
+          content: meta.ogImageUrl,
+        },
+        {
+          name: 'twitter:site',
+          content: meta.twitterSite,
+        },
+        {
+          name: 'twitter:creator',
+          content: meta.twitterCreator,
+        },
+      ],
+      link: [
+        {
+          rel: 'icon',
+          type: 'image/x-icon',
+          href: `${runtimeConfig.public.url}/favicon.ico`,
+        },
+      ],
+    },
+  },
+
+  css: cssUrls,
+  runtimeConfig,
+  dir: {
+    public: path.resolve(__dirname, './public'),
+  },
+  rootDir: __dirname,
+  srcDir: `${srcDir}/`,
+
+  alias: {
+    '#main': __dirname,
+    '@': path.resolve(__dirname, './app'),
+  },
+
+  ignore: [
+    '.output',
+    '**/test/*.{js,ts,jsx,tsx}',
+    '**/*.{spec,test}.{js,ts,jsx,tsx}',
+    '**/-*.*',
+  ],
+
+  build: {
+    analyze: needAnalyze,
+  },
+
+  sourcemap: {
+    server: needSourcemap,
+    client: needSourcemap,
+  },
+
+  compatibilityDate: '2024-04-03',
+
+  typescript: {
+    typeCheck: checkTypeCheckOnBuild,
+  },
+
+  debug: enableDebug,
+
+  googleFonts: {
+    families: {
+      'Noto+Sans+JP': [100, 300, 400, 500, 700, 900],
+    },
+    display: 'swap',
+  },
+
+  i18n: nuxtI18nOptions,
+})
 ````
 
 ## File: layers/open-api/scripts/template.hbs
@@ -23122,6 +25063,55 @@ export default {
 }
 ````
 
+## File: .stylelintrc.shared.mjs
+````
+export default {
+  extends: ['stylelint-config-standard-scss', 'stylelint-rscss', 'stylelint-config-clean-order'],
+  rules: {
+    'at-rule-no-unknown': [
+      true,
+      {
+        ignoreAtRules: ['/^.*/'],
+      },
+    ],
+    'scss/dollar-variable-pattern': null,
+    'selector-pseudo-class-no-unknown': [
+      true,
+      {
+        ignorePseudoClasses: ['deep', 'global'],
+      },
+    ],
+    'max-nesting-depth': null,
+    'property-no-vendor-prefix': null,
+    'selector-pseudo-element-no-unknown': null,
+    'no-descending-specificity': null,
+    'selector-class-pattern': null,
+    'selector-no-qualifying-type': [
+      true,
+      {
+        ignore: ['attribute', 'class'],
+      },
+    ],
+    'value-no-vendor-prefix': null,
+    'selector-max-compound-selectors': 5,
+    'function-no-unknown': null,
+    'declaration-property-value-disallowed-list': [
+      {
+        '// noneを許可する': '',
+        '/^border/': [],
+      },
+    ],
+    'media-query-no-invalid': null,
+  },
+  overrides: [
+    {
+      files: ['**/*.vue'],
+      customSyntax: 'postcss-html',
+    },
+  ],
+}
+````
+
 ## File: AGENTS.md
 ````markdown
 # Vket Boilerplate Nuxt - AI Agent Configuration
@@ -23440,342 +25430,6 @@ export default tseslint.config(
 )
 ````
 
-## File: layers/base/app/components/ha/base/HaBaseInput.vue
-````vue
-<template>
-  <input
-    :id="props.id"
-    v-bind="valueProp"
-    class="ha-base-input"
-    :type="props.type"
-    :accept="props.accept"
-    :autocomplete="props.autocomplete"
-    :autofocus="props.autofocus"
-    :capture="capture_"
-    :checked="props.checked"
-    :disabled="props.disabled"
-    :list="props.list"
-    :max="props.max"
-    :maxLength="props.maxLength"
-    :min="props.min"
-    :minLength="props.minLength"
-    :multiple="props.multiple"
-    :name="props.name"
-    :placeholder="props.placeholder"
-    :readonly="props.readonly"
-    :required="props.required"
-    :size="props.size"
-    :files="props.files"
-    @input="onInput"
-    @change="onChange"
-  />
-</template>
-
-<script setup lang="ts">
-export type InputType
-  = | 'button'
-    | 'checkbox'
-    | 'email'
-    | 'file'
-    | 'number'
-    | 'password'
-    | 'radio'
-    | 'search'
-    | 'tel'
-    | 'text'
-    | 'url'
-    | 'date'
-    | 'datetime-local'
-    | 'time'
-
-type Props = {
-  type: InputType
-  accept?: string
-  autocomplete?: string
-  autofocus?: boolean
-  capture?: boolean | 'user' | 'environment'
-  checked?: boolean
-  disabled?: boolean
-  id?: string
-  list?: string
-  max?: number | string
-  maxLength?: number
-  min?: number | string
-  minLength?: number
-  multiple?: boolean
-  name?: string
-  placeholder?: string
-  readonly?: boolean
-  required?: boolean
-  size?: number
-  value?: string | number | boolean
-  modelValue?: string | number | boolean
-  files?: FileList | undefined
-}
-type Emits = {
-  (
-    e: 'update:modelValue' | 'update:value',
-    eventValue: string | number | boolean
-  ): void
-  (e: 'input' | 'change', event: Event): void
-}
-
-const props = defineProps<Props>()
-const emit = defineEmits<Emits>()
-
-const typeofInputValue = () => {
-  if (props.type === 'checkbox') return 'boolean'
-
-  if (props.type === 'radio' && typeof props.value === 'number') return 'number'
-
-  return 'string'
-}
-
-const onInput = (event: Event) => {
-  emit('input', event)
-  if (event.target instanceof HTMLInputElement) {
-    const returnType = typeofInputValue()
-
-    const checked = event.target.checked
-    if (returnType === 'boolean') {
-      emit('update:modelValue', checked)
-      emit('update:value', checked)
-      return
-    }
-
-    const value = event.target.value
-    if (returnType === 'number') {
-      emit('update:modelValue', Number(value))
-      emit('update:value', Number(value))
-      return
-    }
-
-    emit('update:modelValue', value)
-    emit('update:value', value)
-  }
-}
-
-const onChange = (event: Event) => {
-  emit('change', event)
-}
-
-const valueProp = computed(() => {
-  /*
-   * props.value の型にbooleanが含まれているからかflagとして解釈されている？
-   * 指定しない時のデフォルト値がundefinedでなくfalseになってつらいので対処
-   */
-  if (props.type === 'file' && props.value === false) return {}
-  if (props.modelValue !== undefined) return { value: props.modelValue }
-  return {
-    value: props.value,
-  }
-})
-
-/**
- * https://developer.mozilla.org/ja/docs/Web/HTML/Attributes/capture
- * capture属性はどうも論理属性でなくなっていて？  falseでもカメラが起動するので対応
- */
-const capture_ = computed<'user' | 'environment' | true | undefined>(() => {
-  switch (props.capture) {
-    case false:
-      return undefined
-    default:
-      return props.capture
-  }
-})
-</script>
-
-<style lang="scss" scoped>
-.ha-base-input {
-  display: block;
-  max-width: 100%;
-  max-height: 100%;
-}
-</style>
-````
-
-## File: layers/base/app/components/ha/HaModal.vue
-````vue
-<template>
-  <!-- モーダルを開くボタン -->
-  <button
-    class="open"
-    type="button"
-    :aria-controls="'popup' + props.index.toString()"
-    aria-expanded="false"
-    @click="togglePopup"
-  >
-    <slot name="button">
-      <span class="text">モーダルを開く</span>
-    </slot>
-  </button>
-  <!-- モーダル -->
-  <section
-    :id="'popup' + props.index.toString()"
-    class="ha-modal"
-    :aria-hidden="!popupVisibility"
-  >
-    <button
-      ref="close"
-      class="close"
-      type="button"
-      :aria-label="
-        i18n.locale.value === 'ja' ? `モーダルを閉じる` : `Close the dialog`
-      "
-      @click="togglePopup"
-    >
-      <!-- 閉じるボタンのアイコン -->
-      <slot name="close">
-        <RiCloseLine class="icon" />
-      </slot>
-    </button>
-    <div
-      class="inner"
-      role="presentation"
-    >
-      <!-- モーダルの背景 -->
-      <div
-        class="background"
-        aria-hidden="true"
-        @click="togglePopup"
-      ></div>
-      <div
-        class="modal"
-        role="presentation"
-      >
-        <slot name="inner">
-          <div>モーダルの中身</div>
-        </slot>
-      </div>
-    </div>
-    <div
-      tabindex="0"
-      class="modal-end"
-      @focus="handleEndFocus"
-    ></div>
-  </section>
-</template>
-
-<script lang="ts" setup>
-import RiCloseLine from '~icons/ri/close-line'
-
-type Props = {
-  index: string
-}
-const props = defineProps<Props>()
-const i18n = useI18n()
-
-/* ポップアップの開閉はrefで制御 */
-const popupVisibility = ref(false)
-const togglePopup = () => {
-  // html要素とbody要素の両方にoverflowを記述
-  if (!popupVisibility.value) {
-    document.body.style.overflow = 'hidden'
-    document.documentElement.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-    document.documentElement.style.overflow = ''
-  }
-  popupVisibility.value = !popupVisibility.value
-}
-/* フォーカスを制御する要素を定義 */
-const close = ref<HTMLElement | null>(null)
-// modal-endにフォーカスが当たったらcloseにフォーカスを移す(ポップアップを開いている最中にポップアップの外にアクセスさせない)
-const handleEndFocus = () => {
-  if (close.value === null) {
-    throw new Error('close要素はnull')
-  }
-  close.value.focus()
-}
-
-/* モーダルが開いている状態でESCキーを押すとモーダルを閉じる */
-onMounted(() => {
-  window.addEventListener('keydown', (e) => {
-    if (popupVisibility.value === true && e.key === 'Escape') {
-      popupVisibility.value = false
-      document.body.style.overflow = ''
-      document.documentElement.style.overflow = ''
-    }
-  })
-})
-
-defineExpose({
-  close,
-  handleEndFocus,
-  togglePopup,
-  popupVisibility,
-})
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-@use '#base/app/assets/styles/mixins' as m;
-
-.open {
-  display: block;
-  width: max-content;
-  max-width: 100%;
-}
-
-.ha-modal {
-  position: fixed;
-  z-index: 2147483647;
-  inset: 0;
-
-  &[aria-hidden='true'] {
-    visibility: hidden;
-    opacity: 0;
-    transition: visibility 0.4s, opacity 0.4s;
-  }
-
-  &[aria-hidden='false'] {
-    visibility: visible;
-    opacity: 1;
-    transition: visibility 0.4s, opacity 0.4s;
-  }
-
-  > .inner {
-    position: absolute;
-    inset: 0;
-
-    > .background {
-      position: absolute;
-      inset: 0;
-    }
-
-    > .modal {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      translate: -50% -50%;
-
-      overflow-y: auto; /* モーダルの中身はスクロール可能に */
-
-      width: 90%;
-      height: 90vh;
-    }
-  }
-
-  > .close {
-    position: absolute;
-    z-index: 2;
-    top: 2%;
-    right: 2%;
-
-    aspect-ratio: 1/1;
-
-    > .icon {
-      font-size: 24px;
-
-      &:deep(path) {
-        fill: v.$white;
-      }
-    }
-  }
-}
-</style>
-````
-
 ## File: layers/base/app/components/hm/icon/HmIconUser.vue
 ````vue
 <template>
@@ -23822,431 +25476,6 @@ const props = defineProps<Props>()
 </style>
 ````
 
-## File: layers/base/app/components/hm/HmClipping.vue
-````vue
-<template>
-  <div class="hm-clipping">
-    <div class="cropper-container">
-      <Cropper
-        ref="cropper"
-        class="cropper"
-        :src="src"
-        :autoZoom="autoZoom"
-        :stencilSize="{
-          width: width,
-          height: height,
-        }"
-        v-bind="cropperOptions"
-        defaultBoundaries="fit"
-        :imageRestriction="imageRestriction"
-        :style="forceStyle"
-        @change="onChange"
-      />
-    </div>
-    <template v-if="src">
-      <HaBaseButton
-        class="button"
-        @click="clip"
-      >
-        <!-- {{ i18n.t('label') }} -->
-        切り抜く
-      </HaBaseButton>
-    </template>
-  </div>
-</template>
-
-<script lang="ts" setup>
-import { Cropper } from 'vue-advanced-cropper'
-import 'vue-advanced-cropper/dist/style.css'
-
-type Props = {
-  src: string
-  width?: number
-  height?: number
-  cropperAreaHeight?: number
-  doResize?: boolean
-  stencil?: string
-  imageRestriction?: 'fill-area' | 'fit-area' | 'stencil' | 'none'
-  autoZoom?: boolean
-  ext?: string
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  width: 256,
-  height: 256,
-  cropperAreaHeight: undefined,
-  doResize: true,
-  stencil: 'RectangleStencil',
-  imageRestriction: 'stencil',
-  autoZoom: false,
-  ext: 'jpeg',
-})
-
-type Emits = {
-  (e: 'clipped', image: File[]): void
-}
-const emit = defineEmits<Emits>()
-
-const croppedImage = ref<File[]>([])
-
-const forceStyle = computed(() => {
-  if (props.cropperAreaHeight === undefined) return {}
-  const cropperAreaHeight = props.cropperAreaHeight || props.height * 1.4
-  return {
-    height: `${cropperAreaHeight}px`,
-  }
-})
-const cropperOptions = computed(() => {
-  return props.doResize
-    ? {
-        canvas: {
-          width: props.width,
-          height: props.height,
-        },
-      }
-    : {}
-})
-
-const onChange = ({ canvas }: { canvas: HTMLCanvasElement }) => {
-  /*
-   * this.coordinates = coordinates
-   * note: canvas to DataURI
-   * this.croppedImage = canvas.toDataURL(`image/${this.ext}`)
-   */
-  const data = canvas.toDataURL(`image/${props.ext}`)
-  // note: DataURL to File
-  const bytes = atob(data.split(',')[1] ?? raiseError('Invalid bytes'))
-  const mime
-    = data.split(',')[0]?.split(':')[1]?.split(';')[0]
-      ?? raiseError('Invalid mime')
-  const name = `tmp-${new Date().getTime()}.${mime.split('/')[1]}`
-  const writer = new Uint8Array(new ArrayBuffer(bytes.length))
-  for (let i = 0; i < bytes.length; i++) {
-    writer[i] = bytes.charCodeAt(i)
-  }
-  const file = new File([writer.buffer], name, { type: mime })
-  croppedImage.value[0] = file
-}
-
-const clip = () => {
-  emit('clipped', croppedImage.value)
-}
-</script>
-
-<style lang="scss" scoped>
-@use '@/assets/styles/variables' as v;
-@use '@/assets/styles/mixins' as m;
-
-.hm-clipping {
-  width: 100%;
-  height: 100%;
-
-  > .cropper-container {
-    height: calc(100% - 70px);
-    min-height: 300px;
-    margin-bottom: 20px;
-    padding: v.space(2);
-
-    background: #000;
-  }
-
-  > .cropper-container > .cropper {
-    height: 100%;
-    background: #000;
-  }
-
-  > .button {
-    width: 100%;
-    padding: v.$space-small;
-    color: v.$white;
-    background-color: v.$primary-button-default-color;
-
-    :hover {
-      background-color: v.$primary-button-active-color;
-    }
-  }
-}
-</style>
-````
-
-## File: layers/base/app/components/hm/HmPaging.vue
-````vue
-<i18n lang="yaml">
-ja:
-  next: 次へ
-  prev: 前へ
-en:
-  next: Next
-  prev: Prev
-</i18n>
-
-<template>
-  <nav
-    aria-label="Pagination Navigation"
-    class="pagination"
-  >
-    <!-- 前へ -->
-    <HaLink
-      :to="route.path"
-      :query="createPageQuery(currentPage - 1)"
-      class="pagination-prev"
-      :class="{
-        ['link-disabled text-disabled']: currentPage <= 1,
-      }"
-      :aria-disabled="currentPage >= totalPages"
-      @click="goToPage(currentPage - 1)"
-    >
-      <slot name="prev-icon">
-        &lt;
-      </slot>
-      {{ i18n.t('prev') }}
-    </HaLink>
-    <!-- 各ページへのリンク表示 -->
-    <ul class="pagination-list">
-      <li
-        v-for="(page, i) in pages"
-        :key="`${page}_${i}`"
-        :aria-disabled="currentPage == page"
-        @click="goToPage(Number(page))"
-      >
-        <HaLink
-          class="pagination-item"
-          :class="{
-            ['link-disabled active']: currentPage == page,
-            ['link-disabled ellipsis']: page == '...',
-          }"
-          :to="route.path"
-          :query="createPageQuery(Number(page))"
-        >
-          {{ page }}
-        </HaLink>
-      </li>
-    </ul>
-    <!-- 次へ -->
-    <HaLink
-      :to="route.path"
-      :query="createPageQuery(currentPage + 1)"
-      class="pagination-next"
-      :class="{ ['link-disabled']: currentPage >= totalPages }"
-      :aria-disabled="currentPage >= totalPages"
-      @click="goToPage(currentPage + 1)"
-    >
-      {{ i18n.t('next') }}
-      <slot name="next-icon">
-        &gt;
-      </slot>
-    </HaLink>
-  </nav>
-</template>
-
-<script lang="ts" setup>
-import { Paging } from '#base/app/utils/response'
-
-export type PageChangedEventObject = {
-  page: number // 新しいページ番号
-  offset: number // 新しいページのオフセット
-}
-
-const i18n = useI18n()
-const route = useRoute()
-
-const props = withDefaults(
-  defineProps<{
-    paging: Paging
-    totalVisible?: number
-    ellipsis?: string
-  }>(),
-  {
-    totalVisible: 7,
-    ellipsis: '...',
-  },
-)
-
-const emit = defineEmits<{
-  (e: 'changed', paging: PageChangedEventObject): void
-}>()
-
-const currentPage = computed(
-  () => Math.ceil(props.paging.offset / props.paging.limit) + 1,
-)
-const totalPages = computed(() =>
-  Math.ceil(props.paging.total / props.paging.limit),
-)
-
-const createPageQuery = (page: number) => {
-  return { ...route.query, page: page.toString() }
-}
-
-const createRange = (length: number, start = 0): number[] => {
-  return Array.from({ length }, (_, i) => start + i)
-}
-
-/*
- * 表示すべきページ番号の配列を作成 ( ロジックの大元はVuetifyライブラリのPaginationコンポーネント参考 )
- * https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/components/VPagination/VPagination.tsx
- */
-const pages = computed(() => {
-  if (
-    totalPages.value <= 0
-    || isNaN(totalPages.value)
-    || isNaN(currentPage.value)
-    || totalPages.value > Number.MAX_SAFE_INTEGER
-  )
-    return []
-
-  if (props.totalVisible <= 0) return []
-  if (props.totalVisible === 1) return [currentPage.value]
-  if (totalPages.value <= props.totalVisible) {
-    return createRange(totalPages.value, 1)
-  }
-
-  // 表示するページ数とellipsisの合計数量を固定するためのロジック ( これがないとページ遷移のたびにページボタンの位置がずれて使いにくい )
-  const even = props.totalVisible % 2 === 0
-  const middle = even
-    ? props.totalVisible / 2
-    : Math.floor(props.totalVisible / 2)
-  const left = even ? middle : middle + 1
-  const right = totalPages.value - middle
-
-  if (left - currentPage.value >= 0) {
-    return [
-      ...createRange(Math.max(1, props.totalVisible - 1), 1),
-      props.ellipsis,
-      totalPages.value,
-    ]
-  } else if (currentPage.value - right >= (even ? 1 : 0)) {
-    const rangeLength = props.totalVisible - 1
-    const rangeStart = totalPages.value - rangeLength + 1
-    return [1, props.ellipsis, ...createRange(rangeLength, rangeStart)]
-  } else {
-    const rangeLength = Math.max(1, props.totalVisible - 3)
-    const rangeStart
-      = rangeLength === 1
-        ? currentPage.value
-        : currentPage.value - Math.ceil(rangeLength / 2) + 1
-    return [
-      1,
-      props.ellipsis,
-      ...createRange(rangeLength, rangeStart),
-      props.ellipsis,
-      totalPages.value,
-    ]
-  }
-})
-
-// ページ番号がクリックされた時に実行される関数
-const goToPage = (page: number) => {
-  // 有効なページ番号の時のみ処理を行う
-  if (page >= 1 && page <= totalPages.value) {
-    const newOffset = (page - 1) * props.paging.limit
-    emit('changed', { page, offset: newOffset })
-  }
-}
-</script>
-
-<style lang="scss" scoped>
-@use '@/assets/styles/variables' as v;
-@use '@/assets/styles/mixins' as m;
-
-.pagination {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: center;
-
-  .link-disabled {
-    pointer-events: none;
-    cursor: default;
-  }
-
-  .pagination-prev,
-  .pagination-next {
-    cursor: pointer;
-    user-select: none;
-
-    display: flex;
-    align-items: center;
-
-    width: auto;
-    height: 32px;
-    padding: 4px 8px;
-
-    color: v.$base-font-color;
-
-    :deep(svg path) {
-      fill: v.$base-font-color;
-    }
-
-    &.text-disabled {
-      color: v.$button-disabled-color;
-
-      :deep(svg path) {
-        fill: v.$button-disabled-color;
-      }
-    }
-
-    &:hover {
-      color: v.$primary-button-default-color;
-
-      :deep(svg path) {
-        fill: v.$primary-button-default-color;
-      }
-    }
-  }
-
-  .pagination-list {
-    user-select: none;
-
-    display: flex;
-    gap: 4px;
-
-    padding: 0;
-
-    list-style: none;
-
-    .pagination-item {
-      cursor: pointer;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-
-      color: v.$base-font-color;
-
-      background: v.$white;
-
-      &.active {
-        font-weight: bold;
-        color: v.$white;
-        background-color: v.$primary-button-default-color;
-      }
-
-      &:hover:not(.active) {
-        color: v.$white;
-        background-color: v.$primary-button-default-color;
-      }
-
-      &.ellipsis {
-        pointer-events: none;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        width: 30px;
-
-        background: none;
-      }
-    }
-  }
-}
-</style>
-````
-
 ## File: layers/base/app/components/hm/HmSliderItem.vue
 ````vue
 <template>
@@ -24276,470 +25505,6 @@ const props = defineProps<{
   height: 100%;
 }
 </style>
-````
-
-## File: layers/base/app/test/components/hm/input/HmInputText.spec.ts
-````typescript
-import HmInputText from '#base/app/components/hm/input/HmInputText.vue'
-import useValidationRules from '#base/app/composables/useValidationRules'
-import { waitEffect } from '#base/app/utils/sleep'
-import { mount } from '@vue/test-utils'
-import z from 'zod/v3'
-
-const rules = useValidationRules()
-
-beforeEach(() => {
-  vi.mock('vue-i18n', () => ({
-    useI18n: vi.fn(() => ({
-      local: {
-        value: 'ja',
-      },
-      locale: {
-        value: 'ja',
-      },
-      t: (key: string, ..._args: unknown[]) => `dummy-${key}`,
-    })),
-  }))
-})
-
-afterEach(() => {
-  vi.restoreAllMocks()
-})
-
-test('ref component', () => {
-  expect(HmInputText).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HmInputText)
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-describe('props', () => {
-  it(':placeholder', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        placeholder: 'placeholder text',
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('placeholder')).toBe(
-      'placeholder text',
-    )
-  })
-
-  it(':type', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('type')).toBe('text')
-  })
-
-  it(':validatorName', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorName: 'testValidatorName',
-      },
-    })
-    expect(wrapper.props('validatorName' as never)).toBe('testValidatorName')
-  })
-
-  it(':validatorRules', () => {
-    const testValidatorRules = rules.required
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorName: 'testValidatorName',
-        validatorRules: testValidatorRules,
-      },
-    })
-    expect(wrapper.props('validatorRules' as never)).toStrictEqual(
-      testValidatorRules,
-    )
-  })
-
-  it(':required', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        required: true,
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('required')).toBe('')
-  })
-
-  it(':modelValue', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        modelValue: 'modelValue text',
-      },
-    })
-    expect(wrapper.props('modelValue' as never)).toBe('modelValue text')
-  })
-
-  it(':disabled', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        disabled: true,
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('disabled')).toBe('')
-  })
-
-  it(':counter:length display', async () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        counter: true,
-      },
-    })
-    await wrapper.get('input[type="text"]').setValue('1234567890')
-    await waitEffect()
-    expect(wrapper.get('span[class="counter"]').text()).toBe('10')
-  })
-
-  it(':counter:length/max display', async () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        counter: { max: 50 },
-      },
-    })
-    await wrapper.get('input[type="text"]').setValue('1234567890')
-    await waitEffect()
-    expect(wrapper.get('span[class="counter"]').text()).toBe('10/50')
-  })
-
-  it(':min', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        min: 3,
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('min')).toBe('3')
-  })
-
-  it(':keyupEnter', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        keyupEnter: true,
-      },
-    })
-    expect(wrapper.props('keyupEnter' as never)).toBe(true)
-  })
-
-  it(':isLazy', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        isLazy: true,
-      },
-    })
-    expect(wrapper.props('isLazy' as never)).toBe(true)
-  })
-
-  it(':isTrim', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        isTrim: true,
-      },
-    })
-    expect(wrapper.props('isTrim' as never)).toBe(true)
-  })
-
-  it(':small', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        small: true,
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('class')).toBe(
-      'ha-base-input input -small',
-    )
-  })
-
-  it(':name', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        name: 'testName',
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('name')).toBe(
-      'testName',
-    )
-  })
-
-  it(':error', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        error: 'testError',
-      },
-    })
-    expect(wrapper.props('error')).toBe('testError')
-  })
-
-  it(':hideDetails', () => {
-    // -hide classを確認するためには、validatorRulesが必要
-    const testValidatorRules = rules.required
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        hideDetails: true,
-        validatorRules: testValidatorRules,
-      },
-    })
-    expect(wrapper.props('hideDetails')).toBe(true)
-    // -hide classが付与されていることを確認
-    expect(wrapper.get('p').attributes('class')).toBe('error-container -hide')
-  })
-
-  it(':list', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        list: 'testList',
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('list')).toBe(
-      'testList',
-    )
-  })
-
-  it(':keepValueOnUnmount', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        keepValueOnUnmount: true,
-      },
-    })
-    expect(wrapper.props().keepValueOnUnmount).toBe(true)
-  })
-
-  it(':validateOnMount', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        validateOnMount: true,
-      },
-    })
-    expect(wrapper.props().validateOnMount).toBe(true)
-  })
-})
-
-describe('emits', () => {
-  it(':update:modelValue', async () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-      },
-    })
-    await wrapper.setValue('test', 'modelValue')
-    expect(wrapper.emitted()).toHaveProperty('update:modelValue')
-    expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
-    expect(wrapper.emitted()['update:modelValue']).toEqual([['test']])
-  })
-
-  it(':validate', async () => {
-    // NOTE: 最大10文字。超えたらエラーを出す
-    const maxRule = (maximum: number) => {
-      return rules.max(maximum)
-    }
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorRules: maxRule(10),
-        modelValue: 'test',
-      },
-    })
-    // NOTE: 最大10文字なので11文字入れてエラーを出す
-    await wrapper.get('input[type="text"]').setValue('12345678901')
-    await waitEffect()
-    expect(wrapper.emitted()).toHaveProperty('validate')
-    expect(wrapper.emitted()['validate']).toHaveLength(1)
-    /*
-     * TODO: バリデーションエラー時にZodエラーメッセージを二重否定の真偽値として送信するが、正しい値を送信しないのでコメントアウト
-     * expect(wrapper.emitted()['validate']).toStrictEqual([[true]])
-     */
-  })
-
-  it(':keyupEnter', async () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        keyupEnter: true,
-      },
-    })
-    await wrapper.get('input[type="text"]').trigger('keyup.enter')
-    expect(wrapper.emitted()).toHaveProperty('enter')
-    expect(wrapper.emitted()['enter']).toHaveLength(1)
-  })
-})
-
-describe('DOM check for error display', () => {
-  // NOTE: validatorName有りかつvalidatorRule無しをテスト
-  it(':validatorName', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorName: 'testValidatorName',
-      },
-    })
-    // NOTE: <p class="error-container">が存在する確認
-    expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
-    // NOTE: <p class="error-container">の中の<span class="error">は存在しないことを確認
-    expect(
-      wrapper
-        .get('p[class="error-container"]')
-        .find('span[class="error"]')
-        .exists(),
-    ).toBe(false)
-  })
-
-  it(':validatorRules:max 10 strings', async () => {
-    const maxRule = (maximum: number) => {
-      return z.coerce.string().max(maximum, {
-        message: 'error max ' + maximum + ' strings',
-      })
-    }
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorName: 'testValidatorName',
-        validatorRules: maxRule(10),
-      },
-    })
-    // NOTE: input欄、v-ifで絶対に居るのが確定してないので一応getでinput見つけて、バリデートで落ちる値を代入
-    await wrapper.get('input[type="text"]').setValue('12345678901')
-    /*
-     * NOTE: NG例として下記。modelValueを見てそうなので、modelValueにテスト値いれてinputイベントを強制発火。これは動作せず
-     * await wrapper.setValue('12345678901', 'modelValue')
-     * await wrapper.get('input[type="text"]').trigger('input')
-     */
-
-    // NOTE: setValueでinput欄に値を入れたのでsettimeoutのsleep関数で1ミリ秒以上で待つ。nextTickは効かない
-    await waitEffect()
-    /*
-     * NOTE: DOMの変化を確かめたい時は下記でターミナルに表示させて確認する
-     * console.info(wrapper.html())
-     * NOTE: <p class="error-container">が存在する確認
-     */
-    expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
-    // <p class="error-container">の中の<span class="error">が存在してエラーメッセージでてること確認
-    expect(
-      wrapper
-        .get('p[class="error-container"]')
-        .find('span[class="error"]')
-        .exists(),
-    ).toBe(true)
-    // NOTE: エラー文言の照合
-    expect(
-      wrapper
-        .get('p[class="error-container"]')
-        .find('span[class="error"]')
-        .text(),
-    ).toBe('error max 10 strings')
-  })
-
-  it(':props.error', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorName: 'error test',
-        error: 'error message test',
-      },
-    })
-    expect(wrapper.props('error')).toBe('error message test')
-    expect(wrapper.get('label').attributes('class')).toBe('label -error')
-    expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
-    expect(
-      wrapper
-        .get('p[class="error-container"]')
-        .find('span[class="error"]')
-        .exists(),
-    ).toBe(true)
-    expect(
-      wrapper
-        .get('p[class="error-container"]')
-        .find('span[class="error"]')
-        .text(),
-    ).toBe('error message test')
-  })
-
-  it(':hideDetails', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorName: 'error test',
-        error: 'error message test',
-        hideDetails: true,
-      },
-    })
-    expect(wrapper.props('error')).toBe('error message test')
-    expect(wrapper.get('label').attributes('class')).toBe('label -error')
-    expect(wrapper.get('p[class="error-container -hide"]')).toBeTruthy()
-    expect(
-      wrapper
-        .get('p[class="error-container -hide"]')
-        .find('span[class="error"]')
-        .exists(),
-    ).toBe(true)
-    expect(
-      wrapper
-        .get('p[class="error-container -hide"]')
-        .find('span[class="error"]')
-        .text(),
-    ).toBe('error message test')
-  })
-})
-````
-
-## File: layers/base/app/utils/default-factory.ts
-````typescript
-import exampleRepository from '#base/app/repositories/exampleRepository'
-import type { Method as DefaultMethods } from '#base/app/utils/default-api'
-
-/**
- * The parent type for each method of `'get' | 'post' | 'put' | 'delete'` in each repository
- */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-export type ApiAccess = Function
-
-/**
- * For use when creating `#main/app/utils/factory.ts`.
- * See [[DefaultRepository]] for usage.
- */
-export type MakeRepository<Methods extends string | symbol> = {
-  [key in Methods]?: Record<string, ApiAccess>
-}
-
-/**
- * NOTE:.
- * Naming of "DefaultRepository" because it is the repository type of default-factory.
- * The name is like "default type of some repository", but it is not intended.
- */
-export type DefaultRepository = MakeRepository<DefaultMethods>
-export type DefaultRepositories = Record<string, DefaultRepository>
-
-export const defaultRepositories = {
-  example: exampleRepository,
-} as const satisfies DefaultRepositories
-
-export type DefaultRepositoryKey = keyof typeof defaultRepositories
-
-export const defaultRepositoryFactory = {
-  get: <K extends keyof typeof defaultRepositories>(name: K) =>
-    defaultRepositories[name],
-}
 ````
 
 ## File: layers/base/app/utils/file-control.ts
@@ -24816,769 +25581,44 @@ export const getFileByBase64 = (base64: string, fileName: string = 'file'): File
 }
 ````
 
-## File: layers/base/app/utils/response.ts
-````typescript
-import type { useFetch } from 'nuxt/dist/app/composables/fetch'
-import type { FetchError } from 'ofetch'
-import { z, ZodType, ZodTypeDef } from 'zod/v3'
-
-export const statusSchema = z.union([z.literal('ok'), z.literal('ng')])
-
-export const pagingSchema = z.object({
-  limit: z.number(),
-  offset: z.number(),
-  total: z.number(),
-})
-
-export type ResponseStatus = z.infer<typeof statusSchema>
-export type Paging = z.infer<typeof pagingSchema>
-
-export const makeResponseSchema = <
-  T extends Record<string, z.ZodType<unknown>>,
->(
-  schemaObject: T,
-) => z.object({ status: statusSchema }).extend(schemaObject)
-
-export type AsyncDataResponse<T> = ReturnType<
-  typeof useFetch<T, FetchError<unknown> | null>
->
-
-export function isFetchError(x: unknown): x is FetchError<unknown> {
-  return (
-    typeof x === 'object'
-    && !!x
-    && 'name' in x
-    && (x as { name: string }).name === 'FetchError'
-  )
-}
-export const fetchErrorSchema = z.custom(isFetchError)
-
-export function ensureAsyncDataOf<T>(
-  responseSchema: ZodType<T, ZodTypeDef>,
-  y: unknown,
-): asserts y is AsyncDataResponse<T> {
-  // 型ガードでオブジェクトかチェック
-  if (typeof y !== 'object' || y === null) {
-    throw new Error('Expected object with data and error properties')
+## File: layers/main/package.json
+````json
+{
+  "name": "vket-boilerplate-nuxt-main",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "postinstall": "nuxt prepare",
+    "dev": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt dev",
+    "dev:local": "cross-env VITE_OUTPUT_ENV=local nuxt dev",
+    "build": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt build",
+    "build:local": "cross-env VITE_OUTPUT_ENV=local nuxt build",
+    "build:staging": "cross-env VITE_OUTPUT_ENV=staging nuxt build",
+    "generate": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt generate",
+    "generate:local": "cross-env VITE_OUTPUT_ENV=local nuxt generate",
+    "preview": "nuxt preview",
+    "typecheck": "cross-env VITE_OUTPUT_ENV=local nuxt typecheck",
+    "analyze": "cross-env VITE_OUTPUT_ENV=local nuxt analyze",
+    "lint": "bun lint:eslint && bun lint:stylelint",
+    "lint:eslint": "eslint --cache --cache-strategy content './app'",
+    "lint:stylelint": "stylelint --cache --cache-strategy content './app/**/*.{css,scss,sass,vue}'",
+    "fix": "bun fix:eslint && bun fix:stylelint",
+    "fix:eslint": "eslint --cache --cache-strategy content --fix './app'",
+    "fix:stylelint": "stylelint --cache-strategy content --fix './app/**/*.{css,scss,sass,vue}'",
+    "fix-openapi-models": "baseDir='./app/models/openapi' ext='\\.ts' cmd='eslint --cache --cache-strategy content --fix ./app/models/openapi' bun exec-if-file-exists",
+    "test:ut": "cmd='vitest run --dir ./app/test' bun exec-test",
+    "test:watch": "cmd='vitest --dir ./app/test' bun exec-test",
+    "test:ui": "cmd='vitest --ui --dir ./app/test' bun exec-test",
+    "test:coverage": "cmd='vitest run --dir ./app/test --coverage' bun exec-test",
+    "exec-test": "baseDir='./app/test' ext='\\.spec\\.ts' bun exec-if-file-exists",
+    "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true",
+    "package-update": "bunx npm-check-updates -i"
+  },
+  "dependencies": {
+    "vket-boilerplate-nuxt-base": "workspace:*"
   }
-
-  const obj = y as Record<string, unknown>
-  if (typeof obj.data !== 'object' || obj.data === null
-    || typeof obj.error !== 'object' || obj.error === null) {
-    throw new Error('Expected object with data and error properties')
-  }
-
-  const data = obj.data as Record<string, unknown>
-  const error = obj.error as Record<string, unknown>
-  // デバッグの便利のため型のどこが不整合になっているか情報を上げたいのでparse直接使用
-  responseSchema.nullable().parse(data.value)
-  fetchErrorSchema.nullable().parse(error.value)
 }
-export function requireAsyncDataOf<T>(
-  x: ZodType<T, ZodTypeDef>,
-  y: unknown,
-): AsyncDataResponse<T> {
-  ensureAsyncDataOf(x, y)
-  return y
-}
-````
-
-## File: layers/base/app/utils/zod.ts
-````typescript
-import { DeepReadonly } from 'vue'
-import {
-  z,
-  ZodFirstPartyTypeKind,
-  ZodStringDef,
-  ZodType,
-  ZodTypeDef,
-  ZodUnionDef,
-} from 'zod/v3'
-
-export function isValueOf<T>(x: ZodType<T, ZodTypeDef>, y: unknown): y is T {
-  return x.safeParse(y).success
-}
-
-export function ensureValueOf<T>(
-  x: ZodType<T, ZodTypeDef>,
-  y: unknown,
-): asserts y is T {
-  x.parse(y)
-}
-
-export function requireValueOf<T>(x: ZodType<T, ZodTypeDef>, y: unknown): T {
-  return x.parse(y)
-}
-
-// const language = { 0: 'ja', 1: 'en'} as const みたいなオブジェクトのValueのunion型をzodでつかえるようにするメソッド
-export function objectToValueArray<T>(obj: { [key: number]: T }): [T, ...T[]] {
-  const first = obj[0]
-  if (first === undefined) {
-    throw new Error('objectToValueArray: obj[0] is undefined.')
-  }
-
-  //  z.enumは空でない配列を期待するので、それを回避するために
-  return [
-    first,
-    ...Object.values(obj)
-      .slice(1)
-      .map(v => v),
-  ]
-}
-
-/**
- * 雑多に整数値を表す。
- */
-export const integral = z.number().or(z.string())
-
-/** z.infer した結果に readonly を付けるためのヘルパー。渡した objectSchema 以上の検証はしない */
-export const makeSchemaReadOnly = <T>(objectSchema: ZodType<T, ZodTypeDef>) =>
-  z.custom<Readonly<T>>(x => objectSchema.safeParse(x).success)
-
-/** z.infer した結果に再帰的に readonly を付けるためのヘルパー。渡した objectSchema 以上の検証はしない */
-export const makeSchemaDeepReadOnly = <T>(
-  objectSchema: ZodType<T, ZodTypeDef>,
-) => z.custom<DeepReadonly<T>>(x => objectSchema.safeParse(x).success)
-
-/**
- * maxバリデーションの数値を取得
- *
- * ```typescript
- * getMax(z.string().max(30)._def) // 30
- *
- * // .max()の指定がないスキーマ
- * getMax(z.string()._def) // undefined
- * ```
- */
-export const getMax = (def: ZodTypeDef | undefined): number | undefined => {
-  if (!def) return undefined
-
-  const zodTypeDefSchema = z.object({
-    errorMap: z.unknown().optional(),
-    description: z.string().optional(),
-    typeName: z.string(),
-  })
-  const zodStringDefSchema = z.custom<ZodStringDef>((x: unknown) => {
-    const result = zodTypeDefSchema.safeParse(x)
-    if (!result.success) return false
-    return result.data.typeName === String(ZodFirstPartyTypeKind.ZodString)
-  })
-  const zodUnionDefSchema = z.custom<ZodUnionDef>((x: unknown) => {
-    const result = zodTypeDefSchema.safeParse(x)
-    if (!result.success) return false
-    return result.data.typeName === String(ZodFirstPartyTypeKind.ZodUnion)
-  })
-  const tryGetValue = (x: object | undefined): number | undefined => {
-    const result = z.object({ value: z.number() }).safeParse(x)
-    return result.success ? result.data.value : undefined
-  }
-
-  const resultUnion = zodUnionDefSchema.safeParse(def)
-  if (resultUnion.success)
-    return resultUnion.data.options
-      .map(({ _def }) => getMax(_def))
-      .find((n: number | undefined) => n)
-
-  const resultString = zodStringDefSchema.safeParse(def)
-  if (resultString.success)
-    return tryGetValue(
-      resultString.data.checks.find(({ kind }) => kind === 'max'),
-    )
-
-  return undefined
-}
-
-/**
- * @see {@link Self}
- * 意図的にexportしていない。
- * Self型に具体的にアクセスされたくないため。
- */
-const selfKey = Symbol()
-
-/**
- * 疑似的に自己参照を表現するための型。
- * （これ自体は自己参照ではない。示しているだけ。）
- */
-export type Self = { [selfKey]: string }
-
-/**
- * Tの中のSelfをTT[0]で置き換える。
- * ```ts
- * type T = ReplaceSelf<{ a: { b: Self } }, [number]> // { a: { b: number } }
- * ```
- */
-/*
- * TTが直接型を受け取るのではなく、1次元タプルとして受け取るのは、TypeScriptの再帰型を許すためです。
- * ```ts
- * type F<_> = number
- * type X = F<X> // これはTypeScriptではできない
- * type X = F<[X]> // これはTypeScriptではできる
- * ```
- */
-type ReplaceSelf<T, TT extends [unknown]> = T extends Self
-  ? TT[0]
-  : T extends Record<string, unknown>
-    ? { [K in keyof T]: ReplaceSelf<T[K], TT> }
-    : T
-
-/**
- * 再帰的なスキーマを作成する。
- * https://zenn.dev/odiak/articles/0b963664a4f8cd
- *
- * @example
- * ```ts
- * const treeSchema = makeRecursiveSchema((self) =>
- *   z.union([
- *     z.object({ type: z.literal('leaf'), value: z.string() }),
- *     z.object({ type: z.literal('branch'), children: self.array() })
- *   ])
- * )
- * ```
- *
- * さらなる使い方はテストを見てください。
- */
-export function makeRecursiveSchema<T>(
-  builder: (self: ZodType<Self>) => ZodType<T>,
-) {
-  /*
-   * type Item = {
-   *   name: string
-   *   addtionalItems: Self[]
-   * }
-   * みたいなやつを
-   * type Item = {
-   *   name: string
-   *   addtionalItems: Item[]
-   * }
-   * みたいなやつに置き換えている。
-   * つまり疑似的な再帰型（T）を、実際の再帰型（R）に変換している。
-   */
-  type R = ReplaceSelf<T, [R]>
-
-  // 疑似的な再帰型スキーマビルダー（builder）を、実際の再帰型スキーマビルダー（builder_）に変換している。
-  const builder_ = builder as (self: ZodType<R>) => ZodType<T>
-
-  // 再帰をぶん回して
-  const rec = (): ZodType<R> => builder_(z.lazy(rec)) as unknown as ZodType<R>
-  return rec()
-}
-````
-
-## File: layers/base/eslint.config.mjs
-````
-import stylistic from '@stylistic/eslint-plugin'
-import typescriptEslint from '@typescript-eslint/eslint-plugin'
-import globals from 'globals'
-import sharedConfig, { basicConfig } from '../../eslint.config.shared.mjs'
-import withNuxt from './.nuxt/eslint.config.mjs'
-
-export default withNuxt(
-  ...sharedConfig,
-
-  // VueとNuxtの基本設定
-  {
-    files: ['**/*.vue'],
-    languageOptions: {
-      globals: {
-        ...globals.browser,
-        // NOTE: eslint実行時に `error 'something' is not defined no-undef` のようなエラーが出て、'something'が既知のものだったら（例えばauto-importなどでimportされることがわかっている・標準ライブラリに載っている、など。）、ここ（もしくは下の「オーバーライド」）に `something: true` と追加してください
-        IntersectionObserverInit: true,
-      },
-    },
-    rules: {
-      'vue/no-unused-components': 'off',
-      'vue/no-multiple-template-root': 'off',
-      'vue/no-v-model-argument': 'off',
-      'vue/no-v-html': 'error',
-      'vue/multi-word-component-names': 'off',
-      'vue/html-self-closing': 'off', // prettierと競合するため、off
-      'vue/attribute-hyphenation': ['error', 'never'], // camelCase属性を強制
-      'vue/v-on-event-hyphenation': ['error', 'never', { autofix: true }], // camelCaseイベントを強制
-    },
-  },
-  // composablesやplugins・middlewareなども含む設定
-  {
-    files: ['**/*.vue', '**/*.ts'],
-    languageOptions: {
-      globals: {
-        // NOTE: eslint実行時に `error 'something' is not defined no-undef` のようなエラーが出て、'something'が既知のものだったら（例えばauto-importなどでimportされることがわかっている・標準ライブラリに載っている、など。）、ここ（もしくは下の「オーバーライド」）に `something: true` と追加してください
-        WritableComputedRef: true,
-        defineNuxtConfig: true,
-      },
-    },
-    rules: {
-      /*
-       * ERROR  Cannot use 'import.meta' outside a module                                                                                                                                                                                                                                                               9:08:45 PM
-       * asyncContext: !!__NUXT_ASYNC_CONTEXT__ && import.meta.server
-       * ^^^^
-       * `yarn fix`すると`process.server`が`import.meta.server`に置き換えられて↑が発生するので、off
-       */
-      'nuxt/prefer-import-meta': 'off',
-    },
-  },
-
-  // tsconfigが必要なルールの設定
-  {
-    files: [
-      '**/*.ts',
-      '**/*.mts',
-      '**/*.cts',
-      '**/*.vue',
-      // 'Parsing error: Type expected'するので.tsxは除外
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: './tsconfig.json',
-      },
-    },
-    rules: {
-      ...typescriptEslint.configs.recommended.rules,
-      ...typescriptEslint.configs['recommended-type-checked'].rules,
-      ...basicConfig.rules,
-      '@typescript-eslint/restrict-template-expressions': 'off', // string interpolation `${e}` のeには、任意の型の値を許す
-      '@typescript-eslint/no-unsafe-call': 'off', // auto-importした関数がanyに推測されるので、off
-      // .vueの下記TODOコメントを参照 -- TODO: 「下記TODOコメント」はどこにいった？
-      '@typescript-eslint/no-unsafe-argument': 'off',
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off',
-    },
-  },
-
-  /*
-   * コーディングスタイルの設定（そのうちnuxt.config.tsに書けないもの）
-   * https://eslint.style/rules
-   */
-  {
-    plugins: {
-      '@stylistic': stylistic,
-    },
-    rules: {
-      '@stylistic/multiline-comment-style': ['warn', 'starred-block'],
-    },
-  },
-
-  // その他オーバーライド
-  {
-    files: ['**/test/**/*.ts'],
-    languageOptions: {
-      globals: {
-        ...globals.jest,
-        vi: true,
-      },
-    },
-    rules: {
-      '@typescript-eslint/unbound-method': 'off', // テスト内でvi.fn()などを注入するために許可
-    },
-  },
-)
-````
-
-## File: layers/base/vitest.config.mts
-````
-import path from 'path'
-import Vue from '@vitejs/plugin-vue'
-import AutoImport from 'unplugin-auto-import/vite'
-import Components from 'unplugin-vue-components/vite'
-import Icons from 'unplugin-icons/vite'
-import { defineConfig } from 'vitest/config'
-import svgLoader from 'vite-svg-loader'
-
-export default defineConfig({
-  plugins: [
-    Vue(),
-    {
-      name: 'mock-svg-icons',
-      transform(_, id) {
-        if (id.includes('~icons/')) {
-          return 'export default { name: "MockIcon", template: "<svg><path /></svg>", props: ["class"] }';
-        }
-      },
-    },
-    AutoImport({
-      exclude: ['/test/', '/test-e2e/'],
-      include: [/\.[tj]s?$/, /\.[tj]sx?$/, /\.vue$/, /\.vue\?vue/],
-      imports: [
-        'vue',
-        'vue-i18n',
-        {
-          '#app': [
-            /*
-             * NOTE: 自動生成される.nuxt/imports.d.tsから手動移植 https://tech.andpad.co.jp/entry/2023/03/16/100000
-             * export { // .nuxt/imports.d.ts 参照
-             */
-            'useAsyncData',
-            'useLazyAsyncData',
-            'useNuxtData',
-            'refreshNuxtData',
-            'clearNuxtData',
-            'defineNuxtComponent',
-            'useNuxtApp',
-            'defineNuxtPlugin',
-            'definePayloadPlugin',
-            'reloadNuxtApp',
-            'useRuntimeConfig',
-            'useState',
-            'clearNuxtState',
-            'useFetch',
-            'useLazyFetch',
-            'useCookie',
-            'useRequestHeaders',
-            'useRequestEvent',
-            'useRequestFetch',
-            'useRequestURL',
-            'setResponseStatus',
-            'setPageLayout',
-            'prerenderRoutes',
-            'onNuxtReady',
-            'useRouter',
-            'useRoute',
-            'defineNuxtRouteMiddleware',
-            'navigateTo',
-            'abortNavigation',
-            'addRouteMiddleware',
-            'showError',
-            'clearError',
-            'isNuxtError',
-            'useError',
-            'createError',
-            'defineNuxtLink',
-            'useAppConfig',
-            'updateAppConfig',
-            'defineAppConfig',
-            'preloadComponents',
-            'preloadRouteComponents',
-            'prefetchComponents',
-            'loadPayload',
-            'preloadPayload',
-            'isPrerendered',
-            'getAppManifest',
-            'getRouteRules',
-            'definePayloadReducer',
-            'definePayloadReviver',
-            'requestIdleCallback',
-            'cancelIdleCallback',
-            'onBeforeRouteLeave',
-            'onBeforeRouteUpdate',
-            //  } from '#app'; // .nuxt/imports.d.ts 参照
-          ],
-          '#i18n': [
-            'useRouteBaseName',
-            'useLocalePath',
-            'useLocaleRoute',
-            'useSwitchLocalePath',
-            'useLocaleHead',
-            'useBrowserLocale',
-            'useCookieLocale',
-            'defineI18nRoute',
-            'defineI18nLocale',
-            'defineI18nConfig',
-          ],
-        },
-      ],
-      dirs: ['app/composables', 'app/utils/**'],
-      dts: './@types/auto-imports.d.ts',
-    }),
-    Components({
-      dirs: ['app/components'],
-      dts: './@types/components.d.ts',
-    }),
-    svgLoader({
-      defaultImport: 'component', // 'component', 'url', 'raw'
-      svgo: false,
-    }),
-    Icons({
-      autoInstall: true,
-      compiler: 'vue3',
-    }),
-  ],
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    coverage: {
-      include: ['app/**/*.{vue,ts}'],
-      exclude: [
-        'app/plugins/**',
-        'app/middleware/**',
-        'app/layouts/**',
-        'app/test/**'
-      ],
-    },
-    setupFiles: ['./app/test/setup.ts'],
-  },
-  resolve: {
-    alias: {
-      '#base': path.resolve(__dirname),
-      '#main': path.resolve(__dirname, '../main'),
-      '#app': path.resolve(__dirname, '../../node_modules/nuxt/dist/app'),
-      '#i18n': path.resolve(
-        __dirname,
-        '../../node_modules/@nuxtjs/i18n/dist/runtime/composables',
-      ),
-      '#imports': path.resolve(__dirname, 'app/test/mocks/imports.ts'),
-      '@@/public/images/no-image.png': '/images/no-image.png',
-    },
-  },
-})
-````
-
-## File: layers/main/app/app.vue
-````vue
-<i18n lang="yaml">
-  ja:
-    site:
-      title: Vket Boilerplate Nuxt
-      title_template: "{title} - HIKKY Web Frontend"
-      description: Vketのサイト開発で活用しているボイラープレート
-  en:
-    site:
-      title: Vket Boilerplate Nuxt
-      title_template: "{title} - HIKKY Web Frontend"
-      description: A boilerplate used for Vket site development
-</i18n>
-
-<template>
-  <Head>
-    <Link
-      rel="alternate"
-      hreflang="ja"
-      :href="currentJaFullPath"
-    />
-    <Link
-      rel="alternate"
-      hreflang="en"
-      :href="currentEnFullPath"
-    />
-    <Link
-      rel="alternate"
-      hreflang="x-default"
-      :href="currentJaFullPath"
-    />
-    <template v-if="currentLang === 'ja'">
-      <Link
-        rel="canonical"
-        :href="currentJaFullPath"
-      />
-    </template>
-    <template v-if="currentLang === 'en'">
-      <Link
-        rel="canonical"
-        :href="currentEnFullPath"
-      />
-    </template>
-  </Head>
-  <div class="app">
-    <NuxtLayout>
-      <NuxtRouteAnnouncer />
-      <NuxtWelcome />
-      <NuxtPage />
-    </NuxtLayout>
-  </div>
-</template>
-
-<script lang="ts" setup>
-const route = useRoute()
-const i18n = useI18n()
-const currentFullPath = ref(`${useRuntimeConfig().public.url}${route.fullPath}`)
-const currentLang = ref(i18n.locale.value)
-
-const currentJaFullPath = computed(() => {
-  if (currentLang.value === 'ja') {
-    return currentFullPath.value
-  } else {
-    return currentFullPath.value
-      .replace(/\/en(\/|$)/, '/')
-      .replace(/\/{2,}/, '/')
-  }
-})
-
-const currentEnFullPath = computed(() => {
-  if (currentLang.value === 'en') {
-    return currentFullPath.value
-  } else {
-    const path = route.fullPath.endsWith('/')
-      ? route.fullPath
-      : `${route.fullPath}/`
-    return `${useRuntimeConfig().public.url}/en${path}`
-  }
-})
-
-useHeadSafe({
-  htmlAttrs: {
-    lang: currentLang.value,
-  },
-  titleTemplate: (titleChunk) => {
-    return titleChunk
-      ? i18n.t('site.title_template', { title: titleChunk })
-      : i18n.t('site.title')
-  },
-  meta: [
-    {
-      name: 'description',
-      content: i18n.t('site.description'),
-    },
-    {
-      property: 'og:description',
-      content: i18n.t('site.description'),
-    },
-    {
-      property: 'og:site_name',
-      content: i18n.t('site.title'),
-    },
-  ],
-})
-</script>
-````
-
-## File: layers/main/nuxt.config.ts
-````typescript
-import path from 'path'
-import { defineNuxtConfig } from 'nuxt/config'
-import { readEnvType } from './config/models/EnvType'
-import { getRuntimeConfigOfEnvType } from './config/runtimeConfig'
-import { nuxtI18nOptions } from './i18n/i18n.config'
-
-type MetaInfo = {
-  title: string
-  description: string
-  robots: string
-  siteName: string
-  ogImageUrl: string
-  ogUrl: string
-  twitterSite: string
-  twitterCreator: string
-}
-
-const NUXT_ENV_OUTPUT_ENV = readEnvType(process.env)
-const runtimeConfig = getRuntimeConfigOfEnvType(
-  NUXT_ENV_OUTPUT_ENV,
-  process.env,
-)
-const cssUrls = [`@/assets/styles/style.scss`]
-const srcDir = 'app'
-const isSsr = false
-const checkTypeCheckOnBuild = true
-const needAnalyze = NUXT_ENV_OUTPUT_ENV === 'local'
-const needSourcemap = NUXT_ENV_OUTPUT_ENV !== 'production'
-const enableDebug = NUXT_ENV_OUTPUT_ENV === 'local'
-
-const meta: MetaInfo = {
-  title: '',
-  description: '',
-  robots: NUXT_ENV_OUTPUT_ENV === 'production' ? 'all' : 'none',
-  siteName: '',
-  ogImageUrl: `${runtimeConfig.public.url}/images/ogp.jpg`,
-  ogUrl: runtimeConfig.public.url,
-  twitterSite: '',
-  twitterCreator: '',
-}
-
-// https://nuxt.com/docs/api/configuration/nuxt-config
-export default defineNuxtConfig({
-  extends: path.resolve(__dirname, '../base'),
-  modules: [
-    '@nuxtjs/google-fonts',
-  ],
-  ssr: isSsr,
-
-  imports: {
-    dirs: ['utils/types/**'],
-    global: false,
-  },
-
-  app: {
-    head: {
-      meta: [
-        { name: 'robots', content: meta.robots },
-        {
-          name: 'description',
-          content: meta.description,
-        },
-        {
-          property: 'og:site_name',
-          content: meta.siteName,
-        },
-        {
-          property: 'og:url',
-          content: meta.ogUrl,
-        },
-        {
-          property: 'og:title',
-          content: meta.title,
-        },
-        {
-          property: 'og:description',
-          content: meta.description,
-        },
-        {
-          property: 'og:image',
-          content: meta.ogImageUrl,
-        },
-        {
-          name: 'twitter:site',
-          content: meta.twitterSite,
-        },
-        {
-          name: 'twitter:creator',
-          content: meta.twitterCreator,
-        },
-      ],
-      link: [
-        {
-          rel: 'icon',
-          type: 'image/x-icon',
-          href: `${runtimeConfig.public.url}/favicon.ico`,
-        },
-      ],
-    },
-  },
-
-  css: cssUrls,
-  runtimeConfig,
-  dir: {
-    public: path.resolve(__dirname, './public'),
-  },
-  rootDir: __dirname,
-  srcDir: `${srcDir}/`,
-
-  alias: {
-    '#main': __dirname,
-    '@': path.resolve(__dirname, './app'),
-  },
-
-  ignore: [
-    '.output',
-    '**/test/*.{js,ts,jsx,tsx}',
-    '**/*.{spec,test}.{js,ts,jsx,tsx}',
-    '**/-*.*',
-  ],
-
-  build: {
-    analyze: needAnalyze,
-  },
-
-  sourcemap: {
-    server: needSourcemap,
-    client: needSourcemap,
-  },
-
-  compatibilityDate: '2024-04-03',
-
-  typescript: {
-    typeCheck: checkTypeCheckOnBuild,
-  },
-
-  debug: enableDebug,
-
-  googleFonts: {
-    families: {
-      'Noto+Sans+JP': [100, 300, 400, 500, 700, 900],
-    },
-    display: 'swap',
-  },
-
-  i18n: nuxtI18nOptions,
-})
 ````
 
 ## File: layers/open-api/scripts/make-zod.ts
@@ -25768,8 +25808,7 @@ if (process.argv[1] === import.meta.url) {
     "openapi-zod-client": "^1.18.3",
     "js-yaml": "^4.1.0",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^20.0.0",
-    "bun-types": "^1.0.14"
+    "@types/node": "^24.3.1"
   }
 }
 ````
@@ -26319,6 +26358,734 @@ const onChange = (e: Event) => {
 </style>
 ````
 
+## File: layers/base/app/components/hm/HmSlider.vue
+````vue
+<template>
+  <div
+    class="slider-wrap"
+    :style="{
+      '--slide-amount': props.amount,
+      '--width-pc': props.widthPc,
+      '--width-sp': props.widthSp,
+    }"
+    role="presentation"
+  >
+    <div
+      class="slider-body"
+      role="presentation"
+    >
+      <div
+        ref="slider"
+        class="slider-inner"
+        role="presentation"
+        :style="{
+          '--gap-pc': props.gapPc,
+          '--gap-sp': props.gapSp,
+        }"
+        @touchstart="startDragging"
+        @touchmove="inDragging"
+        @touchend="endDragging"
+        @mousedown="startDragging"
+        @mousemove="inDragging"
+        @mouseup="endDragging"
+        @mouseleave="endDragging"
+      >
+        <template v-if="props.loop">
+          <div
+            ref="clonedSlideBefore"
+            class="slider -before"
+            :class="{
+              '-center': props.center ? true : false,
+            }"
+            role="presentation"
+            aria-hidden="true"
+          >
+            <slot name="item"></slot>
+          </div>
+        </template>
+        <div
+          :id="props.slidename"
+          ref="receivedSlideItemsContainer"
+          class="slider"
+          :class="{
+            '-center': props.center,
+          }"
+          role="presentation"
+        >
+          <slot name="item"></slot>
+        </div>
+        <template v-if="props.loop">
+          <div
+            ref="clonedSlideAfter"
+            class="slider -after"
+            :class="{
+              '-center': props.center,
+            }"
+            role="presentation"
+            aria-hidden="true"
+          >
+            <slot name="item"></slot>
+          </div>
+        </template>
+      </div>
+    </div>
+    <template v-if="props.pagination">
+      <ol
+        class="slider-pagination"
+        role="tablist"
+      >
+        <li
+          v-for="index in props.amount"
+          :key="index"
+          class="slider-pagination-item"
+          role="presentation"
+        >
+          <button
+            :aria-label="
+              i18n.locale.value === 'ja'
+                ? `スライド${index}枚目を表示する`
+                : `Display slide ${index}`
+            "
+            :aria-controls="props.itemsId[index - 1]"
+            :aria-selected="index === Math.abs(currentSlide) + 1"
+            role="tab"
+            class="slider-pagination-button"
+            type="button"
+            @click="jumpSlider(index - 1), stopAutoPlay()"
+          >
+            <slot name="pagination"></slot>
+          </button>
+        </li>
+      </ol>
+    </template>
+    <template v-if="props.arrow">
+      <button
+        class="slider-arrow button--previous"
+        :aria-label="
+          i18n.locale.value === 'ja'
+            ? `スライドを1枚戻す`
+            : `Show previous slide`
+        "
+        :aria-controls="props.slidename"
+        :disabled="!props.loop && disabledPrevious"
+        type="button"
+        @click="moveSlider('previous'), stopAutoPlay()"
+      >
+        <slot name="navigationprevious"></slot>
+      </button>
+      <button
+        class="slider-arrow button--next"
+        :aria-label="
+          i18n.locale.value === 'ja' ? `スライドを1枚進める` : `Show next slide`
+        "
+        :aria-controls="props.slidename"
+        :disabled="!props.loop && disabledNext"
+        type="button"
+        @click="moveSlider('next'), stopAutoPlay()"
+      >
+        <slot name="navigationnext"></slot>
+      </button>
+    </template>
+    <template v-if="props.page">
+      <div
+        role="progressbar"
+        class="slider-page"
+        aria-valuemin="1"
+        :aria-valuemax="props.amount"
+        :aria-valuenow="Math.abs(currentSlide) + 1"
+      >
+        <span
+          class="slider-page-start"
+          role="presentation"
+        >{{
+          Math.abs(currentSlide) + 1
+        }}</span>
+        <span
+          class="slider-page-total"
+          role="presentation"
+        >{{
+          props.amount
+        }}</span>
+      </div>
+    </template>
+    <template v-if="props.autoplay">
+      <button
+        type="button"
+        :aria-controls="props.slidename"
+        :aria-label="
+          i18n.locale.value === 'ja'
+            ? `スライドの自動再生を開始する`
+            : `Start automatic playback of slides`
+        "
+        @click="startAutoPlay"
+      >
+        <slot name="autoplaystart"></slot>
+      </button>
+      <button
+        type="button"
+        :aria-controls="props.slidename"
+        :aria-label="
+          i18n.locale.value === 'ja'
+            ? `スライドの自動再生を停止する`
+            : `Stop automatic playback of slides`
+        "
+        @click="stopAutoPlay"
+      >
+        <slot name="autoplaystop"></slot>
+      </button>
+    </template>
+  </div>
+</template>
+
+<script lang="ts" setup>
+const props = defineProps<{
+  slidename: string
+  itemsId: string[]
+  arrow: boolean
+  pagination: boolean
+  amount: number
+  loop: boolean
+  center: boolean
+  page: boolean
+  autoplay: boolean
+  interval: number
+  gapPc: string
+  gapSp: string
+  widthPc: string
+  widthSp: string
+  duration: number
+  easing: 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'linear'
+  draggable: boolean
+}>()
+const i18n = useI18n()
+const slider = ref<HTMLElement | null>(null) // スライド直上の親要素
+const currentSlide = ref(0) // 現在のスライド番号
+const disabledNext = ref(false) // ループしない場合に次へボタンをdisabledにするフラグ
+const disabledPrevious = ref(false) // ループしない場合に前へボタンをdisabledにするフラグ
+const previousX = ref(0) // アニメーションタイムラインのスライド開始位置
+const nextX = ref(0) // アニメーションタイムラインのスライド終了位置
+const clonedSlideBefore = ref<HTMLElement | null>(null) // ループする場合の前のスライド
+const clonedSlideAfter = ref<HTMLElement | null>(null) // ループする場合の後のスライド
+const receivedSlideItemsContainer = ref<HTMLElement | null>(null) // アクティブなスライドを判定するために受け取ったスライド要素を全て格納
+
+// 矢印でスライドを移動させる関数
+const moveSlider = async (direction: 'previous' | 'next') => {
+  if (!slider.value) {
+    throw new Error('slider要素はnull')
+  }
+  if (direction === 'previous') {
+    updateCurrentSlide('previous')
+  } else if (direction === 'next') {
+    updateCurrentSlide('next')
+  }
+  // loopがfalseのとき、currentIndex次第でボタンのdisabledを制御する
+  if (!props.loop) {
+    controlButton()
+  }
+  if (slider.value instanceof HTMLElement === false) {
+    throw new Error('slider要素はHTMLElementではありません')
+  }
+  await slideX(slider.value, previousX.value, nextX.value)
+  // アクティブなスライドを更新
+  setActiveSlide()
+}
+
+// スライドアニメーション
+const slideX = (target: HTMLElement | null, from: number, to: number) => {
+  return target?.animate(
+    [
+      { transform: `translateX(${from}%)` },
+      { transform: `translateX(${to}%)` },
+    ],
+    {
+      duration: props.duration,
+      iterations: 1,
+      easing: props.easing,
+      fill: 'both',
+    },
+  ).finished
+}
+
+// loopがfalseな場合にボタンのdisabledを制御する関数
+const controlButton = () => {
+  if (!slider.value) {
+    throw new Error('slider要素はnull')
+  }
+  if (currentSlide.value === 0) {
+    // 1枚目表示中は戻るボタンをdisabledにする
+    disabledNext.value = false
+    disabledPrevious.value = true
+  } else if (currentSlide.value * -1 === props.amount - 1) {
+    // 最後のスライド表示中は進むボタンをdisabledにする
+    disabledNext.value = true
+    disabledPrevious.value = false
+  } else {
+    // それ以外はdisabledを解除する
+    disabledNext.value = false
+    disabledPrevious.value = false
+  }
+}
+
+// ページネーションでスライドを移動させる関数
+const jumpSlider = async (index: number) => {
+  if (!slider.value) {
+    throw new Error('slider要素はnull')
+  }
+  if (slider.value instanceof HTMLElement === false) {
+    throw new Error('slider要素はHTMLElementではありません')
+  }
+  updateCurrentSlide('pagination', index)
+  controlButton()
+  if (slider.value instanceof HTMLElement) {
+    await slideX(slider.value, previousX.value, nextX.value)
+    // アクティブなスライドを更新
+    setActiveSlide()
+  }
+}
+
+// currentSlideを更新する関数
+const updateCurrentSlide = (
+  type: 'next' | 'previous' | 'pagination',
+  index?: number,
+) => {
+  const backToFirstSlideNoLoop = () => {
+    previousX.value = ((100 / props.amount) * props.amount - 1) * -1
+    currentSlide.value = 0
+    nextX.value = 0
+  }
+
+  const slideNextByArrowNoLoop = () => {
+    previousX.value = (100 / props.amount) * currentSlide.value
+    currentSlide.value -= 1
+    nextX.value = (100 / props.amount) * currentSlide.value
+  }
+
+  const slideNextByArrowLoop = () => {
+    if (currentSlide.value * -1 === props.amount - 1) {
+      previousX.value = 100 / props.amount
+      currentSlide.value = 0
+      nextX.value = 0
+    } else {
+      previousX.value = (100 / props.amount) * currentSlide.value
+      currentSlide.value -= 1
+      nextX.value = (100 / props.amount) * currentSlide.value
+    }
+  }
+
+  const slideBackByArrowNoLoop = () => {
+    previousX.value = (100 / props.amount) * currentSlide.value
+    currentSlide.value += 1
+    nextX.value = (100 / props.amount) * currentSlide.value
+  }
+
+  const slideBackByArrowLoop = () => {
+    if (currentSlide.value === 0) {
+      previousX.value = (100 / props.amount) * props.amount * -1
+      currentSlide.value = props.amount * -1 + 1
+      nextX.value = (100 / props.amount) * currentSlide.value
+    } else {
+      previousX.value = (100 / props.amount) * currentSlide.value
+      currentSlide.value += 1
+      nextX.value = (100 / props.amount) * currentSlide.value
+    }
+  }
+
+  const slideJumpByPagination = () => {
+    previousX.value = (100 / props.amount) * currentSlide.value
+    if (index === undefined) return
+    currentSlide.value = index * -1
+    nextX.value = (100 / props.amount) * currentSlide.value
+  }
+
+  // ループがfalseで最後のスライドの場合、最初に戻す(自動再生時のみこの条件に一致する)
+  if (
+    type === 'next'
+    && props.loop === false
+    && Math.abs(currentSlide.value) === props.amount - 1
+  ) {
+    return backToFirstSlideNoLoop()
+  }
+
+  // 矢印による次に進む操作かつループがfalseの場合
+  if (type === 'next' && props.loop === false) {
+    return slideNextByArrowNoLoop()
+  }
+
+  // 矢印による次に進む操作かつループがtrueの場合
+  if (type === 'next' && props.loop) {
+    return slideNextByArrowLoop()
+  }
+
+  // 矢印による前に戻る操作かつループがfalseの場合
+  if (type === 'previous' && props.loop === false) {
+    return slideBackByArrowNoLoop()
+  }
+
+  // 矢印による前に戻る操作かつループがtrueの場合
+  if (type === 'previous' && props.loop) {
+    return slideBackByArrowLoop()
+  }
+
+  // ページネーションによるスライド移動の場合
+  if (type === 'pagination' && index !== undefined) {
+    return slideJumpByPagination()
+  }
+}
+
+// アクティブなスライドに-activeクラスを付与し、それ以外のスライドをアクセシビリティツリーから除外する関数
+const setActiveSlide = () => {
+  const sliderItems = receivedSlideItemsContainer.value?.querySelectorAll<HTMLElement>('.slider-item')
+  if (sliderItems) {
+    sliderItems.forEach((item: HTMLElement, index: number) => {
+      if (index === Math.abs(currentSlide.value)) {
+        item.classList.add('-active')
+        item.removeAttribute('aria-hidden')
+      } else {
+        item.classList.remove('-active')
+        item.setAttribute('aria-hidden', 'true')
+      }
+    })
+  }
+}
+
+// 複製されたスライドからid属性を除去する関数
+const removeId = () => {
+  if (props.loop) {
+    if (!clonedSlideBefore.value) {
+      throw new Error('clonedSlideBefore要素はnull')
+    }
+    if (!clonedSlideAfter.value) {
+      throw new Error('clonedSlideBefore要素はnull')
+    }
+    // clonedSlideBefore.valueの子要素の,slider-item全てからid属性を除去する
+    const clonedSlideBeforeItems
+      = clonedSlideBefore.value.querySelectorAll<HTMLElement>('.slider-item')
+    clonedSlideBeforeItems.forEach((item: HTMLElement) => {
+      item.removeAttribute('id')
+    })
+    // clonedSlideBefore.valueの子要素の.slider-item全てからid属性を除去する
+    const clonedSlideAfterItems
+      = clonedSlideAfter.value.querySelectorAll<HTMLElement>('.slider-item')
+    clonedSlideAfterItems.forEach((item: HTMLElement) => {
+      item.removeAttribute('id')
+    })
+  }
+}
+
+// ドラッグとスワイプでスライドを移動させる関数
+let startX = 0
+let moveX = 0
+let isDragging = false
+let movingRight = false
+
+// ドラッグとスワイプ開始時の処理
+const startDragging = (event: MouseEvent | TouchEvent) => {
+  // タッチデバイスでない場合はevent.preventDefault()を実行 (タッチデバイス時にはスクロールを防げる + スライドが<a>だった場合に遷移できないため)
+  if (event instanceof MouseEvent) {
+    event.preventDefault()
+  }
+  if (!props.draggable) return
+  // ドラッグ開始地点を保存
+  if (event instanceof MouseEvent) {
+    startX = event.pageX
+  } else if (event instanceof TouchEvent && event.touches[0]) {
+    startX = event.touches[0].pageX
+  } else {
+    return
+  }
+  isDragging = true
+}
+
+// ドラッグ中の処理
+const inDragging = (event: MouseEvent | TouchEvent) => {
+  // タッチデバイスでない場合はevent.preventDefault()を実行 (タッチデバイス時にはスクロールを防げる + スライドが<a>だった場合に遷移できないため)
+  if (event instanceof MouseEvent) {
+    event.preventDefault()
+  }
+  if (!props.draggable) return
+  if (!isDragging) return
+  // 移動距離を計算
+  if (event instanceof MouseEvent) {
+    moveX = (startX - event.pageX) * -1
+  } else if (event instanceof TouchEvent && event.touches[0]) {
+    moveX = (startX - event.touches[0].pageX) * -1
+  } else {
+    // 未知のイベント型に対するエラー処理
+    return
+  }
+  // 左右どちらに移動しているか判別
+  movingRight = moveX < 0
+  if (!slider.value) {
+    throw new Error('slider要素はnull')
+  }
+  slider.value.style.translate = `${moveX * 0.3}px`
+}
+
+// ドラッグ終了時の処理
+const endDragging = async (event: MouseEvent | TouchEvent) => {
+  // タッチデバイスでない場合はevent.preventDefault()を実行 (タッチデバイス時にはスクロールを防げる + スライドが<a>だった場合に遷移できないため)
+  if (event instanceof MouseEvent) {
+    event.preventDefault()
+  }
+  if (!props.draggable) return
+  if (!isDragging) return
+  isDragging = false
+
+  if (movingRight && moveX < -50) {
+    // 現在のスライドが最後のスライドの場合はreturn
+    if (!props.loop && Math.abs(currentSlide.value) === props.amount - 1) {
+      if (!slider.value) {
+        throw new Error('slider要素はnull')
+      }
+      slider.value.style.translate = '0px'
+      return
+    }
+    await moveSlider('next')
+  } else if (movingRight === false && moveX > 50) {
+    // 現在のスライドが最初のスライドの場合はreturn
+    if (props.loop === false && currentSlide.value === 0) {
+      if (!slider.value) {
+        throw new Error('slider要素はnull')
+      }
+      slider.value.style.translate = '0px'
+      return
+    }
+    await moveSlider('previous')
+  }
+
+  if (!slider.value) {
+    throw new Error('slider要素はnull')
+  }
+  slider.value.style.translate = '0px'
+
+  stopAutoPlay()
+  moveX = 0
+}
+
+// スライダーを自動再生する関数
+let timer: number | undefined
+const startAutoPlay = () => {
+  timer = window.setInterval(() => {
+    void moveSlider('next')
+  }, props.interval)
+}
+
+// スライダーの自動再生を停止する関数
+const stopAutoPlay = () => {
+  if (!props.autoplay) return
+  clearInterval(timer)
+}
+
+// スライダーを初期化
+onMounted(() => {
+  setActiveSlide()
+  removeId()
+  controlButton()
+  if (props.autoplay) {
+    startAutoPlay()
+  }
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+@use '#base/app/assets/styles/mixins' as m;
+
+.slider-wrap {
+  --slide-item-width: var(--width-pc);
+  --slide-amount: var(--slide-amount);
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+
+  @include m.sp {
+    --slide-item-width: var(--width-sp);
+  }
+
+  .slider-body {
+    position: relative;
+    container-type: inline-size;
+    overflow: clip;
+    width: 100%;
+
+    .slider-inner {
+      position: relative;
+      width: calc(var(--slide-item-width) * var(--slide-amount) * 1%);
+
+      .slider {
+        display: flex;
+        align-items: stretch;
+        width: 100%;
+        height: 100%;
+
+        &.-center {
+          transform: translateX(
+            calc((100 - var(--slide-item-width)) / 2 * 1cqi)
+          );
+        }
+
+        &.-before {
+          position: absolute;
+          top: 0;
+          left: 0;
+          translate: -100% 0;
+        }
+
+        &.-after {
+          position: absolute;
+          top: 0;
+          left: 0;
+          translate: 100% 0;
+        }
+      }
+
+      :deep(.slider-item) {
+        flex-shrink: 0;
+        width: calc(100% / var(--slide-amount));
+        padding-inline: calc(var(--gap-pc) * 0.5);
+
+        @include m.sp {
+          padding-inline: calc(var(--gap-sp) * 0.5);
+        }
+      }
+    }
+  }
+}
+</style>
+````
+
+## File: layers/base/nuxt.config.ts
+````typescript
+import { defineNuxtConfig } from 'nuxt/config'
+import { FileSystemIconLoader } from 'unplugin-icons/loaders'
+import IconsResolver from 'unplugin-icons/resolver'
+import Icons from 'unplugin-icons/vite'
+import Components from 'unplugin-vue-components/vite'
+import eslintPlugin from 'vite-plugin-eslint2'
+import svgLoader from 'vite-svg-loader'
+import { readEnvType } from './config/models/EnvType'
+import { getRuntimeConfigOfEnvType } from './config/runtimeConfig'
+import { nuxtI18nOptions } from './i18n/i18n.config'
+
+const cssUrls = [`./app/assets/styles/style.scss`]
+const srcDir = 'app'
+
+/**
+ * Nuxt Config
+ * @ref https://nuxt.com/docs/api/configuration/nuxt-config
+ */
+export default defineNuxtConfig({
+  modules: [
+    '@nuxtjs/i18n',
+    '@nuxt/eslint',
+    '@vueuse/nuxt',
+    'unplugin-icons/nuxt',
+    '@nuxtjs/robots',
+    '@nuxtjs/device',
+  ],
+  imports: {
+    dirs: ['utils/types/**'],
+    global: false,
+  },
+  devtools: { enabled: true },
+  app: {
+    head: {
+      viewport: 'width=device-width, initial-scale=1',
+      charset: 'utf-8',
+      meta: [
+        { property: 'og:type', content: 'website' },
+        {
+          name: 'twitter:card',
+          content: 'summary_large_image',
+        },
+        {
+          name: 'note:card',
+          content: 'summary_large_image',
+        },
+      ],
+      noscript: [{ innerHTML: 'JavaScript is required' }],
+    },
+  },
+  css: cssUrls,
+  runtimeConfig: getRuntimeConfigOfEnvType(
+    readEnvType(process.env),
+    process.env,
+  ),
+  rootDir: __dirname,
+  srcDir: `${srcDir}/`,
+  alias: {
+    '#base': __dirname,
+  },
+  ignore: [
+    '.output',
+    '**/test/*.{js,ts,jsx,tsx}',
+    '**/*.{spec,test}.{js,ts,jsx,tsx}',
+    '**/-*.*',
+  ],
+  compatibilityDate: '2024-04-03',
+  vite: {
+    build: {
+      emptyOutDir: true,
+    },
+    plugins: [
+      eslintPlugin(),
+      svgLoader({
+        defaultImport: 'component', // 'component', 'url', 'raw'
+        svgo: false,
+      }),
+      Icons({
+        customCollections: {
+          'hikky-icons': FileSystemIconLoader(`${srcDir}/assets/icons/hikky`),
+          'sns-icons': FileSystemIconLoader(`${srcDir}/assets/icons/sns`),
+        },
+        iconCustomizer(collection, _icon, props) {
+          // customize all icons in this collection
+          if (
+            collection === 'hikky-icons'
+            || collection === 'sns-icons'
+            || collection === 'ri'
+          ) {
+            props.width = '1em'
+            props.height = '1em'
+          }
+        },
+      }),
+      Components({
+        dts: false,
+        resolvers: [
+          IconsResolver({
+            customCollections: ['hikky-icons', 'sns-icons'],
+          }),
+        ],
+      }),
+    ],
+    css: {
+      preprocessorMaxWorkers: true,
+    },
+  },
+  typescript: {
+    tsConfig: {
+      compilerOptions: {
+        verbatimModuleSyntax: false,
+      },
+    },
+  },
+  eslint: {
+    checker: true,
+    config: {
+      stylistic: {
+        semi: false,
+        indent: 2,
+        quotes: 'single',
+        braceStyle: '1tbs',
+      },
+    },
+  },
+  i18n: nuxtI18nOptions,
+})
+````
+
 ## File: layers/main/i18n/i18n.config.ts
 ````typescript
 /*
@@ -26394,46 +27161,6 @@ export default {
     ja,
     en,
   },
-}
-````
-
-## File: layers/main/package.json
-````json
-{
-  "name": "vket-boilerplate-nuxt-main",
-  "private": true,
-  "type": "module",
-  "version": "0.1.0",
-  "scripts": {
-    "postinstall": "nuxt prepare",
-    "dev": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt dev",
-    "dev:local": "cross-env VITE_OUTPUT_ENV=local nuxt dev",
-    "build": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt build",
-    "build:local": "cross-env VITE_OUTPUT_ENV=local nuxt build",
-    "build:staging": "cross-env VITE_OUTPUT_ENV=staging nuxt build",
-    "generate": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt generate",
-    "generate:local": "cross-env VITE_OUTPUT_ENV=local nuxt generate",
-    "preview": "nuxt preview",
-    "typecheck": "cross-env VITE_OUTPUT_ENV=local nuxt typecheck",
-    "analyze": "cross-env VITE_OUTPUT_ENV=local nuxt analyze",
-    "lint": "bun lint:eslint && bun lint:stylelint",
-    "lint:eslint": "eslint --cache --cache-strategy content './app'",
-    "lint:stylelint": "stylelint --cache --cache-strategy content './app/**/*.{css,scss,sass,vue}'",
-    "fix": "bun fix:eslint && bun fix:stylelint",
-    "fix:eslint": "eslint --cache --cache-strategy content --fix './app'",
-    "fix:stylelint": "stylelint --cache-strategy content --fix './app/**/*.{css,scss,sass,vue}'",
-    "fix-openapi-models": "baseDir='./app/models/openapi' ext='\\.ts' cmd='eslint --cache --cache-strategy content --fix ./app/models/openapi' bun exec-if-file-exists",
-    "test:ut": "cmd='vitest run --dir ./app/test' bun exec-test",
-    "test:watch": "cmd='vitest --dir ./app/test' bun exec-test",
-    "test:ui": "cmd='vitest --ui --dir ./app/test' bun exec-test",
-    "test:coverage": "cmd='vitest run --dir ./app/test --coverage' bun exec-test",
-    "exec-test": "baseDir='./app/test' ext='\\.spec\\.ts' bun exec-if-file-exists",
-    "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true",
-    "package-update": "bunx npm-check-updates -i"
-  },
-  "dependencies": {
-    "vket-boilerplate-nuxt-base": "workspace:*"
-  }
 }
 ````
 
@@ -27874,734 +28601,6 @@ const direction = computed(() => {
 </style>
 ````
 
-## File: layers/base/app/components/hm/HmSlider.vue
-````vue
-<template>
-  <div
-    class="slider-wrap"
-    :style="{
-      '--slide-amount': props.amount,
-      '--width-pc': props.widthPc,
-      '--width-sp': props.widthSp,
-    }"
-    role="presentation"
-  >
-    <div
-      class="slider-body"
-      role="presentation"
-    >
-      <div
-        ref="slider"
-        class="slider-inner"
-        role="presentation"
-        :style="{
-          '--gap-pc': props.gapPc,
-          '--gap-sp': props.gapSp,
-        }"
-        @touchstart="startDragging"
-        @touchmove="inDragging"
-        @touchend="endDragging"
-        @mousedown="startDragging"
-        @mousemove="inDragging"
-        @mouseup="endDragging"
-        @mouseleave="endDragging"
-      >
-        <template v-if="props.loop">
-          <div
-            ref="clonedSlideBefore"
-            class="slider -before"
-            :class="{
-              '-center': props.center ? true : false,
-            }"
-            role="presentation"
-            aria-hidden="true"
-          >
-            <slot name="item"></slot>
-          </div>
-        </template>
-        <div
-          :id="props.slidename"
-          ref="receivedSlideItemsContainer"
-          class="slider"
-          :class="{
-            '-center': props.center,
-          }"
-          role="presentation"
-        >
-          <slot name="item"></slot>
-        </div>
-        <template v-if="props.loop">
-          <div
-            ref="clonedSlideAfter"
-            class="slider -after"
-            :class="{
-              '-center': props.center,
-            }"
-            role="presentation"
-            aria-hidden="true"
-          >
-            <slot name="item"></slot>
-          </div>
-        </template>
-      </div>
-    </div>
-    <template v-if="props.pagination">
-      <ol
-        class="slider-pagination"
-        role="tablist"
-      >
-        <li
-          v-for="index in props.amount"
-          :key="index"
-          class="slider-pagination-item"
-          role="presentation"
-        >
-          <button
-            :aria-label="
-              i18n.locale.value === 'ja'
-                ? `スライド${index}枚目を表示する`
-                : `Display slide ${index}`
-            "
-            :aria-controls="props.itemsId[index - 1]"
-            :aria-selected="index === Math.abs(currentSlide) + 1"
-            role="tab"
-            class="slider-pagination-button"
-            type="button"
-            @click="jumpSlider(index - 1), stopAutoPlay()"
-          >
-            <slot name="pagination"></slot>
-          </button>
-        </li>
-      </ol>
-    </template>
-    <template v-if="props.arrow">
-      <button
-        class="slider-arrow button--previous"
-        :aria-label="
-          i18n.locale.value === 'ja'
-            ? `スライドを1枚戻す`
-            : `Show previous slide`
-        "
-        :aria-controls="props.slidename"
-        :disabled="!props.loop && disabledPrevious"
-        type="button"
-        @click="moveSlider('previous'), stopAutoPlay()"
-      >
-        <slot name="navigationprevious"></slot>
-      </button>
-      <button
-        class="slider-arrow button--next"
-        :aria-label="
-          i18n.locale.value === 'ja' ? `スライドを1枚進める` : `Show next slide`
-        "
-        :aria-controls="props.slidename"
-        :disabled="!props.loop && disabledNext"
-        type="button"
-        @click="moveSlider('next'), stopAutoPlay()"
-      >
-        <slot name="navigationnext"></slot>
-      </button>
-    </template>
-    <template v-if="props.page">
-      <div
-        role="progressbar"
-        class="slider-page"
-        aria-valuemin="1"
-        :aria-valuemax="props.amount"
-        :aria-valuenow="Math.abs(currentSlide) + 1"
-      >
-        <span
-          class="slider-page-start"
-          role="presentation"
-        >{{
-          Math.abs(currentSlide) + 1
-        }}</span>
-        <span
-          class="slider-page-total"
-          role="presentation"
-        >{{
-          props.amount
-        }}</span>
-      </div>
-    </template>
-    <template v-if="props.autoplay">
-      <button
-        type="button"
-        :aria-controls="props.slidename"
-        :aria-label="
-          i18n.locale.value === 'ja'
-            ? `スライドの自動再生を開始する`
-            : `Start automatic playback of slides`
-        "
-        @click="startAutoPlay"
-      >
-        <slot name="autoplaystart"></slot>
-      </button>
-      <button
-        type="button"
-        :aria-controls="props.slidename"
-        :aria-label="
-          i18n.locale.value === 'ja'
-            ? `スライドの自動再生を停止する`
-            : `Stop automatic playback of slides`
-        "
-        @click="stopAutoPlay"
-      >
-        <slot name="autoplaystop"></slot>
-      </button>
-    </template>
-  </div>
-</template>
-
-<script lang="ts" setup>
-const props = defineProps<{
-  slidename: string
-  itemsId: string[]
-  arrow: boolean
-  pagination: boolean
-  amount: number
-  loop: boolean
-  center: boolean
-  page: boolean
-  autoplay: boolean
-  interval: number
-  gapPc: string
-  gapSp: string
-  widthPc: string
-  widthSp: string
-  duration: number
-  easing: 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'linear'
-  draggable: boolean
-}>()
-const i18n = useI18n()
-const slider = ref<HTMLElement | null>(null) // スライド直上の親要素
-const currentSlide = ref(0) // 現在のスライド番号
-const disabledNext = ref(false) // ループしない場合に次へボタンをdisabledにするフラグ
-const disabledPrevious = ref(false) // ループしない場合に前へボタンをdisabledにするフラグ
-const previousX = ref(0) // アニメーションタイムラインのスライド開始位置
-const nextX = ref(0) // アニメーションタイムラインのスライド終了位置
-const clonedSlideBefore = ref<HTMLElement | null>(null) // ループする場合の前のスライド
-const clonedSlideAfter = ref<HTMLElement | null>(null) // ループする場合の後のスライド
-const receivedSlideItemsContainer = ref<HTMLElement | null>(null) // アクティブなスライドを判定するために受け取ったスライド要素を全て格納
-
-// 矢印でスライドを移動させる関数
-const moveSlider = async (direction: 'previous' | 'next') => {
-  if (!slider.value) {
-    throw new Error('slider要素はnull')
-  }
-  if (direction === 'previous') {
-    updateCurrentSlide('previous')
-  } else if (direction === 'next') {
-    updateCurrentSlide('next')
-  }
-  // loopがfalseのとき、currentIndex次第でボタンのdisabledを制御する
-  if (!props.loop) {
-    controlButton()
-  }
-  if (slider.value instanceof HTMLElement === false) {
-    throw new Error('slider要素はHTMLElementではありません')
-  }
-  await slideX(slider.value, previousX.value, nextX.value)
-  // アクティブなスライドを更新
-  setActiveSlide()
-}
-
-// スライドアニメーション
-const slideX = (target: HTMLElement | null, from: number, to: number) => {
-  return target?.animate(
-    [
-      { transform: `translateX(${from}%)` },
-      { transform: `translateX(${to}%)` },
-    ],
-    {
-      duration: props.duration,
-      iterations: 1,
-      easing: props.easing,
-      fill: 'both',
-    },
-  ).finished
-}
-
-// loopがfalseな場合にボタンのdisabledを制御する関数
-const controlButton = () => {
-  if (!slider.value) {
-    throw new Error('slider要素はnull')
-  }
-  if (currentSlide.value === 0) {
-    // 1枚目表示中は戻るボタンをdisabledにする
-    disabledNext.value = false
-    disabledPrevious.value = true
-  } else if (currentSlide.value * -1 === props.amount - 1) {
-    // 最後のスライド表示中は進むボタンをdisabledにする
-    disabledNext.value = true
-    disabledPrevious.value = false
-  } else {
-    // それ以外はdisabledを解除する
-    disabledNext.value = false
-    disabledPrevious.value = false
-  }
-}
-
-// ページネーションでスライドを移動させる関数
-const jumpSlider = async (index: number) => {
-  if (!slider.value) {
-    throw new Error('slider要素はnull')
-  }
-  if (slider.value instanceof HTMLElement === false) {
-    throw new Error('slider要素はHTMLElementではありません')
-  }
-  updateCurrentSlide('pagination', index)
-  controlButton()
-  if (slider.value instanceof HTMLElement) {
-    await slideX(slider.value, previousX.value, nextX.value)
-    // アクティブなスライドを更新
-    setActiveSlide()
-  }
-}
-
-// currentSlideを更新する関数
-const updateCurrentSlide = (
-  type: 'next' | 'previous' | 'pagination',
-  index?: number,
-) => {
-  const backToFirstSlideNoLoop = () => {
-    previousX.value = ((100 / props.amount) * props.amount - 1) * -1
-    currentSlide.value = 0
-    nextX.value = 0
-  }
-
-  const slideNextByArrowNoLoop = () => {
-    previousX.value = (100 / props.amount) * currentSlide.value
-    currentSlide.value -= 1
-    nextX.value = (100 / props.amount) * currentSlide.value
-  }
-
-  const slideNextByArrowLoop = () => {
-    if (currentSlide.value * -1 === props.amount - 1) {
-      previousX.value = 100 / props.amount
-      currentSlide.value = 0
-      nextX.value = 0
-    } else {
-      previousX.value = (100 / props.amount) * currentSlide.value
-      currentSlide.value -= 1
-      nextX.value = (100 / props.amount) * currentSlide.value
-    }
-  }
-
-  const slideBackByArrowNoLoop = () => {
-    previousX.value = (100 / props.amount) * currentSlide.value
-    currentSlide.value += 1
-    nextX.value = (100 / props.amount) * currentSlide.value
-  }
-
-  const slideBackByArrowLoop = () => {
-    if (currentSlide.value === 0) {
-      previousX.value = (100 / props.amount) * props.amount * -1
-      currentSlide.value = props.amount * -1 + 1
-      nextX.value = (100 / props.amount) * currentSlide.value
-    } else {
-      previousX.value = (100 / props.amount) * currentSlide.value
-      currentSlide.value += 1
-      nextX.value = (100 / props.amount) * currentSlide.value
-    }
-  }
-
-  const slideJumpByPagination = () => {
-    previousX.value = (100 / props.amount) * currentSlide.value
-    if (index === undefined) return
-    currentSlide.value = index * -1
-    nextX.value = (100 / props.amount) * currentSlide.value
-  }
-
-  // ループがfalseで最後のスライドの場合、最初に戻す(自動再生時のみこの条件に一致する)
-  if (
-    type === 'next'
-    && props.loop === false
-    && Math.abs(currentSlide.value) === props.amount - 1
-  ) {
-    return backToFirstSlideNoLoop()
-  }
-
-  // 矢印による次に進む操作かつループがfalseの場合
-  if (type === 'next' && props.loop === false) {
-    return slideNextByArrowNoLoop()
-  }
-
-  // 矢印による次に進む操作かつループがtrueの場合
-  if (type === 'next' && props.loop) {
-    return slideNextByArrowLoop()
-  }
-
-  // 矢印による前に戻る操作かつループがfalseの場合
-  if (type === 'previous' && props.loop === false) {
-    return slideBackByArrowNoLoop()
-  }
-
-  // 矢印による前に戻る操作かつループがtrueの場合
-  if (type === 'previous' && props.loop) {
-    return slideBackByArrowLoop()
-  }
-
-  // ページネーションによるスライド移動の場合
-  if (type === 'pagination' && index !== undefined) {
-    return slideJumpByPagination()
-  }
-}
-
-// アクティブなスライドに-activeクラスを付与し、それ以外のスライドをアクセシビリティツリーから除外する関数
-const setActiveSlide = () => {
-  const sliderItems = receivedSlideItemsContainer.value?.querySelectorAll<HTMLElement>('.slider-item')
-  if (sliderItems) {
-    sliderItems.forEach((item: HTMLElement, index: number) => {
-      if (index === Math.abs(currentSlide.value)) {
-        item.classList.add('-active')
-        item.removeAttribute('aria-hidden')
-      } else {
-        item.classList.remove('-active')
-        item.setAttribute('aria-hidden', 'true')
-      }
-    })
-  }
-}
-
-// 複製されたスライドからid属性を除去する関数
-const removeId = () => {
-  if (props.loop) {
-    if (!clonedSlideBefore.value) {
-      throw new Error('clonedSlideBefore要素はnull')
-    }
-    if (!clonedSlideAfter.value) {
-      throw new Error('clonedSlideBefore要素はnull')
-    }
-    // clonedSlideBefore.valueの子要素の,slider-item全てからid属性を除去する
-    const clonedSlideBeforeItems
-      = clonedSlideBefore.value.querySelectorAll<HTMLElement>('.slider-item')
-    clonedSlideBeforeItems.forEach((item: HTMLElement) => {
-      item.removeAttribute('id')
-    })
-    // clonedSlideBefore.valueの子要素の.slider-item全てからid属性を除去する
-    const clonedSlideAfterItems
-      = clonedSlideAfter.value.querySelectorAll<HTMLElement>('.slider-item')
-    clonedSlideAfterItems.forEach((item: HTMLElement) => {
-      item.removeAttribute('id')
-    })
-  }
-}
-
-// ドラッグとスワイプでスライドを移動させる関数
-let startX = 0
-let moveX = 0
-let isDragging = false
-let movingRight = false
-
-// ドラッグとスワイプ開始時の処理
-const startDragging = (event: MouseEvent | TouchEvent) => {
-  // タッチデバイスでない場合はevent.preventDefault()を実行 (タッチデバイス時にはスクロールを防げる + スライドが<a>だった場合に遷移できないため)
-  if (event instanceof MouseEvent) {
-    event.preventDefault()
-  }
-  if (!props.draggable) return
-  // ドラッグ開始地点を保存
-  if (event instanceof MouseEvent) {
-    startX = event.pageX
-  } else if (event instanceof TouchEvent && event.touches[0]) {
-    startX = event.touches[0].pageX
-  } else {
-    return
-  }
-  isDragging = true
-}
-
-// ドラッグ中の処理
-const inDragging = (event: MouseEvent | TouchEvent) => {
-  // タッチデバイスでない場合はevent.preventDefault()を実行 (タッチデバイス時にはスクロールを防げる + スライドが<a>だった場合に遷移できないため)
-  if (event instanceof MouseEvent) {
-    event.preventDefault()
-  }
-  if (!props.draggable) return
-  if (!isDragging) return
-  // 移動距離を計算
-  if (event instanceof MouseEvent) {
-    moveX = (startX - event.pageX) * -1
-  } else if (event instanceof TouchEvent && event.touches[0]) {
-    moveX = (startX - event.touches[0].pageX) * -1
-  } else {
-    // 未知のイベント型に対するエラー処理
-    return
-  }
-  // 左右どちらに移動しているか判別
-  movingRight = moveX < 0
-  if (!slider.value) {
-    throw new Error('slider要素はnull')
-  }
-  slider.value.style.translate = `${moveX * 0.3}px`
-}
-
-// ドラッグ終了時の処理
-const endDragging = async (event: MouseEvent | TouchEvent) => {
-  // タッチデバイスでない場合はevent.preventDefault()を実行 (タッチデバイス時にはスクロールを防げる + スライドが<a>だった場合に遷移できないため)
-  if (event instanceof MouseEvent) {
-    event.preventDefault()
-  }
-  if (!props.draggable) return
-  if (!isDragging) return
-  isDragging = false
-
-  if (movingRight && moveX < -50) {
-    // 現在のスライドが最後のスライドの場合はreturn
-    if (!props.loop && Math.abs(currentSlide.value) === props.amount - 1) {
-      if (!slider.value) {
-        throw new Error('slider要素はnull')
-      }
-      slider.value.style.translate = '0px'
-      return
-    }
-    await moveSlider('next')
-  } else if (movingRight === false && moveX > 50) {
-    // 現在のスライドが最初のスライドの場合はreturn
-    if (props.loop === false && currentSlide.value === 0) {
-      if (!slider.value) {
-        throw new Error('slider要素はnull')
-      }
-      slider.value.style.translate = '0px'
-      return
-    }
-    await moveSlider('previous')
-  }
-
-  if (!slider.value) {
-    throw new Error('slider要素はnull')
-  }
-  slider.value.style.translate = '0px'
-
-  stopAutoPlay()
-  moveX = 0
-}
-
-// スライダーを自動再生する関数
-let timer: number | undefined
-const startAutoPlay = () => {
-  timer = window.setInterval(() => {
-    void moveSlider('next')
-  }, props.interval)
-}
-
-// スライダーの自動再生を停止する関数
-const stopAutoPlay = () => {
-  if (!props.autoplay) return
-  clearInterval(timer)
-}
-
-// スライダーを初期化
-onMounted(() => {
-  setActiveSlide()
-  removeId()
-  controlButton()
-  if (props.autoplay) {
-    startAutoPlay()
-  }
-})
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-@use '#base/app/assets/styles/mixins' as m;
-
-.slider-wrap {
-  --slide-item-width: var(--width-pc);
-  --slide-amount: var(--slide-amount);
-
-  position: relative;
-  width: 100%;
-  height: 100%;
-
-  @include m.sp {
-    --slide-item-width: var(--width-sp);
-  }
-
-  .slider-body {
-    position: relative;
-    container-type: inline-size;
-    overflow: clip;
-    width: 100%;
-
-    .slider-inner {
-      position: relative;
-      width: calc(var(--slide-item-width) * var(--slide-amount) * 1%);
-
-      .slider {
-        display: flex;
-        align-items: stretch;
-        width: 100%;
-        height: 100%;
-
-        &.-center {
-          transform: translateX(
-            calc((100 - var(--slide-item-width)) / 2 * 1cqi)
-          );
-        }
-
-        &.-before {
-          position: absolute;
-          top: 0;
-          left: 0;
-          translate: -100% 0;
-        }
-
-        &.-after {
-          position: absolute;
-          top: 0;
-          left: 0;
-          translate: 100% 0;
-        }
-      }
-
-      :deep(.slider-item) {
-        flex-shrink: 0;
-        width: calc(100% / var(--slide-amount));
-        padding-inline: calc(var(--gap-pc) * 0.5);
-
-        @include m.sp {
-          padding-inline: calc(var(--gap-sp) * 0.5);
-        }
-      }
-    }
-  }
-}
-</style>
-````
-
-## File: layers/base/nuxt.config.ts
-````typescript
-import { defineNuxtConfig } from 'nuxt/config'
-import { FileSystemIconLoader } from 'unplugin-icons/loaders'
-import IconsResolver from 'unplugin-icons/resolver'
-import Icons from 'unplugin-icons/vite'
-import Components from 'unplugin-vue-components/vite'
-import eslintPlugin from 'vite-plugin-eslint2'
-import svgLoader from 'vite-svg-loader'
-import { readEnvType } from './config/models/EnvType'
-import { getRuntimeConfigOfEnvType } from './config/runtimeConfig'
-import { nuxtI18nOptions } from './i18n/i18n.config'
-
-const cssUrls = [`./app/assets/styles/style.scss`]
-const srcDir = 'app'
-
-/**
- * Nuxt Config
- * @ref https://nuxt.com/docs/api/configuration/nuxt-config
- */
-export default defineNuxtConfig({
-  modules: [
-    '@nuxtjs/i18n',
-    '@nuxt/eslint',
-    '@vueuse/nuxt',
-    'unplugin-icons/nuxt',
-    '@nuxtjs/robots',
-    '@nuxtjs/device',
-  ],
-  imports: {
-    dirs: ['utils/types/**'],
-    global: false,
-  },
-  devtools: { enabled: true },
-  app: {
-    head: {
-      viewport: 'width=device-width, initial-scale=1',
-      charset: 'utf-8',
-      meta: [
-        { property: 'og:type', content: 'website' },
-        {
-          name: 'twitter:card',
-          content: 'summary_large_image',
-        },
-        {
-          name: 'note:card',
-          content: 'summary_large_image',
-        },
-      ],
-      noscript: [{ innerHTML: 'JavaScript is required' }],
-    },
-  },
-  css: cssUrls,
-  runtimeConfig: getRuntimeConfigOfEnvType(
-    readEnvType(process.env),
-    process.env,
-  ),
-  rootDir: __dirname,
-  srcDir: `${srcDir}/`,
-  alias: {
-    '#base': __dirname,
-  },
-  ignore: [
-    '.output',
-    '**/test/*.{js,ts,jsx,tsx}',
-    '**/*.{spec,test}.{js,ts,jsx,tsx}',
-    '**/-*.*',
-  ],
-  compatibilityDate: '2024-04-03',
-  vite: {
-    build: {
-      emptyOutDir: true,
-    },
-    plugins: [
-      eslintPlugin(),
-      svgLoader({
-        defaultImport: 'component', // 'component', 'url', 'raw'
-        svgo: false,
-      }),
-      Icons({
-        customCollections: {
-          'hikky-icons': FileSystemIconLoader(`${srcDir}/assets/icons/hikky`),
-          'sns-icons': FileSystemIconLoader(`${srcDir}/assets/icons/sns`),
-        },
-        iconCustomizer(collection, _icon, props) {
-          // customize all icons in this collection
-          if (
-            collection === 'hikky-icons'
-            || collection === 'sns-icons'
-            || collection === 'ri'
-          ) {
-            props.width = '1em'
-            props.height = '1em'
-          }
-        },
-      }),
-      Components({
-        dts: false,
-        resolvers: [
-          IconsResolver({
-            customCollections: ['hikky-icons', 'sns-icons'],
-          }),
-        ],
-      }),
-    ],
-    css: {
-      preprocessorMaxWorkers: true,
-    },
-  },
-  typescript: {
-    tsConfig: {
-      compilerOptions: {
-        verbatimModuleSyntax: false,
-      },
-    },
-  },
-  eslint: {
-    checker: true,
-    config: {
-      stylistic: {
-        semi: false,
-        indent: 2,
-        quotes: 'single',
-        braceStyle: '1tbs',
-      },
-    },
-  },
-  i18n: nuxtI18nOptions,
-})
-````
-
 ## File: layers/base/app/components/hm/input/HmInputSingleImage.vue
 ````vue
 <i18n lang="yaml">
@@ -29434,10 +29433,11 @@ declare global {
   },
   "devDependencies": {
     "@types/bun": "^1.2.21",
-    "eslint": "^9.34.0",
+    "bun-types": "^1.2.21",
+    "eslint": "^9.35.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.6",
-    "stylelint": "^16.23.1"
+    "stylelint": "^16.24.0"
   },
   "lint-staged": {
     "layers/**/*.+(js|ts|tsx|vue)": [
@@ -29445,7 +29445,7 @@ declare global {
     ]
   },
   "resolutions": {
-    "eslint": "9.34.0"
+    "eslint": "9.35.0"
   }
 }
 ````
@@ -29487,14 +29487,14 @@ declare global {
     "@headlessui/vue": "^1.7.23",
     "@nuxtjs/device": "^3.2.4",
     "@nuxtjs/google-fonts": "^3.2.0",
-    "@nuxtjs/i18n": "^10.0.6",
+    "@nuxtjs/i18n": "^10.1.0",
     "@nuxtjs/robots": "^5.5.1",
     "@vueuse/nuxt": "^13.9.0",
     "dayjs": "^1.11.18",
-    "nuxt": "^4.1.0",
+    "nuxt": "^4.1.1",
     "ress": "^5.0.2",
     "universal-cookie": "^8.0.1",
-    "uuid": "^11.1.0",
+    "uuid": "^13.0.0",
     "vue": "^3.5.21",
     "vue-advanced-cropper": "^2.8.9",
     "vue-router": "^4.5.1",
@@ -29502,7 +29502,7 @@ declare global {
   },
   "devDependencies": {
     "@anatine/zod-mock": "^3.14.0",
-    "@eslint/js": "^9.34.0",
+    "@eslint/js": "^9.35.0",
     "@faker-js/faker": "^10.0.0",
     "@fast-check/vitest": "^0.2.2",
     "@iconify-json/ri": "^1.2.5",
@@ -29523,28 +29523,28 @@ declare global {
     "@vitest/ui": "^3.2.4",
     "@vue/runtime-dom": "^3.5.21",
     "@vue/test-utils": "^2.4.6",
-    "camelcase-keys": "^9.1.3",
+    "camelcase-keys": "^10.0.0",
     "cross-env": "^10.0.0",
-    "eslint": "^9.34.0",
+    "eslint": "^9.35.0",
     "fast-check": "^4.3.0",
-    "globals": "^16.3.0",
+    "globals": "^16.4.0",
     "humps": "^2.0.1",
     "jsdom": "^26.1.0",
     "ofetch": "^1.4.1",
     "postcss-html": "^1.8.0",
     "postcss-import": "^16.1.1",
     "postcss-url": "^10.1.3",
-    "sass-embedded": "^1.92.0",
+    "sass-embedded": "^1.92.1",
     "snake-case": "^4.0.0",
     "snakecase-keys": "^9.0.2",
-    "stylelint": "^16.23.1",
+    "stylelint": "^16.24.0",
     "stylelint-config-clean-order": "^7.0.0",
     "stylelint-config-standard-scss": "^15.0.1",
     "stylelint-rscss": "^0.4.0",
     "tsx": "^4.20.5",
     "type-fest": "^4.41.0",
     "typescript": "5.9.2",
-    "typescript-eslint": "^8.42.0",
+    "typescript-eslint": "^8.43.0",
     "unplugin-auto-import": "^20.1.0",
     "unplugin-icons": "^22.2.0",
     "unplugin-vue-components": "^29.0.0",

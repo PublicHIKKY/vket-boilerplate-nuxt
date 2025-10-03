@@ -33,21 +33,19 @@ const needSourcemap = NUXT_ENV_OUTPUT_ENV !== 'production'
 const enableDebug = NUXT_ENV_OUTPUT_ENV === 'local'
 
 const meta: MetaInfo = {
-  title: 'VKet Showcases',
-  description: 'Interactive component library showcasing VKet UI components and patterns',
+  title: '',
+  description: '',
   robots: NUXT_ENV_OUTPUT_ENV === 'production' ? 'all' : 'none',
-  siteName: 'VKet Showcases',
+  siteName: '',
   ogImageUrl: `${process.env.NUXT_PUBLIC_URL}/images/ogp.jpg`,
-  ogUrl: process.env.NUXT_PUBLIC_URL || '',
+  ogUrl: runtimeConfig.public.url,
   twitterSite: 'https://x.com/',
   twitterCreator: 'https://x.com/',
 }
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  extends: [
-    path.resolve(__dirname, '../base'),
-  ],
+  extends: path.resolve(__dirname, '../base'),
   modules: [
     'unplugin-icons/nuxt',
     '@nuxtjs/google-fonts',
@@ -115,10 +113,10 @@ export default defineNuxtConfig({
   rootDir: __dirname,
   srcDir: `${srcDir}/`,
   alias: {
-    '~': path.resolve(__dirname, '../main/app'),
-    '@': path.resolve(__dirname, '../main/app'),
     '#base': path.resolve(__dirname, '../base'),
     '#main': path.resolve(__dirname, '../main'),
+    '~': path.resolve(__dirname, '../main/app'),
+    '@': path.resolve(__dirname, '../main/app'),
     '#showcases': __dirname,
   },
   ignore: [
@@ -167,7 +165,7 @@ export default defineNuxtConfig({
   typescript: {
     typeCheck: checkTypeCheckOnBuild,
   },
-  debug: enableDebug,
+  debug: process.env.VITEST === 'true' ? false : enableDebug,
 
   googleFonts: {
     families: {

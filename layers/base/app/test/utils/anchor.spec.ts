@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest'
 import { makeAnchorElement } from '#base/app/utils/anchor'
 
 describe('makeAnchorElement', () => {

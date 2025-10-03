@@ -18,7 +18,7 @@
   .hv-toast-context {
     margin-top: 0 !important;
     word-break: break-all !important;
-    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
 
     + .hv-toast-context {
       margin-top: v.space(2) !important;

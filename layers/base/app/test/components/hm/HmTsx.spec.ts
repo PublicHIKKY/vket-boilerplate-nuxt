@@ -129,7 +129,7 @@ describe('HmTsx', () => {
     it('TSXレンダリング機能が動作する', () => {
       const wrapper = mount(HmTsx, {
         slots: {
-          default: '<span>TSXテスト</span>',
+          default: () => '<span>TSXテスト</span>',
         },
         global: {
           plugins: [i18n],
@@ -156,7 +156,7 @@ describe('HmTsx', () => {
     it('正しいDOM構造が生成される', () => {
       const wrapper = mount(HmTsx, {
         slots: {
-          default: '<div class="test-content">内容</div>',
+          default: () => '<div class="test-content">内容</div>',
         },
         global: {
           plugins: [i18n],
@@ -191,7 +191,7 @@ describe('HmTsx', () => {
 
       const wrapper = mount(HmTsx, {
         slots: {
-          default: complexSlot,
+          default: () => complexSlot,
         },
         global: {
           plugins: [i18n],
@@ -211,7 +211,7 @@ describe('HmTsx', () => {
       expect(() => {
         mount(HmTsx, {
           slots: {
-            default: '',
+            default: () => '',
           },
           global: {
             plugins: [i18n],
