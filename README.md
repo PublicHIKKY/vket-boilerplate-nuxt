@@ -1,4 +1,4 @@
-# Vket Boilerplate Nuxt INTERNAL (Vket App Front 2)
+# Vket Boilerplate Nuxt
 
 *[日本語版は下部にあります / Japanese version available below](#日本語版)*
 
