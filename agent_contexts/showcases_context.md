@@ -78,6 +78,7 @@ layers/
           factory.spec.ts
           i18n.spec.ts
         example.spec.ts
+        setup.ts
       utils/
         api.ts
         factory.ts
@@ -123,6 +124,32 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
+}
+````
+
+## File: layers/showcases/app/assets/styles/_functions.scss
+````scss
+@function strip-unit($number) {
+  @if meta.type-of($number) == 'number' and not math.is-unitless($number) {
+    @return $number / ($number * 0 + 1);
+  }
+
+  @return $number;
+}
+
+@function rem($px, $base: 16px) {
+  $value: $px;
+
+  // 単位がpx以外の場合は警告を出してそのまま返す
+  @if math.unit($px) != 'px' {
+    @warn 'rem()の引数にpx以外の値を指定しても計算できません';
+
+    @return $value;
+  }
+
+  $value: (strip-unit($px) / strip-unit($base)) * 1rem;
+
+  @return $value;
 }
 ````
 
@@ -193,6 +220,159 @@ img {
 }
 ````
 
+## File: layers/showcases/app/assets/styles/_variables.scss
+````scss
+/* color palette */
+$violet: #b760eb; // Sidebar button
+$blue: #3ff; // button02, tag, link hover, #33FFFF
+$blue-1: #0c98da; // Sidebar button
+$yellow: #ffba00; // button01 hover, text link hover
+$orange: #ff8500; // button01, tag
+$green: #69b756; // Sidebar button
+$green-1: #47c6ae; // Sidebar button
+$green-2: #1b5e68; // form focus
+$red: #c43232; // alert
+$red-1: #46212a; // form error
+$pink: #ff4e8e; // button03, tag
+$pink-1: #f86464; // Sidebar button
+$gray: #737477; // Button disabled BG
+$black: #111827; // Body BG
+$black-1: #020e1c; // Header Footer BG
+$navy: #101e3c; // Sub BG
+$navy-1: #17385d; // Item Card BG
+$navy-2: #19477f; // Line
+$white: #fff;
+$white-1: rgba(#fff, 0.7);
+
+/* スタイルガイドにないcolor */
+$gray-1: #d1d1d1;
+$gray-2: #505050;
+$gray-3: #ffffff4d; // button
+$green-3: #33ffff80; // button
+$green-4: #228d92; // button
+$green-5: #2bc6ca; // button
+$blue-2: #353e49;
+$black-undercoat: rgb(0 0 0 / 70%);
+
+/* text color */
+$text-body: #fff;
+$text-link: #9a9daa;
+$text-note: #737477;
+$box-shadow: 5px 5px 5px rgba($gray-2, 0.2);
+
+/* SNS Brand Colors */
+$twitter: #1d9bf0;
+$facebook: #1877f2;
+$discord: #5865f2;
+$note: #41c9b4;
+$instagram-gradation: linear-gradient(to right, #febd1c, #f50200, #c10098);
+
+/* color role */
+$primary-color: $orange;
+$primary-hover-color: $yellow;
+$secondary-color: $blue;
+$secondary-hover-color: $pink;
+$base-background-color: $black;
+$base-font-color: $text-body;
+$font-color-note: $text-note;
+$font-color-link: $text-link;
+$font-color-headline: $black;
+$font-color-placeholder: $text-link;
+$base-link-color: $text-link;
+$base-link-hover-color: $blue;
+$primary-button-default-color: $orange;
+$primary-button-active-color: $yellow;
+$secondary-button-default-color: $blue;
+$secondary-button-active-color: $pink;
+$button-disabled-color: $gray;
+
+/* font-settings */
+// 参考： https://ics.media/entry/200317/
+$base-font-family: 'Segoe UI', 'Helvetica Neue', helvetica, arial, 'メイリオ',
+  'ヒラギノ角ゴシック', 'Noto sans JP', 'Segoe UI', '游ゴシック', sans-serif;
+$base-font-weight: 400;
+$base-font-size: 16px;
+
+/* content width */
+$pc-content-max-width: 1920px;
+$pc-content-medium-width: 1280px;
+$pc-content-min-width: 1080px;
+$sp-query-width: 500px;
+$xs-query-width: 370px;
+$media-query-width: 769px;
+$side-menu-width: 90px;
+$side-menu-height-sp: 64px;
+
+// topページ用に追加
+$pc-content-body-width: 1470px;
+
+/* content height */
+$header-height-pc: 80px;
+$header-height-sp: 60px;
+$mypage-header-height-pc: 72px;
+$mypage-header-height-sp: 72px;
+
+/* space-settings */
+$space-base: 16px;
+$space-unit: 4px;
+
+@function space($value) {
+  @return $value * $space-unit;
+}
+
+/* z-index-settings */
+$zindex-main: 1;
+$zindex-dialog: 100;
+$zindex-mypage-header: 200;
+$zindex-side-menu: $zindex-mypage-header + 1;
+$zindex-footer: $zindex-mypage-header + 2;
+$zindex-header: $zindex-mypage-header + 3;
+$zindex-side-menu-button: $zindex-mypage-header + 4;
+$zindex-toast: 300;
+$zindex-loading: 400;
+
+// todo: extend.scss 作成するか記述場所決める
+
+/* 各ページタイトルのデザイン */
+%title {
+  display: flex;
+  font-size: 24px;
+
+  &::before {
+    content: '';
+
+    display: block;
+
+    width: 5px;
+    margin-right: space(2);
+    border-radius: 6px;
+
+    background: $orange;
+  }
+}
+
+/* スクロールバーのデザイン */
+// note: scrollbar-color はソリッドカラーのみ指定可能なので一応旧構文で書いている
+%scroll-bar {
+  // 幅
+  &::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  // 背景
+  &::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 10px $green-4;
+  }
+
+  // ボタン
+  &::-webkit-scrollbar-thumb {
+    border-radius: 5px;
+    background-color: $green-5;
+  }
+}
+````
+
 ## File: layers/showcases/app/assets/styles/style.scss
 ````scss
 @forward 'reset';
@@ -215,6 +395,102 @@ img {
   overflow-x: hidden;
 }
 </style>
+````
+
+## File: layers/showcases/app/test/example.spec.ts
+````typescript
+/**
+ * Showcases layer test example
+ * This is a basic test to ensure the test environment is working
+ */
+
+describe('Showcases Layer Tests', () => {
+  it('should have working test environment', () => {
+    expect(true).toBe(true)
+  })
+
+  it('should be able to test basic JavaScript functionality', () => {
+    const add = (a: number, b: number) => a + b
+    expect(add(2, 3)).toBe(5)
+  })
+})
+````
+
+## File: layers/showcases/app/test/setup.ts
+````typescript
+import { vi } from 'vitest'
+
+// Type declarations for global mocks - range and useSlots are handled by auto-imports
+
+// Global mock for all icon imports
+vi.mock('~icons/ri/close-line', () => ({
+  default: {
+    name: 'RiCloseLine',
+    template: '<svg class="icon"><path /></svg>',
+    props: ['class'],
+  },
+}))
+
+// Mock Nuxt composables using vi.mock to avoid conflicts with auto-imports
+vi.mock('#app/composables/useI18n', () => ({
+  useI18n: vi.fn(() => ({
+    t: vi.fn((key: string) => {
+      const messages: Record<string, string> = {
+        next: 'Next',
+        prev: 'Prev',
+      }
+      return messages[key] || key
+    }),
+    locale: { value: 'ja' },
+  })),
+}))
+
+vi.mock('#app/composables/useRoute', () => ({
+  useRoute: vi.fn(() => ({
+    path: '/test',
+    query: { page: '1' },
+  })),
+}))
+
+vi.mock('vue', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue')>()
+  return {
+    ...actual,
+    nextTick: vi.fn().mockResolvedValue(undefined),
+  }
+})
+
+// Global utility functions for tests - range and useSlots handled by auto-imports
+
+// HTMLDialogElement mock for jsdom
+if (!global.HTMLDialogElement) {
+  global.HTMLDialogElement = class HTMLDialogElement extends HTMLElement {
+    open = false
+    returnValue = ''
+
+    showModal = vi.fn(() => {
+      this.open = true
+    })
+
+    close = vi.fn(() => {
+      this.open = false
+    })
+
+    show = vi.fn(() => {
+      this.open = true
+    })
+
+    requestClose = vi.fn()
+
+    override addEventListener(_event: string, _callback: (...args: unknown[]) => void) {
+      // Mock implementation
+    }
+
+    override removeEventListener(_event: string, _callback: (...args: unknown[]) => void) {
+      // Mock implementation
+    }
+  }
+}
 ````
 
 ## File: layers/showcases/config/models/EnvType.ts
@@ -397,6 +673,22 @@ function getProduction(envType: EnvType, _baseEnv: Env) {
 }
 ````
 
+## File: layers/showcases/i18n/locales/en.json
+````json
+{
+  "hello": "Hello!",
+  "language": "language"
+}
+````
+
+## File: layers/showcases/i18n/locales/ja.json
+````json
+{
+  "hello": "こんにちは！",
+  "language": "言語"
+}
+````
+
 ## File: layers/showcases/.stylelintrc.mjs
 ````
 export default {
@@ -415,7 +707,19 @@ export default withNuxt(
   ...sharedConfig,
   // tsconfigが必要なルールの設定
   {
-    files: ['**/*.ts', '**/*.vue'], // 'Parsing error: Type expected'するので.tsxは除外
+    files: [
+      '**/*.ts',
+      '**/*.mts',
+      '**/*.cts',
+      '**/*.vue',
+      // 'Parsing error: Type expected'するので.tsxは除外
+    ],
+    ignores: [
+      '**/vitest.config.mts', // tsconfig.shared.jsonのexcludeに含まれているため除外
+      '**/*.js', // .jsファイルは型チェックルールの対象外
+      '**/*.mjs', // .mjsファイルも型チェックルールの対象外
+      '**/*.cjs', // .cjsファイルも型チェックルールの対象外
+    ],
     languageOptions: {
       parserOptions: {
         project: './tsconfig.json',
@@ -445,7 +749,7 @@ export default withNuxt(
     rules: {
       '@typescript-eslint/unbound-method': 'off', // テスト内でvi.fn()などを注入するために許可
     },
-  }
+  },
 )
 ````
 
@@ -462,181 +766,246 @@ export default withNuxt(
 }
 ````
 
-## File: layers/showcases/app/assets/styles/_functions.scss
+## File: layers/showcases/app/assets/styles/_base.scss
 ````scss
-@function strip-unit($number) {
-  @if meta.type-of($number) == 'number' and not math.is-unitless($number) {
-    @return $number / ($number * 0 + 1);
-  }
+@use 'variables' as v;
+@use 'mixins' as m;
 
-  @return $number;
+html,
+body {
+  overflow-x: clip;
+
+  font-family: v.$base-font-family;
+  font-variant-numeric: tabular-nums; // 数字フォントの幅を等幅にする
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  color: v.$base-font-color;
+  word-break: normal; // 単語の分割はブラウザのデフォルトであることを明記
+  line-break: strict; // 約物や小文字を置き去りにして改行させない
+  overflow-wrap: anywhere; // 行内に単語を収められない場合に折り返す
+
+  background: v.$base-background-color;
+
+  text-spacing-trim: trim-start; // 英字や日本語の約物が重複した場合に全角分のスペースを確保させない
 }
 
-@function rem($px, $base: 16px) {
-  $value: $px;
-
-  // 単位がpx以外の場合は警告を出してそのまま返す
-  @if math.unit($px) != 'px' {
-    @warn 'rem()の引数にpx以外の値を指定しても計算できません';
-
-    @return $value;
-  }
-
-  $value: (strip-unit($px) / strip-unit($base)) * 1rem;
-
-  @return $value;
+a {
+  color: v.$base-link-color;
+  text-decoration: none;
 }
 ````
 
-## File: layers/showcases/app/assets/styles/_variables.scss
+## File: layers/showcases/app/assets/styles/_markdown.scss
 ````scss
-/* color palette */
-$violet: #b760eb; // Sidebar button
-$blue: #3ff; // button02, tag, link hover, #33FFFF
-$blue-1: #0c98da; // Sidebar button
-$yellow: #ffba00; // button01 hover, text link hover
-$orange: #ff8500; // button01, tag
-$green: #69b756; // Sidebar button
-$green-1: #47c6ae; // Sidebar button
-$green-2: #1b5e68; // form focus
-$red: #c43232; // alert
-$red-1: #46212a; // form error
-$pink: #ff4e8e; // button03, tag
-$pink-1: #f86464; // Sidebar button
-$gray: #737477; // Button disabled BG
-$black: #111827; // Body BG
-$black-1: #020e1c; // Header Footer BG
-$navy: #101e3c; // Sub BG
-$navy-1: #17385d; // Item Card BG
-$navy-2: #19477f; // Line
-$white: #fff;
-$white-1: rgba(#fff, 0.7);
+// markdown 用スタイリング
+@use 'variables' as v;
 
-/* スタイルガイドにないcolor */
-$gray-1: #d1d1d1;
-$gray-2: #505050;
-$gray-3: #ffffff4d; // button
-$green-3: #33ffff80; // button
-$green-4: #228d92; // button
-$green-5: #2bc6ca; // button
-$blue-2: #353e49;
-$black-undercoat: rgb(0 0 0 / 70%);
+.hm-markdowon {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    line-height: 1.3;
+  }
 
-/* text color */
-$text-body: #fff;
-$text-link: #9a9daa;
-$text-note: #737477;
-$box-shadow: 5px 5px 5px rgba($gray-2, 0.2);
+  h1 {
+    margin-bottom: 32px;
+  }
 
-/* SNS Brand Colors */
-$twitter: #1d9bf0;
-$facebook: #1877f2;
-$discord: #5865f2;
-$note: #41c9b4;
-$instagram-gradation: linear-gradient(to right, #febd1c, #f50200, #c10098);
+  h2 {
+    margin-bottom: 24px;
+    font-size: 28px;
+  }
 
-/* color role */
-$primary-color: $orange;
-$primary-hover-color: $yellow;
-$secondary-color: $blue;
-$secondary-hover-color: $pink;
-$base-background-color: $black;
-$base-font-color: $text-body;
-$font-color-note: $text-note;
-$font-color-link: $text-link;
-$font-color-headline: $black;
-$font-color-placeholder: $text-link;
-$base-link-color: $text-link;
-$base-link-hover-color: $blue;
-$primary-button-default-color: $orange;
-$primary-button-active-color: $yellow;
-$secondary-button-default-color: $blue;
-$secondary-button-active-color: $pink;
-$button-disabled-color: $gray;
+  h3 {
+    font-size: 24px;
+  }
 
-/* font-settings */
-// 参考： https://ics.media/entry/200317/
-$base-font-family: 'Segoe UI', 'Helvetica Neue', helvetica, arial, 'メイリオ',
-  'ヒラギノ角ゴシック', 'Noto sans JP', 'Segoe UI', '游ゴシック', sans-serif;
-$base-font-weight: 400;
-$base-font-size: 16px;
+  h4 {
+    font-size: 20px;
+  }
 
-/* content width */
-$pc-content-max-width: 1920px;
-$pc-content-medium-width: 1280px;
-$pc-content-min-width: 1080px;
-$sp-query-width: 500px;
-$xs-query-width: 370px;
-$media-query-width: 769px;
-$side-menu-width: 90px;
-$side-menu-height-sp: 64px;
+  h5 {
+    font-size: 16px;
+  }
 
-// topページ用に追加
-$pc-content-body-width: 1470px;
+  h3,
+  h4,
+  h5 {
+    margin-bottom: 16px;
+    font-weight: 400;
+  }
 
-/* content height */
-$header-height-pc: 80px;
-$header-height-sp: 60px;
-$mypage-header-height-pc: 72px;
-$mypage-header-height-sp: 72px;
+  ul,
+  ol {
+    margin-bottom: 24px;
 
-/* space-settings */
-$space-base: 16px;
-$space-unit: 4px;
+    > li {
+      padding-left: 1em;
+      text-indent: -1em;
 
-@function space($value) {
-  @return $value * $space-unit;
-}
+      &:not(:last-child) {
+        margin-bottom: 16px;
+      }
+    }
+  }
 
-/* z-index-settings */
-$zindex-main: 1;
-$zindex-dialog: 100;
-$zindex-mypage-header: 200;
-$zindex-side-menu: $zindex-mypage-header + 1;
-$zindex-footer: $zindex-mypage-header + 2;
-$zindex-header: $zindex-mypage-header + 3;
-$zindex-side-menu-button: $zindex-mypage-header + 4;
-$zindex-toast: 300;
-$zindex-loading: 400;
+  li {
+    line-height: 1.3;
+    list-style-position: inside;
 
-// todo: extend.scss 作成するか記述場所決める
+    > ul {
+      margin: 16px 0;
+      padding-left: 48px;
+    }
 
-/* 各ページタイトルのデザイン */
-%title {
-  display: flex;
-  font-size: 24px;
+    ol {
+      counter-reset: ol-item;
+      margin: 16px 0;
+      padding-left: 28px;
+      list-style: none;
 
-  &::before {
-    content: '';
+      > li {
+        position: relative;
+        padding-left: 1.5em;
+        text-indent: 0;
 
+        // list-style: none だけで消えないので
+        &::marker {
+          content: '';
+        }
+
+        &::before {
+          // インデントした数値は 「1)」の表示にする
+          content: counter(ol-item) ')  ';
+          counter-increment: ol-item 1;
+
+          position: absolute; // 数値の桁数が違う場合の見た目に対応
+          top: 0;
+          left: 0;
+
+          display: block;
+
+          width: 100px;
+        }
+      }
+    }
+  }
+  /* stylelint-disable selector-max-compound-selectors */
+  ul > li {
+    list-style: none;
+
+    &::before {
+      content: '・';
+    }
+
+    ul > li {
+      list-style: circle;
+
+      ul > li {
+        list-style: disc;
+      }
+    }
+  }
+
+  /* stylelint-ensable selector-max-compound-selectors */
+  ol > li {
+    list-style: decimal;
+    list-style-position: inside;
+  }
+
+  ol[type='a'] > li {
+    list-style: lower-latin;
+    list-style-position: inside;
+  }
+
+  p {
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+
+  img {
     display: block;
+    width: fit-content;
+    max-width: 100%;
+    margin: 24px auto;
+  }
 
-    width: 5px;
-    margin-right: space(2);
-    border-radius: 6px;
+  table {
+    border-spacing: 0;
+    border-collapse: collapse;
 
-    background: $orange;
+    width: fit-content;
+    min-width: 50%;
+    max-width: 100%;
+    margin: 24px auto;
+  }
+
+  code {
+    padding: 2px 5px;
+    background-color: v.$violet;
+  }
+
+  table th,
+  table td {
+    padding: 8px 12px;
+    text-align: center;
+  }
+
+  table tr:nth-child(odd) {
+    background-color: v.$blue;
+  }
+
+  thead tr:first-child {
+    background-color: v.$blue;
   }
 }
+````
 
-/* スクロールバーのデザイン */
-// note: scrollbar-color はソリッドカラーのみ指定可能なので一応旧構文で書いている
-%scroll-bar {
-  // 幅
-  &::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+## File: layers/showcases/app/assets/styles/_toast.scss
+````scss
+// @nuxt/toastのスタイリング
+// @see nuxt.config.ts > toast
+// todo: !importantあまり使いたくないので@nuxt/toastに.scss渡せたりするなら修正
+
+@use 'variables' as v;
+@use 'mixins' as m;
+
+.hv-toast {
+  z-index: v.$zindex-toast !important;
+  top: v.$header-height-pc !important;
+  width: 100%;
+  margin-top: 0;
+
+  @include m.sp {
+    top: v.$header-height-sp !important;
   }
 
-  // 背景
-  &::-webkit-scrollbar-track {
-    box-shadow: inset 0 0 10px $green-4;
-  }
+  .hv-toast-context {
+    margin-top: 0 !important;
+    word-break: break-all !important;
+    overflow-wrap: break-word !important;
 
-  // ボタン
-  &::-webkit-scrollbar-thumb {
-    border-radius: 5px;
-    background-color: $green-5;
+    + .hv-toast-context {
+      margin-top: v.space(2) !important;
+    }
+
+    &.info {
+      background: v.$gray-2 !important;
+    }
+
+    &.success {
+      background: v.$primary-color !important;
+    }
+
+    &.error {
+      background: v.$red !important;
+    }
+
+    &.danger {
+      background: v.$red !important;
+    }
   }
 }
 ````
@@ -1159,25 +1528,6 @@ test('getI18nArray takes a list from vue-i18n dict', () => {
 })
 ````
 
-## File: layers/showcases/app/test/example.spec.ts
-````typescript
-/**
- * Showcases layer test example
- * This is a basic test to ensure the test environment is working
- */
-
-describe('Showcases Layer Tests', () => {
-  it('should have working test environment', () => {
-    expect(true).toBe(true)
-  })
-
-  it('should be able to test basic JavaScript functionality', () => {
-    const add = (a: number, b: number) => a + b
-    expect(add(2, 3)).toBe(5)
-  })
-})
-````
-
 ## File: layers/showcases/app/utils/api.ts
 ````typescript
 import { FetchOptions } from 'ofetch'
@@ -1623,499 +1973,6 @@ const goBack = async (): Promise<void> => {
 </style>
 ````
 
-## File: layers/showcases/i18n/locales/en.json
-````json
-{
-  "hello": "Hello!",
-  "language": "language"
-}
-````
-
-## File: layers/showcases/i18n/locales/ja.json
-````json
-{
-  "hello": "こんにちは！",
-  "language": "言語"
-}
-````
-
-## File: layers/showcases/public/_robots.txt
-````
-User-agent: *
-Disallow:
-````
-
-## File: layers/showcases/server/tsconfig.json
-````json
-{
-  "extends": "../.nuxt/tsconfig.server.json"
-}
-````
-
-## File: layers/showcases/app.config.ts
-````typescript
-// ref: https://v3.nuxtjs.org/guide/directory-structure/app.config
-// note: Do not put any secret values inside app.config file. It is exposed to the user client bundle.
-
-import { readEnvType } from './config/models/EnvType'
-import { getAppConfigOfEnvType } from './config/appConfig'
-
-// eslint-disable-next-line no-undef
-export default defineAppConfig(
-  getAppConfigOfEnvType(readEnvType(process.env), process.env)
-)
-````
-
-## File: layers/showcases/vitest.config.mts
-````
-/// <reference types="vitest" />
-import VueI18nVitePlugin from '@intlify/unplugin-vue-i18n/vite'
-import Vue from '@vitejs/plugin-vue'
-import path from 'path'
-import AutoImport from 'unplugin-auto-import/vite'
-import Components from 'unplugin-vue-components/vite'
-import { fileURLToPath } from 'url'
-import svgLoader from 'vite-svg-loader'
-import { defineConfig } from 'vitest/config'
-
-export default defineConfig({
-  plugins: [
-    Vue(),
-    AutoImport({
-      exclude: ['/test/', '/test-e2e/'],
-      include: [/\.[tj]s?$/, /\.[tj]sx?$/, /\.vue$/, /\.vue\?vue/],
-      imports: [
-        'vue',
-        'vue-i18n',
-        {
-          '#app': [
-            // NOTE: 自動生成される.nuxt/imports.d.tsから手動移植 https://tech.andpad.co.jp/entry/2023/03/16/100000
-            // export { // .nuxt/imports.d.ts 参照
-            'useAsyncData',
-            'useLazyAsyncData',
-            'useNuxtData',
-            'refreshNuxtData',
-            'clearNuxtData',
-            'defineNuxtComponent',
-            'useNuxtApp',
-            'defineNuxtPlugin',
-            'definePayloadPlugin',
-            'reloadNuxtApp',
-            'useRuntimeConfig',
-            'useState',
-            'clearNuxtState',
-            'useFetch',
-            'useLazyFetch',
-            'useCookie',
-            'useRequestHeaders',
-            'useRequestEvent',
-            'useRequestFetch',
-            'useRequestURL',
-            'setResponseStatus',
-            'setPageLayout',
-            'prerenderRoutes',
-            'onNuxtReady',
-            'useRouter',
-            'useRoute',
-            'defineNuxtRouteMiddleware',
-            'navigateTo',
-            'abortNavigation',
-            'addRouteMiddleware',
-            'showError',
-            'clearError',
-            'isNuxtError',
-            'useError',
-            'createError',
-            'defineNuxtLink',
-            'useAppConfig',
-            'updateAppConfig',
-            'defineAppConfig',
-            'preloadComponents',
-            'preloadRouteComponents',
-            'prefetchComponents',
-            'loadPayload',
-            'preloadPayload',
-            'isPrerendered',
-            'getAppManifest',
-            'getRouteRules',
-            'definePayloadReducer',
-            'definePayloadReviver',
-            'requestIdleCallback',
-            'cancelIdleCallback',
-            'onBeforeRouteLeave',
-            'onBeforeRouteUpdate',
-            //  } from '#app'; // .nuxt/imports.d.ts 参照
-          ],
-          '#i18n': [
-            'useRouteBaseName',
-            'useLocalePath',
-            'useLocaleRoute',
-            'useSwitchLocalePath',
-            'useLocaleHead',
-            'useBrowserLocale',
-            'useCookieLocale',
-            'defineI18nRoute',
-            'defineI18nLocale',
-            'defineI18nConfig',
-          ],
-        },
-      ],
-      dirs: [
-        'app/composables',
-        'app/utils/**',
-        '#base/app/composables',
-        '#base/app/utils/**',
-      ],
-      dts: './@types/auto-imports.d.ts',
-    }),
-    Components({
-      dirs: ['app/components', '#base/app/components'],
-      dts: './@types/components.d.ts',
-    }),
-    VueI18nVitePlugin({
-      include: [
-        path.resolve(
-          path.dirname(fileURLToPath(import.meta.url)),
-          './i18n/locales/*.json',
-        ),
-      ],
-      defaultSFCLang: 'yaml',
-      runtimeOnly: false,
-    }),
-    svgLoader({
-      defaultImport: 'component', // 'component', 'url', 'raw'
-      svgo: false,
-    }),
-  ],
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    coverage: {
-      include: ['app/**/*.{vue,ts}'],
-    },
-  },
-  resolve: {
-    alias: {
-      '#base': path.resolve(__dirname, '../base'),
-      '#app': path.resolve(__dirname, '../../node_modules/nuxt/dist/app'),
-      '#i18n': path.resolve(
-        __dirname,
-        '../../node_modules/@nuxtjs/i18n/dist/runtime/composables',
-      ),
-      '@': path.resolve(__dirname, '../main/app'),
-      '#showcases': path.resolve(__dirname, './'),
-    },
-  },
-})
-````
-
-## File: layers/showcases/app/assets/styles/_base.scss
-````scss
-@use 'variables' as v;
-@use 'mixins' as m;
-
-html,
-body {
-  overflow-x: clip;
-
-  font-family: v.$base-font-family;
-  font-variant-numeric: tabular-nums; // 数字フォントの幅を等幅にする
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  color: v.$base-font-color;
-  word-break: normal; // 単語の分割はブラウザのデフォルトであることを明記
-  line-break: strict; // 約物や小文字を置き去りにして改行させない
-  overflow-wrap: anywhere; // 行内に単語を収められない場合に折り返す
-
-  background: v.$base-background-color;
-
-  text-spacing-trim: trim-start; // 英字や日本語の約物が重複した場合に全角分のスペースを確保させない
-}
-
-a {
-  color: v.$base-link-color;
-  text-decoration: none;
-}
-````
-
-## File: layers/showcases/app/assets/styles/_markdown.scss
-````scss
-// markdown 用スタイリング
-@use 'variables' as v;
-
-.hm-markdowon {
-  h1,
-  h2,
-  h3,
-  h4,
-  h5 {
-    line-height: 1.3;
-  }
-
-  h1 {
-    margin-bottom: 32px;
-  }
-
-  h2 {
-    margin-bottom: 24px;
-    font-size: 28px;
-  }
-
-  h3 {
-    font-size: 24px;
-  }
-
-  h4 {
-    font-size: 20px;
-  }
-
-  h5 {
-    font-size: 16px;
-  }
-
-  h3,
-  h4,
-  h5 {
-    margin-bottom: 16px;
-    font-weight: 400;
-  }
-
-  ul,
-  ol {
-    margin-bottom: 24px;
-
-    > li {
-      padding-left: 1em;
-      text-indent: -1em;
-
-      &:not(:last-child) {
-        margin-bottom: 16px;
-      }
-    }
-  }
-
-  li {
-    line-height: 1.3;
-    list-style-position: inside;
-
-    > ul {
-      margin: 16px 0;
-      padding-left: 48px;
-    }
-
-    ol {
-      counter-reset: ol-item;
-      margin: 16px 0;
-      padding-left: 28px;
-      list-style: none;
-
-      > li {
-        position: relative;
-        padding-left: 1.5em;
-        text-indent: 0;
-
-        // list-style: none だけで消えないので
-        &::marker {
-          content: '';
-        }
-
-        &::before {
-          // インデントした数値は 「1)」の表示にする
-          content: counter(ol-item) ')  ';
-          counter-increment: ol-item 1;
-
-          position: absolute; // 数値の桁数が違う場合の見た目に対応
-          top: 0;
-          left: 0;
-
-          display: block;
-
-          width: 100px;
-        }
-      }
-    }
-  }
-  /* stylelint-disable selector-max-compound-selectors */
-  ul > li {
-    list-style: none;
-
-    &::before {
-      content: '・';
-    }
-
-    ul > li {
-      list-style: circle;
-
-      ul > li {
-        list-style: disc;
-      }
-    }
-  }
-
-  /* stylelint-ensable selector-max-compound-selectors */
-  ol > li {
-    list-style: decimal;
-    list-style-position: inside;
-  }
-
-  ol[type='a'] > li {
-    list-style: lower-latin;
-    list-style-position: inside;
-  }
-
-  p {
-    margin-bottom: 24px;
-    line-height: 1.6;
-  }
-
-  img {
-    display: block;
-    width: fit-content;
-    max-width: 100%;
-    margin: 24px auto;
-  }
-
-  table {
-    border-spacing: 0;
-    border-collapse: collapse;
-
-    width: fit-content;
-    min-width: 50%;
-    max-width: 100%;
-    margin: 24px auto;
-  }
-
-  code {
-    padding: 2px 5px;
-    background-color: v.$violet;
-  }
-
-  table th,
-  table td {
-    padding: 8px 12px;
-    text-align: center;
-  }
-
-  table tr:nth-child(odd) {
-    background-color: v.$blue;
-  }
-
-  thead tr:first-child {
-    background-color: v.$blue;
-  }
-}
-````
-
-## File: layers/showcases/app/assets/styles/_toast.scss
-````scss
-// @nuxt/toastのスタイリング
-// @see nuxt.config.ts > toast
-// todo: !importantあまり使いたくないので@nuxt/toastに.scss渡せたりするなら修正
-
-@use 'variables' as v;
-@use 'mixins' as m;
-
-.hv-toast {
-  z-index: v.$zindex-toast !important;
-  top: v.$header-height-pc !important;
-  width: 100%;
-  margin-top: 0;
-
-  @include m.sp {
-    top: v.$header-height-sp !important;
-  }
-
-  .hv-toast-context {
-    margin-top: 0 !important;
-    word-break: break-all !important;
-    overflow-wrap: break-word !important;
-
-    + .hv-toast-context {
-      margin-top: v.space(2) !important;
-    }
-
-    &.info {
-      background: v.$gray-2 !important;
-    }
-
-    &.success {
-      background: v.$primary-color !important;
-    }
-
-    &.error {
-      background: v.$red !important;
-    }
-
-    &.danger {
-      background: v.$red !important;
-    }
-  }
-}
-````
-
-## File: layers/showcases/app/models/json.ts
-````typescript
-/**
- * @group For Developers
- * @category Type Definitions
- * @module Json
- * @reference https://zod.dev/?id=json-type
- */
-
-import { z } from 'zod/v3'
-
-const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()])
-type Literal = z.infer<typeof literalSchema>
-type JsonType = Literal | { [key: string]: JsonType } | JsonType[]
-export const jsonSchema: z.ZodType<JsonType> = z.lazy(() =>
-  z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)]),
-)
-export type Json = z.infer<typeof jsonSchema>
-````
-
-## File: layers/showcases/app/models/todo.ts
-````typescript
-import { z } from 'zod/v3'
-import { integral } from '#base/app/utils/zod'
-
-export const todoSchema = z.object({
-  userId: integral, // NOTE: バックエンドの仕様が不安定な場合は、integralで型を広く持っておこう
-  id: integral,
-  title: z.string(),
-  completed: z.boolean(),
-})
-
-export type Todo = z.infer<typeof todoSchema>
-````
-
-## File: layers/showcases/app/utils/i18n.ts
-````typescript
-import { Composer, UseI18nOptions, VueMessageType } from 'vue-i18n'
-
-/**
- * 引数未指定にすると、普通に`const i18n = useI18n()`とすると入ってくる型になる。
- * 型引数の使い方については、そのままuseI18nの型引数の指定方法を参照のこと。
- */
-export type UseI18nReturnType<Options extends UseI18nOptions = UseI18nOptions>
-  = Composer<
-    NonNullable<Options['messages']>,
-    NonNullable<Options['datetimeFormats']>,
-    NonNullable<Options['numberFormats']>,
-    Options['locale'] extends unknown ? string : Options['locale']
-  >
-
-/**
- * @example
- * ```ts
- * import { useI18n } from 'vue-i18n'
- * const i18n = useI18n() // messagesは `{ [locale]: { list: ['a', 'b', 'c'] } }` とする
- * const list = getI18nArray(i18n, 'list') // ['a', 'b', 'c']
- * ```
- */
-export const getI18nArray = (i18n: UseI18nReturnType, key: string): string[] =>
-  Object.entries<VueMessageType>(i18n.tm(key)).map(([_, term]) => i18n.rt(term))
-````
-
 ## File: layers/showcases/i18n/i18n.config.ts
 ````typescript
 /*
@@ -2194,6 +2051,33 @@ export default {
 }
 ````
 
+## File: layers/showcases/public/_robots.txt
+````
+User-agent: *
+Disallow:
+````
+
+## File: layers/showcases/server/tsconfig.json
+````json
+{
+  "extends": "../.nuxt/tsconfig.server.json"
+}
+````
+
+## File: layers/showcases/app.config.ts
+````typescript
+// ref: https://v3.nuxtjs.org/guide/directory-structure/app.config
+// note: Do not put any secret values inside app.config file. It is exposed to the user client bundle.
+
+import { readEnvType } from './config/models/EnvType'
+import { getAppConfigOfEnvType } from './config/appConfig'
+
+// eslint-disable-next-line no-undef
+export default defineAppConfig(
+  getAppConfigOfEnvType(readEnvType(process.env), process.env)
+)
+````
+
 ## File: layers/showcases/nuxt.config.ts
 ````typescript
 import { defineNuxtConfig } from 'nuxt/config'
@@ -2231,21 +2115,19 @@ const needSourcemap = NUXT_ENV_OUTPUT_ENV !== 'production'
 const enableDebug = NUXT_ENV_OUTPUT_ENV === 'local'
 
 const meta: MetaInfo = {
-  title: 'VKet Showcases',
-  description: 'Interactive component library showcasing VKet UI components and patterns',
+  title: '',
+  description: '',
   robots: NUXT_ENV_OUTPUT_ENV === 'production' ? 'all' : 'none',
-  siteName: 'VKet Showcases',
+  siteName: '',
   ogImageUrl: `${process.env.NUXT_PUBLIC_URL}/images/ogp.jpg`,
-  ogUrl: process.env.NUXT_PUBLIC_URL || '',
+  ogUrl: runtimeConfig.public.url,
   twitterSite: 'https://x.com/',
   twitterCreator: 'https://x.com/',
 }
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  extends: [
-    path.resolve(__dirname, '../base'),
-  ],
+  extends: path.resolve(__dirname, '../base'),
   modules: [
     'unplugin-icons/nuxt',
     '@nuxtjs/google-fonts',
@@ -2313,10 +2195,10 @@ export default defineNuxtConfig({
   rootDir: __dirname,
   srcDir: `${srcDir}/`,
   alias: {
-    '~': path.resolve(__dirname, '../main/app'),
-    '@': path.resolve(__dirname, '../main/app'),
     '#base': path.resolve(__dirname, '../base'),
     '#main': path.resolve(__dirname, '../main'),
+    '~': path.resolve(__dirname, '../main/app'),
+    '@': path.resolve(__dirname, '../main/app'),
     '#showcases': __dirname,
   },
   ignore: [
@@ -2365,7 +2247,7 @@ export default defineNuxtConfig({
   typescript: {
     typeCheck: checkTypeCheckOnBuild,
   },
-  debug: enableDebug,
+  debug: process.env.VITEST === 'true' ? false : enableDebug,
 
   googleFonts: {
     families: {
@@ -2413,6 +2295,96 @@ export default defineNuxtConfig({
     "vket-boilerplate-nuxt-base": "workspace:*"
   }
 }
+````
+
+## File: layers/showcases/vitest.config.mts
+````
+import { defineVitestConfig } from '@nuxt/test-utils/config'
+
+export default defineVitestConfig({
+  test: {
+    globals: true,
+    environment: 'nuxt',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      reportsDirectory: '../coverage',
+      reportOnFailure: true,
+      allowExternal: true,
+      include: ['**/*.{vue,ts}'],
+      exclude: [
+        'plugins/**',
+        'middleware/**',
+        'layouts/**',
+        'test/**',
+      ],
+    },
+    setupFiles: ['test/setup.ts'],
+  },
+})
+````
+
+## File: layers/showcases/app/models/json.ts
+````typescript
+/**
+ * @group For Developers
+ * @category Type Definitions
+ * @module Json
+ * @reference https://zod.dev/?id=json-type
+ */
+
+import { z } from 'zod/v3'
+
+const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()])
+type Literal = z.infer<typeof literalSchema>
+type JsonType = Literal | { [key: string]: JsonType } | JsonType[]
+export const jsonSchema: z.ZodType<JsonType> = z.lazy(() =>
+  z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)]),
+)
+export type Json = z.infer<typeof jsonSchema>
+````
+
+## File: layers/showcases/app/models/todo.ts
+````typescript
+import { z } from 'zod/v3'
+import { integral } from '#base/app/utils/zod'
+
+export const todoSchema = z.object({
+  userId: integral, // NOTE: バックエンドの仕様が不安定な場合は、integralで型を広く持っておこう
+  id: integral,
+  title: z.string(),
+  completed: z.boolean(),
+})
+
+export type Todo = z.infer<typeof todoSchema>
+````
+
+## File: layers/showcases/app/utils/i18n.ts
+````typescript
+import { Composer, UseI18nOptions, VueMessageType } from 'vue-i18n'
+
+/**
+ * 引数未指定にすると、普通に`const i18n = useI18n()`とすると入ってくる型になる。
+ * 型引数の使い方については、そのままuseI18nの型引数の指定方法を参照のこと。
+ */
+export type UseI18nReturnType<Options extends UseI18nOptions = UseI18nOptions>
+  = Composer<
+    NonNullable<Options['messages']>,
+    NonNullable<Options['datetimeFormats']>,
+    NonNullable<Options['numberFormats']>,
+    Options['locale'] extends unknown ? string : Options['locale']
+  >
+
+/**
+ * @example
+ * ```ts
+ * import { useI18n } from 'vue-i18n'
+ * const i18n = useI18n() // messagesは `{ [locale]: { list: ['a', 'b', 'c'] } }` とする
+ * const list = getI18nArray(i18n, 'list') // ['a', 'b', 'c']
+ * ```
+ */
+export const getI18nArray = (i18n: UseI18nReturnType, key: string): string[] =>
+  Object.entries<VueMessageType>(i18n.tm(key)).map(([_, term]) => i18n.rt(term))
 ````
 
 ## File: layers/showcases/@types/auto-imports.d.ts

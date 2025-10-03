@@ -121,6 +121,7 @@ layers/
           api.spec.ts
           factory.spec.ts
           i18n.spec.ts
+        setup.ts
       utils/
         api.ts
         factory.ts
@@ -1242,6 +1243,83 @@ declare module 'vue' {
 }
 ````
 
+## File: layers/main/app/test/setup.ts
+````typescript
+import { vi } from 'vitest'
+
+// Type declarations for global mocks - range and useSlots are handled by auto-imports
+
+// Global mock for all icon imports
+vi.mock('~icons/ri/close-line', () => ({
+  default: {
+    name: 'RiCloseLine',
+    template: '<svg class="icon"><path /></svg>',
+    props: ['class'],
+  },
+}))
+
+// Mock Nuxt composables using vi.mock to avoid conflicts with auto-imports
+vi.mock('#app/composables/useI18n', () => ({
+  useI18n: vi.fn(() => ({
+    t: vi.fn((key: string) => {
+      const messages: Record<string, string> = {
+        next: 'Next',
+        prev: 'Prev',
+      }
+      return messages[key] || key
+    }),
+    locale: { value: 'ja' },
+  })),
+}))
+
+vi.mock('#app/composables/useRoute', () => ({
+  useRoute: vi.fn(() => ({
+    path: '/test',
+    query: { page: '1' },
+  })),
+}))
+
+vi.mock('vue', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue')>()
+  return {
+    ...actual,
+    nextTick: vi.fn().mockResolvedValue(undefined),
+  }
+})
+
+// Global utility functions for tests - range and useSlots handled by auto-imports
+
+// HTMLDialogElement mock for jsdom
+if (!global.HTMLDialogElement) {
+  global.HTMLDialogElement = class HTMLDialogElement extends HTMLElement {
+    open = false
+    returnValue = ''
+
+    showModal = vi.fn(() => {
+      this.open = true
+    })
+
+    close = vi.fn(() => {
+      this.open = false
+    })
+
+    show = vi.fn(() => {
+      this.open = true
+    })
+
+    requestClose = vi.fn()
+
+    override addEventListener(_event: string, _callback: (...args: unknown[]) => void) {
+      // Mock implementation
+    }
+
+    override removeEventListener(_event: string, _callback: (...args: unknown[]) => void) {
+      // Mock implementation
+    }
+  }
+}
+````
+
 ## File: layers/main/app/utils/api.ts
 ````typescript
 import { FetchOptions } from 'ofetch'
@@ -1529,9 +1607,9 @@ export default defineAppConfig(
 
 ## File: layers/main/eslint.config.mjs
 ````
+import stylistic from '@stylistic/eslint-plugin'
 import typescriptEslint from '@typescript-eslint/eslint-plugin'
 import globals from 'globals'
-import stylistic from '@stylistic/eslint-plugin'
 import sharedConfig, { basicConfig } from '../../eslint.config.shared.mjs'
 import withNuxt from './.nuxt/eslint.config.mjs'
 
@@ -1555,6 +1633,8 @@ export default withNuxt(
       'vue/no-v-html': 'error',
       'vue/multi-word-component-names': 'off',
       'vue/html-self-closing': 'off', // prettierと競合するため、off
+      'vue/attribute-hyphenation': ['error', 'never'], // camelCase属性を強制
+      'vue/v-on-event-hyphenation': ['error', 'never', { autofix: true }], // camelCaseイベントを強制
     },
   },
   // composablesやplugins・middlewareなども含む設定
@@ -1586,6 +1666,12 @@ export default withNuxt(
       '**/*.cts',
       '**/*.vue',
       // 'Parsing error: Type expected'するので.tsxは除外
+    ],
+    ignores: [
+      '**/vitest.config.mts', // tsconfig.shared.jsonのexcludeに含まれているため除外
+      '**/*.js', // .jsファイルは型チェックルールの対象外
+      '**/*.mjs', // .mjsファイルも型チェックルールの対象外
+      '**/*.cjs', // .cjsファイルも型チェックルールの対象外
     ],
     languageOptions: {
       parserOptions: {
@@ -1892,6 +1978,34 @@ a {
 }
 ````
 
+## File: layers/main/app/components/ht/HtTop.vue
+````vue
+<i18n lang="yaml">
+ja:
+  hoge: ほげ
+en:
+  hoge: hoge
+</i18n>
+
+<template>
+  <div class="ht-top"></div>
+</template>
+
+<script setup lang="ts">
+//
+</script>
+
+<style lang="scss" scoped>
+@use '@/assets/styles/variables' as v;
+@use '@/assets/styles/mixins' as m;
+
+.ht-top {
+  width: 100%;
+  height: 100%;
+}
+</style>
+````
+
 ## File: layers/main/app/layouts/default.vue
 ````vue
 <template>
@@ -2003,6 +2117,136 @@ test('fetcher', () => {
   const options = {}
   // useFetchが発火することを確認。戻り値はmockの戻り値とする
   expect(fetcher(path, options)).toStrictEqual({ path, options })
+})
+````
+
+## File: layers/main/app/test/utils/api.spec.ts
+````typescript
+import { describe, it, expect, vi } from 'vitest'
+import type { NitroFetchRequest } from 'nitropack'
+import api from '@/utils/api'
+
+// NOTE: mockを使う際に必要な記述
+vi.mock('#app', () => ({
+  // NOTE:  defineNuxtPluginでエラーが出るので設置
+  defineNuxtPlugin: vi.fn(),
+}))
+
+// NOTE: src/utils/api.tsのテストとして当該ファイルがimportしているファイルからの変数「requireRuntimeConfig」をモックする。
+vi.mock('#base/app/plugins/runtimeConfig', () => {
+  return {
+    requireRuntimeConfig: vi.fn(() => {
+      // NOTE: api.tsのテストとしてrequireRuntimeConfigが{public.baseUrl}としてダミーURLを返すだけの処理を行うようにモックする
+      return {
+        public: {
+          baseUrl: '/test-api',
+        },
+      }
+    }),
+  }
+})
+
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+vi.mock('#base/app/plugins/fetch', () => {
+  return {
+    pluginFetchApi: vi.fn((path: string, options: NitroFetchRequest) => {
+      return { path, options }
+    }),
+  }
+})
+
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+vi.mock('ofetch', () => {
+  return {
+    $fetch: vi.fn((path: string, options: NitroFetchRequest) => {
+      return { path, options }
+    }),
+  }
+})
+
+describe('api', () => {
+  // NOTE: api.getの返却値のテストとして、引数のpathやfetchOptionを入力して、返却値として期待するexpectObjと同等かテストする。その際、onRequestとonResponseは複雑化するので、空オブジェクトで省略としてtoMatchObjectで合格するか検査する。
+  it('get', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'GET',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('get', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('post', async () => {
+    // NOET: 以下getと同様にテストする。methodはgetではなく、相送信methodに準じた値に変化するので注意
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'POST',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('post', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('put', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'PUT',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('put', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('patch', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'PATCH',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('patch', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('delete', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'DELETE',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('delete', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
 })
 ````
 
@@ -2487,185 +2731,10 @@ const goBack = async (): Promise<void> => {
 </style>
 ````
 
-## File: layers/main/vitest.config.mts
-````
-import { defineVitestConfig } from '@nuxt/test-utils/config'
-
-export default defineVitestConfig({
-  test: {
-    environment: 'nuxt',
-    env: {
-      VITEST: 'true',
-    },
-    coverage: {
-      include: ['app/**/*.{vue,ts}'],
-    },
-  },
-})
-````
-
-## File: layers/main/app/components/ht/HtTop.vue
-````vue
-<i18n lang="yaml">
-ja:
-  hoge: ほげ
-en:
-  hoge: hoge
-</i18n>
-
-<template>
-  <div class="ht-top"></div>
-</template>
-
-<script setup lang="ts">
-//
-</script>
-
-<style lang="scss" scoped>
-@use '@/assets/styles/variables' as v;
-@use '@/assets/styles/mixins' as m;
-
-.ht-top {
-  width: 100%;
-  height: 100%;
-}
-</style>
-````
-
-## File: layers/main/app/test/utils/api.spec.ts
-````typescript
-import { describe, it, expect, vi } from 'vitest'
-import type { NitroFetchRequest } from 'nitropack'
-import api from '@/utils/api'
-
-// NOTE: mockを使う際に必要な記述
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-}))
-
-// NOTE: src/utils/api.tsのテストとして当該ファイルがimportしているファイルからの変数「requireRuntimeConfig」をモックする。
-vi.mock('#base/app/plugins/runtimeConfig', () => {
-  return {
-    requireRuntimeConfig: vi.fn(() => {
-      // NOTE: api.tsのテストとしてrequireRuntimeConfigが{public.baseUrl}としてダミーURLを返すだけの処理を行うようにモックする
-      return {
-        public: {
-          baseUrl: '/test-api',
-        },
-      }
-    }),
-  }
-})
-
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-vi.mock('#base/app/plugins/fetch', () => {
-  return {
-    pluginFetchApi: vi.fn((path: string, options: NitroFetchRequest) => {
-      return { path, options }
-    }),
-  }
-})
-
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-vi.mock('ofetch', () => {
-  return {
-    $fetch: vi.fn((path: string, options: NitroFetchRequest) => {
-      return { path, options }
-    }),
-  }
-})
-
-describe('api', () => {
-  // NOTE: api.getの返却値のテストとして、引数のpathやfetchOptionを入力して、返却値として期待するexpectObjと同等かテストする。その際、onRequestとonResponseは複雑化するので、空オブジェクトで省略としてtoMatchObjectで合格するか検査する。
-  it('get', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'GET',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('get', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('post', async () => {
-    // NOET: 以下getと同様にテストする。methodはgetではなく、相送信methodに準じた値に変化するので注意
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'POST',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('post', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('put', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'PUT',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('put', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('patch', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'PATCH',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('patch', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('delete', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'DELETE',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('delete', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-})
-````
-
 ## File: layers/main/nuxt.config.ts
 ````typescript
-import path from 'path'
 import { defineNuxtConfig } from 'nuxt/config'
+import path from 'path'
 import { readEnvType } from './config/models/EnvType'
 import { getRuntimeConfigOfEnvType } from './config/runtimeConfig'
 import { nuxtI18nOptions } from './i18n/i18n.config'
@@ -2701,8 +2770,8 @@ const meta: MetaInfo = {
   siteName: '',
   ogImageUrl: `${runtimeConfig.public.url}/images/ogp.jpg`,
   ogUrl: runtimeConfig.public.url,
-  twitterSite: '',
-  twitterCreator: '',
+  twitterSite: 'https://x.com/',
+  twitterCreator: 'https://x.com/',
 }
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
@@ -2774,6 +2843,7 @@ export default defineNuxtConfig({
   srcDir: `${srcDir}/`,
 
   alias: {
+    '#base': path.resolve(__dirname, '../base'),
     '#main': __dirname,
     '@': path.resolve(__dirname, './app'),
   },
@@ -2851,6 +2921,33 @@ export default defineNuxtConfig({
     "vket-boilerplate-nuxt-base": "workspace:*"
   }
 }
+````
+
+## File: layers/main/vitest.config.mts
+````
+import { defineVitestConfig } from '@nuxt/test-utils/config'
+
+export default defineVitestConfig({
+  test: {
+    globals: true,
+    environment: 'nuxt',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      reportsDirectory: '../coverage',
+      reportOnFailure: true,
+      allowExternal: true,
+      include: ['**/*.{vue,ts}'],
+      exclude: [
+        'plugins/**',
+        'middleware/**',
+        'layouts/**',
+        'test/**',
+      ],
+    },
+    setupFiles: ['test/setup.ts'],
+  },
+})
 ````
 
 ## File: layers/main/@types/auto-imports.d.ts

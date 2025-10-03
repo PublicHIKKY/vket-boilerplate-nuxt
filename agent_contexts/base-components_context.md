@@ -94,499 +94,6 @@ layers/
 
 # Files
 
-## File: layers/base/app/components/ha/HaImage.vue
-```vue
-<template>
-  <img
-    ref="imageElement"
-    class="ha-image"
-    :loading="isLazy ? 'lazy' : 'eager'"
-    :fetchpriority="fetchPriority"
-    :src="imageUrl"
-    :alt="alt || ''"
-    :role="alt ? 'img' : 'presentation'"
-    :decoding="decoding"
-    @error="onError"
-    @load="onImageLoad"
-  />
-</template>
-
-<script setup lang="ts">
-import defaultNoImage from '@@/public/images/no-image.png'
-
-const props = withDefaults(
-  defineProps<{
-    /**
-     * src 属性に渡されるもの。
-     * 無指定で '/images/no-image.png'、
-     * エラー時に「無」の画像に置き換えられる。
-     */
-    src?: string | null
-    alt?: string | null
-    /** デフォルト有効(loading="eager") :is-lazy="true" でloading="lazy" */
-    isLazy?: boolean
-    fetchPriority?: 'low' | 'high' | 'auto' | null
-    decoding?: 'sync' | 'async' | 'auto'
-    /** エラー時の置き換え「無」画像のurl */
-    noImage?: string
-  }>(),
-  {
-    src: '',
-    alt: null,
-    isLazy: false,
-    fetchPriority: 'low',
-    decoding: 'auto',
-    noImage: '',
-  },
-)
-const hasError = ref(false)
-const onError = () => {
-  hasError.value = true
-}
-
-const imageUrl = computed(() =>
-  hasError.value
-    ? props.noImage || defaultNoImage
-    : props.src || defaultNoImage,
-)
-
-// imgにwidthとheightを自動付与する
-const imageElement = ref<HTMLImageElement | null>(null)
-const onImageLoad = (): void => {
-  if (imageElement.value) {
-    const width = imageElement.value.naturalWidth
-    const height = imageElement.value.naturalHeight
-    imageElement.value.width = width
-    imageElement.value.height = height
-  }
-}
-</script>
-```
-
-## File: layers/base/app/components/ha/HaLabel.vue
-```vue
-<template>
-  <div
-    class="ha-label"
-    :style="style"
-  >
-    {{ text }}
-  </div>
-</template>
-
-<script lang="ts" setup>
-export type BackgroundColorMap = Record<string, string>
-/**
- * Mapping text to background-color.
- *
- * テキストで背景をスイッチしたいときに指定します。
- * もしcolorMap[text]が存在しなければfallbackColorにフォールバックします。
- */
-const props = withDefaults(
-  defineProps<{
-    text?: string
-    colorMap?: BackgroundColorMap
-    fallbackColor?: string
-  }>(),
-  {
-    text: '',
-    colorMap: undefined,
-    fallbackColor: 'black',
-  },
-)
-const style = computed(() => ({
-  'background-color': props.colorMap?.[props.text] ?? props.fallbackColor,
-}))
-</script>
-```
-
-## File: layers/base/app/components/ha/HaLink.vue
-```vue
-<template>
-  <component
-    :is="component"
-    class="ha-link"
-    v-bind="{ [isNuxtLink ? 'to' : 'href']: linkTo }"
-    :target="blank ? '_blank' : undefined"
-    :rel="rel"
-  >
-    <slot />
-  </component>
-</template>
-
-<script setup lang="ts">
-import { LocationQuery, stringifyQuery } from 'vue-router'
-
-const props = withDefaults(
-  defineProps<{
-    to: string
-    blank?: boolean
-    rel?: HTMLAnchorElement['rel']
-    forceAnchorLink?: boolean
-    noLocale?: boolean
-    // toにqueryパラメータを入れてしまうと、localePathで消えるため、こちらのパラメータを使用してリンクを生成
-    query?: LocationQuery
-    /*
-     * toにhashパラメータを入れてしまうと、localePathで消えるため、こちらのパラメータを使用してリンクを生成
-     * 使う場合は「#」を先頭につけること
-     */
-    hash?: string
-  }>(),
-  {
-    blank: false,
-    rel: undefined,
-    forceAnchorLink: false,
-    noLocale: false,
-    query: undefined,
-    hash: undefined,
-  },
-)
-const isExternalReference = computed(() => !!props.to?.match(/^https?:\/\//))
-const isNuxtLink = computed(
-  // FIXME: isNuxtEnvironment() が壊れている
-  () =>
-    /* isNuxtEnvironment() && */ !props.forceAnchorLink
-    && !isExternalReference.value,
-)
-const component = computed(() =>
-  isNuxtLink.value ? resolveComponent('nuxt-link') : 'a',
-)
-const linkTo = computed(() => {
-  if (!isNuxtLink.value) {
-    return toUrl(props)
-  }
-
-  const localePath = useLocalePath()
-  return localePath({ path: props.to, query: props.query, hash: props.hash })
-})
-const toUrl = ({
-  to,
-  query,
-  hash,
-}: {
-  to: string
-  query?: LocationQuery
-  hash?: string
-}) => {
-  const queryStr = query ? `?${stringifyQuery(query)}` : ''
-  return `${to}${queryStr}${hash ?? ''}`
-}
-</script>
-```
-
-## File: layers/base/app/components/ha/HaSkewBackground.vue
-```vue
-<template>
-  <div
-    class="ha-skew"
-    :style="backStyle"
-  >
-    <div
-      class="content"
-      :style="contentStyle"
-    >
-      <slot />
-    </div>
-  </div>
-</template>
-
-<script lang="ts" setup>
-import { ValueOf } from '#base/app/utils/types/types'
-
-const _AXIS = {
-  x: 'x',
-  y: 'y',
-  z: 'z',
-} as const
-
-type Props = {
-  deg: number
-  axis: ValueOf<typeof _AXIS>
-}
-
-const props = defineProps<Props>()
-
-const skew: Record<ValueOf<typeof _AXIS>, string> = {
-  x: 'skewX',
-  y: 'skewY',
-  z: 'skewZ',
-} as const
-
-const backStyle = computed(() => ({
-  transform: `${skew[props.axis]}(${props.deg}deg)`,
-}))
-const contentStyle = computed(() => ({
-  transform: `${skew[props.axis]}(${props.deg * -1}deg)`,
-}))
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-@use '#base/app/assets/styles/mixins' as m;
-
-.ha-skew,
-.content {
-  height: 100%;
-}
-</style>
-```
-
-## File: layers/base/app/components/ha/HaVideo.vue
-```vue
-<template>
-  <video
-    ref="haVideoRef"
-    class="ha-video"
-    :src="src"
-    :autoplay="autoplay"
-    :autopictureinpicture="autopictureinpicture"
-    :controls="controls"
-    :disablepictureinpicture="disablepictureinpicture"
-    :controlslist="controlslist"
-    :crossorigin="crossorigin"
-    :disableremoteplayback="disableremoteplayback"
-    :x-webkit-airplay="disableremoteplayback ? 'deny' : false"
-    :width="width"
-    :height="height"
-    :loop="loop"
-    :muted="muted"
-    :playsinline="playsinline"
-    :poster="poster"
-    :preload="preload"
-  />
-</template>
-
-<script setup lang="ts">
-const props = withDefaults(
-  defineProps<{
-    src: string
-    height?: string
-    width?: string
-    play?: boolean
-    autoplay?: boolean
-    autopictureinpicture?: boolean
-    controls?: boolean
-    disablepictureinpicture?: boolean
-    disableremoteplayback?: boolean
-    loop?: boolean
-    muted?: boolean
-    playsinline?: boolean
-    poster?: string
-    // nodownload, nofullscreen, noremoteplayback
-    controlslist?: string
-    // anonymous, use-credentials
-    crossorigin?: string
-    // none, metadata, auto
-    preload?: string
-  }>(),
-  {
-    height: '',
-    width: '',
-    autoplay: false,
-    play: false,
-    autopictureinpicture: false,
-    controls: false,
-    disablepictureinpicture: false,
-    disableremoteplayback: false,
-    loop: false,
-    muted: false,
-    playsinline: false,
-    poster: '',
-    controlslist: '',
-    crossorigin: '',
-    preload: 'auto',
-  },
-)
-const emit = defineEmits<{
-  (
-    emit:
-      | 'progress'
-      | 'suspend'
-      | 'durationchange'
-      | 'loadedmetadata'
-      | 'loadeddata'
-      | 'canplay'
-      | 'playing'
-      | 'pause'
-      | 'ended'
-      | 'seeking'
-      | 'timeupdate'
-      | 'volumechange'
-      | 'ratechange'
-      | 'waiting',
-    e: Event
-  ): void
-}>()
-
-const haVideoRef = ref<HTMLVideoElement | null>(null)
-
-// note: HaVideoがmounted後にpropsを変えないとwatchされない
-watch(props, async () => {
-  if (haVideoRef.value === null) {
-    return
-  }
-
-  if (props.play) {
-    await haVideoRef.value.play()
-  } else {
-    haVideoRef.value.pause()
-  }
-})
-
-onMounted(() => {
-  haVideoRef.value?.addEventListener('progress', (e: Event) =>
-    emit('progress', e),
-  )
-  haVideoRef.value?.addEventListener('suspend', (e: Event) =>
-    emit('suspend', e),
-  )
-  haVideoRef.value?.addEventListener('durationchange', (e: Event) =>
-    emit('durationchange', e),
-  )
-  haVideoRef.value?.addEventListener('loadedmetadata', (e: Event) =>
-    emit('loadedmetadata', e),
-  )
-  haVideoRef.value?.addEventListener('loadeddata', (e: Event) =>
-    emit('loadeddata', e),
-  )
-  haVideoRef.value?.addEventListener('canplay', (e: Event) =>
-    emit('canplay', e),
-  )
-  haVideoRef.value?.addEventListener('playing', (e: Event) =>
-    emit('playing', e),
-  )
-  haVideoRef.value?.addEventListener('pause', (e: Event) => emit('pause', e))
-  haVideoRef.value?.addEventListener('ended', (e: Event) => emit('ended', e))
-  haVideoRef.value?.addEventListener('seeking', (e: Event) =>
-    emit('seeking', e),
-  )
-  haVideoRef.value?.addEventListener('timeupdate', (e: Event) =>
-    emit('timeupdate', e),
-  )
-  haVideoRef.value?.addEventListener('volumechange', (e: Event) =>
-    emit('volumechange', e),
-  )
-  haVideoRef.value?.addEventListener('ratechange', (e: Event) =>
-    emit('ratechange', e),
-  )
-  haVideoRef.value?.addEventListener('waiting', (e: Event) =>
-    emit('waiting', e),
-  )
-})
-</script>
-```
-
-## File: layers/base/app/components/hm/button/HmButtonClose.vue
-```vue
-<template>
-  <HaBaseButton
-    class="hm-button-close"
-    @click="onClick"
-  >
-    <IconClose
-      :style="{
-        width: width,
-        height: height,
-      }"
-    />
-  </HaBaseButton>
-</template>
-
-<script setup lang="ts">
-import IconClose from '#base/app/assets/icons/icon-close.svg'
-
-type Emits = {
-  (e: 'click'): () => void
-}
-
-const emit = defineEmits<Emits>()
-const onClick = () => emit('click')
-
-type Props = {
-  width?: string
-  height?: string
-}
-
-withDefaults(defineProps<Props>(), {
-  width: '20px',
-  height: '20px',
-})
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-@use 'sass:color';
-
-.hm-button-close {
-  :deep(circle) {
-    transition: fill 0.2s ease;
-  }
-
-  &:hover :deep(circle) {
-    // note: opacityだと後ろのborderが見えてしまうのでsvgの色を変更
-    fill: color.adjust(v.$gray-1, $lightness: 5%);
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/HmNoteList.vue
-```vue
-<template>
-  <ul class="hm-note-list">
-    <li
-      v-for="(text, index) in list"
-      :key="`note-${index}`"
-      class="item"
-    >
-      {{ text }}
-    </li>
-  </ul>
-</template>
-
-<script lang="ts" setup>
-defineProps<{
-  list: string[]
-}>()
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-
-.hm-note-list {
-  font-size: 14px;
-  line-height: 1.3;
-
-  > .item {
-    margin-bottom: 4px;
-
-    &::before {
-      content: '※';
-      margin-right: 0.3em;
-    }
-  }
-}
-</style>
-```
-
-## File: layers/base/app/layouts/default.vue
-```vue
-<template>
-  <div class="layout -default">
-    <h1 class="heading">
-      Base App Nuxt3
-    </h1>
-    <slot />
-  </div>
-</template>
-
-<style lang="scss" scoped>
-.layout.-default {
-  overflow-x: hidden;
-}
-</style>
-```
-
 ## File: layers/base/app/components/ha/base/HaBaseButton.vue
 ```vue
 <template>
@@ -801,6 +308,186 @@ const onClick = () => emits('click')
 </style>
 ```
 
+## File: layers/base/app/components/ha/HaImage.vue
+```vue
+<template>
+  <img
+    ref="imageElement"
+    class="ha-image"
+    :loading="isLazy ? 'lazy' : 'eager'"
+    :fetchpriority="fetchPriority"
+    :src="imageUrl"
+    :alt="alt || ''"
+    :role="alt ? 'img' : 'presentation'"
+    :decoding="decoding"
+    @error="onError"
+    @load="onImageLoad"
+  />
+</template>
+
+<script setup lang="ts">
+import defaultNoImage from '@@/public/images/no-image.png'
+
+const props = withDefaults(
+  defineProps<{
+    /**
+     * src 属性に渡されるもの。
+     * 無指定で '/images/no-image.png'、
+     * エラー時に「無」の画像に置き換えられる。
+     */
+    src?: string | null
+    alt?: string | null
+    /** デフォルト有効(loading="eager") :is-lazy="true" でloading="lazy" */
+    isLazy?: boolean
+    fetchPriority?: 'low' | 'high' | 'auto' | null
+    decoding?: 'sync' | 'async' | 'auto'
+    /** エラー時の置き換え「無」画像のurl */
+    noImage?: string
+  }>(),
+  {
+    src: '',
+    alt: null,
+    isLazy: false,
+    fetchPriority: 'low',
+    decoding: 'auto',
+    noImage: '',
+  },
+)
+const hasError = ref(false)
+const onError = () => {
+  hasError.value = true
+}
+
+const imageUrl = computed(() =>
+  hasError.value
+    ? props.noImage || defaultNoImage
+    : props.src || defaultNoImage,
+)
+
+// imgにwidthとheightを自動付与する
+const imageElement = ref<HTMLImageElement | null>(null)
+const onImageLoad = (): void => {
+  if (imageElement.value) {
+    const width = imageElement.value.naturalWidth
+    const height = imageElement.value.naturalHeight
+    imageElement.value.width = width
+    imageElement.value.height = height
+  }
+}
+</script>
+```
+
+## File: layers/base/app/components/ha/HaLabel.vue
+```vue
+<template>
+  <div
+    class="ha-label"
+    :style="style"
+  >
+    {{ text }}
+  </div>
+</template>
+
+<script lang="ts" setup>
+export type BackgroundColorMap = Record<string, string>
+/**
+ * Mapping text to background-color.
+ *
+ * テキストで背景をスイッチしたいときに指定します。
+ * もしcolorMap[text]が存在しなければfallbackColorにフォールバックします。
+ */
+const props = withDefaults(
+  defineProps<{
+    text?: string
+    colorMap?: BackgroundColorMap
+    fallbackColor?: string
+  }>(),
+  {
+    text: '',
+    colorMap: undefined,
+    fallbackColor: 'black',
+  },
+)
+const style = computed(() => ({
+  'background-color': props.colorMap?.[props.text] ?? props.fallbackColor,
+}))
+</script>
+```
+
+## File: layers/base/app/components/ha/HaLink.vue
+```vue
+<template>
+  <component
+    :is="component"
+    class="ha-link"
+    v-bind="{ [isNuxtLink ? 'to' : 'href']: linkTo }"
+    :target="blank ? '_blank' : undefined"
+    :rel="rel"
+  >
+    <slot />
+  </component>
+</template>
+
+<script setup lang="ts">
+import { LocationQuery, stringifyQuery } from 'vue-router'
+
+const props = withDefaults(
+  defineProps<{
+    to: string
+    blank?: boolean
+    rel?: HTMLAnchorElement['rel']
+    forceAnchorLink?: boolean
+    noLocale?: boolean
+    // toにqueryパラメータを入れてしまうと、localePathで消えるため、こちらのパラメータを使用してリンクを生成
+    query?: LocationQuery
+    /*
+     * toにhashパラメータを入れてしまうと、localePathで消えるため、こちらのパラメータを使用してリンクを生成
+     * 使う場合は「#」を先頭につけること
+     */
+    hash?: string
+  }>(),
+  {
+    blank: false,
+    rel: undefined,
+    forceAnchorLink: false,
+    noLocale: false,
+    query: undefined,
+    hash: undefined,
+  },
+)
+const isExternalReference = computed(() => !!props.to?.match(/^https?:\/\//))
+const isNuxtLink = computed(
+  // FIXME: isNuxtEnvironment() が壊れている
+  () =>
+    /* isNuxtEnvironment() && */ !props.forceAnchorLink
+    && !isExternalReference.value,
+)
+const component = computed(() =>
+  isNuxtLink.value ? resolveComponent('nuxt-link') : 'a',
+)
+const linkTo = computed(() => {
+  if (!isNuxtLink.value) {
+    return toUrl(props)
+  }
+
+  const localePath = useLocalePath()
+  return localePath({ path: props.to, query: props.query, hash: props.hash })
+})
+const toUrl = ({
+  to,
+  query,
+  hash,
+}: {
+  to: string
+  query?: LocationQuery
+  hash?: string
+}) => {
+  const queryStr = query ? `?${stringifyQuery(query)}` : ''
+  return `${to}${queryStr}${hash ?? ''}`
+}
+</script>
+```
+
 ## File: layers/base/app/components/ha/HaLoading.vue
 ```vue
 <template>
@@ -935,6 +622,63 @@ const loading = ref(props.manual)
   100% {
     transform: rotate(360deg);
   }
+}
+</style>
+```
+
+## File: layers/base/app/components/ha/HaSkewBackground.vue
+```vue
+<template>
+  <div
+    class="ha-skew"
+    :style="backStyle"
+  >
+    <div
+      class="content"
+      :style="contentStyle"
+    >
+      <slot />
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { ValueOf } from '#base/app/utils/types/types'
+
+const _AXIS = {
+  x: 'x',
+  y: 'y',
+  z: 'z',
+} as const
+
+type Props = {
+  deg: number
+  axis: ValueOf<typeof _AXIS>
+}
+
+const props = defineProps<Props>()
+
+const skew: Record<ValueOf<typeof _AXIS>, string> = {
+  x: 'skewX',
+  y: 'skewY',
+  z: 'skewZ',
+} as const
+
+const backStyle = computed(() => ({
+  transform: `${skew[props.axis]}(${props.deg}deg)`,
+}))
+const contentStyle = computed(() => ({
+  transform: `${skew[props.axis]}(${props.deg * -1}deg)`,
+}))
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+@use '#base/app/assets/styles/mixins' as m;
+
+.ha-skew,
+.content {
+  height: 100%;
 }
 </style>
 ```
@@ -1104,6 +848,151 @@ const onClick = () => {
   }
 }
 </style>
+```
+
+## File: layers/base/app/components/ha/HaVideo.vue
+```vue
+<template>
+  <video
+    ref="haVideoRef"
+    class="ha-video"
+    :src="src"
+    :autoplay="autoplay"
+    :autopictureinpicture="autopictureinpicture"
+    :controls="controls"
+    :disablepictureinpicture="disablepictureinpicture"
+    :controlslist="controlslist"
+    :crossorigin="crossorigin"
+    :disableremoteplayback="disableremoteplayback"
+    :x-webkit-airplay="disableremoteplayback ? 'deny' : false"
+    :width="width"
+    :height="height"
+    :loop="loop"
+    :muted="muted"
+    :playsinline="playsinline"
+    :poster="poster"
+    :preload="preload"
+  />
+</template>
+
+<script setup lang="ts">
+const props = withDefaults(
+  defineProps<{
+    src: string
+    height?: string
+    width?: string
+    play?: boolean
+    autoplay?: boolean
+    autopictureinpicture?: boolean
+    controls?: boolean
+    disablepictureinpicture?: boolean
+    disableremoteplayback?: boolean
+    loop?: boolean
+    muted?: boolean
+    playsinline?: boolean
+    poster?: string
+    // nodownload, nofullscreen, noremoteplayback
+    controlslist?: string
+    // anonymous, use-credentials
+    crossorigin?: string
+    // none, metadata, auto
+    preload?: string
+  }>(),
+  {
+    height: '',
+    width: '',
+    autoplay: false,
+    play: false,
+    autopictureinpicture: false,
+    controls: false,
+    disablepictureinpicture: false,
+    disableremoteplayback: false,
+    loop: false,
+    muted: false,
+    playsinline: false,
+    poster: '',
+    controlslist: '',
+    crossorigin: '',
+    preload: 'auto',
+  },
+)
+const emit = defineEmits<{
+  (
+    emit:
+      | 'progress'
+      | 'suspend'
+      | 'durationchange'
+      | 'loadedmetadata'
+      | 'loadeddata'
+      | 'canplay'
+      | 'playing'
+      | 'pause'
+      | 'ended'
+      | 'seeking'
+      | 'timeupdate'
+      | 'volumechange'
+      | 'ratechange'
+      | 'waiting',
+    e: Event
+  ): void
+}>()
+
+const haVideoRef = ref<HTMLVideoElement | null>(null)
+
+// note: HaVideoがmounted後にpropsを変えないとwatchされない
+watch(props, async () => {
+  if (haVideoRef.value === null) {
+    return
+  }
+
+  if (props.play) {
+    await haVideoRef.value.play()
+  } else {
+    haVideoRef.value.pause()
+  }
+})
+
+onMounted(() => {
+  haVideoRef.value?.addEventListener('progress', (e: Event) =>
+    emit('progress', e),
+  )
+  haVideoRef.value?.addEventListener('suspend', (e: Event) =>
+    emit('suspend', e),
+  )
+  haVideoRef.value?.addEventListener('durationchange', (e: Event) =>
+    emit('durationchange', e),
+  )
+  haVideoRef.value?.addEventListener('loadedmetadata', (e: Event) =>
+    emit('loadedmetadata', e),
+  )
+  haVideoRef.value?.addEventListener('loadeddata', (e: Event) =>
+    emit('loadeddata', e),
+  )
+  haVideoRef.value?.addEventListener('canplay', (e: Event) =>
+    emit('canplay', e),
+  )
+  haVideoRef.value?.addEventListener('playing', (e: Event) =>
+    emit('playing', e),
+  )
+  haVideoRef.value?.addEventListener('pause', (e: Event) => emit('pause', e))
+  haVideoRef.value?.addEventListener('ended', (e: Event) => emit('ended', e))
+  haVideoRef.value?.addEventListener('seeking', (e: Event) =>
+    emit('seeking', e),
+  )
+  haVideoRef.value?.addEventListener('timeupdate', (e: Event) =>
+    emit('timeupdate', e),
+  )
+  haVideoRef.value?.addEventListener('volumechange', (e: Event) =>
+    emit('volumechange', e),
+  )
+  haVideoRef.value?.addEventListener('ratechange', (e: Event) =>
+    emit('ratechange', e),
+  )
+  haVideoRef.value?.addEventListener('waiting', (e: Event) =>
+    emit('waiting', e),
+  )
+})
+</script>
 ```
 
 ## File: layers/base/app/components/hm/button/HmButton.vue
@@ -1353,6 +1242,60 @@ function onClick(): void {
 
     opacity: 0.5;
     background-color: v.$button-disabled-color;
+  }
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/button/HmButtonClose.vue
+```vue
+<template>
+  <HaBaseButton
+    class="hm-button-close"
+    @click="onClick"
+  >
+    <IconClose
+      :style="{
+        width: width,
+        height: height,
+      }"
+    />
+  </HaBaseButton>
+</template>
+
+<script setup lang="ts">
+import IconClose from '#base/app/assets/icons/icon-close.svg'
+
+type Emits = {
+  (e: 'click'): () => void
+}
+
+const emit = defineEmits<Emits>()
+const onClick = () => emit('click')
+
+type Props = {
+  width?: string
+  height?: string
+}
+
+withDefaults(defineProps<Props>(), {
+  width: '20px',
+  height: '20px',
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+@use 'sass:color';
+
+.hm-button-close {
+  :deep(circle) {
+    transition: fill 0.2s ease;
+  }
+
+  &:hover :deep(circle) {
+    // note: opacityだと後ろのborderが見えてしまうのでsvgの色を変更
+    fill: color.adjust(v.$gray-1, $lightness: 5%);
   }
 }
 </style>
@@ -1806,6 +1749,45 @@ import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 </style>
 ```
 
+## File: layers/base/app/components/hm/HmNoteList.vue
+```vue
+<template>
+  <ul class="hm-note-list">
+    <li
+      v-for="(text, index) in list"
+      :key="`note-${index}`"
+      class="item"
+    >
+      {{ text }}
+    </li>
+  </ul>
+</template>
+
+<script lang="ts" setup>
+defineProps<{
+  list: string[]
+}>()
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+
+.hm-note-list {
+  font-size: 14px;
+  line-height: 1.3;
+
+  > .item {
+    margin-bottom: 4px;
+
+    &::before {
+      content: '※';
+      margin-right: 0.3em;
+    }
+  }
+}
+</style>
+```
+
 ## File: layers/base/app/components/hm/HmPicture.vue
 ```vue
 <template>
@@ -2071,67 +2053,22 @@ withDefaults(defineProps<Props>(), {
 </style>
 ```
 
-## File: layers/base/app/components/hm/HmSocialShareLink.vue
+## File: layers/base/app/layouts/default.vue
 ```vue
 <template>
-  <!--
-  - [x] Composition APIで書けている
-  - [-] Nuxt.jsに依存していない
-  - [-] unplugin-auto-import を導入する前提の書き方ができている
-  - [-] ロジック観点でのリファクタリング(FS主管)が完了している
-  - [-] デザイン観点でのリファクタリング(DD主管)が完了している
-  - [-] 適切にコメントが記載されている
-  - [-] Unit Testを通過している
-  - [-] storiesが適切に記載されている
- -->
-  <HaLink
-    class="hm-social-share-link"
-    :to="url"
-    :blank="true"
-  >
+  <div class="layout -default">
+    <h1 class="heading">
+      Base App Nuxt3
+    </h1>
     <slot />
-  </HaLink>
-</template>
-
-<script setup lang="ts">
-const _shareTargetServices = {
-  0: 'twitter',
-  1: 'facebook',
-  2: 'line',
-} as const
-type SharedTarget
-  = (typeof _shareTargetServices)[keyof typeof _shareTargetServices]
-
-const props = defineProps<{
-  name: SharedTarget | null
-  text?: string
-  twitterHashtags?: string[]
-  shareUrl?: string
-}>()
-
-const socialShareLink = useSocialShareLink()
-const url = computed(() => socialShareLink.getShareUrl(props.name || '', props))
-</script>
-```
-
-## File: layers/base/app/components/hm/HmTsx.vue
-```vue
-<template>
-  <div class="hm-tsx">
-    <DefaultSlot />
   </div>
 </template>
 
-<script lang="tsx" setup>
-import { Fragment } from 'vue'
-
-const slots = useSlots() as { default?: () => unknown }
-const defaultSlot = slots.default ? slots.default() : null
-
-const DefaultSlot = () => {
-  return <Fragment>{defaultSlot}</Fragment>
+<style lang="scss" scoped>
+.layout.-default {
+  overflow-x: hidden;
 }
-</script>
+</style>
 ```
 
 ## File: layers/base/app/components/ha/base/HaBaseInput.vue
@@ -3180,6 +3117,49 @@ const props = defineProps<{
 </style>
 ```
 
+## File: layers/base/app/components/hm/HmSocialShareLink.vue
+```vue
+<template>
+  <!--
+  - [x] Composition APIで書けている
+  - [-] Nuxt.jsに依存していない
+  - [-] unplugin-auto-import を導入する前提の書き方ができている
+  - [-] ロジック観点でのリファクタリング(FS主管)が完了している
+  - [-] デザイン観点でのリファクタリング(DD主管)が完了している
+  - [-] 適切にコメントが記載されている
+  - [-] Unit Testを通過している
+  - [-] storiesが適切に記載されている
+ -->
+  <HaLink
+    class="hm-social-share-link"
+    :to="url"
+    :blank="true"
+  >
+    <slot />
+  </HaLink>
+</template>
+
+<script setup lang="ts">
+const _shareTargetServices = {
+  0: 'twitter',
+  1: 'facebook',
+  2: 'line',
+} as const
+type SharedTarget
+  = (typeof _shareTargetServices)[keyof typeof _shareTargetServices]
+
+const props = defineProps<{
+  name: SharedTarget | null
+  text?: string
+  twitterHashtags?: string[]
+  shareUrl?: string
+}>()
+
+const socialShareLink = useSocialShareLink()
+const url = computed(() => socialShareLink.getShareUrl(props.name || '', props))
+</script>
+```
+
 ## File: layers/base/app/components/hm/HmTab.vue
 ```vue
 <template>
@@ -3264,6 +3244,26 @@ const changeTab = (index: number): void => {
   }
 }
 </style>
+```
+
+## File: layers/base/app/components/hm/HmTsx.vue
+```vue
+<template>
+  <div class="hm-tsx">
+    <DefaultSlot />
+  </div>
+</template>
+
+<script lang="tsx" setup>
+import { Fragment } from 'vue'
+
+const slots = useSlots() as { default?: () => unknown }
+const defaultSlot = slots.default ? slots.default() : null
+
+const DefaultSlot = () => {
+  return <Fragment>{defaultSlot}</Fragment>
+}
+</script>
 ```
 
 ## File: layers/base/app/components/hm/icon/HmIconUser.vue

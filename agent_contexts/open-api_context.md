@@ -59,126 +59,6 @@ layers/
 # Files in this directory are automatically generated and should not be edited manually
 ```
 
-## File: layers/open-api/openapi/example-merged.yml
-```yaml
-openapi: 3.0.3
-info:
-  title: Example API
-  description: Example API for demonstrating OpenAPI integration
-  version: 1.0.0
-servers:
-  - url: https://api.example.com/v1
-    description: Production server
-  - url: https://staging-api.example.com/v1
-    description: Staging server
-paths:
-  /users:
-    get:
-      operationId: getUsers
-      summary: Get all users
-      description: Retrieve a list of all users
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  users:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/User'
-                  total:
-                    type: number
-                    description: Total number of users
-    post:
-      operationId: createUser
-      summary: Create a new user
-      description: Create a new user with the provided information
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateUserRequest'
-      responses:
-        '201':
-          description: User created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-  /users/{id}:
-    get:
-      operationId: getUserById
-      summary: Get user by ID
-      description: Retrieve a specific user by their ID
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: User ID
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '404':
-          description: User not found
-components:
-  schemas:
-    User:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Unique user identifier
-        email:
-          type: string
-          format: email
-          description: User email address
-        name:
-          type: string
-          description: User full name
-        createdAt:
-          type: string
-          format: date-time
-          description: Account creation timestamp
-        updatedAt:
-          type: string
-          format: date-time
-          description: Last update timestamp
-      required:
-        - id
-        - email
-        - name
-        - createdAt
-        - updatedAt
-    CreateUserRequest:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-          description: User email address
-        name:
-          type: string
-          description: User full name
-        password:
-          type: string
-          minLength: 8
-          description: User password (minimum 8 characters)
-      required:
-        - email
-        - name
-        - password
-```
-
 ## File: layers/open-api/openapi/example.yml
 ```yaml
 openapi: 3.0.3
@@ -303,6 +183,126 @@ components:
         - password
 ```
 
+## File: layers/open-api/openapi/example-merged.yml
+```yaml
+openapi: 3.0.3
+info:
+  title: Example API
+  description: Example API for demonstrating OpenAPI integration
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+    description: Production server
+  - url: https://staging-api.example.com/v1
+    description: Staging server
+paths:
+  /users:
+    get:
+      operationId: getUsers
+      summary: Get all users
+      description: Retrieve a list of all users
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  total:
+                    type: number
+                    description: Total number of users
+    post:
+      operationId: createUser
+      summary: Create a new user
+      description: Create a new user with the provided information
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /users/{id}:
+    get:
+      operationId: getUserById
+      summary: Get user by ID
+      description: Retrieve a specific user by their ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique user identifier
+        email:
+          type: string
+          format: email
+          description: User email address
+        name:
+          type: string
+          description: User full name
+        createdAt:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+      required:
+        - id
+        - email
+        - name
+        - createdAt
+        - updatedAt
+    CreateUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+        name:
+          type: string
+          description: User full name
+        password:
+          type: string
+          minLength: 8
+          description: User password (minimum 8 characters)
+      required:
+        - email
+        - name
+        - password
+```
+
 ## File: layers/open-api/scripts/template.hbs
 ```
 {{!-- OpenAPI から Zod スキーマ生成用テンプレート --}}
@@ -377,42 +377,6 @@ export const {{toCamelCase operationId}} = async (
 }
 
 {{/each}}
-```
-
-## File: layers/open-api/tsconfig.json
-```json
-{
-  "compilerOptions": {
-    "lib": [
-      "ESNext",
-      "DOM"
-    ],
-    "module": "esnext",
-    "target": "esnext",
-    "moduleResolution": "bundler",
-    "moduleDetection": "force",
-    "allowImportingTsExtensions": true,
-    "noEmit": true,
-    "composite": true,
-    "strict": true,
-    "downlevelIteration": true,
-    "skipLibCheck": true,
-    "jsx": "preserve",
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowJs": true,
-    "types": [
-      "bun-types",
-      "node"
-    ]
-  },
-  "include": [
-    "scripts/**/*"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
-}
 ```
 
 ## File: layers/open-api/scripts/make-zod.ts
@@ -583,6 +547,42 @@ if (process.argv[1] === import.meta.url) {
 }
 ```
 
+## File: layers/open-api/tsconfig.json
+```json
+{
+  "compilerOptions": {
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "module": "esnext",
+    "target": "esnext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "composite": true,
+    "strict": true,
+    "downlevelIteration": true,
+    "skipLibCheck": true,
+    "jsx": "preserve",
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true,
+    "types": [
+      "bun-types",
+      "node"
+    ]
+  },
+  "include": [
+    "scripts/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
+```
+
 ## File: layers/open-api/package.json
 ```json
 {
@@ -602,7 +602,7 @@ if (process.argv[1] === import.meta.url) {
     "openapi-zod-client": "^1.18.3",
     "js-yaml": "^4.1.0",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^24.3.1"
+    "@types/node": "^24.6.2"
   }
 }
 ```

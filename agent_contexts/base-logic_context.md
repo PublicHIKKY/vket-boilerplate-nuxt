@@ -81,6 +81,26 @@ layers/
 
 # Files
 
+## File: layers/base/app/composables/use-strict-i18n.ts
+````typescript
+import type { UseI18nOptions } from 'vue-i18n'
+
+export class I18nTKeyMissingError extends Error {}
+
+/**
+ * 型安全なi18n composable
+ * 実行時に翻訳キーの存在を検証し、存在しない場合はエラーを投げる
+ */
+export const useStrictI18n = (
+  options?: Omit<UseI18nOptions, 'missing'>,
+) => useI18n({
+  ...options ?? {},
+  missing: (locale, key) => {
+    throw new I18nTKeyMissingError(`key '${key}' is not found in locale '${locale}'`)
+  },
+})
+````
+
 ## File: layers/base/app/composables/useCustomIntersectionObserver.ts
 ````typescript
 const defaultOptions = {
@@ -330,6 +350,304 @@ export const zip = <T, U>(xs: T[], ys: U[]): Readonly<[T, U]>[] => {
  */
 export const equal = <T>(xs: T[], ys: T[]): boolean => {
   return JSON.stringify(xs) === JSON.stringify(ys)
+}
+````
+
+## File: layers/base/app/utils/console.ts
+````typescript
+/**
+ * 制御可能なログシステム
+ * 環境に応じたログレベル管理と構造化ログ出力
+ */
+
+/* eslint-disable no-console */
+
+/**
+ * ログレベルの定義
+ */
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
+
+/**
+ * コンソールメソッドの型定義
+ */
+export type ConsoleMethod = 'info' | 'error' | 'warn' | 'debug' | 'table'
+
+/**
+ * ログ設定
+ */
+interface LogConfig {
+  enabled: boolean
+  level: LogLevel
+  prefix?: string
+  timestamp?: boolean
+  stackTrace?: boolean
+}
+
+/**
+ * デフォルトのログ設定
+ */
+const defaultConfig: LogConfig = {
+  enabled: true,
+  level: 'info',
+  timestamp: true,
+  stackTrace: false,
+}
+
+/**
+ * 現在のログ設定
+ */
+let currentConfig: LogConfig = { ...defaultConfig }
+
+/**
+ * ログレベルの重要度
+ */
+const logLevels: Record<LogLevel, number> = {
+  debug: 0,
+  info: 1,
+  warn: 2,
+  error: 3,
+}
+
+/**
+ * ログ設定を更新
+ */
+export const configureLogger = (config: Partial<LogConfig>): void => {
+  currentConfig = { ...currentConfig, ...config }
+}
+
+/**
+ * 環境に基づいて自動的にログ設定を調整
+ */
+export const configureLoggerForEnvironment = (): void => {
+  const isDevelopment = process.env.NODE_ENV === 'development'
+  const isProduction = process.env.NODE_ENV === 'production'
+
+  if (isProduction) {
+    configureLogger({
+      enabled: false,
+      level: 'error',
+      timestamp: false,
+      stackTrace: false,
+    })
+  } else if (isDevelopment) {
+    configureLogger({
+      enabled: true,
+      level: 'debug',
+      timestamp: true,
+      stackTrace: true,
+    })
+  }
+}
+
+/**
+ * ログを出力すべきかどうかを判定
+ */
+const shouldLog = (level: LogLevel): boolean => {
+  return currentConfig.enabled && logLevels[level] >= logLevels[currentConfig.level]
+}
+
+/**
+ * タイムスタンプを生成
+ */
+const generateTimestamp = (): string => {
+  return new Date().toISOString()
+}
+
+/**
+ * ログメッセージをフォーマット
+ */
+const formatMessage = (level: LogLevel, message: string): string => {
+  const parts: string[] = []
+
+  if (currentConfig.timestamp) {
+    parts.push(`[${generateTimestamp()}]`)
+  }
+
+  if (currentConfig.prefix) {
+    parts.push(`[${currentConfig.prefix}]`)
+  }
+
+  parts.push(`[${level.toUpperCase()}]`)
+  parts.push(message)
+
+  return parts.join(' ')
+}
+
+/**
+ * 基本的なログ出力関数
+ */
+const logMessage = (level: LogLevel, method: ConsoleMethod, message: string, ...args: unknown[]): void => {
+  if (!shouldLog(level)) return
+
+  const formattedMessage = formatMessage(level, message)
+  console[method](formattedMessage, ...args)
+
+  if (currentConfig.stackTrace && level === 'error') {
+    console.trace()
+  }
+}
+
+/**
+ * デバッグログ
+ */
+export const debug = (message: string, ...args: unknown[]): void => {
+  logMessage('debug', 'debug', message, ...args)
+}
+
+/**
+ * 情報ログ
+ */
+export const info = (message: string, ...args: unknown[]): void => {
+  logMessage('info', 'info', message, ...args)
+}
+
+/**
+ * 警告ログ
+ */
+export const warn = (message: string, ...args: unknown[]): void => {
+  logMessage('warn', 'warn', message, ...args)
+}
+
+/**
+ * エラーログ
+ */
+export const error = (message: string, ...args: unknown[]): void => {
+  logMessage('error', 'error', message, ...args)
+}
+
+/**
+ * テーブル形式でのログ出力
+ */
+export const table = (data: unknown, properties?: string[]): void => {
+  if (!shouldLog('info')) return
+
+  console.table(data, properties)
+}
+
+/**
+ * 値をログ出力してそのまま返す（デバッグ用）
+ */
+export const log = <T>(
+  value: T,
+  message: string,
+  method: ConsoleMethod = 'info',
+): T => {
+  const level: LogLevel = method === 'error' ? 'error' : method === 'warn' ? 'warn' : 'info'
+
+  if (shouldLog(level)) {
+    console[method](formatMessage(level, message), value)
+  }
+
+  return value
+}
+
+/**
+ * 条件付きログ出力
+ */
+export const logIf = (
+  condition: boolean,
+  level: LogLevel,
+  message: string,
+  ...args: unknown[]
+): void => {
+  if (!condition) return
+
+  const method: ConsoleMethod = level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'info'
+  logMessage(level, method, message, ...args)
+}
+
+/**
+ * パフォーマンス測定用のログ
+ */
+export const timeStart = (label: string): void => {
+  if (shouldLog('debug')) {
+    console.time(label)
+  }
+}
+
+/**
+ * パフォーマンス測定終了
+ */
+export const timeEnd = (label: string): void => {
+  if (shouldLog('debug')) {
+    console.timeEnd(label)
+  }
+}
+
+/**
+ * グループ化されたログ
+ */
+export const group = (label: string, collapsed = false): void => {
+  if (!shouldLog('info')) return
+
+  if (collapsed) {
+    console.groupCollapsed(formatMessage('info', label))
+  } else {
+    console.group(formatMessage('info', label))
+  }
+}
+
+/**
+ * ロググループ終了
+ */
+export const groupEnd = (): void => {
+  if (shouldLog('info')) {
+    console.groupEnd()
+  }
+}
+
+/**
+ * 現在のログ設定を取得
+ */
+export const getLoggerConfig = (): LogConfig => {
+  return { ...currentConfig }
+}
+
+/**
+ * 関数の実行をログ付きで行う
+ */
+export const withLogging = <T extends (...args: unknown[]) => unknown>(
+  fn: T,
+  functionName?: string,
+): T => {
+  return ((...args: unknown[]) => {
+    const name = functionName || fn.name || 'anonymous'
+
+    debug(`Calling function: ${name}`, args)
+    timeStart(name)
+
+    try {
+      const result = fn(...args)
+
+      if (result instanceof Promise) {
+        return result
+          .then((value) => {
+            debug(`Function ${name} resolved`, value)
+            timeEnd(name)
+            return value
+          })
+          .catch((err) => {
+            error(`Function ${name} rejected`, err)
+            timeEnd(name)
+            throw err
+          })
+      } else {
+        debug(`Function ${name} returned`, result)
+        timeEnd(name)
+        return result
+      }
+    } catch (err) {
+      error(`Function ${name} threw error`, err)
+      timeEnd(name)
+      throw err
+    }
+  }) as T
+}
+
+// 環境に基づく自動設定
+if (typeof window === 'undefined') {
+  // Server-side
+  configureLoggerForEnvironment()
 }
 ````
 
@@ -608,24 +926,84 @@ export function createUuidV4() {
 }
 ````
 
-## File: layers/base/app/composables/use-strict-i18n.ts
+## File: layers/base/app/utils/vue-reactive.ts
 ````typescript
-import type { UseI18nOptions } from 'vue-i18n'
-
-export class I18nTKeyMissingError extends Error {}
+import type { DeepReadonly, Reactive } from 'vue'
+import { writableClone } from './object'
 
 /**
- * 型安全なi18n composable
- * 実行時に翻訳キーの存在を検証し、存在しない場合はエラーを投げる
+ * 深いリアクティブユーティリティ
+ * ネストされたオブジェクトの完全なtoRaw変換とreadonly解除機能
  */
-export const useStrictI18n = (
-  options?: Omit<UseI18nOptions, 'missing'>,
-) => useI18n({
-  ...options ?? {},
-  missing: (locale, key) => {
-    throw new I18nTKeyMissingError(`key '${key}' is not found in locale '${locale}'`)
-  },
-})
+
+/**
+ * オブジェクトかどうかを判定する型ガード
+ */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value) && !(value instanceof Date) && !(value instanceof RegExp)
+}
+
+/**
+ * ネストされたオブジェクトの完全なtoRaw変換
+ * リアクティブプロキシを完全に除去
+ */
+export const toRawDeep = <T>(refValue: T): T => {
+  const raw = toRaw(refValue)
+
+  if (raw === null || raw === undefined) {
+    return raw
+  }
+
+  if (typeof raw === 'string' || typeof raw === 'number' || typeof raw === 'boolean') {
+    return raw
+  }
+
+  if (raw instanceof Date || raw instanceof RegExp) {
+    return raw
+  }
+
+  if (Array.isArray(raw)) {
+    const mappedArray = raw.map(item => toRawDeep(item))
+    return mappedArray as unknown as T
+  }
+
+  if (isRecord(raw)) {
+    const result: Record<string, unknown> = {}
+    for (const key in raw) {
+      if (Object.prototype.hasOwnProperty.call(raw, key)) {
+        result[key] = toRawDeep(raw[key])
+      }
+    }
+    return result as unknown as T
+  }
+
+  return raw
+}
+
+/**
+ * readonly オブジェクトを書き込み可能にする
+ * DeepReadonly<T> → WritableDeep<T> の変換
+ */
+export const unreadonly = <T>(immutable: DeepReadonly<T>): unknown =>
+  writableClone(toRawDeep(immutable))
+
+/**
+ * リアクティブオブジェクトの完全な複製
+ * 元のオブジェクトのリアクティブ性を保持しつつ、新しいインスタンスを作成
+ */
+export const deepCloneReactive = <T>(reactiveObj: T): T => {
+  const raw = toRawDeep(reactiveObj)
+  const cloned = writableClone(raw)
+  return ref(cloned).value
+}
+
+/**
+ * 条件付きリアクティブ変換
+ * 条件がtrueの場合のみリアクティブにする
+ */
+export const conditionalReactive = <T extends object>(value: T, condition: boolean): T | Reactive<T> => {
+  return condition ? reactive(value) : value
+}
 ````
 
 ## File: layers/base/app/composables/useLocale.ts
@@ -929,6 +1307,183 @@ const useValidationRules = () => {
 export default useValidationRules
 ````
 
+## File: layers/base/app/models/error-message.ts
+````typescript
+/**
+ * ブランデッド型によるエラー処理システム
+ * 型レベルでエラーメッセージの安全性を保証
+ */
+
+const errorMessageSymbol = Symbol('ErrorMessage')
+
+/**
+ * エラーメッセージのブランデッド型
+ * 通常の文字列と区別して、エラーメッセージであることを型レベルで保証
+ */
+export type ErrorMessage<ActualMessage extends string = string> = ActualMessage & {
+  readonly [errorMessageSymbol]: unknown
+}
+
+/**
+ * エラーメッセージを作成
+ * 文字列をエラーメッセージ型に変換
+ */
+export const makeErrorMessage = <ActualMessage extends string>(
+  actualMessage: ActualMessage,
+): ErrorMessage<ActualMessage> =>
+  actualMessage as ErrorMessage<ActualMessage>
+
+/**
+ * エラーメッセージを通常の文字列に変換
+ */
+export const extractErrorMessage = <T extends string>(
+  errorMessage: ErrorMessage<T>,
+): T => errorMessage as T
+
+/**
+ * エラーメッセージかどうかを判定
+ */
+export const isErrorMessage = (value: unknown): value is ErrorMessage => {
+  if (typeof value !== 'string') return false
+  // ブランデッド型の判定は実際には実行時にはできないため、文字列であることのみをチェック
+  return true
+}
+
+/**
+ * よく使用されるエラーメッセージの定数
+ */
+export const CommonErrors = {
+  UNAUTHORIZED: makeErrorMessage('認証が必要です'),
+  FORBIDDEN: makeErrorMessage('アクセス権限がありません'),
+  NOT_FOUND: makeErrorMessage('リソースが見つかりません'),
+  VALIDATION_ERROR: makeErrorMessage('入力値が正しくありません'),
+  NETWORK_ERROR: makeErrorMessage('ネットワークエラーが発生しました'),
+  SERVER_ERROR: makeErrorMessage('サーバーエラーが発生しました'),
+  TIMEOUT: makeErrorMessage('タイムアウトしました'),
+  UNKNOWN: makeErrorMessage('不明なエラーが発生しました'),
+} as const
+
+/**
+ * HTTP ステータスコードからエラーメッセージを生成
+ */
+export const createHttpErrorMessage = (status: number): ErrorMessage => {
+  switch (status) {
+    case 400:
+      return makeErrorMessage('リクエストが正しくありません')
+    case 401:
+      return CommonErrors.UNAUTHORIZED
+    case 403:
+      return CommonErrors.FORBIDDEN
+    case 404:
+      return CommonErrors.NOT_FOUND
+    case 408:
+      return CommonErrors.TIMEOUT
+    case 422:
+      return CommonErrors.VALIDATION_ERROR
+    case 500:
+      return CommonErrors.SERVER_ERROR
+    case 502:
+    case 503:
+    case 504:
+      return makeErrorMessage('サーバーが一時的に利用できません')
+    default:
+      return makeErrorMessage(`HTTPエラー (${status})`)
+  }
+}
+
+/**
+ * エラー型の詳細情報を含むエラークラス
+ */
+export class TypedError<T extends string = string> extends Error {
+  readonly errorMessage: ErrorMessage<T>
+  readonly code?: string
+  readonly statusCode?: number
+  readonly details?: Record<string, unknown>
+
+  constructor(
+    errorMessage: ErrorMessage<T>,
+    options?: {
+      code?: string
+      statusCode?: number
+      details?: Record<string, unknown>
+      cause?: Error
+    },
+  ) {
+    super(extractErrorMessage(errorMessage))
+    this.name = 'TypedError'
+    this.errorMessage = errorMessage
+    this.code = options?.code
+    this.statusCode = options?.statusCode
+    this.details = options?.details
+
+    if (options?.cause) {
+      this.cause = options.cause
+    }
+  }
+}
+
+/**
+ * 結果型 - 成功またはエラーを表現
+ */
+export type Result<T, E extends string = string>
+  = | { success: true, data: T }
+    | { success: false, error: ErrorMessage<E> }
+
+/**
+ * 成功結果を作成
+ */
+export const createSuccess = <T>(data: T): Result<T, never> => ({
+  success: true,
+  data,
+})
+
+/**
+ * エラー結果を作成
+ */
+export const createError = <E extends string>(
+  error: ErrorMessage<E>,
+): Result<never, E> => ({
+  success: false,
+  error,
+})
+
+/**
+ * 非同期関数を安全に実行し、Result型で結果を返す
+ */
+export const safeAsync = async <T, E extends string = string>(
+  fn: () => Promise<T>,
+  errorMapper?: (error: unknown) => ErrorMessage<E>,
+): Promise<Result<T, E>> => {
+  try {
+    const data = await fn()
+    return createSuccess(data)
+  } catch (error) {
+    const errorMessage = errorMapper
+      ? errorMapper(error)
+      : makeErrorMessage('予期しないエラーが発生しました') as ErrorMessage<E>
+    return createError(errorMessage)
+  }
+}
+
+/**
+ * 同期関数を安全に実行し、Result型で結果を返す
+ */
+export const safeSync = <T, E extends string = string>(
+  fn: () => T,
+  errorMapper?: (error: unknown) => ErrorMessage<E>,
+): Result<T, E> => {
+  try {
+    const data = fn()
+    return createSuccess(data)
+  } catch (error) {
+    const errorMessage = errorMapper
+      ? errorMapper(error)
+      : makeErrorMessage('予期しないエラーが発生しました') as ErrorMessage<E>
+    return createError(errorMessage)
+  }
+}
+````
+
 ## File: layers/base/app/models/json.ts
 ````typescript
 /**
@@ -1020,304 +1575,6 @@ export type Overwrite<T, U extends { [Key in keyof T]?: unknown }> = Omit<
   keyof U
 >
 & U
-````
-
-## File: layers/base/app/utils/console.ts
-````typescript
-/**
- * 制御可能なログシステム
- * 環境に応じたログレベル管理と構造化ログ出力
- */
-
-/* eslint-disable no-console */
-
-/**
- * ログレベルの定義
- */
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
-
-/**
- * コンソールメソッドの型定義
- */
-export type ConsoleMethod = 'info' | 'error' | 'warn' | 'debug' | 'table'
-
-/**
- * ログ設定
- */
-interface LogConfig {
-  enabled: boolean
-  level: LogLevel
-  prefix?: string
-  timestamp?: boolean
-  stackTrace?: boolean
-}
-
-/**
- * デフォルトのログ設定
- */
-const defaultConfig: LogConfig = {
-  enabled: true,
-  level: 'info',
-  timestamp: true,
-  stackTrace: false,
-}
-
-/**
- * 現在のログ設定
- */
-let currentConfig: LogConfig = { ...defaultConfig }
-
-/**
- * ログレベルの重要度
- */
-const logLevels: Record<LogLevel, number> = {
-  debug: 0,
-  info: 1,
-  warn: 2,
-  error: 3,
-}
-
-/**
- * ログ設定を更新
- */
-export const configureLogger = (config: Partial<LogConfig>): void => {
-  currentConfig = { ...currentConfig, ...config }
-}
-
-/**
- * 環境に基づいて自動的にログ設定を調整
- */
-export const configureLoggerForEnvironment = (): void => {
-  const isDevelopment = process.env.NODE_ENV === 'development'
-  const isProduction = process.env.NODE_ENV === 'production'
-
-  if (isProduction) {
-    configureLogger({
-      enabled: false,
-      level: 'error',
-      timestamp: false,
-      stackTrace: false,
-    })
-  } else if (isDevelopment) {
-    configureLogger({
-      enabled: true,
-      level: 'debug',
-      timestamp: true,
-      stackTrace: true,
-    })
-  }
-}
-
-/**
- * ログを出力すべきかどうかを判定
- */
-const shouldLog = (level: LogLevel): boolean => {
-  return currentConfig.enabled && logLevels[level] >= logLevels[currentConfig.level]
-}
-
-/**
- * タイムスタンプを生成
- */
-const generateTimestamp = (): string => {
-  return new Date().toISOString()
-}
-
-/**
- * ログメッセージをフォーマット
- */
-const formatMessage = (level: LogLevel, message: string): string => {
-  const parts: string[] = []
-
-  if (currentConfig.timestamp) {
-    parts.push(`[${generateTimestamp()}]`)
-  }
-
-  if (currentConfig.prefix) {
-    parts.push(`[${currentConfig.prefix}]`)
-  }
-
-  parts.push(`[${level.toUpperCase()}]`)
-  parts.push(message)
-
-  return parts.join(' ')
-}
-
-/**
- * 基本的なログ出力関数
- */
-const logMessage = (level: LogLevel, method: ConsoleMethod, message: string, ...args: unknown[]): void => {
-  if (!shouldLog(level)) return
-
-  const formattedMessage = formatMessage(level, message)
-  console[method](formattedMessage, ...args)
-
-  if (currentConfig.stackTrace && level === 'error') {
-    console.trace()
-  }
-}
-
-/**
- * デバッグログ
- */
-export const debug = (message: string, ...args: unknown[]): void => {
-  logMessage('debug', 'debug', message, ...args)
-}
-
-/**
- * 情報ログ
- */
-export const info = (message: string, ...args: unknown[]): void => {
-  logMessage('info', 'info', message, ...args)
-}
-
-/**
- * 警告ログ
- */
-export const warn = (message: string, ...args: unknown[]): void => {
-  logMessage('warn', 'warn', message, ...args)
-}
-
-/**
- * エラーログ
- */
-export const error = (message: string, ...args: unknown[]): void => {
-  logMessage('error', 'error', message, ...args)
-}
-
-/**
- * テーブル形式でのログ出力
- */
-export const table = (data: unknown, properties?: string[]): void => {
-  if (!shouldLog('info')) return
-
-  console.table(data, properties)
-}
-
-/**
- * 値をログ出力してそのまま返す（デバッグ用）
- */
-export const log = <T>(
-  value: T,
-  message: string,
-  method: ConsoleMethod = 'info',
-): T => {
-  const level: LogLevel = method === 'error' ? 'error' : method === 'warn' ? 'warn' : 'info'
-
-  if (shouldLog(level)) {
-    console[method](formatMessage(level, message), value)
-  }
-
-  return value
-}
-
-/**
- * 条件付きログ出力
- */
-export const logIf = (
-  condition: boolean,
-  level: LogLevel,
-  message: string,
-  ...args: unknown[]
-): void => {
-  if (!condition) return
-
-  const method: ConsoleMethod = level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'info'
-  logMessage(level, method, message, ...args)
-}
-
-/**
- * パフォーマンス測定用のログ
- */
-export const timeStart = (label: string): void => {
-  if (shouldLog('debug')) {
-    console.time(label)
-  }
-}
-
-/**
- * パフォーマンス測定終了
- */
-export const timeEnd = (label: string): void => {
-  if (shouldLog('debug')) {
-    console.timeEnd(label)
-  }
-}
-
-/**
- * グループ化されたログ
- */
-export const group = (label: string, collapsed = false): void => {
-  if (!shouldLog('info')) return
-
-  if (collapsed) {
-    console.groupCollapsed(formatMessage('info', label))
-  } else {
-    console.group(formatMessage('info', label))
-  }
-}
-
-/**
- * ロググループ終了
- */
-export const groupEnd = (): void => {
-  if (shouldLog('info')) {
-    console.groupEnd()
-  }
-}
-
-/**
- * 現在のログ設定を取得
- */
-export const getLoggerConfig = (): LogConfig => {
-  return { ...currentConfig }
-}
-
-/**
- * 関数の実行をログ付きで行う
- */
-export const withLogging = <T extends (...args: unknown[]) => unknown>(
-  fn: T,
-  functionName?: string,
-): T => {
-  return ((...args: unknown[]) => {
-    const name = functionName || fn.name || 'anonymous'
-
-    debug(`Calling function: ${name}`, args)
-    timeStart(name)
-
-    try {
-      const result = fn(...args)
-
-      if (result instanceof Promise) {
-        return result
-          .then((value) => {
-            debug(`Function ${name} resolved`, value)
-            timeEnd(name)
-            return value
-          })
-          .catch((err) => {
-            error(`Function ${name} rejected`, err)
-            timeEnd(name)
-            throw err
-          })
-      } else {
-        debug(`Function ${name} returned`, result)
-        timeEnd(name)
-        return result
-      }
-    } catch (err) {
-      error(`Function ${name} threw error`, err)
-      timeEnd(name)
-      throw err
-    }
-  }) as T
-}
-
-// 環境に基づく自動設定
-if (typeof window === 'undefined') {
-  // Server-side
-  configureLoggerForEnvironment()
-}
 ````
 
 ## File: layers/base/app/utils/date-control.ts
@@ -1868,263 +2125,6 @@ export function toImage(blob: File | Blob): Promise<HTMLImageElement> {
     imageElement.addEventListener('error', errorHandler)
     imageElement.src = URL.createObjectURL(blob)
   })
-}
-````
-
-## File: layers/base/app/utils/vue-reactive.ts
-````typescript
-import type { DeepReadonly, Reactive } from 'vue'
-import { writableClone } from './object'
-
-/**
- * 深いリアクティブユーティリティ
- * ネストされたオブジェクトの完全なtoRaw変換とreadonly解除機能
- */
-
-/**
- * オブジェクトかどうかを判定する型ガード
- */
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value) && !(value instanceof Date) && !(value instanceof RegExp)
-}
-
-/**
- * ネストされたオブジェクトの完全なtoRaw変換
- * リアクティブプロキシを完全に除去
- */
-export const toRawDeep = <T>(refValue: T): T => {
-  const raw = toRaw(refValue)
-
-  if (raw === null || raw === undefined) {
-    return raw
-  }
-
-  if (typeof raw === 'string' || typeof raw === 'number' || typeof raw === 'boolean') {
-    return raw
-  }
-
-  if (raw instanceof Date || raw instanceof RegExp) {
-    return raw
-  }
-
-  if (Array.isArray(raw)) {
-    const mappedArray = raw.map(item => toRawDeep(item))
-    return mappedArray as unknown as T
-  }
-
-  if (isRecord(raw)) {
-    const result: Record<string, unknown> = {}
-    for (const key in raw) {
-      if (Object.prototype.hasOwnProperty.call(raw, key)) {
-        result[key] = toRawDeep(raw[key])
-      }
-    }
-    return result as unknown as T
-  }
-
-  return raw
-}
-
-/**
- * readonly オブジェクトを書き込み可能にする
- * DeepReadonly<T> → WritableDeep<T> の変換
- */
-export const unreadonly = <T>(immutable: DeepReadonly<T>): unknown =>
-  writableClone(toRawDeep(immutable))
-
-/**
- * リアクティブオブジェクトの完全な複製
- * 元のオブジェクトのリアクティブ性を保持しつつ、新しいインスタンスを作成
- */
-export const deepCloneReactive = <T>(reactiveObj: T): T => {
-  const raw = toRawDeep(reactiveObj)
-  const cloned = writableClone(raw)
-  return ref(cloned).value
-}
-
-/**
- * 条件付きリアクティブ変換
- * 条件がtrueの場合のみリアクティブにする
- */
-export const conditionalReactive = <T extends object>(value: T, condition: boolean): T | Reactive<T> => {
-  return condition ? reactive(value) : value
-}
-````
-
-## File: layers/base/app/models/error-message.ts
-````typescript
-/**
- * ブランデッド型によるエラー処理システム
- * 型レベルでエラーメッセージの安全性を保証
- */
-
-const errorMessageSymbol = Symbol('ErrorMessage')
-
-/**
- * エラーメッセージのブランデッド型
- * 通常の文字列と区別して、エラーメッセージであることを型レベルで保証
- */
-export type ErrorMessage<ActualMessage extends string = string> = ActualMessage & {
-  readonly [errorMessageSymbol]: unknown
-}
-
-/**
- * エラーメッセージを作成
- * 文字列をエラーメッセージ型に変換
- */
-export const makeErrorMessage = <ActualMessage extends string>(
-  actualMessage: ActualMessage,
-): ErrorMessage<ActualMessage> =>
-  actualMessage as ErrorMessage<ActualMessage>
-
-/**
- * エラーメッセージを通常の文字列に変換
- */
-export const extractErrorMessage = <T extends string>(
-  errorMessage: ErrorMessage<T>,
-): T => errorMessage as T
-
-/**
- * エラーメッセージかどうかを判定
- */
-export const isErrorMessage = (value: unknown): value is ErrorMessage => {
-  if (typeof value !== 'string') return false
-  // ブランデッド型の判定は実際には実行時にはできないため、文字列であることのみをチェック
-  return true
-}
-
-/**
- * よく使用されるエラーメッセージの定数
- */
-export const CommonErrors = {
-  UNAUTHORIZED: makeErrorMessage('認証が必要です'),
-  FORBIDDEN: makeErrorMessage('アクセス権限がありません'),
-  NOT_FOUND: makeErrorMessage('リソースが見つかりません'),
-  VALIDATION_ERROR: makeErrorMessage('入力値が正しくありません'),
-  NETWORK_ERROR: makeErrorMessage('ネットワークエラーが発生しました'),
-  SERVER_ERROR: makeErrorMessage('サーバーエラーが発生しました'),
-  TIMEOUT: makeErrorMessage('タイムアウトしました'),
-  UNKNOWN: makeErrorMessage('不明なエラーが発生しました'),
-} as const
-
-/**
- * HTTP ステータスコードからエラーメッセージを生成
- */
-export const createHttpErrorMessage = (status: number): ErrorMessage => {
-  switch (status) {
-    case 400:
-      return makeErrorMessage('リクエストが正しくありません')
-    case 401:
-      return CommonErrors.UNAUTHORIZED
-    case 403:
-      return CommonErrors.FORBIDDEN
-    case 404:
-      return CommonErrors.NOT_FOUND
-    case 408:
-      return CommonErrors.TIMEOUT
-    case 422:
-      return CommonErrors.VALIDATION_ERROR
-    case 500:
-      return CommonErrors.SERVER_ERROR
-    case 502:
-    case 503:
-    case 504:
-      return makeErrorMessage('サーバーが一時的に利用できません')
-    default:
-      return makeErrorMessage(`HTTPエラー (${status})`)
-  }
-}
-
-/**
- * エラー型の詳細情報を含むエラークラス
- */
-export class TypedError<T extends string = string> extends Error {
-  readonly errorMessage: ErrorMessage<T>
-  readonly code?: string
-  readonly statusCode?: number
-  readonly details?: Record<string, unknown>
-
-  constructor(
-    errorMessage: ErrorMessage<T>,
-    options?: {
-      code?: string
-      statusCode?: number
-      details?: Record<string, unknown>
-      cause?: Error
-    },
-  ) {
-    super(extractErrorMessage(errorMessage))
-    this.name = 'TypedError'
-    this.errorMessage = errorMessage
-    this.code = options?.code
-    this.statusCode = options?.statusCode
-    this.details = options?.details
-
-    if (options?.cause) {
-      this.cause = options.cause
-    }
-  }
-}
-
-/**
- * 結果型 - 成功またはエラーを表現
- */
-export type Result<T, E extends string = string>
-  = | { success: true, data: T }
-    | { success: false, error: ErrorMessage<E> }
-
-/**
- * 成功結果を作成
- */
-export const createSuccess = <T>(data: T): Result<T, never> => ({
-  success: true,
-  data,
-})
-
-/**
- * エラー結果を作成
- */
-export const createError = <E extends string>(
-  error: ErrorMessage<E>,
-): Result<never, E> => ({
-  success: false,
-  error,
-})
-
-/**
- * 非同期関数を安全に実行し、Result型で結果を返す
- */
-export const safeAsync = async <T, E extends string = string>(
-  fn: () => Promise<T>,
-  errorMapper?: (error: unknown) => ErrorMessage<E>,
-): Promise<Result<T, E>> => {
-  try {
-    const data = await fn()
-    return createSuccess(data)
-  } catch (error) {
-    const errorMessage = errorMapper
-      ? errorMapper(error)
-      : makeErrorMessage('予期しないエラーが発生しました') as ErrorMessage<E>
-    return createError(errorMessage)
-  }
-}
-
-/**
- * 同期関数を安全に実行し、Result型で結果を返す
- */
-export const safeSync = <T, E extends string = string>(
-  fn: () => T,
-  errorMapper?: (error: unknown) => ErrorMessage<E>,
-): Result<T, E> => {
-  try {
-    const data = fn()
-    return createSuccess(data)
-  } catch (error) {
-    const errorMessage = errorMapper
-      ? errorMapper(error)
-      : makeErrorMessage('予期しないエラーが発生しました') as ErrorMessage<E>
-    return createError(errorMessage)
-  }
 }
 ````
 
