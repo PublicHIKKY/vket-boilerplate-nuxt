@@ -7,7 +7,19 @@ export default withNuxt(
   ...sharedConfig,
   // tsconfigが必要なルールの設定
   {
-    files: ['**/*.ts', '**/*.vue'], // 'Parsing error: Type expected'するので.tsxは除外
+    files: [
+      '**/*.ts',
+      '**/*.mts',
+      '**/*.cts',
+      '**/*.vue',
+      // 'Parsing error: Type expected'するので.tsxは除外
+    ],
+    ignores: [
+      '**/vitest.config.mts', // tsconfig.shared.jsonのexcludeに含まれているため除外
+      '**/*.js', // .jsファイルは型チェックルールの対象外
+      '**/*.mjs', // .mjsファイルも型チェックルールの対象外
+      '**/*.cjs', // .cjsファイルも型チェックルールの対象外
+    ],
     languageOptions: {
       parserOptions: {
         project: './tsconfig.json',
@@ -37,5 +49,5 @@ export default withNuxt(
     rules: {
       '@typescript-eslint/unbound-method': 'off', // テスト内でvi.fn()などを注入するために許可
     },
-  }
+  },
 )

@@ -108,7 +108,7 @@
       },
       "devDependencies": {
         "@types/js-yaml": "^4.0.9",
-        "@types/node": "^24.3.1",
+        "@types/node": "^24.6.2",
         "js-yaml": "^4.1.0",
         "openapi-zod-client": "^1.18.3",
       },

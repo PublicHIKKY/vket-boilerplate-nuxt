@@ -1,5 +1,5 @@
-import path from 'path'
 import { defineNuxtConfig } from 'nuxt/config'
+import path from 'path'
 import { readEnvType } from './config/models/EnvType'
 import { getRuntimeConfigOfEnvType } from './config/runtimeConfig'
 import { nuxtI18nOptions } from './i18n/i18n.config'
@@ -35,8 +35,8 @@ const meta: MetaInfo = {
   siteName: '',
   ogImageUrl: `${runtimeConfig.public.url}/images/ogp.jpg`,
   ogUrl: runtimeConfig.public.url,
-  twitterSite: '',
-  twitterCreator: '',
+  twitterSite: 'https://x.com/',
+  twitterCreator: 'https://x.com/',
 }
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
@@ -108,6 +108,7 @@ export default defineNuxtConfig({
   srcDir: `${srcDir}/`,
 
   alias: {
+    '#base': path.resolve(__dirname, '../base'),
     '#main': __dirname,
     '@': path.resolve(__dirname, './app'),
   },

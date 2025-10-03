@@ -1,6 +1,6 @@
+import stylistic from '@stylistic/eslint-plugin'
 import typescriptEslint from '@typescript-eslint/eslint-plugin'
 import globals from 'globals'
-import stylistic from '@stylistic/eslint-plugin'
 import sharedConfig, { basicConfig } from '../../eslint.config.shared.mjs'
 import withNuxt from './.nuxt/eslint.config.mjs'
 
@@ -24,6 +24,8 @@ export default withNuxt(
       'vue/no-v-html': 'error',
       'vue/multi-word-component-names': 'off',
       'vue/html-self-closing': 'off', // prettierと競合するため、off
+      'vue/attribute-hyphenation': ['error', 'never'], // camelCase属性を強制
+      'vue/v-on-event-hyphenation': ['error', 'never', { autofix: true }], // camelCaseイベントを強制
     },
   },
   // composablesやplugins・middlewareなども含む設定
@@ -55,6 +57,12 @@ export default withNuxt(
       '**/*.cts',
       '**/*.vue',
       // 'Parsing error: Type expected'するので.tsxは除外
+    ],
+    ignores: [
+      '**/vitest.config.mts', // tsconfig.shared.jsonのexcludeに含まれているため除外
+      '**/*.js', // .jsファイルは型チェックルールの対象外
+      '**/*.mjs', // .mjsファイルも型チェックルールの対象外
+      '**/*.cjs', // .cjsファイルも型チェックルールの対象外
     ],
     languageOptions: {
       parserOptions: {
