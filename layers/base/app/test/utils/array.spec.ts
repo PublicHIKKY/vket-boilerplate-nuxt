@@ -1,4 +1,5 @@
 import { fc, test } from '@fast-check/vitest'
+import { describe, expect } from 'vitest'
 import { equal, range, reversed, toggleList, zip } from '#base/app/utils/array'
 
 describe('equal', () => {

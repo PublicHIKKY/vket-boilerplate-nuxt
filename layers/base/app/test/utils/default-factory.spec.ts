@@ -1,3 +1,4 @@
+import { describe, it, expect, vi } from 'vitest'
 import exampleRepository from '#base/app/repositories/exampleRepository'
 import {
   defaultRepositories,

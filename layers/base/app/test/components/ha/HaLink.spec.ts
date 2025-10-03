@@ -1,16 +1,18 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, test, vi } from 'vitest'
+import { beforeEach, afterEach, describe, it, expect, test, vi } from 'vitest'
 import HaLink from '#base/app/components/ha/HaLink.vue'
 
 import { isNuxtEnvironment } from '#base/app/utils/environment'
 
-// useLocalePath のモック関数を定義
+// useLocalePath のモック関数をトップレベルで定義
+vi.mock('#i18n', () => ({
+  useLocalePath: vi.fn(
+    () => vi.fn(() => `/mocked-path`), // path: string, query: LocationQuery, hash: string 引数削除 (使う時だけ入れないとreviewdogに怒られる)
+  ),
+}))
+
 beforeEach(() => {
-  vi.mock('#i18n', () => ({
-    useLocalePath: vi.fn(
-      () => vi.fn(() => `/mocked-path`), // path: string, query: LocationQuery, hash: string 引数削除 (使う時だけ入れないとreviewdogに怒られる)
-    ),
-  }))
+  vi.clearAllMocks()
 })
 
 afterEach(() => {

@@ -1,5 +1,6 @@
-import HmInputFile from '#base/app/components/hm/input/HmInputFile.vue'
 import { mount } from '@vue/test-utils'
+import { describe, it, test, expect } from 'vitest'
+import HmInputFile from '#base/app/components/hm/input/HmInputFile.vue'
 
 /*
  * NOTE: 下準備としてFileList型のダミーを作成する

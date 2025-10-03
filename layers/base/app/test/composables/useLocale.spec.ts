@@ -1,23 +1,28 @@
+import { test, expect, vi, beforeEach, afterEach } from 'vitest'
+import { ref } from 'vue'
+import type { WritableComputedRef } from 'vue'
 import { useLocale } from '#base/app/composables/useLocale'
 
 let globalLocale: string | null = null
 
+vi.mock('nuxt/app', () => ({
+  useRequestHeaders: vi.fn(() => 'ja'),
+}))
+
+vi.mock('vue-i18n', () => ({
+  useI18n: vi.fn(() => ({
+    locale: ref('ja') as WritableComputedRef<string>,
+  })),
+}))
+
+vi.mock('@vee-validate/i18n', () => ({
+  setLocale: vi.fn((locale: string) => {
+    globalLocale = locale
+  }),
+}))
+
 beforeEach(() => {
-  vi.mock('nuxt/app', () => ({
-    useRequestHeaders: vi.fn(() => 'ja'),
-  }))
-
-  vi.mock('vue-i18n', () => ({
-    useI18n: vi.fn(() => ({
-      locale: ref('ja') as WritableComputedRef<string>,
-    })),
-  }))
-
-  vi.mock('@vee-validate/i18n', () => ({
-    setLocale: vi.fn((locale: string) => {
-      globalLocale = locale
-    }),
-  }))
+  globalLocale = null
 })
 
 afterEach(() => {

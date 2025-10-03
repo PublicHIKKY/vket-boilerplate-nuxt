@@ -1,3 +1,4 @@
+import { test, expect } from 'vitest'
 import { unreachable } from '#base/app/utils/error'
 
 test('unreachable', () => {
