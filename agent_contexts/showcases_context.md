@@ -416,83 +416,6 @@ describe('Showcases Layer Tests', () => {
 })
 ````
 
-## File: layers/showcases/app/test/setup.ts
-````typescript
-import { vi } from 'vitest'
-
-// Type declarations for global mocks - range and useSlots are handled by auto-imports
-
-// Global mock for all icon imports
-vi.mock('~icons/ri/close-line', () => ({
-  default: {
-    name: 'RiCloseLine',
-    template: '<svg class="icon"><path /></svg>',
-    props: ['class'],
-  },
-}))
-
-// Mock Nuxt composables using vi.mock to avoid conflicts with auto-imports
-vi.mock('#app/composables/useI18n', () => ({
-  useI18n: vi.fn(() => ({
-    t: vi.fn((key: string) => {
-      const messages: Record<string, string> = {
-        next: 'Next',
-        prev: 'Prev',
-      }
-      return messages[key] || key
-    }),
-    locale: { value: 'ja' },
-  })),
-}))
-
-vi.mock('#app/composables/useRoute', () => ({
-  useRoute: vi.fn(() => ({
-    path: '/test',
-    query: { page: '1' },
-  })),
-}))
-
-vi.mock('vue', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('vue')>()
-  return {
-    ...actual,
-    nextTick: vi.fn().mockResolvedValue(undefined),
-  }
-})
-
-// Global utility functions for tests - range and useSlots handled by auto-imports
-
-// HTMLDialogElement mock for jsdom
-if (!global.HTMLDialogElement) {
-  global.HTMLDialogElement = class HTMLDialogElement extends HTMLElement {
-    open = false
-    returnValue = ''
-
-    showModal = vi.fn(() => {
-      this.open = true
-    })
-
-    close = vi.fn(() => {
-      this.open = false
-    })
-
-    show = vi.fn(() => {
-      this.open = true
-    })
-
-    requestClose = vi.fn()
-
-    override addEventListener(_event: string, _callback: (...args: unknown[]) => void) {
-      // Mock implementation
-    }
-
-    override removeEventListener(_event: string, _callback: (...args: unknown[]) => void) {
-      // Mock implementation
-    }
-  }
-}
-````
-
 ## File: layers/showcases/config/models/EnvType.ts
 ````typescript
 /**
@@ -694,63 +617,6 @@ function getProduction(envType: EnvType, _baseEnv: Env) {
 export default {
   extends: ["../../.stylelintrc.shared.mjs"],
 };
-````
-
-## File: layers/showcases/eslint.config.mjs
-````
-import typescriptEslint from '@typescript-eslint/eslint-plugin'
-import globals from 'globals'
-import sharedConfig from '../../eslint.config.shared.mjs'
-import withNuxt from './.nuxt/eslint.config.mjs'
-
-export default withNuxt(
-  ...sharedConfig,
-  // tsconfigが必要なルールの設定
-  {
-    files: [
-      '**/*.ts',
-      '**/*.mts',
-      '**/*.cts',
-      '**/*.vue',
-      // 'Parsing error: Type expected'するので.tsxは除外
-    ],
-    ignores: [
-      '**/vitest.config.mts', // tsconfig.shared.jsonのexcludeに含まれているため除外
-      '**/*.js', // .jsファイルは型チェックルールの対象外
-      '**/*.mjs', // .mjsファイルも型チェックルールの対象外
-      '**/*.cjs', // .cjsファイルも型チェックルールの対象外
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: './tsconfig.json',
-      },
-    },
-    rules: {
-      ...typescriptEslint.configs.recommended.rules,
-      ...typescriptEslint.configs['recommended-type-checked'].rules,
-      '@typescript-eslint/restrict-template-expressions': 'off', // string interpolation `${e}` のeには、任意の型の値を許す
-      '@typescript-eslint/no-unsafe-call': 'off', // auto-importした関数がanyに推測されるので、off
-      // .vueの下記TODOコメントを参照
-      '@typescript-eslint/no-unsafe-argument': 'off',
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off',
-    },
-  },
-  // その他オーバーライド
-  {
-    files: ['**/test/**/*.ts'],
-    languageOptions: {
-      globals: {
-        ...globals.jest,
-        vi: true,
-      },
-    },
-    rules: {
-      '@typescript-eslint/unbound-method': 'off', // テスト内でvi.fn()などを注入するために許可
-    },
-  },
-)
 ````
 
 ## File: layers/showcases/tsconfig.json
@@ -1528,6 +1394,83 @@ test('getI18nArray takes a list from vue-i18n dict', () => {
 })
 ````
 
+## File: layers/showcases/app/test/setup.ts
+````typescript
+import { vi } from 'vitest'
+
+// Type declarations for global mocks - range and useSlots are handled by auto-imports
+
+// Global mock for all icon imports
+vi.mock('~icons/ri/close-line', () => ({
+  default: {
+    name: 'RiCloseLine',
+    template: '<svg class="icon"><path /></svg>',
+    props: ['class'],
+  },
+}))
+
+// Mock Nuxt composables using vi.mock to avoid conflicts with auto-imports
+vi.mock('#app/composables/useI18n', () => ({
+  useI18n: vi.fn(() => ({
+    t: vi.fn((key: string) => {
+      const messages: Record<string, string> = {
+        next: 'Next',
+        prev: 'Prev',
+      }
+      return messages[key] || key
+    }),
+    locale: { value: 'ja' },
+  })),
+}))
+
+vi.mock('#app/composables/useRoute', () => ({
+  useRoute: vi.fn(() => ({
+    path: '/test',
+    query: { page: '1' },
+  })),
+}))
+
+vi.mock('vue', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue')>()
+  return {
+    ...actual,
+    nextTick: vi.fn().mockResolvedValue(undefined),
+  }
+})
+
+// Global utility functions for tests - range and useSlots handled by auto-imports
+
+// HTMLDialogElement mock for jsdom
+if (!global.HTMLDialogElement) {
+  global.HTMLDialogElement = class HTMLDialogElement extends HTMLElement {
+    open = false
+    returnValue = ''
+
+    showModal = vi.fn(() => {
+      this.open = true
+    })
+
+    close = vi.fn(() => {
+      this.open = false
+    })
+
+    show = vi.fn(() => {
+      this.open = true
+    })
+
+    requestClose = vi.fn()
+
+    override addEventListener(_event: string, _callback: (...args: unknown[]) => void) {
+      // Mock implementation
+    }
+
+    override removeEventListener(_event: string, _callback: (...args: unknown[]) => void) {
+      // Mock implementation
+    }
+  }
+}
+````
+
 ## File: layers/showcases/app/utils/api.ts
 ````typescript
 import { FetchOptions } from 'ofetch'
@@ -2078,6 +2021,164 @@ export default defineAppConfig(
 )
 ````
 
+## File: layers/showcases/eslint.config.mjs
+````
+import typescriptEslint from '@typescript-eslint/eslint-plugin'
+import globals from 'globals'
+import sharedConfig from '../../eslint.config.shared.mjs'
+import withNuxt from './.nuxt/eslint.config.mjs'
+
+export default withNuxt(
+  ...sharedConfig,
+  // tsconfigが必要なルールの設定
+  {
+    files: [
+      '**/*.ts',
+      '**/*.mts',
+      '**/*.cts',
+      '**/*.vue',
+      // 'Parsing error: Type expected'するので.tsxは除外
+    ],
+    ignores: [
+      '**/vitest.config.mts', // tsconfig.shared.jsonのexcludeに含まれているため除外
+      '**/*.js', // .jsファイルは型チェックルールの対象外
+      '**/*.mjs', // .mjsファイルも型チェックルールの対象外
+      '**/*.cjs', // .cjsファイルも型チェックルールの対象外
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: './tsconfig.json',
+      },
+    },
+    rules: {
+      ...typescriptEslint.configs.recommended.rules,
+      ...typescriptEslint.configs['recommended-type-checked'].rules,
+      '@typescript-eslint/restrict-template-expressions': 'off', // string interpolation `${e}` のeには、任意の型の値を許す
+      '@typescript-eslint/no-unsafe-call': 'off', // auto-importした関数がanyに推測されるので、off
+      // .vueの下記TODOコメントを参照
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+    },
+  },
+  // その他オーバーライド
+  {
+    files: ['**/test/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.jest,
+        vi: true,
+      },
+    },
+    rules: {
+      '@typescript-eslint/unbound-method': 'off', // テスト内でvi.fn()などを注入するために許可
+    },
+  },
+)
+````
+
+## File: layers/showcases/package.json
+````json
+{
+  "name": "vket-boilerplate-nuxt-showcases",
+  "private": true,
+  "type": "module",
+  "version": "1.0.1",
+  "scripts": {
+    "postinstall": "nuxt prepare",
+    "dev": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt dev",
+    "dev:local": "cross-env VITE_OUTPUT_ENV=local nuxt dev",
+    "build": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt build",
+    "build:local": "cross-env VITE_OUTPUT_ENV=local nuxt build",
+    "generate": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt generate",
+    "generate:local": "cross-env VITE_OUTPUT_ENV=local nuxt generate",
+    "preview": "nuxt preview",
+    "typecheck": "cross-env VITE_OUTPUT_ENV=local nuxt typecheck",
+    "analyze": "cross-env VITE_OUTPUT_ENV=local nuxt analyze",
+    "lint": "bun lint:eslint && bun lint:stylelint",
+    "lint:eslint": "eslint --cache --cache-strategy content ./app",
+    "lint:stylelint": "stylelint --cache --cache-strategy content './app/**/*.{css,scss,sass,vue}'",
+    "fix": "bun fix:eslint && bun fix:stylelint",
+    "fix:eslint": "eslint --cache --cache-strategy content --fix ./app",
+    "fix:stylelint": "stylelint --cache-strategy content --fix './app/**/*.{css,scss,sass,vue}'",
+    "test:ut": "cmd='vitest run --dir ./app/test' bun exec-test",
+    "test:watch": "cmd='vitest --dir ./app/test' bun exec-test",
+    "test:ui": "cmd='vitest --ui --dir ./app/test' bun exec-test",
+    "test:coverage": "cmd='vitest run --dir ./app/test --coverage' bun exec-test",
+    "exec-test": "baseDir='./app/test' ext='\\.spec\\.ts' bun exec-if-file-exists",
+    "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true",
+    "package-update": "bunx npm-check-updates -i"
+  },
+  "dependencies": {
+    "vket-boilerplate-nuxt-base": "workspace:*"
+  }
+}
+````
+
+## File: layers/showcases/app/models/json.ts
+````typescript
+/**
+ * @group For Developers
+ * @category Type Definitions
+ * @module Json
+ * @reference https://zod.dev/?id=json-type
+ */
+
+import { z } from 'zod/v3'
+
+const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()])
+type Literal = z.infer<typeof literalSchema>
+type JsonType = Literal | { [key: string]: JsonType } | JsonType[]
+export const jsonSchema: z.ZodType<JsonType> = z.lazy(() =>
+  z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)]),
+)
+export type Json = z.infer<typeof jsonSchema>
+````
+
+## File: layers/showcases/app/models/todo.ts
+````typescript
+import { z } from 'zod/v3'
+import { integral } from '#base/app/utils/zod'
+
+export const todoSchema = z.object({
+  userId: integral, // NOTE: バックエンドの仕様が不安定な場合は、integralで型を広く持っておこう
+  id: integral,
+  title: z.string(),
+  completed: z.boolean(),
+})
+
+export type Todo = z.infer<typeof todoSchema>
+````
+
+## File: layers/showcases/app/utils/i18n.ts
+````typescript
+import { Composer, UseI18nOptions, VueMessageType } from 'vue-i18n'
+
+/**
+ * 引数未指定にすると、普通に`const i18n = useI18n()`とすると入ってくる型になる。
+ * 型引数の使い方については、そのままuseI18nの型引数の指定方法を参照のこと。
+ */
+export type UseI18nReturnType<Options extends UseI18nOptions = UseI18nOptions>
+  = Composer<
+    NonNullable<Options['messages']>,
+    NonNullable<Options['datetimeFormats']>,
+    NonNullable<Options['numberFormats']>,
+    Options['locale'] extends unknown ? string : Options['locale']
+  >
+
+/**
+ * @example
+ * ```ts
+ * import { useI18n } from 'vue-i18n'
+ * const i18n = useI18n() // messagesは `{ [locale]: { list: ['a', 'b', 'c'] } }` とする
+ * const list = getI18nArray(i18n, 'list') // ['a', 'b', 'c']
+ * ```
+ */
+export const getI18nArray = (i18n: UseI18nReturnType, key: string): string[] =>
+  Object.entries<VueMessageType>(i18n.tm(key)).map(([_, term]) => i18n.rt(term))
+````
+
 ## File: layers/showcases/nuxt.config.ts
 ````typescript
 import { defineNuxtConfig } from 'nuxt/config'
@@ -2259,44 +2360,6 @@ export default defineNuxtConfig({
 })
 ````
 
-## File: layers/showcases/package.json
-````json
-{
-  "name": "vket-boilerplate-nuxt-showcases",
-  "private": true,
-  "type": "module",
-  "version": "1.0.1",
-  "scripts": {
-    "postinstall": "nuxt prepare",
-    "dev": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt dev",
-    "dev:local": "cross-env VITE_OUTPUT_ENV=local nuxt dev",
-    "build": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt build",
-    "build:local": "cross-env VITE_OUTPUT_ENV=local nuxt build",
-    "generate": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt generate",
-    "generate:local": "cross-env VITE_OUTPUT_ENV=local nuxt generate",
-    "preview": "nuxt preview",
-    "typecheck": "cross-env VITE_OUTPUT_ENV=local nuxt typecheck",
-    "analyze": "cross-env VITE_OUTPUT_ENV=local nuxt analyze",
-    "lint": "bun lint:eslint && bun lint:stylelint",
-    "lint:eslint": "eslint --cache --cache-strategy content ./app",
-    "lint:stylelint": "stylelint --cache --cache-strategy content './app/**/*.{css,scss,sass,vue}'",
-    "fix": "bun fix:eslint && bun fix:stylelint",
-    "fix:eslint": "eslint --cache --cache-strategy content --fix ./app",
-    "fix:stylelint": "stylelint --cache-strategy content --fix './app/**/*.{css,scss,sass,vue}'",
-    "test:ut": "cmd='vitest run --dir ./app/test' bun exec-test",
-    "test:watch": "cmd='vitest --dir ./app/test' bun exec-test",
-    "test:ui": "cmd='vitest --ui --dir ./app/test' bun exec-test",
-    "test:coverage": "cmd='vitest run --dir ./app/test --coverage' bun exec-test",
-    "exec-test": "baseDir='./app/test' ext='\\.spec\\.ts' bun exec-if-file-exists",
-    "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true",
-    "package-update": "bunx npm-check-updates -i"
-  },
-  "dependencies": {
-    "vket-boilerplate-nuxt-base": "workspace:*"
-  }
-}
-````
-
 ## File: layers/showcases/vitest.config.mts
 ````
 import { defineVitestConfig } from '@nuxt/test-utils/config'
@@ -2322,69 +2385,6 @@ export default defineVitestConfig({
     setupFiles: ['test/setup.ts'],
   },
 })
-````
-
-## File: layers/showcases/app/models/json.ts
-````typescript
-/**
- * @group For Developers
- * @category Type Definitions
- * @module Json
- * @reference https://zod.dev/?id=json-type
- */
-
-import { z } from 'zod/v3'
-
-const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()])
-type Literal = z.infer<typeof literalSchema>
-type JsonType = Literal | { [key: string]: JsonType } | JsonType[]
-export const jsonSchema: z.ZodType<JsonType> = z.lazy(() =>
-  z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)]),
-)
-export type Json = z.infer<typeof jsonSchema>
-````
-
-## File: layers/showcases/app/models/todo.ts
-````typescript
-import { z } from 'zod/v3'
-import { integral } from '#base/app/utils/zod'
-
-export const todoSchema = z.object({
-  userId: integral, // NOTE: バックエンドの仕様が不安定な場合は、integralで型を広く持っておこう
-  id: integral,
-  title: z.string(),
-  completed: z.boolean(),
-})
-
-export type Todo = z.infer<typeof todoSchema>
-````
-
-## File: layers/showcases/app/utils/i18n.ts
-````typescript
-import { Composer, UseI18nOptions, VueMessageType } from 'vue-i18n'
-
-/**
- * 引数未指定にすると、普通に`const i18n = useI18n()`とすると入ってくる型になる。
- * 型引数の使い方については、そのままuseI18nの型引数の指定方法を参照のこと。
- */
-export type UseI18nReturnType<Options extends UseI18nOptions = UseI18nOptions>
-  = Composer<
-    NonNullable<Options['messages']>,
-    NonNullable<Options['datetimeFormats']>,
-    NonNullable<Options['numberFormats']>,
-    Options['locale'] extends unknown ? string : Options['locale']
-  >
-
-/**
- * @example
- * ```ts
- * import { useI18n } from 'vue-i18n'
- * const i18n = useI18n() // messagesは `{ [locale]: { list: ['a', 'b', 'c'] } }` とする
- * const list = getI18nArray(i18n, 'list') // ['a', 'b', 'c']
- * ```
- */
-export const getI18nArray = (i18n: UseI18nReturnType, key: string): string[] =>
-  Object.entries<VueMessageType>(i18n.tm(key)).map(([_, term]) => i18n.rt(term))
 ````
 
 ## File: layers/showcases/@types/auto-imports.d.ts

@@ -1243,83 +1243,6 @@ declare module 'vue' {
 }
 ````
 
-## File: layers/main/app/test/setup.ts
-````typescript
-import { vi } from 'vitest'
-
-// Type declarations for global mocks - range and useSlots are handled by auto-imports
-
-// Global mock for all icon imports
-vi.mock('~icons/ri/close-line', () => ({
-  default: {
-    name: 'RiCloseLine',
-    template: '<svg class="icon"><path /></svg>',
-    props: ['class'],
-  },
-}))
-
-// Mock Nuxt composables using vi.mock to avoid conflicts with auto-imports
-vi.mock('#app/composables/useI18n', () => ({
-  useI18n: vi.fn(() => ({
-    t: vi.fn((key: string) => {
-      const messages: Record<string, string> = {
-        next: 'Next',
-        prev: 'Prev',
-      }
-      return messages[key] || key
-    }),
-    locale: { value: 'ja' },
-  })),
-}))
-
-vi.mock('#app/composables/useRoute', () => ({
-  useRoute: vi.fn(() => ({
-    path: '/test',
-    query: { page: '1' },
-  })),
-}))
-
-vi.mock('vue', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('vue')>()
-  return {
-    ...actual,
-    nextTick: vi.fn().mockResolvedValue(undefined),
-  }
-})
-
-// Global utility functions for tests - range and useSlots handled by auto-imports
-
-// HTMLDialogElement mock for jsdom
-if (!global.HTMLDialogElement) {
-  global.HTMLDialogElement = class HTMLDialogElement extends HTMLElement {
-    open = false
-    returnValue = ''
-
-    showModal = vi.fn(() => {
-      this.open = true
-    })
-
-    close = vi.fn(() => {
-      this.open = false
-    })
-
-    show = vi.fn(() => {
-      this.open = true
-    })
-
-    requestClose = vi.fn()
-
-    override addEventListener(_event: string, _callback: (...args: unknown[]) => void) {
-      // Mock implementation
-    }
-
-    override removeEventListener(_event: string, _callback: (...args: unknown[]) => void) {
-      // Mock implementation
-    }
-  }
-}
-````
-
 ## File: layers/main/app/utils/api.ts
 ````typescript
 import { FetchOptions } from 'ofetch'
@@ -1602,122 +1525,6 @@ import { getAppConfigOfEnvType } from './config/appConfig'
 // eslint-disable-next-line no-undef
 export default defineAppConfig(
   getAppConfigOfEnvType(readEnvType(process.env), process.env)
-)
-````
-
-## File: layers/main/eslint.config.mjs
-````
-import stylistic from '@stylistic/eslint-plugin'
-import typescriptEslint from '@typescript-eslint/eslint-plugin'
-import globals from 'globals'
-import sharedConfig, { basicConfig } from '../../eslint.config.shared.mjs'
-import withNuxt from './.nuxt/eslint.config.mjs'
-
-export default withNuxt(
-  ...sharedConfig,
-
-  // VueとNuxtの基本設定
-  {
-    files: ['**/*.vue'],
-    languageOptions: {
-      globals: {
-        ...globals.browser,
-        // NOTE: eslint実行時に `error 'something' is not defined no-undef` のようなエラーが出て、'something'が既知のものだったら（例えばauto-importなどでimportされることがわかっている・標準ライブラリに載っている、など。）、ここ（もしくは下の「オーバーライド」）に `something: true` と追加してください
-        IntersectionObserverInit: true,
-      },
-    },
-    rules: {
-      'vue/no-unused-components': 'off',
-      'vue/no-multiple-template-root': 'off',
-      'vue/no-v-model-argument': 'off',
-      'vue/no-v-html': 'error',
-      'vue/multi-word-component-names': 'off',
-      'vue/html-self-closing': 'off', // prettierと競合するため、off
-      'vue/attribute-hyphenation': ['error', 'never'], // camelCase属性を強制
-      'vue/v-on-event-hyphenation': ['error', 'never', { autofix: true }], // camelCaseイベントを強制
-    },
-  },
-  // composablesやplugins・middlewareなども含む設定
-  {
-    files: ['**/*.vue', '**/*.ts'],
-    languageOptions: {
-      globals: {
-        // NOTE: eslint実行時に `error 'something' is not defined no-undef` のようなエラーが出て、'something'が既知のものだったら（例えばauto-importなどでimportされることがわかっている・標準ライブラリに載っている、など。）、ここ（もしくは下の「オーバーライド」）に `something: true` と追加してください
-        WritableComputedRef: true,
-        defineNuxtConfig: true,
-      },
-    },
-    rules: {
-      /*
-       * ERROR  Cannot use 'import.meta' outside a module                                                                                                                                                                                                                                                               9:08:45 PM
-       * asyncContext: !!__NUXT_ASYNC_CONTEXT__ && import.meta.server
-       * ^^^^
-       * `yarn fix`すると`process.server`が`import.meta.server`に置き換えられて↑が発生するので、off
-       */
-      'nuxt/prefer-import-meta': 'off',
-    },
-  },
-
-  // tsconfigが必要なルールの設定
-  {
-    files: [
-      '**/*.ts',
-      '**/*.mts',
-      '**/*.cts',
-      '**/*.vue',
-      // 'Parsing error: Type expected'するので.tsxは除外
-    ],
-    ignores: [
-      '**/vitest.config.mts', // tsconfig.shared.jsonのexcludeに含まれているため除外
-      '**/*.js', // .jsファイルは型チェックルールの対象外
-      '**/*.mjs', // .mjsファイルも型チェックルールの対象外
-      '**/*.cjs', // .cjsファイルも型チェックルールの対象外
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: './tsconfig.json',
-      },
-    },
-    rules: {
-      ...typescriptEslint.configs.recommended.rules,
-      ...typescriptEslint.configs['recommended-type-checked'].rules,
-      ...basicConfig.rules,
-      '@typescript-eslint/restrict-template-expressions': 'off', // string interpolation `${e}` のeには、任意の型の値を許す
-      '@typescript-eslint/no-unsafe-call': 'off', // auto-importした関数がanyに推測されるので、off
-      // .vueの下記TODOコメントを参照 -- TODO: 「下記TODOコメント」はどこにいった？
-      '@typescript-eslint/no-unsafe-argument': 'off',
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off',
-    },
-  },
-
-  /*
-   * コーディングスタイルの設定（そのうちnuxt.config.tsに書けないもの）
-   * https://eslint.style/rules
-   */
-  {
-    plugins: {
-      '@stylistic': stylistic,
-    },
-    rules: {
-      '@stylistic/multiline-comment-style': ['warn', 'starred-block'],
-    },
-  },
-
-  // その他オーバーライド
-  {
-    files: ['**/test/**/*.ts'],
-    languageOptions: {
-      globals: {
-        ...globals.jest,
-        vi: true,
-      },
-    },
-    rules: {
-      '@typescript-eslint/unbound-method': 'off', // テスト内でvi.fn()などを注入するために許可
-    },
-  },
 )
 ````
 
@@ -2313,6 +2120,83 @@ test('getI18nArray takes a list from vue-i18n dict', () => {
 })
 ````
 
+## File: layers/main/app/test/setup.ts
+````typescript
+import { vi } from 'vitest'
+
+// Type declarations for global mocks - range and useSlots are handled by auto-imports
+
+// Global mock for all icon imports
+vi.mock('~icons/ri/close-line', () => ({
+  default: {
+    name: 'RiCloseLine',
+    template: '<svg class="icon"><path /></svg>',
+    props: ['class'],
+  },
+}))
+
+// Mock Nuxt composables using vi.mock to avoid conflicts with auto-imports
+vi.mock('#app/composables/useI18n', () => ({
+  useI18n: vi.fn(() => ({
+    t: vi.fn((key: string) => {
+      const messages: Record<string, string> = {
+        next: 'Next',
+        prev: 'Prev',
+      }
+      return messages[key] || key
+    }),
+    locale: { value: 'ja' },
+  })),
+}))
+
+vi.mock('#app/composables/useRoute', () => ({
+  useRoute: vi.fn(() => ({
+    path: '/test',
+    query: { page: '1' },
+  })),
+}))
+
+vi.mock('vue', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue')>()
+  return {
+    ...actual,
+    nextTick: vi.fn().mockResolvedValue(undefined),
+  }
+})
+
+// Global utility functions for tests - range and useSlots handled by auto-imports
+
+// HTMLDialogElement mock for jsdom
+if (!global.HTMLDialogElement) {
+  global.HTMLDialogElement = class HTMLDialogElement extends HTMLElement {
+    open = false
+    returnValue = ''
+
+    showModal = vi.fn(() => {
+      this.open = true
+    })
+
+    close = vi.fn(() => {
+      this.open = false
+    })
+
+    show = vi.fn(() => {
+      this.open = true
+    })
+
+    requestClose = vi.fn()
+
+    override addEventListener(_event: string, _callback: (...args: unknown[]) => void) {
+      // Mock implementation
+    }
+
+    override removeEventListener(_event: string, _callback: (...args: unknown[]) => void) {
+      // Mock implementation
+    }
+  }
+}
+````
+
 ## File: layers/main/app/utils/i18n.ts
 ````typescript
 import { VueMessageType, Composer, UseI18nOptions } from 'vue-i18n'
@@ -2731,156 +2615,120 @@ const goBack = async (): Promise<void> => {
 </style>
 ````
 
-## File: layers/main/nuxt.config.ts
-````typescript
-import { defineNuxtConfig } from 'nuxt/config'
-import path from 'path'
-import { readEnvType } from './config/models/EnvType'
-import { getRuntimeConfigOfEnvType } from './config/runtimeConfig'
-import { nuxtI18nOptions } from './i18n/i18n.config'
+## File: layers/main/eslint.config.mjs
+````
+import stylistic from '@stylistic/eslint-plugin'
+import typescriptEslint from '@typescript-eslint/eslint-plugin'
+import globals from 'globals'
+import sharedConfig, { basicConfig } from '../../eslint.config.shared.mjs'
+import withNuxt from './.nuxt/eslint.config.mjs'
 
-type MetaInfo = {
-  title: string
-  description: string
-  robots: string
-  siteName: string
-  ogImageUrl: string
-  ogUrl: string
-  twitterSite: string
-  twitterCreator: string
-}
+export default withNuxt(
+  ...sharedConfig,
 
-const NUXT_ENV_OUTPUT_ENV = readEnvType(process.env)
-const runtimeConfig = getRuntimeConfigOfEnvType(
-  NUXT_ENV_OUTPUT_ENV,
-  process.env,
+  // VueとNuxtの基本設定
+  {
+    files: ['**/*.vue'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        // NOTE: eslint実行時に `error 'something' is not defined no-undef` のようなエラーが出て、'something'が既知のものだったら（例えばauto-importなどでimportされることがわかっている・標準ライブラリに載っている、など。）、ここ（もしくは下の「オーバーライド」）に `something: true` と追加してください
+        IntersectionObserverInit: true,
+      },
+    },
+    rules: {
+      'vue/no-unused-components': 'off',
+      'vue/no-multiple-template-root': 'off',
+      'vue/no-v-model-argument': 'off',
+      'vue/no-v-html': 'error',
+      'vue/multi-word-component-names': 'off',
+      'vue/html-self-closing': 'off', // prettierと競合するため、off
+      'vue/attribute-hyphenation': ['error', 'never'], // camelCase属性を強制
+      'vue/v-on-event-hyphenation': ['error', 'never', { autofix: true }], // camelCaseイベントを強制
+    },
+  },
+  // composablesやplugins・middlewareなども含む設定
+  {
+    files: ['**/*.vue', '**/*.ts'],
+    languageOptions: {
+      globals: {
+        // NOTE: eslint実行時に `error 'something' is not defined no-undef` のようなエラーが出て、'something'が既知のものだったら（例えばauto-importなどでimportされることがわかっている・標準ライブラリに載っている、など。）、ここ（もしくは下の「オーバーライド」）に `something: true` と追加してください
+        WritableComputedRef: true,
+        defineNuxtConfig: true,
+      },
+    },
+    rules: {
+      /*
+       * ERROR  Cannot use 'import.meta' outside a module                                                                                                                                                                                                                                                               9:08:45 PM
+       * asyncContext: !!__NUXT_ASYNC_CONTEXT__ && import.meta.server
+       * ^^^^
+       * `yarn fix`すると`process.server`が`import.meta.server`に置き換えられて↑が発生するので、off
+       */
+      'nuxt/prefer-import-meta': 'off',
+    },
+  },
+
+  // tsconfigが必要なルールの設定
+  {
+    files: [
+      '**/*.ts',
+      '**/*.mts',
+      '**/*.cts',
+      '**/*.vue',
+      // 'Parsing error: Type expected'するので.tsxは除外
+    ],
+    ignores: [
+      '**/vitest.config.mts', // tsconfig.shared.jsonのexcludeに含まれているため除外
+      '**/*.js', // .jsファイルは型チェックルールの対象外
+      '**/*.mjs', // .mjsファイルも型チェックルールの対象外
+      '**/*.cjs', // .cjsファイルも型チェックルールの対象外
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: './tsconfig.json',
+      },
+    },
+    rules: {
+      ...typescriptEslint.configs.recommended.rules,
+      ...typescriptEslint.configs['recommended-type-checked'].rules,
+      ...basicConfig.rules,
+      '@typescript-eslint/restrict-template-expressions': 'off', // string interpolation `${e}` のeには、任意の型の値を許す
+      '@typescript-eslint/no-unsafe-call': 'off', // auto-importした関数がanyに推測されるので、off
+      // .vueの下記TODOコメントを参照 -- TODO: 「下記TODOコメント」はどこにいった？
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+    },
+  },
+
+  /*
+   * コーディングスタイルの設定（そのうちnuxt.config.tsに書けないもの）
+   * https://eslint.style/rules
+   */
+  {
+    plugins: {
+      '@stylistic': stylistic,
+    },
+    rules: {
+      '@stylistic/multiline-comment-style': ['warn', 'starred-block'],
+    },
+  },
+
+  // その他オーバーライド
+  {
+    files: ['**/test/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.jest,
+        vi: true,
+      },
+    },
+    rules: {
+      '@typescript-eslint/unbound-method': 'off', // テスト内でvi.fn()などを注入するために許可
+    },
+  },
 )
-const cssUrls = [`@/assets/styles/style.scss`]
-const srcDir = 'app'
-const isSsr = false
-const checkTypeCheckOnBuild = true
-const needAnalyze = NUXT_ENV_OUTPUT_ENV === 'local'
-const needSourcemap = NUXT_ENV_OUTPUT_ENV !== 'production'
-const enableDebug = NUXT_ENV_OUTPUT_ENV === 'local'
-
-const meta: MetaInfo = {
-  title: '',
-  description: '',
-  robots: NUXT_ENV_OUTPUT_ENV === 'production' ? 'all' : 'none',
-  siteName: '',
-  ogImageUrl: `${runtimeConfig.public.url}/images/ogp.jpg`,
-  ogUrl: runtimeConfig.public.url,
-  twitterSite: 'https://x.com/',
-  twitterCreator: 'https://x.com/',
-}
-
-// https://nuxt.com/docs/api/configuration/nuxt-config
-export default defineNuxtConfig({
-  extends: path.resolve(__dirname, '../base'),
-  modules: [
-    '@nuxtjs/google-fonts',
-  ],
-  ssr: isSsr,
-
-  imports: {
-    dirs: ['utils/types/**'],
-    global: false,
-  },
-
-  app: {
-    head: {
-      meta: [
-        { name: 'robots', content: meta.robots },
-        {
-          name: 'description',
-          content: meta.description,
-        },
-        {
-          property: 'og:site_name',
-          content: meta.siteName,
-        },
-        {
-          property: 'og:url',
-          content: meta.ogUrl,
-        },
-        {
-          property: 'og:title',
-          content: meta.title,
-        },
-        {
-          property: 'og:description',
-          content: meta.description,
-        },
-        {
-          property: 'og:image',
-          content: meta.ogImageUrl,
-        },
-        {
-          name: 'twitter:site',
-          content: meta.twitterSite,
-        },
-        {
-          name: 'twitter:creator',
-          content: meta.twitterCreator,
-        },
-      ],
-      link: [
-        {
-          rel: 'icon',
-          type: 'image/x-icon',
-          href: `${runtimeConfig.public.url}/favicon.ico`,
-        },
-      ],
-    },
-  },
-
-  css: cssUrls,
-  runtimeConfig,
-  dir: {
-    public: path.resolve(__dirname, './public'),
-  },
-  rootDir: __dirname,
-  srcDir: `${srcDir}/`,
-
-  alias: {
-    '#base': path.resolve(__dirname, '../base'),
-    '#main': __dirname,
-    '@': path.resolve(__dirname, './app'),
-  },
-
-  ignore: [
-    '.output',
-    '**/test/*.{js,ts,jsx,tsx}',
-    '**/*.{spec,test}.{js,ts,jsx,tsx}',
-    '**/-*.*',
-  ],
-
-  build: {
-    analyze: needAnalyze,
-  },
-
-  sourcemap: {
-    server: needSourcemap,
-    client: needSourcemap,
-  },
-
-  compatibilityDate: '2024-04-03',
-
-  typescript: {
-    typeCheck: checkTypeCheckOnBuild,
-  },
-
-  debug: process.env.VITEST === 'true' ? false : enableDebug,
-
-  googleFonts: {
-    families: {
-      'Noto+Sans+JP': [100, 300, 400, 500, 700, 900],
-    },
-    display: 'swap',
-  },
-
-  i18n: nuxtI18nOptions,
-})
 ````
 
 ## File: layers/main/package.json
@@ -2921,33 +2769,6 @@ export default defineNuxtConfig({
     "vket-boilerplate-nuxt-base": "workspace:*"
   }
 }
-````
-
-## File: layers/main/vitest.config.mts
-````
-import { defineVitestConfig } from '@nuxt/test-utils/config'
-
-export default defineVitestConfig({
-  test: {
-    globals: true,
-    environment: 'nuxt',
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      reportsDirectory: '../coverage',
-      reportOnFailure: true,
-      allowExternal: true,
-      include: ['**/*.{vue,ts}'],
-      exclude: [
-        'plugins/**',
-        'middleware/**',
-        'layouts/**',
-        'test/**',
-      ],
-    },
-    setupFiles: ['test/setup.ts'],
-  },
-})
 ````
 
 ## File: layers/main/@types/auto-imports.d.ts
@@ -3104,6 +2925,185 @@ declare global {
   export type { UseI18nReturnType } from '../app/utils/i18n'
   import('../app/utils/i18n')
 }
+````
+
+## File: layers/main/nuxt.config.ts
+````typescript
+import { defineNuxtConfig } from 'nuxt/config'
+import path from 'path'
+import { readEnvType } from './config/models/EnvType'
+import { getRuntimeConfigOfEnvType } from './config/runtimeConfig'
+import { nuxtI18nOptions } from './i18n/i18n.config'
+
+type MetaInfo = {
+  title: string
+  description: string
+  robots: string
+  siteName: string
+  ogImageUrl: string
+  ogUrl: string
+  twitterSite: string
+  twitterCreator: string
+}
+
+const NUXT_ENV_OUTPUT_ENV = readEnvType(process.env)
+const runtimeConfig = getRuntimeConfigOfEnvType(
+  NUXT_ENV_OUTPUT_ENV,
+  process.env,
+)
+const cssUrls = [`@/assets/styles/style.scss`]
+const srcDir = 'app'
+const isSsr = false
+const checkTypeCheckOnBuild = true
+const needAnalyze = NUXT_ENV_OUTPUT_ENV === 'local'
+const needSourcemap = NUXT_ENV_OUTPUT_ENV !== 'production'
+const enableDebug = NUXT_ENV_OUTPUT_ENV === 'local'
+
+const meta: MetaInfo = {
+  title: '',
+  description: '',
+  robots: NUXT_ENV_OUTPUT_ENV === 'production' ? 'all' : 'none',
+  siteName: '',
+  ogImageUrl: `${runtimeConfig.public.url}/images/ogp.jpg`,
+  ogUrl: runtimeConfig.public.url,
+  twitterSite: 'https://x.com/',
+  twitterCreator: 'https://x.com/',
+}
+
+// https://nuxt.com/docs/api/configuration/nuxt-config
+export default defineNuxtConfig({
+  extends: path.resolve(__dirname, '../base'),
+  modules: [
+    '@nuxtjs/google-fonts',
+  ],
+  ssr: isSsr,
+
+  imports: {
+    dirs: ['utils/types/**'],
+    global: false,
+  },
+
+  app: {
+    head: {
+      meta: [
+        { name: 'robots', content: meta.robots },
+        {
+          name: 'description',
+          content: meta.description,
+        },
+        {
+          property: 'og:site_name',
+          content: meta.siteName,
+        },
+        {
+          property: 'og:url',
+          content: meta.ogUrl,
+        },
+        {
+          property: 'og:title',
+          content: meta.title,
+        },
+        {
+          property: 'og:description',
+          content: meta.description,
+        },
+        {
+          property: 'og:image',
+          content: meta.ogImageUrl,
+        },
+        {
+          name: 'twitter:site',
+          content: meta.twitterSite,
+        },
+        {
+          name: 'twitter:creator',
+          content: meta.twitterCreator,
+        },
+      ],
+      link: [
+        {
+          rel: 'icon',
+          type: 'image/x-icon',
+          href: `${runtimeConfig.public.url}/favicon.ico`,
+        },
+      ],
+    },
+  },
+
+  css: cssUrls,
+  runtimeConfig,
+  dir: {
+    public: path.resolve(__dirname, './public'),
+  },
+  rootDir: __dirname,
+  srcDir: `${srcDir}/`,
+
+  alias: {
+    '#base': path.resolve(__dirname, '../base'),
+    '#main': __dirname,
+    '@': path.resolve(__dirname, './app'),
+  },
+
+  ignore: [
+    '.output',
+    '**/test/*.{js,ts,jsx,tsx}',
+    '**/*.{spec,test}.{js,ts,jsx,tsx}',
+    '**/-*.*',
+  ],
+
+  build: {
+    analyze: needAnalyze,
+  },
+
+  sourcemap: {
+    server: needSourcemap,
+    client: needSourcemap,
+  },
+
+  compatibilityDate: '2024-04-03',
+
+  typescript: {
+    typeCheck: checkTypeCheckOnBuild,
+  },
+
+  debug: process.env.VITEST === 'true' ? false : enableDebug,
+
+  googleFonts: {
+    families: {
+      'Noto+Sans+JP': [100, 300, 400, 500, 700, 900],
+    },
+    display: 'swap',
+  },
+
+  i18n: nuxtI18nOptions,
+})
+````
+
+## File: layers/main/vitest.config.mts
+````
+import { defineVitestConfig } from '@nuxt/test-utils/config'
+
+export default defineVitestConfig({
+  test: {
+    globals: true,
+    environment: 'nuxt',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      reportsDirectory: '../coverage',
+      reportOnFailure: true,
+      allowExternal: true,
+      include: ['**/*.{vue,ts}'],
+      exclude: [
+        'plugins/**',
+        'middleware/**',
+        'layouts/**',
+        'test/**',
+      ],
+    },
+    setupFiles: ['test/setup.ts'],
+  },
+})
 ````
 
 ## File: layers/main/i18n/i18n.config.ts
