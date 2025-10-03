@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, test } from 'vitest'
+import { describe, it, expect, test } from 'vitest'
 import HaLoading from '#base/app/components/ha/HaLoading.vue'
 
 test('ref component', () => {

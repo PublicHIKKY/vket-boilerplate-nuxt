@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest'
 import { CookieGetOptions, CookieSetOptions } from 'universal-cookie'
 import {
   getLocalStorageValue,

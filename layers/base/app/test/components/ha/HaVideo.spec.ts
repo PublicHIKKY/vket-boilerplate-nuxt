@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test, vi } from 'vitest'
 import HaVideo from '#base/app/components/ha/HaVideo.vue'
 
 describe('HaVideo', () => {
@@ -64,8 +64,8 @@ describe('HaVideo', () => {
     expect(videoElement.loop).toBe(false)
     expect(videoElement.muted).toBe(false)
     expect(wrapper.props('playsinline')).toBe(false)
-    expect(videoElement.poster).toContain('poster.jpg')
-    expect(wrapper.props('controlslist')).toContain('nofullscreen')
+    expect(wrapper.get('video').attributes('poster')).toContain('poster.jpg')
+    expect(wrapper.get('video').attributes('controlslist')).toContain('nofullscreen')
     expect(wrapper.props('crossorigin')).toBe('anonymous')
     expect(wrapper.props('preload')).toBe('auto')
   })

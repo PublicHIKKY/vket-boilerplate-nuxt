@@ -24,6 +24,7 @@ export default defineNuxtConfig({
     'unplugin-icons/nuxt',
     '@nuxtjs/robots',
     '@nuxtjs/device',
+    '@nuxt/test-utils/module',
   ],
   imports: {
     dirs: ['utils/types/**'],

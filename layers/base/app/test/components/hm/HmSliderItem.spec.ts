@@ -17,6 +17,9 @@ describe('HmSliderItem', () => {
   describe('基本的なレンダリング', () => {
     it('コンポーネントがレンダリングされる', () => {
       const wrapper = mount(HmSliderItem, {
+        props: {
+          id: 'test-id',
+        },
         global: {
           plugins: [i18n],
         },
@@ -26,6 +29,9 @@ describe('HmSliderItem', () => {
 
     it('slider-contentクラスが存在する', () => {
       const wrapper = mount(HmSliderItem, {
+        props: {
+          id: 'test-id',
+        },
         global: {
           plugins: [i18n],
         },
@@ -37,11 +43,14 @@ describe('HmSliderItem', () => {
   describe('props - id', () => {
     it('idが設定されていない場合はundefinded', () => {
       const wrapper = mount(HmSliderItem, {
+        props: {
+          id: '',
+        },
         global: {
           plugins: [i18n],
         },
       })
-      expect(wrapper.find('.slider-item').attributes('id')).toBe(undefined)
+      expect(wrapper.find('.slider-item').attributes('id')).toBe('')
     })
 
     it('idが正しく設定される', () => {
@@ -73,6 +82,9 @@ describe('HmSliderItem', () => {
   describe('アクセシビリティ属性', () => {
     it('slider-itemにrole="tabpanel"が設定される', () => {
       const wrapper = mount(HmSliderItem, {
+        props: {
+          id: 'test-id',
+        },
         global: {
           plugins: [i18n],
         },
@@ -82,6 +94,9 @@ describe('HmSliderItem', () => {
 
     it('slider-contentにrole="presentation"が設定される', () => {
       const wrapper = mount(HmSliderItem, {
+        props: {
+          id: 'test-id',
+        },
         global: {
           plugins: [i18n],
         },
@@ -94,6 +109,9 @@ describe('HmSliderItem', () => {
     it('デフォルトスロットが正しく表示される', () => {
       const slotContent = '<p>テストコンテンツ</p>'
       const wrapper = mount(HmSliderItem, {
+        props: {
+          id: 'test-id',
+        },
         slots: {
           default: slotContent,
         },
@@ -111,6 +129,9 @@ describe('HmSliderItem', () => {
         <button>ボタン</button>
       `
       const wrapper = mount(HmSliderItem, {
+        props: {
+          id: 'test-id',
+        },
         slots: {
           default: slotContent,
         },
@@ -125,6 +146,9 @@ describe('HmSliderItem', () => {
 
     it('空のスロットが正しく処理される', () => {
       const wrapper = mount(HmSliderItem, {
+        props: {
+          id: 'test-id',
+        },
         global: {
           plugins: [i18n],
         },

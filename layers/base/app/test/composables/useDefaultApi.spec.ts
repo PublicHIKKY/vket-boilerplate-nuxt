@@ -1,4 +1,5 @@
 // NOTE: そもそももっといいテストあれば是非
+import { test, expect, vi } from 'vitest'
 import { UseFetchOptions } from 'nuxt/app'
 import { FetchOptions } from 'ofetch'
 import useDefaultApi, { defaultFetcher } from '#base/app/composables/useDefaultApi'

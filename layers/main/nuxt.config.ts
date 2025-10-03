@@ -134,7 +134,7 @@ export default defineNuxtConfig({
     typeCheck: checkTypeCheckOnBuild,
   },
 
-  debug: enableDebug,
+  debug: process.env.VITEST === 'true' ? false : enableDebug,
 
   googleFonts: {
     families: {
