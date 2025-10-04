@@ -1,8 +1,8 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`mount component 1`] = `
-"<div data-v-52539492="" name="dateLocal" class="hm-input-datetime"><label data-v-52539492="" class="hm-input-datetime__label"><input data-v-d0a26e0a="" data-v-52539492="" class="ha-base-input hm-input-datetime__input" type="datetime-local" value="Invalid Date"></label>
-  <p data-v-52539492="" class="error-container">
+"<div data-v-a31daa3a="" name="dateLocal" class="hm-input-datetime"><label data-v-a31daa3a="" class="hm-input-datetime__label"><input data-v-fc3f65b2="" data-v-a31daa3a="" class="ha-base-input hm-input-datetime__input" type="datetime-local" value="Invalid Date"></label>
+  <p data-v-a31daa3a="" class="error-container">
     <!--v-if-->
   </p>
 </div>"

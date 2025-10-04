@@ -1,23 +1,27 @@
+import { mount } from '@vue/test-utils'
+import { beforeEach, afterEach, describe, it, test, expect, vi } from 'vitest'
+import z from 'zod/v3'
 import HmInputText from '#base/app/components/hm/input/HmInputText.vue'
 import useValidationRules from '#base/app/composables/useValidationRules'
 import { waitEffect } from '#base/app/utils/sleep'
-import { mount } from '@vue/test-utils'
-import z from 'zod/v3'
+
+// vue-i18nのモックはファイルトップレベルで定義
+vi.mock('vue-i18n', () => ({
+  useI18n: vi.fn(() => ({
+    local: {
+      value: 'ja',
+    },
+    locale: {
+      value: 'ja',
+    },
+    t: (key: string, ..._args: unknown[]) => `dummy-${key}`,
+  })),
+}))
 
 const rules = useValidationRules()
 
 beforeEach(() => {
-  vi.mock('vue-i18n', () => ({
-    useI18n: vi.fn(() => ({
-      local: {
-        value: 'ja',
-      },
-      locale: {
-        value: 'ja',
-      },
-      t: (key: string, ..._args: unknown[]) => `dummy-${key}`,
-    })),
-  }))
+  vi.clearAllMocks()
 })
 
 afterEach(() => {

@@ -1,13 +1,17 @@
 import { mount } from '@vue/test-utils'
+import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest'
 import HmSocialShareLink from '#base/app/components/hm/HmSocialShareLink.vue'
 
+// モックはファイルトップレベルで定義
+vi.mock('#i18n', () => ({
+  useSocialShareLink: vi.fn(),
+  useLocalePath: vi.fn(() => vi.fn(() => `/mocked-path`)),
+}))
+
 beforeEach(() => {
-  // vitest.config.tsにて#i18nの問題を解決したことにより、HmSocialShareLinkで使われているuseSocialShareLinkはnuxt上の動作ではないので値を返さずエラーとなるので、mockで何もしない関数として偽装する
-  vi.mock('#i18n', () => ({
-    useSocialShareLink: vi.fn(),
-    useLocalePath: vi.fn(() => vi.fn(() => `/mocked-path`)),
-  }))
+  vi.clearAllMocks()
 })
+
 afterEach(() => {
   vi.restoreAllMocks()
 })

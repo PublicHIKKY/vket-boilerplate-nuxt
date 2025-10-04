@@ -12,18 +12,19 @@
     "check_upstream": "git pull upstream develop",
     "prepare": "bun husky",
     "package-update": "bunx npm-check-updates -i",
-    "repomix": "bunx repomix@latest --style markdown",
+    "repomix": "./scripts/generate_context.sh",
     "typecheck": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present typecheck",
     "test:ut": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present test:ut",
     "fix": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present fix",
     "build:local": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present build:local"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.21",
-    "eslint": "^9.34.0",
+    "@types/bun": "^1.2.23",
+    "bun-types": "^1.2.23",
+    "eslint": "^9.36.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.1.6",
-    "stylelint": "^16.23.1"
+    "lint-staged": "^16.2.3",
+    "stylelint": "^16.24.0"
   },
   "lint-staged": {
     "layers/**/*.+(js|ts|tsx|vue)": [
@@ -31,6 +32,6 @@
     ]
   },
   "resolutions": {
-    "eslint": "9.34.0"
+    "eslint": "9.36.0"
   }
 }

@@ -1,0 +1,1058 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+# File Summary
+
+## Purpose
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+
+## File Format
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  a. A header with the file path (## File: path/to/file)
+  b. The full contents of the file in a code block
+
+## Usage Guidelines
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+
+## Notes
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: layers/base/@types/**/*, layers/base/config/**/*, layers/base/i18n/**/*, layers/base/*.ts, layers/base/*.json, layers/base/server/**/*
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+
+# Directory Structure
+```
+layers/
+  base/
+    @types/
+      auto-imports.d.ts
+      components.d.ts
+      nuxt-i18n.d.ts
+      shim.d.ts
+    config/
+      models/
+        EnvType.ts
+      appConfig.ts
+      runtimeConfig.ts
+    i18n/
+      locales/
+        en.json
+        ja.json
+      i18n.config.ts
+    server/
+      tsconfig.json
+    nuxt.config.ts
+    package.json
+    reset.d.ts
+    tsconfig.json
+    tsconfig.shared.json
+```
+
+# Files
+
+## File: layers/base/@types/nuxt-i18n.d.ts
+````typescript
+import type { NuxtI18nInstance } from '@nuxtjs/i18n'
+
+declare module '@nuxt/types' {
+  interface NuxtAppOptions {
+    $i18n: NuxtI18nInstance
+  }
+}
+````
+
+## File: layers/base/@types/shim.d.ts
+````typescript
+declare module '*.svg'
+declare module '*.svg?inline'
+````
+
+## File: layers/base/config/models/EnvType.ts
+````typescript
+/**
+ * nuxt.config.tsのためのモジュール。
+ *
+ * @packageDocumentation
+ */
+
+export type EnvType = 'local' | 'development' | 'staging' | 'production'
+
+export const allEnvTypes = [
+  'local',
+  'development',
+  'staging',
+  'production',
+] as const
+
+export function isEnvType(x: unknown): x is EnvType {
+  const envTypes: readonly unknown[] = allEnvTypes
+  return envTypes.includes(x)
+}
+
+export function ensureEnvType(x: unknown): asserts x is EnvType {
+  if (!isEnvType(x)) {
+    throw new TypeError('Not an EnvType.')
+  }
+}
+
+export type Env = Record<string, string | undefined>
+
+/**
+ * baseEnv.VITE_OUTPUT_ENVを読みだします。
+ * これが未指定の場合は'local'にフォールバックします。
+ * これが不明な値（EnvTypeでない）場合は例外を送出します。
+ *
+ * ```typescript
+ * const envType = readEnvType(process.env)
+ * ```
+ */
+export function readEnvType(baseEnv: Env): EnvType {
+  if (baseEnv.VITE_OUTPUT_ENV === undefined) {
+    console.error('No VITE_OUTPUT_ENV is set.')
+    return 'local'
+  }
+
+  ensureEnvType(baseEnv.VITE_OUTPUT_ENV)
+  return baseEnv.VITE_OUTPUT_ENV
+}
+````
+
+## File: layers/base/config/appConfig.ts
+````typescript
+/**
+ * app.config.tsのためのモジュール。
+ *
+ * @packageDocumentation
+ */
+
+import { EnvType, Env } from './models/EnvType'
+
+/**
+ * ```typescript
+ * const appConfig = getAppConfigOfEnvType('local', process.env)
+ * ```
+ */
+export function getAppConfigOfEnvType(envType: EnvType, baseEnv: Env) {
+  switch (envType) {
+    case 'local':
+      return getLocal(envType, baseEnv)
+    case 'development':
+      return getDevelopment(envType, baseEnv)
+    case 'staging':
+      return getStaging(envType, baseEnv)
+    case 'production':
+      return getProduction(envType, baseEnv)
+  }
+}
+
+function getLocal(_envType: EnvType, _baseEnv: Env) {
+  return {}
+}
+
+function getDevelopment(_envType: EnvType, _baseEnv: Env) {
+  return {}
+}
+
+function getStaging(_envType: EnvType, _baseEnv: Env) {
+  return {}
+}
+
+function getProduction(_envType: EnvType, _baseEnv: Env) {
+  return {}
+}
+````
+
+## File: layers/base/config/runtimeConfig.ts
+````typescript
+/**
+ * nuxt.config.tsのためのモジュール。
+ *
+ * @packageDocumentation
+ */
+
+import { Env, EnvType } from './models/EnvType'
+
+export function getRuntimeConfigOfEnvType(envType: EnvType, baseEnv: Env) {
+  switch (envType) {
+    case 'local':
+      return getLocal(envType, baseEnv)
+    case 'development':
+      return getDevelopment(envType, baseEnv)
+    case 'staging':
+      return getStaging(envType, baseEnv)
+    case 'production':
+      return getProduction(envType, baseEnv)
+  }
+}
+
+const commonPrivate = {} as const
+
+const commonPublic = {
+  gtmId: 'GTM-XXXXXXX',
+  apiPrefix: process.env.NUXT_API_PREFIX ?? '/api/v1',
+} as const
+
+function getLocal(envType: EnvType, _baseEnv: Env) {
+  return {
+    ...commonPrivate,
+
+    public: {
+      ...commonPublic,
+      outputEnv: envType,
+      url: 'http://localhost:3000',
+      baseUrl: 'http://localhost:3000',
+      httpBinUrl: 'http://localhost:3003',
+    },
+  } as const
+}
+
+function getDevelopment(envType: EnvType, _baseEnv: Env) {
+  return {
+    ...commonPrivate,
+
+    public: {
+      ...commonPublic,
+      outputEnv: envType,
+      url: 'http://localhost:3000',
+      baseUrl: 'http://localhost:3000',
+    },
+  } as const
+}
+
+function getStaging(envType: EnvType, _baseEnv: Env) {
+  return {
+    ...commonPrivate,
+
+    public: {
+      ...commonPublic,
+      outputEnv: envType,
+      url: '',
+      baseUrl: '',
+    },
+  } as const
+}
+
+function getProduction(envType: EnvType, _baseEnv: Env) {
+  return {
+    ...commonPrivate,
+
+    public: {
+      ...commonPublic,
+      gtmId: 'GTM-XXXXXXX',
+      outputEnv: envType,
+      url: '',
+      baseUrl: '',
+    },
+  } as const
+}
+````
+
+## File: layers/base/i18n/locales/en.json
+````json
+{
+  "hello": "Hello!",
+  "language": "language"
+}
+````
+
+## File: layers/base/i18n/locales/ja.json
+````json
+{
+  "hello": "こんにちは！",
+  "language": "言語"
+}
+````
+
+## File: layers/base/server/tsconfig.json
+````json
+{
+  "extends": "../.nuxt/tsconfig.server.json"
+}
+````
+
+## File: layers/base/reset.d.ts
+````typescript
+import '@total-typescript/ts-reset'
+````
+
+## File: layers/base/tsconfig.json
+````json
+{
+  // https://nuxt.com/docs/guide/concepts/typescript
+  "extends": [
+    "./.nuxt/tsconfig.server.json",
+    "./.nuxt/tsconfig.json",
+    "./tsconfig.shared.json"
+  ],
+}
+````
+
+## File: layers/base/tsconfig.shared.json
+````json
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "preserve",
+    "lib": [
+      "dom",
+      "ES2023"
+    ],
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "sourceMap": true,
+    "strict": true,
+    "experimentalDecorators": true,
+    "noUncheckedIndexedAccess": true,
+    "jsx": "preserve",
+    "isolatedModules": true,
+    "typeRoots": [
+      "../../node_modules",
+      "../../node_modules/@types",
+      "./@types"
+    ],
+    "types": [
+      "vue3-toastify/global",
+      "unplugin-icons/types/vue",
+      "vite/client",
+      "vitest/globals"
+    ]
+  },
+  "vueCompilerOptions": {
+    "target": 3
+  },
+  "ts-node": {
+    "esm": true
+  },
+  "exclude": [
+    "node_modules",
+    ".output",
+    "dist",
+    "eslint.config.shared.mjs",
+    ".stylelintrc.shared.mjs",
+    "tsconfig.shared.json"
+  ]
+}
+````
+
+## File: layers/base/@types/components.d.ts
+````typescript
+/* eslint-disable */
+// @ts-nocheck
+// Generated by unplugin-vue-components
+// Read more: https://github.com/vuejs/core/pull/3399
+// biome-ignore lint: disable
+export {}
+
+/* prettier-ignore */
+declare module 'vue' {
+  export interface GlobalComponents {
+    HaBaseButton: typeof import('./../app/components/ha/base/HaBaseButton.vue')['default']
+    HaBaseInput: typeof import('./../app/components/ha/base/HaBaseInput.vue')['default']
+    HaContainer: typeof import('./../app/components/ha/HaContainer.vue')['default']
+    HaDialog: typeof import('./../app/components/ha/HaDialog.vue')['default']
+    HaDialogElement: typeof import('./../app/components/ha/HaDialogElement.vue')['default']
+    HaHamburger: typeof import('./../app/components/ha/HaHamburger.vue')['default']
+    HaImage: typeof import('./../app/components/ha/HaImage.vue')['default']
+    HaLabel: typeof import('./../app/components/ha/HaLabel.vue')['default']
+    HaLink: typeof import('./../app/components/ha/HaLink.vue')['default']
+    HaLoading: typeof import('./../app/components/ha/HaLoading.vue')['default']
+    HaLoadingIcon: typeof import('./../app/components/ha/HaLoadingIcon.vue')['default']
+    HaModal: typeof import('./../app/components/ha/HaModal.vue')['default']
+    HaSelectBox: typeof import('./../app/components/ha/HaSelectBox.vue')['default']
+    HaSkewBackground: typeof import('./../app/components/ha/HaSkewBackground.vue')['default']
+    HaTag: typeof import('./../app/components/ha/HaTag.vue')['default']
+    HaTextarea: typeof import('./../app/components/ha/HaTextarea.vue')['default']
+    HaVideo: typeof import('./../app/components/ha/HaVideo.vue')['default']
+    HmAccordion: typeof import('./../app/components/hm/HmAccordion.vue')['default']
+    HmAutoCarousel: typeof import('./../app/components/hm/HmAutoCarousel.vue')['default']
+    HmButton: typeof import('./../app/components/hm/button/HmButton.vue')['default']
+    HmButtonClose: typeof import('./../app/components/hm/button/HmButtonClose.vue')['default']
+    HmButtonFavorite: typeof import('./../app/components/hm/button/HmButtonFavorite.vue')['default']
+    HmClipping: typeof import('./../app/components/hm/HmClipping.vue')['default']
+    HmDialogElement: typeof import('./../app/components/hm/HmDialogElement.vue')['default']
+    HmIconUser: typeof import('./../app/components/hm/icon/HmIconUser.vue')['default']
+    HmInputCheckbox: typeof import('./../app/components/hm/input/HmInputCheckbox.vue')['default']
+    HmInputDatetime: typeof import('./../app/components/hm/input/HmInputDatetime.vue')['default']
+    HmInputFile: typeof import('./../app/components/hm/input/HmInputFile.vue')['default']
+    HmInputRadio: typeof import('./../app/components/hm/input/HmInputRadio.vue')['default']
+    HmInputRadioChangeable: typeof import('./../app/components/hm/input/HmInputRadioChangeable.vue')['default']
+    HmInputSingleImage: typeof import('./../app/components/hm/input/HmInputSingleImage.vue')['default']
+    HmInputText: typeof import('./../app/components/hm/input/HmInputText.vue')['default']
+    HmMenuExample: typeof import('./../app/components/hm/HmMenuExample.vue')['default']
+    HmNoteList: typeof import('./../app/components/hm/HmNoteList.vue')['default']
+    HmPaging: typeof import('./../app/components/hm/HmPaging.vue')['default']
+    HmPicture: typeof import('./../app/components/hm/HmPicture.vue')['default']
+    HmPopup: typeof import('./../app/components/hm/HmPopup.vue')['default']
+    HmSkeletonScreen: typeof import('./../app/components/hm/HmSkeletonScreen.vue')['default']
+    HmSlider: typeof import('./../app/components/hm/HmSlider.vue')['default']
+    HmSliderItem: typeof import('./../app/components/hm/HmSliderItem.vue')['default']
+    HmSocialShareLink: typeof import('./../app/components/hm/HmSocialShareLink.vue')['default']
+    HmTab: typeof import('./../app/components/hm/HmTab.vue')['default']
+    HmTsx: typeof import('./../app/components/hm/HmTsx.vue')['default']
+    RouterLink: typeof import('vue-router')['RouterLink']
+    RouterView: typeof import('vue-router')['RouterView']
+  }
+}
+````
+
+## File: layers/base/i18n/i18n.config.ts
+````typescript
+/*
+ * note: i18n by nuxt-i18n i18nの不具合があればこのファイルから参照する
+ * ref: https://v8.i18n.nuxtjs.org/
+ */
+import type { NuxtI18nOptions } from '@nuxtjs/i18n'
+import Cookies from 'universal-cookie'
+import en from './locales/en.json'
+import ja from './locales/ja.json'
+
+const cookie = new Cookies()
+const jaLanguage = 'ja'
+const enLanguage = 'en'
+const cookieKey = 'VUEI18N_MANUAL_LOCALE'
+const isBrowserLanguageJa = process.client
+  ? navigator?.language?.startsWith(jaLanguage)
+  : false
+const isBrowserLanguageEn = process.client
+  ? navigator?.language?.startsWith(enLanguage)
+  : false
+const defaultLanguageFromCookie = process.client
+  ? cookie.get(cookieKey) ?? null
+  : ''
+const defaultLanguage
+  = defaultLanguageFromCookie === jaLanguage
+    ? jaLanguage
+    : defaultLanguageFromCookie === enLanguage
+      ? enLanguage
+      : isBrowserLanguageJa
+        ? jaLanguage
+        : isBrowserLanguageEn
+          ? enLanguage
+          : jaLanguage
+
+// settings for nuxt-i18n v9~
+export const nuxtI18nOptions: NuxtI18nOptions = {
+  strategy: 'prefix_and_default',
+  locales: [
+    {
+      code: jaLanguage,
+      language: 'ja-JP',
+      file: 'ja.json',
+      isCatchallLocale: true,
+    },
+    {
+      code: enLanguage,
+      language: 'en-US',
+      file: 'en.json',
+    },
+  ],
+  defaultLocale: defaultLanguage,
+  customRoutes: 'config',
+  pages: {
+    api: false,
+    server: false,
+  },
+  detectBrowserLanguage: {
+    useCookie: true,
+    cookieKey: 'i18n_redirected',
+    redirectOn: 'root', // recommended
+    alwaysRedirect: true,
+    cookieCrossOrigin: true,
+    fallbackLocale: defaultLanguage,
+  },
+  vueI18n: '#base/i18n/i18n.config.ts',
+}
+
+export default {
+  legacy: false,
+  locale: defaultLanguage,
+  messages: {
+    ja,
+    en,
+  },
+}
+````
+
+## File: layers/base/nuxt.config.ts
+````typescript
+import { defineNuxtConfig } from 'nuxt/config'
+import { FileSystemIconLoader } from 'unplugin-icons/loaders'
+import IconsResolver from 'unplugin-icons/resolver'
+import Icons from 'unplugin-icons/vite'
+import Components from 'unplugin-vue-components/vite'
+import eslintPlugin from 'vite-plugin-eslint2'
+import svgLoader from 'vite-svg-loader'
+import { readEnvType } from './config/models/EnvType'
+import { getRuntimeConfigOfEnvType } from './config/runtimeConfig'
+import { nuxtI18nOptions } from './i18n/i18n.config'
+
+const cssUrls = [`./app/assets/styles/style.scss`]
+const srcDir = 'app'
+
+/**
+ * Nuxt Config
+ * @ref https://nuxt.com/docs/api/configuration/nuxt-config
+ */
+export default defineNuxtConfig({
+  modules: [
+    '@nuxtjs/i18n',
+    '@nuxt/eslint',
+    '@vueuse/nuxt',
+    'unplugin-icons/nuxt',
+    '@nuxtjs/robots',
+    '@nuxtjs/device',
+    '@nuxt/test-utils/module',
+  ],
+  imports: {
+    dirs: ['utils/types/**'],
+    global: false,
+  },
+  devtools: { enabled: true },
+  app: {
+    head: {
+      viewport: 'width=device-width, initial-scale=1',
+      charset: 'utf-8',
+      meta: [
+        { property: 'og:type', content: 'website' },
+        {
+          name: 'twitter:card',
+          content: 'summary_large_image',
+        },
+        {
+          name: 'note:card',
+          content: 'summary_large_image',
+        },
+      ],
+      noscript: [{ innerHTML: 'JavaScript is required' }],
+    },
+  },
+  css: cssUrls,
+  runtimeConfig: getRuntimeConfigOfEnvType(
+    readEnvType(process.env),
+    process.env,
+  ),
+  rootDir: __dirname,
+  srcDir: `${srcDir}/`,
+  alias: {
+    '#base': __dirname,
+  },
+  ignore: [
+    '.output',
+    '**/test/*.{js,ts,jsx,tsx}',
+    '**/*.{spec,test}.{js,ts,jsx,tsx}',
+    '**/-*.*',
+  ],
+  compatibilityDate: '2024-04-03',
+  vite: {
+    build: {
+      emptyOutDir: true,
+    },
+    plugins: [
+      eslintPlugin(),
+      svgLoader({
+        defaultImport: 'component', // 'component', 'url', 'raw'
+        svgo: false,
+      }),
+      Icons({
+        customCollections: {
+          'hikky-icons': FileSystemIconLoader(`${srcDir}/assets/icons/hikky`),
+          'sns-icons': FileSystemIconLoader(`${srcDir}/assets/icons/sns`),
+        },
+        iconCustomizer(collection, _icon, props) {
+          // customize all icons in this collection
+          if (
+            collection === 'hikky-icons'
+            || collection === 'sns-icons'
+            || collection === 'ri'
+          ) {
+            props.width = '1em'
+            props.height = '1em'
+          }
+        },
+      }),
+      Components({
+        dts: false,
+        resolvers: [
+          IconsResolver({
+            customCollections: ['hikky-icons', 'sns-icons'],
+          }),
+        ],
+      }),
+    ],
+    css: {
+      preprocessorMaxWorkers: true,
+    },
+  },
+  typescript: {
+    tsConfig: {
+      compilerOptions: {
+        verbatimModuleSyntax: false,
+      },
+    },
+  },
+  eslint: {
+    checker: true,
+    config: {
+      stylistic: {
+        semi: false,
+        indent: 2,
+        quotes: 'single',
+        braceStyle: '1tbs',
+      },
+    },
+  },
+  i18n: nuxtI18nOptions,
+})
+````
+
+## File: layers/base/@types/auto-imports.d.ts
+````typescript
+/* eslint-disable */
+/* prettier-ignore */
+// @ts-nocheck
+// noinspection JSUnusedGlobalSymbols
+// Generated by unplugin-auto-import
+// biome-ignore lint: disable
+export {}
+declare global {
+  const COOKIE_KEY: typeof import('../app/composables/useLocale')['COOKIE_KEY']
+  const EN: typeof import('../app/composables/useLocale')['EN']
+  const EffectScope: typeof import('vue')['EffectScope']
+  const HaSelectBox: typeof import('../app/components/ha/HaSelectBox.vue')['default']
+  const HmButton: typeof import('../app/components/hm/button/HmButton.vue')['default']
+  const HmInputDatetime: typeof import('../app/components/hm/input/HmInputDatetime.vue')['default']
+  const I18nTKeyMissingError: typeof import('../app/composables/use-strict-i18n')['I18nTKeyMissingError']
+  const JA: typeof import('../app/composables/useLocale')['JA']
+  const abortNavigation: typeof import('#app')['abortNavigation']
+  const addDate: typeof import('../app/utils/date-control')['addDate']
+  const addDateTime: typeof import('../app/utils/date-control')['addDateTime']
+  const addRouteMiddleware: typeof import('#app')['addRouteMiddleware']
+  const apiEnhanced: typeof import('../app/utils/api-enhanced')['default']
+  const cancelIdleCallback: typeof import('#app')['cancelIdleCallback']
+  const clearError: typeof import('#app')['clearError']
+  const clearNuxtData: typeof import('#app')['clearNuxtData']
+  const clearNuxtState: typeof import('#app')['clearNuxtState']
+  const computed: typeof import('vue')['computed']
+  const conditionalReactive: typeof import('../app/utils/vue-reactive')['conditionalReactive']
+  const configureLogger: typeof import('../app/utils/console')['configureLogger']
+  const configureLoggerForEnvironment: typeof import('../app/utils/console')['configureLoggerForEnvironment']
+  const constant: typeof import('../app/utils/constant')['constant']
+  const convertTimeToUtc: typeof import('../app/utils/date-control')['convertTimeToUtc']
+  const createApp: typeof import('vue')['createApp']
+  const createError: typeof import('#app')['createError']
+  const createUuidV4: typeof import('../app/utils/uuid')['createUuidV4']
+  const customRef: typeof import('vue')['customRef']
+  const dateToTimestamp: typeof import('../app/utils/date-control')['dateToTimestamp']
+  const debug: typeof import('../app/utils/console')['debug']
+  const decodeJwt: typeof import('../app/utils/token')['decodeJwt']
+  const deepCloneReactive: typeof import('../app/utils/vue-reactive')['deepCloneReactive']
+  const defaultApi: typeof import('../app/utils/default-api')['default']
+  const defaultFetchOptions: typeof import('../app/utils/api-enhanced')['defaultFetchOptions']
+  const defaultFetcher: typeof import('../app/composables/useDefaultApi')['defaultFetcher']
+  const defaultRepositories: typeof import('../app/utils/default-factory')['defaultRepositories']
+  const defaultRepositoryFactory: typeof import('../app/utils/default-factory')['defaultRepositoryFactory']
+  const defineAppConfig: typeof import('#app')['defineAppConfig']
+  const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
+  const defineComponent: typeof import('vue')['defineComponent']
+  const defineI18nConfig: typeof import('#i18n')['defineI18nConfig']
+  const defineI18nLocale: typeof import('#i18n')['defineI18nLocale']
+  const defineI18nRoute: typeof import('#i18n')['defineI18nRoute']
+  const defineNuxtComponent: typeof import('#app')['defineNuxtComponent']
+  const defineNuxtLink: typeof import('#app')['defineNuxtLink']
+  const defineNuxtPlugin: typeof import('#app')['defineNuxtPlugin']
+  const defineNuxtRouteMiddleware: typeof import('#app')['defineNuxtRouteMiddleware']
+  const definePayloadPlugin: typeof import('#app')['definePayloadPlugin']
+  const definePayloadReducer: typeof import('#app')['definePayloadReducer']
+  const definePayloadReviver: typeof import('#app')['definePayloadReviver']
+  const diffDays: typeof import('../app/utils/date-control')['diffDays']
+  const effectScope: typeof import('vue')['effectScope']
+  const ensureAsyncDataOf: typeof import('../app/utils/response')['ensureAsyncDataOf']
+  const ensureValueOf: typeof import('../app/utils/zod')['ensureValueOf']
+  const equal: typeof import('../app/utils/array')['equal']
+  const error: typeof import('../app/utils/console')['error']
+  const exampleInjectionKey: typeof import('../app/composables/useExample')['exampleInjectionKey']
+  const fetchErrorSchema: typeof import('../app/utils/response')['fetchErrorSchema']
+  const fetcher: typeof import('../app/utils/api-enhanced')['fetcher']
+  const formatCustom: typeof import('../app/utils/date-control')['formatCustom']
+  const formatDate: typeof import('../app/utils/date-control')['formatDate']
+  const formatDateUnixTime: typeof import('../app/utils/date-control')['formatDateUnixTime']
+  const formatEnglishDate: typeof import('../app/utils/date-control')['formatEnglishDate']
+  const formatEnglishDateTime: typeof import('../app/utils/date-control')['formatEnglishDateTime']
+  const formatJSTtoLocalTimezone: typeof import('../app/utils/date-control')['formatJSTtoLocalTimezone']
+  const formatJapaneseDate: typeof import('../app/utils/date-control')['formatJapaneseDate']
+  const formatJapaneseDateTime: typeof import('../app/utils/date-control')['formatJapaneseDateTime']
+  const formatLocalTimezoneToJST: typeof import('../app/utils/date-control')['formatLocalTimezoneToJST']
+  const formatTimestamp: typeof import('../app/utils/date-control')['formatTimestamp']
+  const getAppManifest: typeof import('#app')['getAppManifest']
+  const getArrayRouteQuery: typeof import('../app/utils/url')['getArrayRouteQuery']
+  const getBase64ByFile: typeof import('../app/utils/file-control')['getBase64ByFile']
+  const getBooleanRouteQuery: typeof import('../app/utils/url')['getBooleanRouteQuery']
+  const getCurrentDate: typeof import('../app/utils/date-control')['getCurrentDate']
+  const getCurrentInstance: typeof import('vue')['getCurrentInstance']
+  const getCurrentScope: typeof import('vue')['getCurrentScope']
+  const getCurrentWatcher: typeof import('vue')['getCurrentWatcher']
+  const getDateRouteQuery: typeof import('../app/utils/url')['getDateRouteQuery']
+  const getDiff: typeof import('../app/utils/date-control')['getDiff']
+  const getDiffTimeByUnit: typeof import('../app/utils/date-control')['getDiffTimeByUnit']
+  const getDuration: typeof import('../app/utils/date-control')['getDuration']
+  const getEndOfDay: typeof import('../app/utils/date-control')['getEndOfDay']
+  const getEndOfMonth: typeof import('../app/utils/date-control')['getEndOfMonth']
+  const getEndOfYear: typeof import('../app/utils/date-control')['getEndOfYear']
+  const getEnumRouteQuery: typeof import('../app/utils/url')['getEnumRouteQuery']
+  const getExtFromType: typeof import('../app/utils/file-control')['getExtFromType']
+  const getFileByBase64: typeof import('../app/utils/file-control')['getFileByBase64']
+  const getImageUrl: typeof import('../app/utils/image')['getImageUrl']
+  const getLocalStorageValue: typeof import('../app/utils/storage-control')['getLocalStorageValue']
+  const getLocalTimezone: typeof import('../app/utils/date-control')['getLocalTimezone']
+  const getLoggerConfig: typeof import('../app/utils/console')['getLoggerConfig']
+  const getMax: typeof import('../app/utils/zod')['getMax']
+  const getMonth: typeof import('../app/utils/date-control')['getMonth']
+  const getNow: typeof import('../app/utils/date-control')['getNow']
+  const getNowWithFormat: typeof import('../app/utils/date-control')['getNowWithFormat']
+  const getNumberRouteQuery: typeof import('../app/utils/url')['getNumberRouteQuery']
+  const getQuarter: typeof import('../app/utils/date-control')['getQuarter']
+  const getRelativeTime: typeof import('../app/utils/date-control')['getRelativeTime']
+  const getRouteQueries: typeof import('../app/utils/url')['getRouteQueries']
+  const getRouteRules: typeof import('#app')['getRouteRules']
+  const getSessionStorageValue: typeof import('../app/utils/storage-control')['getSessionStorageValue']
+  const getSingleCookieValue: typeof import('../app/utils/storage-control')['getSingleCookieValue']
+  const getStartOfDay: typeof import('../app/utils/date-control')['getStartOfDay']
+  const getStartOfMonth: typeof import('../app/utils/date-control')['getStartOfMonth']
+  const getStartOfYear: typeof import('../app/utils/date-control')['getStartOfYear']
+  const getStringRouteQuery: typeof import('../app/utils/url')['getStringRouteQuery']
+  const getTomorrow: typeof import('../app/utils/date-control')['getTomorrow']
+  const getTomorrowWithFormat: typeof import('../app/utils/date-control')['getTomorrowWithFormat']
+  const getWeekday: typeof import('../app/utils/date-control')['getWeekday']
+  const group: typeof import('../app/utils/console')['group']
+  const groupEnd: typeof import('../app/utils/console')['groupEnd']
+  const h: typeof import('vue')['h']
+  const info: typeof import('../app/utils/console')['info']
+  const inject: typeof import('vue')['inject']
+  const integral: typeof import('../app/utils/zod')['integral']
+  const isAfter: typeof import('../app/utils/date-control')['isAfter']
+  const isAfterTargetDate: typeof import('../app/utils/date-control')['isAfterTargetDate']
+  const isBefore: typeof import('../app/utils/date-control')['isBefore']
+  const isBeforeTargetDate: typeof import('../app/utils/date-control')['isBeforeTargetDate']
+  const isBetween: typeof import('../app/utils/date-control')['isBetween']
+  const isBetweenDates: typeof import('../app/utils/date-control')['isBetweenDates']
+  const isBetweenTargetDates: typeof import('../app/utils/date-control')['isBetweenTargetDates']
+  const isFetchError: typeof import('../app/utils/response')['isFetchError']
+  const isNuxtEnvironment: typeof import('../app/utils/environment')['isNuxtEnvironment']
+  const isNuxtError: typeof import('#app')['isNuxtError']
+  const isPrerendered: typeof import('#app')['isPrerendered']
+  const isProxy: typeof import('vue')['isProxy']
+  const isReactive: typeof import('vue')['isReactive']
+  const isReadonly: typeof import('vue')['isReadonly']
+  const isRef: typeof import('vue')['isRef']
+  const isSame: typeof import('../app/utils/date-control')['isSame']
+  const isSameOrAfter: typeof import('../app/utils/date-control')['isSameOrAfter']
+  const isSameOrAfterDate: typeof import('../app/utils/date-control')['isSameOrAfterDate']
+  const isSameOrBefore: typeof import('../app/utils/date-control')['isSameOrBefore']
+  const isSameOrBeforeDate: typeof import('../app/utils/date-control')['isSameOrBeforeDate']
+  const isShallow: typeof import('vue')['isShallow']
+  const isValueOf: typeof import('../app/utils/zod')['isValueOf']
+  const linkViaElement: typeof import('../app/utils/anchor')['linkViaElement']
+  const loadPayload: typeof import('#app')['loadPayload']
+  const localeInjectionKey: typeof import('../app/composables/useLocale')['localeInjectionKey']
+  const log: typeof import('../app/utils/console')['log']
+  const logIf: typeof import('../app/utils/console')['logIf']
+  const makeAnchorElement: typeof import('../app/utils/anchor')['makeAnchorElement']
+  const makeRecursiveSchema: typeof import('../app/utils/zod')['makeRecursiveSchema']
+  const makeResponseSchema: typeof import('../app/utils/response')['makeResponseSchema']
+  const makeSchemaDeepReadOnly: typeof import('../app/utils/zod')['makeSchemaDeepReadOnly']
+  const makeSchemaReadOnly: typeof import('../app/utils/zod')['makeSchemaReadOnly']
+  const markRaw: typeof import('vue')['markRaw']
+  const navigateTo: typeof import('#app')['navigateTo']
+  const nextTick: typeof import('vue')['nextTick']
+  const objectToValueArray: typeof import('../app/utils/zod')['objectToValueArray']
+  const onActivated: typeof import('vue')['onActivated']
+  const onBeforeMount: typeof import('vue')['onBeforeMount']
+  const onBeforeRouteLeave: typeof import('#app')['onBeforeRouteLeave']
+  const onBeforeRouteUpdate: typeof import('#app')['onBeforeRouteUpdate']
+  const onBeforeUnmount: typeof import('vue')['onBeforeUnmount']
+  const onBeforeUpdate: typeof import('vue')['onBeforeUpdate']
+  const onDeactivated: typeof import('vue')['onDeactivated']
+  const onErrorCaptured: typeof import('vue')['onErrorCaptured']
+  const onMounted: typeof import('vue')['onMounted']
+  const onNuxtReady: typeof import('#app')['onNuxtReady']
+  const onRenderTracked: typeof import('vue')['onRenderTracked']
+  const onRenderTriggered: typeof import('vue')['onRenderTriggered']
+  const onScopeDispose: typeof import('vue')['onScopeDispose']
+  const onServerPrefetch: typeof import('vue')['onServerPrefetch']
+  const onUnmounted: typeof import('vue')['onUnmounted']
+  const onUpdated: typeof import('vue')['onUpdated']
+  const onWatcherCleanup: typeof import('vue')['onWatcherCleanup']
+  const pagingSchema: typeof import('../app/utils/response')['pagingSchema']
+  const prefetchComponents: typeof import('#app')['prefetchComponents']
+  const preloadComponents: typeof import('#app')['preloadComponents']
+  const preloadPayload: typeof import('#app')['preloadPayload']
+  const preloadRouteComponents: typeof import('#app')['preloadRouteComponents']
+  const prerenderRoutes: typeof import('#app')['prerenderRoutes']
+  const provide: typeof import('vue')['provide']
+  const raiseError: typeof import('../app/utils/error')['raiseError']
+  const range: typeof import('../app/utils/array')['range']
+  const reactive: typeof import('vue')['reactive']
+  const readFileAsBlob: typeof import('../app/utils/file-control')['readFileAsBlob']
+  const readonly: typeof import('vue')['readonly']
+  const ref: typeof import('vue')['ref']
+  const refreshNuxtData: typeof import('#app')['refreshNuxtData']
+  const reloadNuxtApp: typeof import('#app')['reloadNuxtApp']
+  const removeLocalStorageValue: typeof import('../app/utils/storage-control')['removeLocalStorageValue']
+  const removeSessionStorageValue: typeof import('../app/utils/storage-control')['removeSessionStorageValue']
+  const removeSingleCookieValue: typeof import('../app/utils/storage-control')['removeSingleCookieValue']
+  const requestIdleCallback: typeof import('#app')['requestIdleCallback']
+  const requireAsyncDataOf: typeof import('../app/utils/response')['requireAsyncDataOf']
+  const requireNumberRouteQuery: typeof import('../app/utils/url')['requireNumberRouteQuery']
+  const requireRouteQuery: typeof import('../app/utils/url')['requireRouteQuery']
+  const requireValueOf: typeof import('../app/utils/zod')['requireValueOf']
+  const resolveComponent: typeof import('vue')['resolveComponent']
+  const reversed: typeof import('../app/utils/array')['reversed']
+  const setLocalStorageValue: typeof import('../app/utils/storage-control')['setLocalStorageValue']
+  const setPageLayout: typeof import('#app')['setPageLayout']
+  const setResponseStatus: typeof import('#app')['setResponseStatus']
+  const setSessionStorageValue: typeof import('../app/utils/storage-control')['setSessionStorageValue']
+  const setSingleCookieValue: typeof import('../app/utils/storage-control')['setSingleCookieValue']
+  const shallowReactive: typeof import('vue')['shallowReactive']
+  const shallowReadonly: typeof import('vue')['shallowReadonly']
+  const shallowRef: typeof import('vue')['shallowRef']
+  const showError: typeof import('#app')['showError']
+  const sleep: typeof import('../app/utils/sleep')['sleep']
+  const statusSchema: typeof import('../app/utils/response')['statusSchema']
+  const subtractDate: typeof import('../app/utils/date-control')['subtractDate']
+  const table: typeof import('../app/utils/console')['table']
+  const timeEnd: typeof import('../app/utils/console')['timeEnd']
+  const timeStart: typeof import('../app/utils/console')['timeStart']
+  const timestampToDate: typeof import('../app/utils/date-control')['timestampToDate']
+  const toImage: typeof import('../app/utils/image')['toImage']
+  const toRaw: typeof import('vue')['toRaw']
+  const toRawDeep: typeof import('../app/utils/vue-reactive')['toRawDeep']
+  const toRef: typeof import('vue')['toRef']
+  const toRefs: typeof import('vue')['toRefs']
+  const toValue: typeof import('vue')['toValue']
+  const toastInjectionKey: typeof import('../app/composables/useToast')['toastInjectionKey']
+  const toggleList: typeof import('../app/utils/array')['toggleList']
+  const triggerRef: typeof import('vue')['triggerRef']
+  const tupleWideningDo: typeof import('../app/utils/tuple')['tupleWideningDo']
+  const unreachable: typeof import('../app/utils/error')['unreachable']
+  const unreadonly: typeof import('../app/utils/vue-reactive')['unreadonly']
+  const unref: typeof import('vue')['unref']
+  const updateAppConfig: typeof import('#app')['updateAppConfig']
+  const useAppConfig: typeof import('#app')['useAppConfig']
+  const useAsyncData: typeof import('#app')['useAsyncData']
+  const useAttrs: typeof import('vue')['useAttrs']
+  const useBrowserLocale: typeof import('#i18n')['useBrowserLocale']
+  const useCookie: typeof import('#app')['useCookie']
+  const useCookieLocale: typeof import('#i18n')['useCookieLocale']
+  const useCssModule: typeof import('vue')['useCssModule']
+  const useCssVars: typeof import('vue')['useCssVars']
+  const useCustomIntersectionObserver: typeof import('../app/composables/useCustomIntersectionObserver')['default']
+  const useDefaultApi: typeof import('../app/composables/useDefaultApi')['default']
+  const useError: typeof import('#app')['useError']
+  const useExample: typeof import('../app/composables/useExample')['useExample']
+  const useFetch: typeof import('#app')['useFetch']
+  const useI18n: typeof import('vue-i18n')['useI18n']
+  const useId: typeof import('vue')['useId']
+  const useIntersectionObserver: typeof import('../app/composables/useIntersectionObserver')['default']
+  const useLazyAsyncData: typeof import('#app')['useLazyAsyncData']
+  const useLazyFetch: typeof import('#app')['useLazyFetch']
+  const useLocale: typeof import('../app/composables/useLocale')['useLocale']
+  const useLocaleHead: typeof import('#i18n')['useLocaleHead']
+  const useLocalePath: typeof import('#i18n')['useLocalePath']
+  const useLocaleRoute: typeof import('#i18n')['useLocaleRoute']
+  const useModel: typeof import('vue')['useModel']
+  const useNuxtApp: typeof import('#app')['useNuxtApp']
+  const useNuxtData: typeof import('#app')['useNuxtData']
+  const useRequestEvent: typeof import('#app')['useRequestEvent']
+  const useRequestFetch: typeof import('#app')['useRequestFetch']
+  const useRequestHeaders: typeof import('#app')['useRequestHeaders']
+  const useRequestURL: typeof import('#app')['useRequestURL']
+  const useRoute: typeof import('#app')['useRoute']
+  const useRouteBaseName: typeof import('#i18n')['useRouteBaseName']
+  const useRouter: typeof import('#app')['useRouter']
+  const useRuntimeConfig: typeof import('#app')['useRuntimeConfig']
+  const useSlots: typeof import('vue')['useSlots']
+  const useSocialShareLink: typeof import('../app/composables/useSocialShareLink')['default']
+  const useState: typeof import('#app')['useState']
+  const useStrictI18n: typeof import('../app/composables/use-strict-i18n')['useStrictI18n']
+  const useSwitchLocalePath: typeof import('#i18n')['useSwitchLocalePath']
+  const useTemplateRef: typeof import('vue')['useTemplateRef']
+  const useToast: typeof import('../app/composables/useToast')['default']
+  const useValidationRules: typeof import('../app/composables/useValidationRules')['default']
+  const waitEffect: typeof import('../app/utils/sleep')['waitEffect']
+  const warn: typeof import('../app/utils/console')['warn']
+  const watch: typeof import('vue')['watch']
+  const watchEffect: typeof import('vue')['watchEffect']
+  const watchPostEffect: typeof import('vue')['watchPostEffect']
+  const watchSyncEffect: typeof import('vue')['watchSyncEffect']
+  const withLogging: typeof import('../app/utils/console')['withLogging']
+  const writableClone: typeof import('../app/utils/object')['writableClone']
+  const zip: typeof import('../app/utils/array')['zip']
+}
+// for type re-export
+declare global {
+  // @ts-ignore
+  export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, ShallowRef, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
+  import('vue')
+  // @ts-ignore
+  export type { I18nTKeyMissingError } from '../app/composables/use-strict-i18n'
+  import('../app/composables/use-strict-i18n')
+  // @ts-ignore
+  export type { Example, ExampleComposable } from '../app/composables/useExample'
+  import('../app/composables/useExample')
+  // @ts-ignore
+  export type { Lang, LocaleComposable } from '../app/composables/useLocale'
+  import('../app/composables/useLocale')
+  // @ts-ignore
+  export type { ToastComposable } from '../app/composables/useToast'
+  import('../app/composables/useToast')
+  // @ts-ignore
+  export type { LogLevel, ConsoleMethod } from '../app/utils/console'
+  import('../app/utils/console')
+  // @ts-ignore
+  export type { Method } from '../app/utils/default-api'
+  import('../app/utils/default-api')
+  // @ts-ignore
+  export type { ApiAccess, MakeRepository, DefaultRepository, DefaultRepositories, DefaultRepositoryKey } from '../app/utils/default-factory'
+  import('../app/utils/default-factory')
+  // @ts-ignore
+  export type { ResponseStatus, Paging, AsyncDataResponse } from '../app/utils/response'
+  import('../app/utils/response')
+  // @ts-ignore
+  export type { Nullable, ValueOf, Overwrite } from '../app/utils/types/types'
+  import('../app/utils/types/types')
+  // @ts-ignore
+  export type { Self } from '../app/utils/zod'
+  import('../app/utils/zod')
+}
+````
+
+## File: layers/base/package.json
+````json
+{
+  "name": "vket-boilerplate-nuxt-base",
+  "private": true,
+  "type": "module",
+  "version": "1.0.1",
+  "scripts": {
+    "postinstall": "nuxt prepare",
+    "dev": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt dev -o",
+    "dev:local": "cross-env VITE_OUTPUT_ENV=local nuxt dev -o",
+    "build": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt build",
+    "build:local": "cross-env VITE_OUTPUT_ENV=local nuxt build",
+    "generate": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt generate",
+    "generate:local": "cross-env VITE_OUTPUT_ENV=local nuxt generate",
+    "preview": "nuxt preview",
+    "typecheck": "cross-env VITE_OUTPUT_ENV=local nuxt typecheck",
+    "analyze": "cross-env VITE_OUTPUT_ENV=local nuxt analyze",
+    "lint": "bun lint:eslint && bun lint:stylelint",
+    "lint:eslint": "eslint --cache --cache-strategy content './app'",
+    "lint:stylelint": "stylelint --cache --cache-strategy content './app/**/*.{css,scss,sass,vue}'",
+    "fix": "bun fix:eslint && bun fix:stylelint",
+    "fix:eslint": "eslint --cache --cache-strategy content --fix './app'",
+    "fix:stylelint": "stylelint --cache-strategy content --fix './app/**/*.{css,scss,sass,vue}'",
+    "test:ut": "cmd='vitest run --dir ./app/test' bun exec-test",
+    "test:watch": "cmd='vitest --dir ./app/test' bun exec-test",
+    "test:ui": "cmd='vitest --ui --dir ./app/test' bun exec-test",
+    "test:coverage": "cmd='vitest run --dir ./app/test --coverage' bun exec-test",
+    "exec-test": "baseDir='./app/test' ext='\\.spec\\.ts' bun exec-if-file-exists",
+    "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true",
+    "package-update": "bunx npm-check-updates -i"
+  },
+  "dependencies": {
+    "@gtm-support/vue-gtm": "^3.1.0",
+    "@headlessui/vue": "^1.7.23",
+    "@nuxtjs/device": "^3.2.4",
+    "@nuxtjs/google-fonts": "^3.2.0",
+    "@nuxtjs/i18n": "^10.1.0",
+    "@nuxtjs/robots": "^5.5.5",
+    "@vueuse/nuxt": "^13.9.0",
+    "dayjs": "^1.11.18",
+    "nuxt": "^4.1.2",
+    "ress": "^5.0.2",
+    "universal-cookie": "^8.0.1",
+    "uuid": "^13.0.0",
+    "vue": "^3.5.22",
+    "vue-advanced-cropper": "^2.8.9",
+    "vue-router": "^4.5.1",
+    "vue3-toastify": "^0.2.8"
+  },
+  "devDependencies": {
+    "@anatine/zod-mock": "^3.14.0",
+    "@eslint/js": "^9.36.0",
+    "@faker-js/faker": "^10.0.0",
+    "@fast-check/vitest": "^0.2.2",
+    "@iconify-json/ri": "^1.2.5",
+    "@nuxt/eslint": "^1.9.0",
+    "@nuxt/test-utils": "^3.19.2",
+    "@playwright/test": "^1.55.1",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/user-event": "^14.6.1",
+    "@testing-library/vue": "^8.1.0",
+    "@total-typescript/ts-reset": "^0.6.1",
+    "@types/jsdom": "^27.0.0",
+    "@types/node": "^24.6.2",
+    "@types/postcss-url": "^10.0.4",
+    "@types/uuid": "^11.0.0",
+    "@vee-validate/i18n": "^4.15.1",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vitejs/plugin-vue-jsx": "^5.1.1",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
+    "@vue/runtime-dom": "^3.5.22",
+    "@vue/test-utils": "^2.4.6",
+    "camelcase-keys": "^10.0.0",
+    "cross-env": "^10.1.0",
+    "eslint": "^9.36.0",
+    "fast-check": "^4.3.0",
+    "globals": "^16.4.0",
+    "happy-dom": "^19.0.2",
+    "humps": "^2.0.1",
+    "jsdom": "^27.0.0",
+    "ofetch": "^1.4.1",
+    "postcss-html": "^1.8.0",
+    "postcss-import": "^16.1.1",
+    "postcss-url": "^10.1.3",
+    "sass-embedded": "^1.93.2",
+    "snake-case": "^4.0.0",
+    "snakecase-keys": "^9.0.2",
+    "stylelint": "^16.24.0",
+    "stylelint-config-clean-order": "^7.0.0",
+    "stylelint-config-standard-scss": "^16.0.0",
+    "stylelint-rscss": "^0.4.0",
+    "tsx": "^4.20.6",
+    "type-fest": "^5.0.1",
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.45.0",
+    "unplugin-auto-import": "^20.2.0",
+    "unplugin-icons": "^22.4.2",
+    "unplugin-vue-components": "^29.1.0",
+    "vee-validate": "^5.0.0-beta.0",
+    "vite-plugin-eslint2": "^5.0.4",
+    "vite-plugin-yaml": "^1.0.5",
+    "vite-svg-loader": "^5.1.0",
+    "vitest": "^3.2.4",
+    "vue-tsc": "^3.1.0",
+    "yaml-loader": "^0.8.1",
+    "zod": "^4.1.11"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}
+````

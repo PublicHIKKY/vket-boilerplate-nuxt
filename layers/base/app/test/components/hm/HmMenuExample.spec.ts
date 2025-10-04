@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, test, expect } from 'vitest'
 import HmMenuExample from '#base/app/components/hm/HmMenuExample.vue'
 
 test('ref component', () => {

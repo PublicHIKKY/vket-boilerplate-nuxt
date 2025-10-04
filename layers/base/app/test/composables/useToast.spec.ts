@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { useToast, toastInjectionKey, type ToastComposable } from '#base/app/composables/useToast'
 
-// $toastのモック
+// $toastのモック - 固定インスタンス
 const mockToast = {
   info: vi.fn(),
   success: vi.fn(),
@@ -16,9 +16,19 @@ vi.mock('#app', () => ({
   })),
 }))
 
+// テストで使用するためにモックを取得
+const { useNuxtApp } = await import('#app')
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockUseNuxtApp = useNuxtApp as any
+
 describe('useToast composable', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    // 各モック関数の呼び出し履歴だけをクリア
+    mockToast.info.mockClear()
+    mockToast.success.mockClear()
+    mockToast.error.mockClear()
+    mockToast.warning.mockClear()
+    mockUseNuxtApp.mockClear()
   })
 
   describe('useToast', () => {
@@ -158,7 +168,8 @@ describe('useToast composable', () => {
 
   describe('エラーハンドリング', () => {
     it('$toastが存在しない場合でもエラーにならない', () => {
-      vi.mocked(useNuxtApp).mockReturnValue({
+      // useNuxtAppのモックを一時的に上書き
+      mockUseNuxtApp.mockReturnValueOnce({
         $toast: undefined,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)

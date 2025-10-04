@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, test, expect } from 'vitest'
 import HaBaseInput from '#base/app/components/ha/base/HaBaseInput.vue'
 
 test('ref component', () => {
