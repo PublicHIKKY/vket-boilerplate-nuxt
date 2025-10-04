@@ -691,6 +691,35 @@ declare module '*.svg?inline'
 </svg>
 ````
 
+## File: layers/main/app/assets/styles/_base.scss
+````scss
+@use 'variables' as v;
+@use 'mixins' as m;
+
+html,
+body {
+  overflow-x: clip;
+
+  font-family: v.$base-font-family;
+  font-variant-numeric: tabular-nums; // 数字フォントの幅を等幅にする
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  color: v.$base-font-color;
+  word-break: normal; // 単語の分割はブラウザのデフォルトであることを明記
+  line-break: strict; // 約物や小文字を置き去りにして改行させない
+  overflow-wrap: anywhere; // 行内に単語を収められない場合に折り返す
+
+  background: v.$base-background-color;
+
+  text-spacing-trim: trim-start; // 英字や日本語の約物が重複した場合に全角分のスペースを確保させない
+}
+
+a {
+  color: v.$base-link-color;
+  text-decoration: none;
+}
+````
+
 ## File: layers/main/app/assets/styles/_functions.scss
 ````scss
 @function strip-unit($number) {
@@ -714,6 +743,174 @@ declare module '*.svg?inline'
   $value: (strip-unit($px) / strip-unit($base)) * 1rem;
 
   @return $value;
+}
+````
+
+## File: layers/main/app/assets/styles/_markdown.scss
+````scss
+// markdown 用スタイリング
+@use 'variables' as v;
+
+.hm-markdowon {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    line-height: 1.3;
+  }
+
+  h1 {
+    margin-bottom: 32px;
+  }
+
+  h2 {
+    margin-bottom: 24px;
+    font-size: 28px;
+  }
+
+  h3 {
+    font-size: 24px;
+  }
+
+  h4 {
+    font-size: 20px;
+  }
+
+  h5 {
+    font-size: 16px;
+  }
+
+  h3,
+  h4,
+  h5 {
+    margin-bottom: 16px;
+    font-weight: 400;
+  }
+
+  ul,
+  ol {
+    margin-bottom: 24px;
+
+    > li {
+      padding-left: 1em;
+      text-indent: -1em;
+
+      &:not(:last-child) {
+        margin-bottom: 16px;
+      }
+    }
+  }
+
+  li {
+    line-height: 1.3;
+    list-style-position: inside;
+
+    > ul {
+      margin: 16px 0;
+      padding-left: 48px;
+    }
+
+    ol {
+      counter-reset: ol-item;
+      margin: 16px 0;
+      padding-left: 28px;
+      list-style: none;
+
+      > li {
+        position: relative;
+        padding-left: 1.5em;
+        text-indent: 0;
+
+        // list-style: none だけで消えないので
+        &::marker {
+          content: '';
+        }
+
+        &::before {
+          // インデントした数値は 「1)」の表示にする
+          content: counter(ol-item) ')  ';
+          counter-increment: ol-item 1;
+
+          position: absolute; // 数値の桁数が違う場合の見た目に対応
+          top: 0;
+          left: 0;
+
+          display: block;
+
+          width: 100px;
+        }
+      }
+    }
+  }
+  /* stylelint-disable selector-max-compound-selectors */
+  ul > li {
+    list-style: none;
+
+    &::before {
+      content: '・';
+    }
+
+    ul > li {
+      list-style: circle;
+
+      ul > li {
+        list-style: disc;
+      }
+    }
+  }
+
+  /* stylelint-ensable selector-max-compound-selectors */
+  ol > li {
+    list-style: decimal;
+    list-style-position: inside;
+  }
+
+  ol[type='a'] > li {
+    list-style: lower-latin;
+    list-style-position: inside;
+  }
+
+  p {
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+
+  img {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    margin: 24px auto;
+  }
+
+  table {
+    border-spacing: 0;
+    border-collapse: collapse;
+
+    width: fit-content;
+    min-width: 50%;
+    max-width: 100%;
+    margin: 24px auto;
+  }
+
+  code {
+    padding: 2px 5px;
+    background-color: v.$violet;
+  }
+
+  table th,
+  table td {
+    padding: 8px 12px;
+    text-align: center;
+  }
+
+  table tr:nth-child(odd) {
+    background-color: v.$blue;
+  }
+
+  thead tr:first-child {
+    background-color: v.$blue;
+  }
 }
 ````
 
@@ -781,6 +978,53 @@ img {
 
 img {
   height: auto;
+}
+````
+
+## File: layers/main/app/assets/styles/_toast.scss
+````scss
+// @nuxt/toastのスタイリング
+// @see nuxt.config.ts > toast
+// todo: !importantあまり使いたくないので@nuxt/toastに.scss渡せたりするなら修正
+
+@use 'variables' as v;
+@use 'mixins' as m;
+
+.hv-toast {
+  z-index: v.$zindex-toast !important;
+  top: v.$header-height-pc !important;
+  width: 100%;
+  margin-top: 0;
+
+  @include m.sp {
+    top: v.$header-height-sp !important;
+  }
+
+  .hv-toast-context {
+    margin-top: 0 !important;
+    word-break: break-all !important;
+    overflow-wrap: break-word !important;
+
+    + .hv-toast-context {
+      margin-top: v.space(2) !important;
+    }
+
+    &.info {
+      background: v.$gray-2 !important;
+    }
+
+    &.success {
+      background: v.$primary-color !important;
+    }
+
+    &.error {
+      background: v.$red !important;
+    }
+
+    &.danger {
+      background: v.$red !important;
+    }
+  }
 }
 ````
 
@@ -1005,6 +1249,34 @@ en:
 </style>
 ````
 
+## File: layers/main/app/components/ht/HtTop.vue
+````vue
+<i18n lang="yaml">
+ja:
+  hoge: ほげ
+en:
+  hoge: hoge
+</i18n>
+
+<template>
+  <div class="ht-top"></div>
+</template>
+
+<script setup lang="ts">
+//
+</script>
+
+<style lang="scss" scoped>
+@use '@/assets/styles/variables' as v;
+@use '@/assets/styles/mixins' as m;
+
+.ht-top {
+  width: 100%;
+  height: 100%;
+}
+</style>
+````
+
 ## File: layers/main/app/composables/useApi.ts
 ````typescript
 /**
@@ -1035,6 +1307,53 @@ export default function useApi<K extends RepositoryKey>(endpoint: K) {
     repository,
   }
 }
+````
+
+## File: layers/main/app/layouts/default.vue
+````vue
+<template>
+  <div class="layout -default">
+    <HoTheHeader />
+    <slot />
+    <HoTheFooter />
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.layout.-default {
+  overflow-x: hidden;
+}
+</style>
+````
+
+## File: layers/main/app/layouts/top.vue
+````vue
+<template>
+  <div class="layout -top">
+    <HoTheHeader />
+    <slot />
+    <HoTheFooter />
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.layout.-top {
+  overflow-x: hidden;
+}
+</style>
+````
+
+## File: layers/main/app/pages/index.vue
+````vue
+<template>
+  <HtTop />
+</template>
+
+<script setup lang="ts">
+definePageMeta({
+  layout: 'top',
+})
+</script>
 ````
 
 ## File: layers/main/app/plugins/gtm.client.ts
@@ -1296,6 +1615,396 @@ export type RepositoryKey = keyof typeof repositories
 export const repositoryFactory = {
   get: <K extends keyof typeof repositories>(name: K) => repositories[name],
 }
+````
+
+## File: layers/main/app/app.vue
+````vue
+<i18n lang="yaml">
+  ja:
+    site:
+      title: Vket Boilerplate Nuxt
+      title_template: "{title} - HIKKY Web Frontend"
+      description: Vketのサイト開発で活用しているボイラープレート
+  en:
+    site:
+      title: Vket Boilerplate Nuxt
+      title_template: "{title} - HIKKY Web Frontend"
+      description: A boilerplate used for Vket site development
+</i18n>
+
+<template>
+  <Head>
+    <Link
+      rel="alternate"
+      hreflang="ja"
+      :href="currentJaFullPath"
+    />
+    <Link
+      rel="alternate"
+      hreflang="en"
+      :href="currentEnFullPath"
+    />
+    <Link
+      rel="alternate"
+      hreflang="x-default"
+      :href="currentJaFullPath"
+    />
+    <template v-if="currentLang === 'ja'">
+      <Link
+        rel="canonical"
+        :href="currentJaFullPath"
+      />
+    </template>
+    <template v-if="currentLang === 'en'">
+      <Link
+        rel="canonical"
+        :href="currentEnFullPath"
+      />
+    </template>
+  </Head>
+  <div class="app">
+    <NuxtLayout>
+      <NuxtRouteAnnouncer />
+      <NuxtWelcome />
+      <NuxtPage />
+    </NuxtLayout>
+  </div>
+</template>
+
+<script lang="ts" setup>
+const route = useRoute()
+const i18n = useI18n()
+const currentFullPath = ref(`${useRuntimeConfig().public.url}${route.fullPath}`)
+const currentLang = ref(i18n.locale.value)
+
+const currentJaFullPath = computed(() => {
+  if (currentLang.value === 'ja') {
+    return currentFullPath.value
+  } else {
+    return currentFullPath.value
+      .replace(/\/en(\/|$)/, '/')
+      .replace(/\/{2,}/, '/')
+  }
+})
+
+const currentEnFullPath = computed(() => {
+  if (currentLang.value === 'en') {
+    return currentFullPath.value
+  } else {
+    const path = route.fullPath.endsWith('/')
+      ? route.fullPath
+      : `${route.fullPath}/`
+    return `${useRuntimeConfig().public.url}/en${path}`
+  }
+})
+
+useHeadSafe({
+  htmlAttrs: {
+    lang: currentLang.value,
+  },
+  titleTemplate: (titleChunk) => {
+    return titleChunk
+      ? i18n.t('site.title_template', { title: titleChunk })
+      : i18n.t('site.title')
+  },
+  meta: [
+    {
+      name: 'description',
+      content: i18n.t('site.description'),
+    },
+    {
+      property: 'og:description',
+      content: i18n.t('site.description'),
+    },
+    {
+      property: 'og:site_name',
+      content: i18n.t('site.title'),
+    },
+  ],
+})
+</script>
+````
+
+## File: layers/main/app/error.vue
+````vue
+<i18n lang="yaml">
+ja:
+  title: "エラーが発生しました"
+  back_home: "ホームに戻る"
+  back_previous: "前のページに戻る"
+  error_404: "ページが見つかりません"
+  error_500: "サーバーエラー"
+  error_other: "予期しないエラー"
+  description_404: "お探しのページは見つかりませんでした。URLをご確認いただくか、ホームページに戻ってもう一度お試しください。"
+  description_500: "サーバーに問題が発生しています。しばらく時間をおいてから再度お試しください。"
+  description_other: "申し訳ございませんが、予期しないエラーが発生しました。"
+  details: "エラー内容"
+en:
+  title: "An error occurred"
+  back_home: "Back to Home"
+  back_previous: "Go Back"
+  error_404: "Page Not Found"
+  error_500: "Server Error"
+  error_other: "Unexpected Error"
+  description_404: "The page you are looking for could not be found. Please check the URL or return to the home page and try again."
+  description_500: "There is a problem with the server. Please try again after some time."
+  description_other: "We apologize, but an unexpected error has occurred."
+  details: "Error Details"
+</i18n>
+
+<template>
+  <div class="error-page">
+    <div class="error-container">
+      <div class="error-icon">
+        <div class="error-code">
+          {{ error.statusCode }}
+        </div>
+      </div>
+
+      <h1 class="error-title">
+        {{ getErrorTitle() }}
+      </h1>
+
+      <p class="error-description">
+        {{ getErrorDescription() }}
+      </p>
+
+      <div class="error-actions">
+        <button
+          class="error-button -primary"
+          @click="handleClearError"
+        >
+          {{ t('back_home') }}
+        </button>
+
+        <button
+          class="error-button -secondary"
+          @click="goBack"
+        >
+          {{ t('back_previous') }}
+        </button>
+      </div>
+
+      <div class="error-details">
+        <details v-if="error.message">
+          <summary>{{ t('details') }}</summary>
+          <pre class="error-message">{{ error.message }}</pre>
+        </details>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { NuxtError } from '#app'
+
+const props = defineProps<{
+  error: NuxtError
+}>()
+
+const { t } = useI18n()
+
+const getErrorTitle = (): string => {
+  if (props.error.statusCode === 404) {
+    return t('error_404')
+  }
+  if (props.error.statusCode === 500) {
+    return t('error_500')
+  }
+  return t('error_other')
+}
+
+const getErrorDescription = (): string => {
+  if (props.error.statusCode === 404) {
+    return t('description_404')
+  }
+  if (props.error.statusCode === 500) {
+    return t('description_500')
+  }
+  return t('description_other')
+}
+
+const handleClearError = async (): Promise<void> => {
+  await clearError({ redirect: '/' })
+}
+
+const goBack = async (): Promise<void> => {
+  if (window.history.length > 1) {
+    window.history.back()
+  } else {
+    await navigateTo('/')
+  }
+}
+</script>
+
+<style scoped lang="scss">
+@use '@/assets/styles/variables' as v;
+@use '@/assets/styles/mixins' as m;
+
+.error-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 100vh;
+  padding: v.space(4);
+
+  color: #333;
+
+  background-color: #f8f9fa;
+}
+
+.error-container {
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+}
+
+.error-icon {
+  margin-bottom: v.space(6);
+}
+
+.error-code {
+  display: inline-block;
+
+  width: 120px;
+  height: 120px;
+  margin: 0 auto v.space(4);
+  border: 4px solid #dc3545;
+  border-radius: 50%;
+
+  font-size: 48px;
+  font-weight: bold;
+  line-height: 112px;
+  color: #dc3545;
+
+  background-color: rgba(#dc3545, 0.1);
+
+  @include m.sp {
+    width: 80px;
+    height: 80px;
+    font-size: 32px;
+    line-height: 72px;
+  }
+}
+
+.error-title {
+  margin-bottom: v.space(4);
+  font-size: 32px;
+  font-weight: bold;
+  color: #212529;
+
+  @include m.sp {
+    font-size: 24px;
+  }
+}
+
+.error-description {
+  margin-bottom: v.space(8);
+  font-size: 16px;
+  line-height: 1.6;
+  color: #6c757d;
+
+  @include m.sp {
+    margin-bottom: v.space(6);
+    font-size: 14px;
+  }
+}
+
+.error-actions {
+  display: flex;
+  gap: v.space(4);
+  justify-content: center;
+  margin-bottom: v.space(8);
+
+  @include m.sp {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+.error-button {
+  cursor: pointer;
+
+  padding: v.space(3) v.space(6);
+  border: 2px solid transparent;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+
+  transition: all 0.3s ease;
+
+  @include m.sp {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  &.-primary {
+    border-color: #007bff;
+    color: #fff;
+    background-color: #007bff;
+
+    @include m.hover {
+      border-color: #0056b3;
+      background-color: #0056b3;
+    }
+  }
+
+  &.-secondary {
+    border-color: #6c757d;
+    color: #6c757d;
+    background-color: transparent;
+
+    @include m.hover {
+      color: #fff;
+      background-color: #6c757d;
+    }
+  }
+}
+
+.error-details {
+  margin-top: v.space(6);
+  text-align: left;
+
+  details {
+    padding: v.space(2);
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background-color: #fff;
+
+    summary {
+      cursor: pointer;
+      margin-bottom: v.space(2);
+      font-weight: 500;
+      color: #007bff;
+
+      @include m.hover {
+        color: #0056b3;
+      }
+    }
+  }
+}
+
+.error-message {
+  overflow-x: auto;
+
+  padding: v.space(3);
+  border-radius: 4px;
+
+  font-family: monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #495057;
+
+  background-color: #f8f9fa;
+
+  @include m.sp {
+    font-size: 11px;
+  }
+}
+</style>
 ````
 
 ## File: layers/main/config/models/EnvType.ts
@@ -1697,312 +2406,6 @@ declare global {
 }
 ````
 
-## File: layers/main/app/assets/styles/_base.scss
-````scss
-@use 'variables' as v;
-@use 'mixins' as m;
-
-html,
-body {
-  overflow-x: clip;
-
-  font-family: v.$base-font-family;
-  font-variant-numeric: tabular-nums; // 数字フォントの幅を等幅にする
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  color: v.$base-font-color;
-  word-break: normal; // 単語の分割はブラウザのデフォルトであることを明記
-  line-break: strict; // 約物や小文字を置き去りにして改行させない
-  overflow-wrap: anywhere; // 行内に単語を収められない場合に折り返す
-
-  background: v.$base-background-color;
-
-  text-spacing-trim: trim-start; // 英字や日本語の約物が重複した場合に全角分のスペースを確保させない
-}
-
-a {
-  color: v.$base-link-color;
-  text-decoration: none;
-}
-````
-
-## File: layers/main/app/assets/styles/_markdown.scss
-````scss
-// markdown 用スタイリング
-@use 'variables' as v;
-
-.hm-markdowon {
-  h1,
-  h2,
-  h3,
-  h4,
-  h5 {
-    line-height: 1.3;
-  }
-
-  h1 {
-    margin-bottom: 32px;
-  }
-
-  h2 {
-    margin-bottom: 24px;
-    font-size: 28px;
-  }
-
-  h3 {
-    font-size: 24px;
-  }
-
-  h4 {
-    font-size: 20px;
-  }
-
-  h5 {
-    font-size: 16px;
-  }
-
-  h3,
-  h4,
-  h5 {
-    margin-bottom: 16px;
-    font-weight: 400;
-  }
-
-  ul,
-  ol {
-    margin-bottom: 24px;
-
-    > li {
-      padding-left: 1em;
-      text-indent: -1em;
-
-      &:not(:last-child) {
-        margin-bottom: 16px;
-      }
-    }
-  }
-
-  li {
-    line-height: 1.3;
-    list-style-position: inside;
-
-    > ul {
-      margin: 16px 0;
-      padding-left: 48px;
-    }
-
-    ol {
-      counter-reset: ol-item;
-      margin: 16px 0;
-      padding-left: 28px;
-      list-style: none;
-
-      > li {
-        position: relative;
-        padding-left: 1.5em;
-        text-indent: 0;
-
-        // list-style: none だけで消えないので
-        &::marker {
-          content: '';
-        }
-
-        &::before {
-          // インデントした数値は 「1)」の表示にする
-          content: counter(ol-item) ')  ';
-          counter-increment: ol-item 1;
-
-          position: absolute; // 数値の桁数が違う場合の見た目に対応
-          top: 0;
-          left: 0;
-
-          display: block;
-
-          width: 100px;
-        }
-      }
-    }
-  }
-  /* stylelint-disable selector-max-compound-selectors */
-  ul > li {
-    list-style: none;
-
-    &::before {
-      content: '・';
-    }
-
-    ul > li {
-      list-style: circle;
-
-      ul > li {
-        list-style: disc;
-      }
-    }
-  }
-
-  /* stylelint-ensable selector-max-compound-selectors */
-  ol > li {
-    list-style: decimal;
-    list-style-position: inside;
-  }
-
-  ol[type='a'] > li {
-    list-style: lower-latin;
-    list-style-position: inside;
-  }
-
-  p {
-    margin-bottom: 24px;
-    line-height: 1.6;
-  }
-
-  img {
-    display: block;
-    width: fit-content;
-    max-width: 100%;
-    margin: 24px auto;
-  }
-
-  table {
-    border-spacing: 0;
-    border-collapse: collapse;
-
-    width: fit-content;
-    min-width: 50%;
-    max-width: 100%;
-    margin: 24px auto;
-  }
-
-  code {
-    padding: 2px 5px;
-    background-color: v.$violet;
-  }
-
-  table th,
-  table td {
-    padding: 8px 12px;
-    text-align: center;
-  }
-
-  table tr:nth-child(odd) {
-    background-color: v.$blue;
-  }
-
-  thead tr:first-child {
-    background-color: v.$blue;
-  }
-}
-````
-
-## File: layers/main/app/assets/styles/_toast.scss
-````scss
-// @nuxt/toastのスタイリング
-// @see nuxt.config.ts > toast
-// todo: !importantあまり使いたくないので@nuxt/toastに.scss渡せたりするなら修正
-
-@use 'variables' as v;
-@use 'mixins' as m;
-
-.hv-toast {
-  z-index: v.$zindex-toast !important;
-  top: v.$header-height-pc !important;
-  width: 100%;
-  margin-top: 0;
-
-  @include m.sp {
-    top: v.$header-height-sp !important;
-  }
-
-  .hv-toast-context {
-    margin-top: 0 !important;
-    word-break: break-all !important;
-    overflow-wrap: break-word !important;
-
-    + .hv-toast-context {
-      margin-top: v.space(2) !important;
-    }
-
-    &.info {
-      background: v.$gray-2 !important;
-    }
-
-    &.success {
-      background: v.$primary-color !important;
-    }
-
-    &.error {
-      background: v.$red !important;
-    }
-
-    &.danger {
-      background: v.$red !important;
-    }
-  }
-}
-````
-
-## File: layers/main/app/components/ht/HtTop.vue
-````vue
-<i18n lang="yaml">
-ja:
-  hoge: ほげ
-en:
-  hoge: hoge
-</i18n>
-
-<template>
-  <div class="ht-top"></div>
-</template>
-
-<script setup lang="ts">
-//
-</script>
-
-<style lang="scss" scoped>
-@use '@/assets/styles/variables' as v;
-@use '@/assets/styles/mixins' as m;
-
-.ht-top {
-  width: 100%;
-  height: 100%;
-}
-</style>
-````
-
-## File: layers/main/app/layouts/default.vue
-````vue
-<template>
-  <div class="layout -default">
-    <HoTheHeader />
-    <slot />
-    <HoTheFooter />
-  </div>
-</template>
-
-<style lang="scss" scoped>
-.layout.-default {
-  overflow-x: hidden;
-}
-</style>
-````
-
-## File: layers/main/app/layouts/top.vue
-````vue
-<template>
-  <div class="layout -top">
-    <HoTheHeader />
-    <slot />
-    <HoTheFooter />
-  </div>
-</template>
-
-<style lang="scss" scoped>
-.layout.-top {
-  overflow-x: hidden;
-}
-</style>
-````
-
 ## File: layers/main/app/models/json.ts
 ````typescript
 /**
@@ -2036,19 +2439,6 @@ export const todoSchema = z.object({
 })
 
 export type Todo = z.infer<typeof todoSchema>
-````
-
-## File: layers/main/app/pages/index.vue
-````vue
-<template>
-  <HtTop />
-</template>
-
-<script setup lang="ts">
-definePageMeta({
-  layout: 'top',
-})
-</script>
 ````
 
 ## File: layers/main/app/test/composables/useApi.spec.ts
@@ -2379,396 +2769,6 @@ export type UseI18nReturnType<Options extends UseI18nOptions = UseI18nOptions>
  */
 export const getI18nArray = (i18n: UseI18nReturnType, key: string): string[] =>
   Object.entries<VueMessageType>(i18n.tm(key)).map(([_, term]) => i18n.rt(term))
-````
-
-## File: layers/main/app/app.vue
-````vue
-<i18n lang="yaml">
-  ja:
-    site:
-      title: Vket Boilerplate Nuxt
-      title_template: "{title} - HIKKY Web Frontend"
-      description: Vketのサイト開発で活用しているボイラープレート
-  en:
-    site:
-      title: Vket Boilerplate Nuxt
-      title_template: "{title} - HIKKY Web Frontend"
-      description: A boilerplate used for Vket site development
-</i18n>
-
-<template>
-  <Head>
-    <Link
-      rel="alternate"
-      hreflang="ja"
-      :href="currentJaFullPath"
-    />
-    <Link
-      rel="alternate"
-      hreflang="en"
-      :href="currentEnFullPath"
-    />
-    <Link
-      rel="alternate"
-      hreflang="x-default"
-      :href="currentJaFullPath"
-    />
-    <template v-if="currentLang === 'ja'">
-      <Link
-        rel="canonical"
-        :href="currentJaFullPath"
-      />
-    </template>
-    <template v-if="currentLang === 'en'">
-      <Link
-        rel="canonical"
-        :href="currentEnFullPath"
-      />
-    </template>
-  </Head>
-  <div class="app">
-    <NuxtLayout>
-      <NuxtRouteAnnouncer />
-      <NuxtWelcome />
-      <NuxtPage />
-    </NuxtLayout>
-  </div>
-</template>
-
-<script lang="ts" setup>
-const route = useRoute()
-const i18n = useI18n()
-const currentFullPath = ref(`${useRuntimeConfig().public.url}${route.fullPath}`)
-const currentLang = ref(i18n.locale.value)
-
-const currentJaFullPath = computed(() => {
-  if (currentLang.value === 'ja') {
-    return currentFullPath.value
-  } else {
-    return currentFullPath.value
-      .replace(/\/en(\/|$)/, '/')
-      .replace(/\/{2,}/, '/')
-  }
-})
-
-const currentEnFullPath = computed(() => {
-  if (currentLang.value === 'en') {
-    return currentFullPath.value
-  } else {
-    const path = route.fullPath.endsWith('/')
-      ? route.fullPath
-      : `${route.fullPath}/`
-    return `${useRuntimeConfig().public.url}/en${path}`
-  }
-})
-
-useHeadSafe({
-  htmlAttrs: {
-    lang: currentLang.value,
-  },
-  titleTemplate: (titleChunk) => {
-    return titleChunk
-      ? i18n.t('site.title_template', { title: titleChunk })
-      : i18n.t('site.title')
-  },
-  meta: [
-    {
-      name: 'description',
-      content: i18n.t('site.description'),
-    },
-    {
-      property: 'og:description',
-      content: i18n.t('site.description'),
-    },
-    {
-      property: 'og:site_name',
-      content: i18n.t('site.title'),
-    },
-  ],
-})
-</script>
-````
-
-## File: layers/main/app/error.vue
-````vue
-<i18n lang="yaml">
-ja:
-  title: "エラーが発生しました"
-  back_home: "ホームに戻る"
-  back_previous: "前のページに戻る"
-  error_404: "ページが見つかりません"
-  error_500: "サーバーエラー"
-  error_other: "予期しないエラー"
-  description_404: "お探しのページは見つかりませんでした。URLをご確認いただくか、ホームページに戻ってもう一度お試しください。"
-  description_500: "サーバーに問題が発生しています。しばらく時間をおいてから再度お試しください。"
-  description_other: "申し訳ございませんが、予期しないエラーが発生しました。"
-  details: "エラー内容"
-en:
-  title: "An error occurred"
-  back_home: "Back to Home"
-  back_previous: "Go Back"
-  error_404: "Page Not Found"
-  error_500: "Server Error"
-  error_other: "Unexpected Error"
-  description_404: "The page you are looking for could not be found. Please check the URL or return to the home page and try again."
-  description_500: "There is a problem with the server. Please try again after some time."
-  description_other: "We apologize, but an unexpected error has occurred."
-  details: "Error Details"
-</i18n>
-
-<template>
-  <div class="error-page">
-    <div class="error-container">
-      <div class="error-icon">
-        <div class="error-code">
-          {{ error.statusCode }}
-        </div>
-      </div>
-
-      <h1 class="error-title">
-        {{ getErrorTitle() }}
-      </h1>
-
-      <p class="error-description">
-        {{ getErrorDescription() }}
-      </p>
-
-      <div class="error-actions">
-        <button
-          class="error-button -primary"
-          @click="handleClearError"
-        >
-          {{ t('back_home') }}
-        </button>
-
-        <button
-          class="error-button -secondary"
-          @click="goBack"
-        >
-          {{ t('back_previous') }}
-        </button>
-      </div>
-
-      <div class="error-details">
-        <details v-if="error.message">
-          <summary>{{ t('details') }}</summary>
-          <pre class="error-message">{{ error.message }}</pre>
-        </details>
-      </div>
-    </div>
-  </div>
-</template>
-
-<script setup lang="ts">
-import type { NuxtError } from '#app'
-
-const props = defineProps<{
-  error: NuxtError
-}>()
-
-const { t } = useI18n()
-
-const getErrorTitle = (): string => {
-  if (props.error.statusCode === 404) {
-    return t('error_404')
-  }
-  if (props.error.statusCode === 500) {
-    return t('error_500')
-  }
-  return t('error_other')
-}
-
-const getErrorDescription = (): string => {
-  if (props.error.statusCode === 404) {
-    return t('description_404')
-  }
-  if (props.error.statusCode === 500) {
-    return t('description_500')
-  }
-  return t('description_other')
-}
-
-const handleClearError = async (): Promise<void> => {
-  await clearError({ redirect: '/' })
-}
-
-const goBack = async (): Promise<void> => {
-  if (window.history.length > 1) {
-    window.history.back()
-  } else {
-    await navigateTo('/')
-  }
-}
-</script>
-
-<style scoped lang="scss">
-@use '@/assets/styles/variables' as v;
-@use '@/assets/styles/mixins' as m;
-
-.error-page {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  min-height: 100vh;
-  padding: v.space(4);
-
-  color: #333;
-
-  background-color: #f8f9fa;
-}
-
-.error-container {
-  width: 100%;
-  max-width: 600px;
-  text-align: center;
-}
-
-.error-icon {
-  margin-bottom: v.space(6);
-}
-
-.error-code {
-  display: inline-block;
-
-  width: 120px;
-  height: 120px;
-  margin: 0 auto v.space(4);
-  border: 4px solid #dc3545;
-  border-radius: 50%;
-
-  font-size: 48px;
-  font-weight: bold;
-  line-height: 112px;
-  color: #dc3545;
-
-  background-color: rgba(#dc3545, 0.1);
-
-  @include m.sp {
-    width: 80px;
-    height: 80px;
-    font-size: 32px;
-    line-height: 72px;
-  }
-}
-
-.error-title {
-  margin-bottom: v.space(4);
-  font-size: 32px;
-  font-weight: bold;
-  color: #212529;
-
-  @include m.sp {
-    font-size: 24px;
-  }
-}
-
-.error-description {
-  margin-bottom: v.space(8);
-  font-size: 16px;
-  line-height: 1.6;
-  color: #6c757d;
-
-  @include m.sp {
-    margin-bottom: v.space(6);
-    font-size: 14px;
-  }
-}
-
-.error-actions {
-  display: flex;
-  gap: v.space(4);
-  justify-content: center;
-  margin-bottom: v.space(8);
-
-  @include m.sp {
-    flex-direction: column;
-    align-items: center;
-  }
-}
-
-.error-button {
-  cursor: pointer;
-
-  padding: v.space(3) v.space(6);
-  border: 2px solid transparent;
-  border-radius: 8px;
-
-  font-size: 16px;
-  font-weight: 500;
-  text-decoration: none;
-
-  transition: all 0.3s ease;
-
-  @include m.sp {
-    width: 100%;
-    max-width: 280px;
-  }
-
-  &.-primary {
-    border-color: #007bff;
-    color: #fff;
-    background-color: #007bff;
-
-    @include m.hover {
-      border-color: #0056b3;
-      background-color: #0056b3;
-    }
-  }
-
-  &.-secondary {
-    border-color: #6c757d;
-    color: #6c757d;
-    background-color: transparent;
-
-    @include m.hover {
-      color: #fff;
-      background-color: #6c757d;
-    }
-  }
-}
-
-.error-details {
-  margin-top: v.space(6);
-  text-align: left;
-
-  details {
-    padding: v.space(2);
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    background-color: #fff;
-
-    summary {
-      cursor: pointer;
-      margin-bottom: v.space(2);
-      font-weight: 500;
-      color: #007bff;
-
-      @include m.hover {
-        color: #0056b3;
-      }
-    }
-  }
-}
-
-.error-message {
-  overflow-x: auto;
-
-  padding: v.space(3);
-  border-radius: 4px;
-
-  font-family: monospace;
-  font-size: 12px;
-  line-height: 1.4;
-  color: #495057;
-
-  background-color: #f8f9fa;
-
-  @include m.sp {
-    font-size: 11px;
-  }
-}
-</style>
 ````
 
 ## File: layers/main/eslint.config.mjs

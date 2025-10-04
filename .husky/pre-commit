@@ -1,4 +1,11 @@
 #!/bin/sh
 bunx lint-staged
 bun run repomix
-git add repomix-output.md
+
+# agent_contexts/ 以下のファイルが変更されていれば自動的にステージングする
+if [ -d "agent_contexts" ]; then
+  changed_files=$(git diff --name-only agent_contexts/)
+  if [ -n "$changed_files" ]; then
+    git add agent_contexts/
+  fi
+fi
