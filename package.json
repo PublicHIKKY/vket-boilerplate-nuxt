@@ -18,10 +18,10 @@
   "devDependencies": {
     "@types/bun": "^1.2.23",
     "bun-types": "^1.2.23",
-    "eslint": "^9.36.0",
+    "eslint": "^9.37.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.3",
-    "stylelint": "^16.24.0"
+    "stylelint": "^16.25.0"
   },
   "lint-staged": {
     "layers/**/*.+(js|ts|tsx|vue)": [
@@ -29,6 +29,6 @@
     ]
   },
   "resolutions": {
-    "eslint": "9.36.0"
+    "eslint": "9.37.0"
   }
 }
