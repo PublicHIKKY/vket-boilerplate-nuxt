@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.1",
   "license": "MIT",
+  "packageManager": "bun@1.2.23",
   "workspaces": [
     "layers/*"
   ],

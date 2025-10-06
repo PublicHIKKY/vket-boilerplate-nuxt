@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "version": "1.0.1",
+  "packageManager": "bun@1.2.23",
   "scripts": {
     "postinstall": "nuxt prepare",
     "dev": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt dev -o",
