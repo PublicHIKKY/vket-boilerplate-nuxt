@@ -691,6 +691,35 @@ declare module '*.svg?inline'
 </svg>
 ````
 
+## File: layers/main/app/assets/styles/_base.scss
+````scss
+@use 'variables' as v;
+@use 'mixins' as m;
+
+html,
+body {
+  overflow-x: clip;
+
+  font-family: v.$base-font-family;
+  font-variant-numeric: tabular-nums; // 数字フォントの幅を等幅にする
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  color: v.$base-font-color;
+  word-break: normal; // 単語の分割はブラウザのデフォルトであることを明記
+  line-break: strict; // 約物や小文字を置き去りにして改行させない
+  overflow-wrap: anywhere; // 行内に単語を収められない場合に折り返す
+
+  background: v.$base-background-color;
+
+  text-spacing-trim: trim-start; // 英字や日本語の約物が重複した場合に全角分のスペースを確保させない
+}
+
+a {
+  color: v.$base-link-color;
+  text-decoration: none;
+}
+````
+
 ## File: layers/main/app/assets/styles/_functions.scss
 ````scss
 @function strip-unit($number) {
@@ -714,6 +743,174 @@ declare module '*.svg?inline'
   $value: (strip-unit($px) / strip-unit($base)) * 1rem;
 
   @return $value;
+}
+````
+
+## File: layers/main/app/assets/styles/_markdown.scss
+````scss
+// markdown 用スタイリング
+@use 'variables' as v;
+
+.hm-markdowon {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    line-height: 1.3;
+  }
+
+  h1 {
+    margin-bottom: 32px;
+  }
+
+  h2 {
+    margin-bottom: 24px;
+    font-size: 28px;
+  }
+
+  h3 {
+    font-size: 24px;
+  }
+
+  h4 {
+    font-size: 20px;
+  }
+
+  h5 {
+    font-size: 16px;
+  }
+
+  h3,
+  h4,
+  h5 {
+    margin-bottom: 16px;
+    font-weight: 400;
+  }
+
+  ul,
+  ol {
+    margin-bottom: 24px;
+
+    > li {
+      padding-left: 1em;
+      text-indent: -1em;
+
+      &:not(:last-child) {
+        margin-bottom: 16px;
+      }
+    }
+  }
+
+  li {
+    line-height: 1.3;
+    list-style-position: inside;
+
+    > ul {
+      margin: 16px 0;
+      padding-left: 48px;
+    }
+
+    ol {
+      counter-reset: ol-item;
+      margin: 16px 0;
+      padding-left: 28px;
+      list-style: none;
+
+      > li {
+        position: relative;
+        padding-left: 1.5em;
+        text-indent: 0;
+
+        // list-style: none だけで消えないので
+        &::marker {
+          content: '';
+        }
+
+        &::before {
+          // インデントした数値は 「1)」の表示にする
+          content: counter(ol-item) ')  ';
+          counter-increment: ol-item 1;
+
+          position: absolute; // 数値の桁数が違う場合の見た目に対応
+          top: 0;
+          left: 0;
+
+          display: block;
+
+          width: 100px;
+        }
+      }
+    }
+  }
+  /* stylelint-disable selector-max-compound-selectors */
+  ul > li {
+    list-style: none;
+
+    &::before {
+      content: '・';
+    }
+
+    ul > li {
+      list-style: circle;
+
+      ul > li {
+        list-style: disc;
+      }
+    }
+  }
+
+  /* stylelint-ensable selector-max-compound-selectors */
+  ol > li {
+    list-style: decimal;
+    list-style-position: inside;
+  }
+
+  ol[type='a'] > li {
+    list-style: lower-latin;
+    list-style-position: inside;
+  }
+
+  p {
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+
+  img {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    margin: 24px auto;
+  }
+
+  table {
+    border-spacing: 0;
+    border-collapse: collapse;
+
+    width: fit-content;
+    min-width: 50%;
+    max-width: 100%;
+    margin: 24px auto;
+  }
+
+  code {
+    padding: 2px 5px;
+    background-color: v.$violet;
+  }
+
+  table th,
+  table td {
+    padding: 8px 12px;
+    text-align: center;
+  }
+
+  table tr:nth-child(odd) {
+    background-color: v.$blue;
+  }
+
+  thead tr:first-child {
+    background-color: v.$blue;
+  }
 }
 ````
 
@@ -781,6 +978,53 @@ img {
 
 img {
   height: auto;
+}
+````
+
+## File: layers/main/app/assets/styles/_toast.scss
+````scss
+// @nuxt/toastのスタイリング
+// @see nuxt.config.ts > toast
+// todo: !importantあまり使いたくないので@nuxt/toastに.scss渡せたりするなら修正
+
+@use 'variables' as v;
+@use 'mixins' as m;
+
+.hv-toast {
+  z-index: v.$zindex-toast !important;
+  top: v.$header-height-pc !important;
+  width: 100%;
+  margin-top: 0;
+
+  @include m.sp {
+    top: v.$header-height-sp !important;
+  }
+
+  .hv-toast-context {
+    margin-top: 0 !important;
+    word-break: break-all !important;
+    overflow-wrap: break-word !important;
+
+    + .hv-toast-context {
+      margin-top: v.space(2) !important;
+    }
+
+    &.info {
+      background: v.$gray-2 !important;
+    }
+
+    &.success {
+      background: v.$primary-color !important;
+    }
+
+    &.error {
+      background: v.$red !important;
+    }
+
+    &.danger {
+      background: v.$red !important;
+    }
+  }
 }
 ````
 
@@ -1005,6 +1249,34 @@ en:
 </style>
 ````
 
+## File: layers/main/app/components/ht/HtTop.vue
+````vue
+<i18n lang="yaml">
+ja:
+  hoge: ほげ
+en:
+  hoge: hoge
+</i18n>
+
+<template>
+  <div class="ht-top"></div>
+</template>
+
+<script setup lang="ts">
+//
+</script>
+
+<style lang="scss" scoped>
+@use '@/assets/styles/variables' as v;
+@use '@/assets/styles/mixins' as m;
+
+.ht-top {
+  width: 100%;
+  height: 100%;
+}
+</style>
+````
+
 ## File: layers/main/app/composables/useApi.ts
 ````typescript
 /**
@@ -1035,6 +1307,53 @@ export default function useApi<K extends RepositoryKey>(endpoint: K) {
     repository,
   }
 }
+````
+
+## File: layers/main/app/layouts/default.vue
+````vue
+<template>
+  <div class="layout -default">
+    <HoTheHeader />
+    <slot />
+    <HoTheFooter />
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.layout.-default {
+  overflow-x: hidden;
+}
+</style>
+````
+
+## File: layers/main/app/layouts/top.vue
+````vue
+<template>
+  <div class="layout -top">
+    <HoTheHeader />
+    <slot />
+    <HoTheFooter />
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.layout.-top {
+  overflow-x: hidden;
+}
+</style>
+````
+
+## File: layers/main/app/pages/index.vue
+````vue
+<template>
+  <HtTop />
+</template>
+
+<script setup lang="ts">
+definePageMeta({
+  layout: 'top',
+})
+</script>
 ````
 
 ## File: layers/main/app/plugins/gtm.client.ts
@@ -1296,933 +1615,6 @@ export type RepositoryKey = keyof typeof repositories
 export const repositoryFactory = {
   get: <K extends keyof typeof repositories>(name: K) => repositories[name],
 }
-````
-
-## File: layers/main/config/models/EnvType.ts
-````typescript
-/**
- * nuxt.config.tsのためのモジュール。
- *
- * @packageDocumentation
- */
-
-export type EnvType = 'local' | 'development' | 'staging' | 'production'
-
-export const allEnvTypes = [
-  'local',
-  'development',
-  'staging',
-  'production',
-] as const
-
-export function isEnvType(x: unknown): x is EnvType {
-  const envTypes: readonly unknown[] = allEnvTypes
-  return envTypes.includes(x)
-}
-
-export function ensureEnvType(x: unknown): asserts x is EnvType {
-  if (!isEnvType(x)) {
-    throw new TypeError('Not an EnvType.')
-  }
-}
-
-export type Env = Record<string, string | undefined>
-
-/**
- * baseEnv.VITE_OUTPUT_ENVを読みだします。
- * これが未指定の場合は'local'にフォールバックします。
- * これが不明な値（EnvTypeでない）場合は例外を送出します。
- *
- * ```typescript
- * const envType = readEnvType(process.env)
- * ```
- */
-export function readEnvType(baseEnv: Env): EnvType {
-  if (baseEnv.VITE_OUTPUT_ENV === undefined) {
-    console.error('No VITE_OUTPUT_ENV is set.')
-    return 'local'
-  }
-
-  ensureEnvType(baseEnv.VITE_OUTPUT_ENV)
-  return baseEnv.VITE_OUTPUT_ENV
-}
-````
-
-## File: layers/main/config/appConfig.ts
-````typescript
-/**
- * app.config.tsのためのモジュール。
- *
- * @packageDocumentation
- */
-
-import { EnvType, Env } from './models/EnvType'
-
-/**
- * ```typescript
- * const appConfig = getAppConfigOfEnvType('local', process.env)
- * ```
- */
-export function getAppConfigOfEnvType(envType: EnvType, baseEnv: Env) {
-  switch (envType) {
-    case 'local':
-      return getLocal(envType, baseEnv)
-    case 'development':
-      return getDevelopment(envType, baseEnv)
-    case 'staging':
-      return getStaging(envType, baseEnv)
-    case 'production':
-      return getProduction(envType, baseEnv)
-  }
-}
-
-function getLocal(_envType: EnvType, _baseEnv: Env) {
-  return {}
-}
-
-function getDevelopment(_envType: EnvType, _baseEnv: Env) {
-  return {}
-}
-
-function getStaging(_envType: EnvType, _baseEnv: Env) {
-  return {}
-}
-
-function getProduction(_envType: EnvType, _baseEnv: Env) {
-  return {}
-}
-````
-
-## File: layers/main/config/runtimeConfig.ts
-````typescript
-/**
- * nuxt.config.tsのためのモジュール。
- *
- * @packageDocumentation
- */
-
-import { Env, EnvType } from './models/EnvType'
-
-export function getRuntimeConfigOfEnvType(envType: EnvType, baseEnv: Env) {
-  switch (envType) {
-    case 'local':
-      return getLocal(envType, baseEnv)
-    case 'development':
-      return getDevelopment(envType, baseEnv)
-    case 'staging':
-      return getStaging(envType, baseEnv)
-    case 'production':
-      return getProduction(envType, baseEnv)
-  }
-}
-
-const commonPrivate = {} as const
-
-const commonPublic = {
-  gtmId: 'GTM-XXXXXXX',
-  apiPrefix: process.env.NUXT_API_PREFIX ?? '/api/v1',
-} as const
-
-function getLocal(envType: EnvType, _baseEnv: Env) {
-  return {
-    ...commonPrivate,
-
-    public: {
-      ...commonPublic,
-      outputEnv: envType,
-      url: 'http://localhost:3000',
-      baseUrl: 'http://localhost:3000',
-      httpBinUrl: 'http://localhost:3003',
-    },
-  } as const
-}
-
-function getDevelopment(envType: EnvType, _baseEnv: Env) {
-  return {
-    ...commonPrivate,
-
-    public: {
-      ...commonPublic,
-      outputEnv: envType,
-      url: 'http://localhost:3000',
-      baseUrl: 'http://localhost:3000',
-    },
-  } as const
-}
-
-function getStaging(envType: EnvType, _baseEnv: Env) {
-  return {
-    ...commonPrivate,
-
-    public: {
-      ...commonPublic,
-      outputEnv: envType,
-      url: '',
-      baseUrl: '',
-    },
-  } as const
-}
-
-function getProduction(envType: EnvType, _baseEnv: Env) {
-  return {
-    ...commonPrivate,
-
-    public: {
-      ...commonPublic,
-      gtmId: 'GTM-XXXXXXX',
-      outputEnv: envType,
-      url: '',
-      baseUrl: '',
-    },
-  } as const
-}
-````
-
-## File: layers/main/i18n/locales/en.json
-````json
-{
-  "hello": "Hello!",
-  "language": "language"
-}
-````
-
-## File: layers/main/i18n/locales/ja.json
-````json
-{
-  "hello": "こんにちは！",
-  "language": "言語"
-}
-````
-
-## File: layers/main/public/_robots.txt
-````
-User-agent: *
-Disallow:
-````
-
-## File: layers/main/server/tsconfig.json
-````json
-{
-  "extends": "../.nuxt/tsconfig.server.json"
-}
-````
-
-## File: layers/main/.stylelintrc.mjs
-````
-export default {
-  extends: ["../../.stylelintrc.shared.mjs"],
-};
-````
-
-## File: layers/main/app.config.ts
-````typescript
-// ref: https://v3.nuxtjs.org/guide/directory-structure/app.config
-// note: Do not put any secret values inside app.config file. It is exposed to the user client bundle.
-
-import { readEnvType } from './config/models/EnvType'
-import { getAppConfigOfEnvType } from './config/appConfig'
-
-// eslint-disable-next-line no-undef
-export default defineAppConfig(
-  getAppConfigOfEnvType(readEnvType(process.env), process.env)
-)
-````
-
-## File: layers/main/tsconfig.json
-````json
-{
-  // https://nuxt.com/docs/guide/concepts/typescript
-  "extends": [
-    "./.nuxt/tsconfig.server.json",
-    "./.nuxt/tsconfig.json",
-    "../base/tsconfig.shared.json"
-  ],
-  "exclude": ["../base/**/*"]
-}
-````
-
-## File: layers/main/app/assets/styles/_base.scss
-````scss
-@use 'variables' as v;
-@use 'mixins' as m;
-
-html,
-body {
-  overflow-x: clip;
-
-  font-family: v.$base-font-family;
-  font-variant-numeric: tabular-nums; // 数字フォントの幅を等幅にする
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  color: v.$base-font-color;
-  word-break: normal; // 単語の分割はブラウザのデフォルトであることを明記
-  line-break: strict; // 約物や小文字を置き去りにして改行させない
-  overflow-wrap: anywhere; // 行内に単語を収められない場合に折り返す
-
-  background: v.$base-background-color;
-
-  text-spacing-trim: trim-start; // 英字や日本語の約物が重複した場合に全角分のスペースを確保させない
-}
-
-a {
-  color: v.$base-link-color;
-  text-decoration: none;
-}
-````
-
-## File: layers/main/app/assets/styles/_markdown.scss
-````scss
-// markdown 用スタイリング
-@use 'variables' as v;
-
-.hm-markdowon {
-  h1,
-  h2,
-  h3,
-  h4,
-  h5 {
-    line-height: 1.3;
-  }
-
-  h1 {
-    margin-bottom: 32px;
-  }
-
-  h2 {
-    margin-bottom: 24px;
-    font-size: 28px;
-  }
-
-  h3 {
-    font-size: 24px;
-  }
-
-  h4 {
-    font-size: 20px;
-  }
-
-  h5 {
-    font-size: 16px;
-  }
-
-  h3,
-  h4,
-  h5 {
-    margin-bottom: 16px;
-    font-weight: 400;
-  }
-
-  ul,
-  ol {
-    margin-bottom: 24px;
-
-    > li {
-      padding-left: 1em;
-      text-indent: -1em;
-
-      &:not(:last-child) {
-        margin-bottom: 16px;
-      }
-    }
-  }
-
-  li {
-    line-height: 1.3;
-    list-style-position: inside;
-
-    > ul {
-      margin: 16px 0;
-      padding-left: 48px;
-    }
-
-    ol {
-      counter-reset: ol-item;
-      margin: 16px 0;
-      padding-left: 28px;
-      list-style: none;
-
-      > li {
-        position: relative;
-        padding-left: 1.5em;
-        text-indent: 0;
-
-        // list-style: none だけで消えないので
-        &::marker {
-          content: '';
-        }
-
-        &::before {
-          // インデントした数値は 「1)」の表示にする
-          content: counter(ol-item) ')  ';
-          counter-increment: ol-item 1;
-
-          position: absolute; // 数値の桁数が違う場合の見た目に対応
-          top: 0;
-          left: 0;
-
-          display: block;
-
-          width: 100px;
-        }
-      }
-    }
-  }
-  /* stylelint-disable selector-max-compound-selectors */
-  ul > li {
-    list-style: none;
-
-    &::before {
-      content: '・';
-    }
-
-    ul > li {
-      list-style: circle;
-
-      ul > li {
-        list-style: disc;
-      }
-    }
-  }
-
-  /* stylelint-ensable selector-max-compound-selectors */
-  ol > li {
-    list-style: decimal;
-    list-style-position: inside;
-  }
-
-  ol[type='a'] > li {
-    list-style: lower-latin;
-    list-style-position: inside;
-  }
-
-  p {
-    margin-bottom: 24px;
-    line-height: 1.6;
-  }
-
-  img {
-    display: block;
-    width: fit-content;
-    max-width: 100%;
-    margin: 24px auto;
-  }
-
-  table {
-    border-spacing: 0;
-    border-collapse: collapse;
-
-    width: fit-content;
-    min-width: 50%;
-    max-width: 100%;
-    margin: 24px auto;
-  }
-
-  code {
-    padding: 2px 5px;
-    background-color: v.$violet;
-  }
-
-  table th,
-  table td {
-    padding: 8px 12px;
-    text-align: center;
-  }
-
-  table tr:nth-child(odd) {
-    background-color: v.$blue;
-  }
-
-  thead tr:first-child {
-    background-color: v.$blue;
-  }
-}
-````
-
-## File: layers/main/app/assets/styles/_toast.scss
-````scss
-// @nuxt/toastのスタイリング
-// @see nuxt.config.ts > toast
-// todo: !importantあまり使いたくないので@nuxt/toastに.scss渡せたりするなら修正
-
-@use 'variables' as v;
-@use 'mixins' as m;
-
-.hv-toast {
-  z-index: v.$zindex-toast !important;
-  top: v.$header-height-pc !important;
-  width: 100%;
-  margin-top: 0;
-
-  @include m.sp {
-    top: v.$header-height-sp !important;
-  }
-
-  .hv-toast-context {
-    margin-top: 0 !important;
-    word-break: break-all !important;
-    overflow-wrap: break-word !important;
-
-    + .hv-toast-context {
-      margin-top: v.space(2) !important;
-    }
-
-    &.info {
-      background: v.$gray-2 !important;
-    }
-
-    &.success {
-      background: v.$primary-color !important;
-    }
-
-    &.error {
-      background: v.$red !important;
-    }
-
-    &.danger {
-      background: v.$red !important;
-    }
-  }
-}
-````
-
-## File: layers/main/app/components/ht/HtTop.vue
-````vue
-<i18n lang="yaml">
-ja:
-  hoge: ほげ
-en:
-  hoge: hoge
-</i18n>
-
-<template>
-  <div class="ht-top"></div>
-</template>
-
-<script setup lang="ts">
-//
-</script>
-
-<style lang="scss" scoped>
-@use '@/assets/styles/variables' as v;
-@use '@/assets/styles/mixins' as m;
-
-.ht-top {
-  width: 100%;
-  height: 100%;
-}
-</style>
-````
-
-## File: layers/main/app/layouts/default.vue
-````vue
-<template>
-  <div class="layout -default">
-    <HoTheHeader />
-    <slot />
-    <HoTheFooter />
-  </div>
-</template>
-
-<style lang="scss" scoped>
-.layout.-default {
-  overflow-x: hidden;
-}
-</style>
-````
-
-## File: layers/main/app/layouts/top.vue
-````vue
-<template>
-  <div class="layout -top">
-    <HoTheHeader />
-    <slot />
-    <HoTheFooter />
-  </div>
-</template>
-
-<style lang="scss" scoped>
-.layout.-top {
-  overflow-x: hidden;
-}
-</style>
-````
-
-## File: layers/main/app/models/json.ts
-````typescript
-/**
- * @group For Developers
- * @category Type Definitions
- * @module Json
- * @reference https://zod.dev/?id=json-type
- */
-
-import { z } from 'zod/v3'
-
-const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()])
-type Literal = z.infer<typeof literalSchema>
-type JsonType = Literal | { [key: string]: JsonType } | JsonType[]
-export const jsonSchema: z.ZodType<JsonType> = z.lazy(() =>
-  z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)]),
-)
-export type Json = z.infer<typeof jsonSchema>
-````
-
-## File: layers/main/app/models/todo.ts
-````typescript
-import { z } from 'zod/v3'
-import { integral } from '#base/app/utils/zod'
-
-export const todoSchema = z.object({
-  userId: integral, // NOTE: バックエンドの仕様が不安定な場合は、integralで型を広く持っておこう
-  id: integral,
-  title: z.string(),
-  completed: z.boolean(),
-})
-
-export type Todo = z.infer<typeof todoSchema>
-````
-
-## File: layers/main/app/pages/index.vue
-````vue
-<template>
-  <HtTop />
-</template>
-
-<script setup lang="ts">
-definePageMeta({
-  layout: 'top',
-})
-</script>
-````
-
-## File: layers/main/app/test/composables/useApi.spec.ts
-````typescript
-// NOTE: そもそももっといいテストあれば是非
-import { test, expect, vi } from 'vitest'
-import { UseFetchOptions } from 'nuxt/app'
-import { FetchOptions } from 'ofetch'
-import useApi, { fetcher } from '@/composables/useApi'
-
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-  useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
-    return { path, options }
-  }),
-}))
-
-test('useApi', () => {
-  // NOTE: useApiで使用できるRepositoryKeyを入れた際にオブジェクトが返ってくること。この場合useApi('hoge')など存在しない場合はテストが落ちる
-  const useApiExample = useApi('example').repository.value
-  const expectObj = { get: {} }
-  expect(useApiExample).toMatchObject(expectObj)
-})
-
-test('fetcher', () => {
-  const path = '/example'
-  const options = {}
-  // useFetchが発火することを確認。戻り値はmockの戻り値とする
-  expect(fetcher(path, options)).toStrictEqual({ path, options })
-})
-````
-
-## File: layers/main/app/test/utils/api.spec.ts
-````typescript
-import { describe, it, expect, vi } from 'vitest'
-import type { NitroFetchRequest } from 'nitropack'
-import api from '@/utils/api'
-
-// NOTE: mockを使う際に必要な記述
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-}))
-
-// NOTE: src/utils/api.tsのテストとして当該ファイルがimportしているファイルからの変数「requireRuntimeConfig」をモックする。
-vi.mock('#base/app/plugins/runtimeConfig', () => {
-  return {
-    requireRuntimeConfig: vi.fn(() => {
-      // NOTE: api.tsのテストとしてrequireRuntimeConfigが{public.baseUrl}としてダミーURLを返すだけの処理を行うようにモックする
-      return {
-        public: {
-          baseUrl: '/test-api',
-        },
-      }
-    }),
-  }
-})
-
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-vi.mock('#base/app/plugins/fetch', () => {
-  return {
-    pluginFetchApi: vi.fn((path: string, options: NitroFetchRequest) => {
-      return { path, options }
-    }),
-  }
-})
-
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-vi.mock('ofetch', () => {
-  return {
-    $fetch: vi.fn((path: string, options: NitroFetchRequest) => {
-      return { path, options }
-    }),
-  }
-})
-
-describe('api', () => {
-  // NOTE: api.getの返却値のテストとして、引数のpathやfetchOptionを入力して、返却値として期待するexpectObjと同等かテストする。その際、onRequestとonResponseは複雑化するので、空オブジェクトで省略としてtoMatchObjectで合格するか検査する。
-  it('get', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'GET',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('get', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('post', async () => {
-    // NOET: 以下getと同様にテストする。methodはgetではなく、相送信methodに準じた値に変化するので注意
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'POST',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('post', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('put', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'PUT',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('put', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('patch', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'PATCH',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('patch', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('delete', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'DELETE',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('delete', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-})
-````
-
-## File: layers/main/app/test/utils/factory.spec.ts
-````typescript
-import { describe, expect, it, vi } from 'vitest'
-import exampleRepository from '#base/app/repositories/exampleRepository'
-import {
-  defaultRepositories,
-  defaultRepositoryFactory,
-} from '#base/app/utils/default-factory'
-
-// NOTE: mockを使う際に必要な記述
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-}))
-
-describe('defaultRepositoryFactory', () => {
-  it('should return the correct repository when a valid key is provided', () => {
-    const repository = defaultRepositoryFactory.get('example')
-    expect(repository).toBe(exampleRepository)
-  })
-})
-
-describe('defaultRepositories', () => {
-  it('should contain the example repository', () => {
-    expect(defaultRepositories.example).toBe(exampleRepository)
-  })
-})
-````
-
-## File: layers/main/app/test/utils/i18n.spec.ts
-````typescript
-import { test, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { createI18n } from 'vue-i18n'
-
-test('getI18nArray takes a list from vue-i18n dict', () => {
-  const i18n = createI18n({
-    locale: 'ja',
-    messages: {
-      ja: { list: ['a', 'b', 'c'] },
-      en: { list: ['a', 'b', 'c'] },
-    },
-  })
-
-  // useI18nがコンポーネントのsetup内でのみしか動かないので、コンポーネントを介してテストをする
-  mount(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (defineComponent as any)({
-      template: '<p>Nuxt ha iizo</p>',
-      setup: () => {
-        const i18n = useI18n()
-        expect(getI18nArray(i18n, 'list')).toEqual(['a', 'b', 'c'])
-      },
-    }),
-    {
-      global: {
-        plugins: [i18n],
-      },
-    },
-  )
-})
-````
-
-## File: layers/main/app/test/setup.ts
-````typescript
-import { vi } from 'vitest'
-
-// Type declarations for global mocks - range and useSlots are handled by auto-imports
-
-// Global mock for all icon imports
-vi.mock('~icons/ri/close-line', () => ({
-  default: {
-    name: 'RiCloseLine',
-    template: '<svg class="icon"><path /></svg>',
-    props: ['class'],
-  },
-}))
-
-// Mock Nuxt composables using vi.mock to avoid conflicts with auto-imports
-vi.mock('#app/composables/useI18n', () => ({
-  useI18n: vi.fn(() => ({
-    t: vi.fn((key: string) => {
-      const messages: Record<string, string> = {
-        next: 'Next',
-        prev: 'Prev',
-      }
-      return messages[key] || key
-    }),
-    locale: { value: 'ja' },
-  })),
-}))
-
-vi.mock('#app/composables/useRoute', () => ({
-  useRoute: vi.fn(() => ({
-    path: '/test',
-    query: { page: '1' },
-  })),
-}))
-
-vi.mock('vue', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('vue')>()
-  return {
-    ...actual,
-    nextTick: vi.fn().mockResolvedValue(undefined),
-  }
-})
-
-// Global utility functions for tests - range and useSlots handled by auto-imports
-
-// HTMLDialogElement mock for jsdom
-if (!global.HTMLDialogElement) {
-  global.HTMLDialogElement = class HTMLDialogElement extends HTMLElement {
-    open = false
-    returnValue = ''
-
-    showModal = vi.fn(() => {
-      this.open = true
-    })
-
-    close = vi.fn(() => {
-      this.open = false
-    })
-
-    show = vi.fn(() => {
-      this.open = true
-    })
-
-    requestClose = vi.fn()
-
-    override addEventListener(_event: string, _callback: (...args: unknown[]) => void) {
-      // Mock implementation
-    }
-
-    override removeEventListener(_event: string, _callback: (...args: unknown[]) => void) {
-      // Mock implementation
-    }
-  }
-}
-````
-
-## File: layers/main/app/utils/i18n.ts
-````typescript
-import { VueMessageType, Composer, UseI18nOptions } from 'vue-i18n'
-
-/**
- * 引数未指定にすると、普通に`const i18n = useI18n()`とすると入ってくる型になる。
- * 型引数の使い方については、そのままuseI18nの型引数の指定方法を参照のこと。
- */
-export type UseI18nReturnType<Options extends UseI18nOptions = UseI18nOptions>
-  = Composer<
-    NonNullable<Options['messages']>,
-    NonNullable<Options['datetimeFormats']>,
-    NonNullable<Options['numberFormats']>,
-    Options['locale'] extends unknown ? string : Options['locale']
-  >
-
-/**
- * @example
- * ```ts
- * import { useI18n } from 'vue-i18n'
- * const i18n = useI18n() // messagesは `{ [locale]: { list: ['a', 'b', 'c'] } }` とする
- * const list = getI18nArray(i18n, 'list') // ['a', 'b', 'c']
- * ```
- */
-export const getI18nArray = (i18n: UseI18nReturnType, key: string): string[] =>
-  Object.entries<VueMessageType>(i18n.tm(key)).map(([_, term]) => i18n.rt(term))
 ````
 
 ## File: layers/main/app/app.vue
@@ -2615,159 +2007,246 @@ const goBack = async (): Promise<void> => {
 </style>
 ````
 
-## File: layers/main/eslint.config.mjs
+## File: layers/main/config/models/EnvType.ts
+````typescript
+/**
+ * nuxt.config.tsのためのモジュール。
+ *
+ * @packageDocumentation
+ */
+
+export type EnvType = 'local' | 'development' | 'staging' | 'production'
+
+export const allEnvTypes = [
+  'local',
+  'development',
+  'staging',
+  'production',
+] as const
+
+export function isEnvType(x: unknown): x is EnvType {
+  const envTypes: readonly unknown[] = allEnvTypes
+  return envTypes.includes(x)
+}
+
+export function ensureEnvType(x: unknown): asserts x is EnvType {
+  if (!isEnvType(x)) {
+    throw new TypeError('Not an EnvType.')
+  }
+}
+
+export type Env = Record<string, string | undefined>
+
+/**
+ * baseEnv.VITE_OUTPUT_ENVを読みだします。
+ * これが未指定の場合は'local'にフォールバックします。
+ * これが不明な値（EnvTypeでない）場合は例外を送出します。
+ *
+ * ```typescript
+ * const envType = readEnvType(process.env)
+ * ```
+ */
+export function readEnvType(baseEnv: Env): EnvType {
+  if (baseEnv.VITE_OUTPUT_ENV === undefined) {
+    console.error('No VITE_OUTPUT_ENV is set.')
+    return 'local'
+  }
+
+  ensureEnvType(baseEnv.VITE_OUTPUT_ENV)
+  return baseEnv.VITE_OUTPUT_ENV
+}
 ````
-import stylistic from '@stylistic/eslint-plugin'
-import typescriptEslint from '@typescript-eslint/eslint-plugin'
-import globals from 'globals'
-import sharedConfig, { basicConfig } from '../../eslint.config.shared.mjs'
-import withNuxt from './.nuxt/eslint.config.mjs'
 
-export default withNuxt(
-  ...sharedConfig,
+## File: layers/main/config/appConfig.ts
+````typescript
+/**
+ * app.config.tsのためのモジュール。
+ *
+ * @packageDocumentation
+ */
 
-  // VueとNuxtの基本設定
-  {
-    files: ['**/*.vue'],
-    languageOptions: {
-      globals: {
-        ...globals.browser,
-        // NOTE: eslint実行時に `error 'something' is not defined no-undef` のようなエラーが出て、'something'が既知のものだったら（例えばauto-importなどでimportされることがわかっている・標準ライブラリに載っている、など。）、ここ（もしくは下の「オーバーライド」）に `something: true` と追加してください
-        IntersectionObserverInit: true,
-      },
-    },
-    rules: {
-      'vue/no-unused-components': 'off',
-      'vue/no-multiple-template-root': 'off',
-      'vue/no-v-model-argument': 'off',
-      'vue/no-v-html': 'error',
-      'vue/multi-word-component-names': 'off',
-      'vue/html-self-closing': 'off', // prettierと競合するため、off
-      'vue/attribute-hyphenation': ['error', 'never'], // camelCase属性を強制
-      'vue/v-on-event-hyphenation': ['error', 'never', { autofix: true }], // camelCaseイベントを強制
-    },
-  },
-  // composablesやplugins・middlewareなども含む設定
-  {
-    files: ['**/*.vue', '**/*.ts'],
-    languageOptions: {
-      globals: {
-        // NOTE: eslint実行時に `error 'something' is not defined no-undef` のようなエラーが出て、'something'が既知のものだったら（例えばauto-importなどでimportされることがわかっている・標準ライブラリに載っている、など。）、ここ（もしくは下の「オーバーライド」）に `something: true` と追加してください
-        WritableComputedRef: true,
-        defineNuxtConfig: true,
-      },
-    },
-    rules: {
-      /*
-       * ERROR  Cannot use 'import.meta' outside a module                                                                                                                                                                                                                                                               9:08:45 PM
-       * asyncContext: !!__NUXT_ASYNC_CONTEXT__ && import.meta.server
-       * ^^^^
-       * `yarn fix`すると`process.server`が`import.meta.server`に置き換えられて↑が発生するので、off
-       */
-      'nuxt/prefer-import-meta': 'off',
-    },
-  },
+import { EnvType, Env } from './models/EnvType'
 
-  // tsconfigが必要なルールの設定
-  {
-    files: [
-      '**/*.ts',
-      '**/*.mts',
-      '**/*.cts',
-      '**/*.vue',
-      // 'Parsing error: Type expected'するので.tsxは除外
-    ],
-    ignores: [
-      '**/vitest.config.mts', // tsconfig.shared.jsonのexcludeに含まれているため除外
-      '**/*.js', // .jsファイルは型チェックルールの対象外
-      '**/*.mjs', // .mjsファイルも型チェックルールの対象外
-      '**/*.cjs', // .cjsファイルも型チェックルールの対象外
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: './tsconfig.json',
-      },
-    },
-    rules: {
-      ...typescriptEslint.configs.recommended.rules,
-      ...typescriptEslint.configs['recommended-type-checked'].rules,
-      ...basicConfig.rules,
-      '@typescript-eslint/restrict-template-expressions': 'off', // string interpolation `${e}` のeには、任意の型の値を許す
-      '@typescript-eslint/no-unsafe-call': 'off', // auto-importした関数がanyに推測されるので、off
-      // .vueの下記TODOコメントを参照 -- TODO: 「下記TODOコメント」はどこにいった？
-      '@typescript-eslint/no-unsafe-argument': 'off',
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off',
-    },
-  },
+/**
+ * ```typescript
+ * const appConfig = getAppConfigOfEnvType('local', process.env)
+ * ```
+ */
+export function getAppConfigOfEnvType(envType: EnvType, baseEnv: Env) {
+  switch (envType) {
+    case 'local':
+      return getLocal(envType, baseEnv)
+    case 'development':
+      return getDevelopment(envType, baseEnv)
+    case 'staging':
+      return getStaging(envType, baseEnv)
+    case 'production':
+      return getProduction(envType, baseEnv)
+  }
+}
 
-  /*
-   * コーディングスタイルの設定（そのうちnuxt.config.tsに書けないもの）
-   * https://eslint.style/rules
-   */
-  {
-    plugins: {
-      '@stylistic': stylistic,
-    },
-    rules: {
-      '@stylistic/multiline-comment-style': ['warn', 'starred-block'],
-    },
-  },
+function getLocal(_envType: EnvType, _baseEnv: Env) {
+  return {}
+}
 
-  // その他オーバーライド
-  {
-    files: ['**/test/**/*.ts'],
-    languageOptions: {
-      globals: {
-        ...globals.jest,
-        vi: true,
-      },
+function getDevelopment(_envType: EnvType, _baseEnv: Env) {
+  return {}
+}
+
+function getStaging(_envType: EnvType, _baseEnv: Env) {
+  return {}
+}
+
+function getProduction(_envType: EnvType, _baseEnv: Env) {
+  return {}
+}
+````
+
+## File: layers/main/config/runtimeConfig.ts
+````typescript
+/**
+ * nuxt.config.tsのためのモジュール。
+ *
+ * @packageDocumentation
+ */
+
+import { Env, EnvType } from './models/EnvType'
+
+export function getRuntimeConfigOfEnvType(envType: EnvType, baseEnv: Env) {
+  switch (envType) {
+    case 'local':
+      return getLocal(envType, baseEnv)
+    case 'development':
+      return getDevelopment(envType, baseEnv)
+    case 'staging':
+      return getStaging(envType, baseEnv)
+    case 'production':
+      return getProduction(envType, baseEnv)
+  }
+}
+
+const commonPrivate = {} as const
+
+const commonPublic = {
+  gtmId: 'GTM-XXXXXXX',
+  apiPrefix: process.env.NUXT_API_PREFIX ?? '/api/v1',
+} as const
+
+function getLocal(envType: EnvType, _baseEnv: Env) {
+  return {
+    ...commonPrivate,
+
+    public: {
+      ...commonPublic,
+      outputEnv: envType,
+      url: 'http://localhost:3000',
+      baseUrl: 'http://localhost:3000',
+      httpBinUrl: 'http://localhost:3003',
     },
-    rules: {
-      '@typescript-eslint/unbound-method': 'off', // テスト内でvi.fn()などを注入するために許可
+  } as const
+}
+
+function getDevelopment(envType: EnvType, _baseEnv: Env) {
+  return {
+    ...commonPrivate,
+
+    public: {
+      ...commonPublic,
+      outputEnv: envType,
+      url: 'http://localhost:3000',
+      baseUrl: 'http://localhost:3000',
     },
-  },
+  } as const
+}
+
+function getStaging(envType: EnvType, _baseEnv: Env) {
+  return {
+    ...commonPrivate,
+
+    public: {
+      ...commonPublic,
+      outputEnv: envType,
+      url: '',
+      baseUrl: '',
+    },
+  } as const
+}
+
+function getProduction(envType: EnvType, _baseEnv: Env) {
+  return {
+    ...commonPrivate,
+
+    public: {
+      ...commonPublic,
+      gtmId: 'GTM-XXXXXXX',
+      outputEnv: envType,
+      url: '',
+      baseUrl: '',
+    },
+  } as const
+}
+````
+
+## File: layers/main/i18n/locales/en.json
+````json
+{
+  "hello": "Hello!",
+  "language": "language"
+}
+````
+
+## File: layers/main/i18n/locales/ja.json
+````json
+{
+  "hello": "こんにちは！",
+  "language": "言語"
+}
+````
+
+## File: layers/main/public/_robots.txt
+````
+User-agent: *
+Disallow:
+````
+
+## File: layers/main/server/tsconfig.json
+````json
+{
+  "extends": "../.nuxt/tsconfig.server.json"
+}
+````
+
+## File: layers/main/.stylelintrc.mjs
+````
+export default {
+  extends: ["../../.stylelintrc.shared.mjs"],
+};
+````
+
+## File: layers/main/app.config.ts
+````typescript
+// ref: https://v3.nuxtjs.org/guide/directory-structure/app.config
+// note: Do not put any secret values inside app.config file. It is exposed to the user client bundle.
+
+import { readEnvType } from './config/models/EnvType'
+import { getAppConfigOfEnvType } from './config/appConfig'
+
+// eslint-disable-next-line no-undef
+export default defineAppConfig(
+  getAppConfigOfEnvType(readEnvType(process.env), process.env)
 )
 ````
 
-## File: layers/main/package.json
+## File: layers/main/tsconfig.json
 ````json
 {
-  "name": "vket-boilerplate-nuxt-main",
-  "private": true,
-  "type": "module",
-  "version": "1.0.1",
-  "scripts": {
-    "postinstall": "nuxt prepare",
-    "dev": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt dev",
-    "dev:local": "cross-env VITE_OUTPUT_ENV=local nuxt dev",
-    "build": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt build",
-    "build:local": "cross-env VITE_OUTPUT_ENV=local nuxt build",
-    "build:staging": "cross-env VITE_OUTPUT_ENV=staging nuxt build",
-    "generate": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt generate",
-    "generate:local": "cross-env VITE_OUTPUT_ENV=local nuxt generate",
-    "preview": "nuxt preview",
-    "typecheck": "cross-env VITE_OUTPUT_ENV=local nuxt typecheck",
-    "analyze": "cross-env VITE_OUTPUT_ENV=local nuxt analyze",
-    "lint": "bun lint:eslint && bun lint:stylelint",
-    "lint:eslint": "eslint --cache --cache-strategy content './app'",
-    "lint:stylelint": "stylelint --cache --cache-strategy content './app/**/*.{css,scss,sass,vue}'",
-    "fix": "bun fix:eslint && bun fix:stylelint",
-    "fix:eslint": "eslint --cache --cache-strategy content --fix './app'",
-    "fix:stylelint": "stylelint --cache-strategy content --fix './app/**/*.{css,scss,sass,vue}'",
-    "fix-openapi-models": "baseDir='./app/models/openapi' ext='\\.ts' cmd='eslint --cache --cache-strategy content --fix ./app/models/openapi' bun exec-if-file-exists",
-    "test:ut": "cmd='vitest run --dir ./app/test' bun exec-test",
-    "test:watch": "cmd='vitest --dir ./app/test' bun exec-test",
-    "test:ui": "cmd='vitest --ui --dir ./app/test' bun exec-test",
-    "test:coverage": "cmd='vitest run --dir ./app/test --coverage' bun exec-test",
-    "exec-test": "baseDir='./app/test' ext='\\.spec\\.ts' bun exec-if-file-exists",
-    "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true",
-    "package-update": "bunx npm-check-updates -i"
-  },
-  "dependencies": {
-    "vket-boilerplate-nuxt-base": "workspace:*"
-  }
+  // https://nuxt.com/docs/guide/concepts/typescript
+  "extends": [
+    "./.nuxt/tsconfig.server.json",
+    "./.nuxt/tsconfig.json",
+    "../base/tsconfig.shared.json"
+  ],
+  "exclude": ["../base/**/*"]
 }
 ````
 
@@ -2924,6 +2403,527 @@ declare global {
   // @ts-ignore
   export type { UseI18nReturnType } from '../app/utils/i18n'
   import('../app/utils/i18n')
+}
+````
+
+## File: layers/main/app/models/json.ts
+````typescript
+/**
+ * @group For Developers
+ * @category Type Definitions
+ * @module Json
+ * @reference https://zod.dev/?id=json-type
+ */
+
+import { z } from 'zod/v3'
+
+const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()])
+type Literal = z.infer<typeof literalSchema>
+type JsonType = Literal | { [key: string]: JsonType } | JsonType[]
+export const jsonSchema: z.ZodType<JsonType> = z.lazy(() =>
+  z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)]),
+)
+export type Json = z.infer<typeof jsonSchema>
+````
+
+## File: layers/main/app/models/todo.ts
+````typescript
+import { z } from 'zod/v3'
+import { integral } from '#base/app/utils/zod'
+
+export const todoSchema = z.object({
+  userId: integral, // NOTE: バックエンドの仕様が不安定な場合は、integralで型を広く持っておこう
+  id: integral,
+  title: z.string(),
+  completed: z.boolean(),
+})
+
+export type Todo = z.infer<typeof todoSchema>
+````
+
+## File: layers/main/app/test/composables/useApi.spec.ts
+````typescript
+// NOTE: そもそももっといいテストあれば是非
+import { test, expect, vi } from 'vitest'
+import { UseFetchOptions } from 'nuxt/app'
+import { FetchOptions } from 'ofetch'
+import useApi, { fetcher } from '@/composables/useApi'
+
+vi.mock('#app', () => ({
+  // NOTE:  defineNuxtPluginでエラーが出るので設置
+  defineNuxtPlugin: vi.fn(),
+  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+  useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
+    return { path, options }
+  }),
+}))
+
+test('useApi', () => {
+  // NOTE: useApiで使用できるRepositoryKeyを入れた際にオブジェクトが返ってくること。この場合useApi('hoge')など存在しない場合はテストが落ちる
+  const useApiExample = useApi('example').repository.value
+  const expectObj = { get: {} }
+  expect(useApiExample).toMatchObject(expectObj)
+})
+
+test('fetcher', () => {
+  const path = '/example'
+  const options = {}
+  // useFetchが発火することを確認。戻り値はmockの戻り値とする
+  expect(fetcher(path, options)).toStrictEqual({ path, options })
+})
+````
+
+## File: layers/main/app/test/utils/api.spec.ts
+````typescript
+import { describe, it, expect, vi } from 'vitest'
+import type { NitroFetchRequest } from 'nitropack'
+import api from '@/utils/api'
+
+// NOTE: mockを使う際に必要な記述
+vi.mock('#app', () => ({
+  // NOTE:  defineNuxtPluginでエラーが出るので設置
+  defineNuxtPlugin: vi.fn(),
+}))
+
+// NOTE: src/utils/api.tsのテストとして当該ファイルがimportしているファイルからの変数「requireRuntimeConfig」をモックする。
+vi.mock('#base/app/plugins/runtimeConfig', () => {
+  return {
+    requireRuntimeConfig: vi.fn(() => {
+      // NOTE: api.tsのテストとしてrequireRuntimeConfigが{public.baseUrl}としてダミーURLを返すだけの処理を行うようにモックする
+      return {
+        public: {
+          baseUrl: '/test-api',
+        },
+      }
+    }),
+  }
+})
+
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+vi.mock('#base/app/plugins/fetch', () => {
+  return {
+    pluginFetchApi: vi.fn((path: string, options: NitroFetchRequest) => {
+      return { path, options }
+    }),
+  }
+})
+
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+vi.mock('ofetch', () => {
+  return {
+    $fetch: vi.fn((path: string, options: NitroFetchRequest) => {
+      return { path, options }
+    }),
+  }
+})
+
+describe('api', () => {
+  // NOTE: api.getの返却値のテストとして、引数のpathやfetchOptionを入力して、返却値として期待するexpectObjと同等かテストする。その際、onRequestとonResponseは複雑化するので、空オブジェクトで省略としてtoMatchObjectで合格するか検査する。
+  it('get', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'GET',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('get', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('post', async () => {
+    // NOET: 以下getと同様にテストする。methodはgetではなく、相送信methodに準じた値に変化するので注意
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'POST',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('post', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('put', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'PUT',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('put', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('patch', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'PATCH',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('patch', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('delete', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'DELETE',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('delete', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+})
+````
+
+## File: layers/main/app/test/utils/factory.spec.ts
+````typescript
+import { describe, expect, it, vi } from 'vitest'
+import exampleRepository from '#base/app/repositories/exampleRepository'
+import {
+  defaultRepositories,
+  defaultRepositoryFactory,
+} from '#base/app/utils/default-factory'
+
+// NOTE: mockを使う際に必要な記述
+vi.mock('#app', () => ({
+  // NOTE:  defineNuxtPluginでエラーが出るので設置
+  defineNuxtPlugin: vi.fn(),
+}))
+
+describe('defaultRepositoryFactory', () => {
+  it('should return the correct repository when a valid key is provided', () => {
+    const repository = defaultRepositoryFactory.get('example')
+    expect(repository).toBe(exampleRepository)
+  })
+})
+
+describe('defaultRepositories', () => {
+  it('should contain the example repository', () => {
+    expect(defaultRepositories.example).toBe(exampleRepository)
+  })
+})
+````
+
+## File: layers/main/app/test/utils/i18n.spec.ts
+````typescript
+import { test, expect } from 'vitest'
+import { mount } from '@vue/test-utils'
+import { createI18n } from 'vue-i18n'
+
+test('getI18nArray takes a list from vue-i18n dict', () => {
+  const i18n = createI18n({
+    locale: 'ja',
+    messages: {
+      ja: { list: ['a', 'b', 'c'] },
+      en: { list: ['a', 'b', 'c'] },
+    },
+  })
+
+  // useI18nがコンポーネントのsetup内でのみしか動かないので、コンポーネントを介してテストをする
+  mount(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (defineComponent as any)({
+      template: '<p>Nuxt ha iizo</p>',
+      setup: () => {
+        const i18n = useI18n()
+        expect(getI18nArray(i18n, 'list')).toEqual(['a', 'b', 'c'])
+      },
+    }),
+    {
+      global: {
+        plugins: [i18n],
+      },
+    },
+  )
+})
+````
+
+## File: layers/main/app/test/setup.ts
+````typescript
+import { vi } from 'vitest'
+
+// Type declarations for global mocks - range and useSlots are handled by auto-imports
+
+// Global mock for all icon imports
+vi.mock('~icons/ri/close-line', () => ({
+  default: {
+    name: 'RiCloseLine',
+    template: '<svg class="icon"><path /></svg>',
+    props: ['class'],
+  },
+}))
+
+// Mock Nuxt composables using vi.mock to avoid conflicts with auto-imports
+vi.mock('#app/composables/useI18n', () => ({
+  useI18n: vi.fn(() => ({
+    t: vi.fn((key: string) => {
+      const messages: Record<string, string> = {
+        next: 'Next',
+        prev: 'Prev',
+      }
+      return messages[key] || key
+    }),
+    locale: { value: 'ja' },
+  })),
+}))
+
+vi.mock('#app/composables/useRoute', () => ({
+  useRoute: vi.fn(() => ({
+    path: '/test',
+    query: { page: '1' },
+  })),
+}))
+
+vi.mock('vue', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue')>()
+  return {
+    ...actual,
+    nextTick: vi.fn().mockResolvedValue(undefined),
+  }
+})
+
+// Global utility functions for tests - range and useSlots handled by auto-imports
+
+// HTMLDialogElement mock for jsdom
+if (!global.HTMLDialogElement) {
+  global.HTMLDialogElement = class HTMLDialogElement extends HTMLElement {
+    open = false
+    returnValue = ''
+
+    showModal = vi.fn(() => {
+      this.open = true
+    })
+
+    close = vi.fn(() => {
+      this.open = false
+    })
+
+    show = vi.fn(() => {
+      this.open = true
+    })
+
+    requestClose = vi.fn()
+
+    override addEventListener(_event: string, _callback: (...args: unknown[]) => void) {
+      // Mock implementation
+    }
+
+    override removeEventListener(_event: string, _callback: (...args: unknown[]) => void) {
+      // Mock implementation
+    }
+  }
+}
+````
+
+## File: layers/main/app/utils/i18n.ts
+````typescript
+import { VueMessageType, Composer, UseI18nOptions } from 'vue-i18n'
+
+/**
+ * 引数未指定にすると、普通に`const i18n = useI18n()`とすると入ってくる型になる。
+ * 型引数の使い方については、そのままuseI18nの型引数の指定方法を参照のこと。
+ */
+export type UseI18nReturnType<Options extends UseI18nOptions = UseI18nOptions>
+  = Composer<
+    NonNullable<Options['messages']>,
+    NonNullable<Options['datetimeFormats']>,
+    NonNullable<Options['numberFormats']>,
+    Options['locale'] extends unknown ? string : Options['locale']
+  >
+
+/**
+ * @example
+ * ```ts
+ * import { useI18n } from 'vue-i18n'
+ * const i18n = useI18n() // messagesは `{ [locale]: { list: ['a', 'b', 'c'] } }` とする
+ * const list = getI18nArray(i18n, 'list') // ['a', 'b', 'c']
+ * ```
+ */
+export const getI18nArray = (i18n: UseI18nReturnType, key: string): string[] =>
+  Object.entries<VueMessageType>(i18n.tm(key)).map(([_, term]) => i18n.rt(term))
+````
+
+## File: layers/main/eslint.config.mjs
+````
+import stylistic from '@stylistic/eslint-plugin'
+import typescriptEslint from '@typescript-eslint/eslint-plugin'
+import globals from 'globals'
+import sharedConfig, { basicConfig } from '../../eslint.config.shared.mjs'
+import withNuxt from './.nuxt/eslint.config.mjs'
+
+export default withNuxt(
+  ...sharedConfig,
+
+  // VueとNuxtの基本設定
+  {
+    files: ['**/*.vue'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        // NOTE: eslint実行時に `error 'something' is not defined no-undef` のようなエラーが出て、'something'が既知のものだったら（例えばauto-importなどでimportされることがわかっている・標準ライブラリに載っている、など。）、ここ（もしくは下の「オーバーライド」）に `something: true` と追加してください
+        IntersectionObserverInit: true,
+      },
+    },
+    rules: {
+      'vue/no-unused-components': 'off',
+      'vue/no-multiple-template-root': 'off',
+      'vue/no-v-model-argument': 'off',
+      'vue/no-v-html': 'error',
+      'vue/multi-word-component-names': 'off',
+      'vue/html-self-closing': 'off', // prettierと競合するため、off
+      'vue/attribute-hyphenation': ['error', 'never'], // camelCase属性を強制
+      'vue/v-on-event-hyphenation': ['error', 'never', { autofix: true }], // camelCaseイベントを強制
+    },
+  },
+  // composablesやplugins・middlewareなども含む設定
+  {
+    files: ['**/*.vue', '**/*.ts'],
+    languageOptions: {
+      globals: {
+        // NOTE: eslint実行時に `error 'something' is not defined no-undef` のようなエラーが出て、'something'が既知のものだったら（例えばauto-importなどでimportされることがわかっている・標準ライブラリに載っている、など。）、ここ（もしくは下の「オーバーライド」）に `something: true` と追加してください
+        WritableComputedRef: true,
+        defineNuxtConfig: true,
+      },
+    },
+    rules: {
+      /*
+       * ERROR  Cannot use 'import.meta' outside a module                                                                                                                                                                                                                                                               9:08:45 PM
+       * asyncContext: !!__NUXT_ASYNC_CONTEXT__ && import.meta.server
+       * ^^^^
+       * `yarn fix`すると`process.server`が`import.meta.server`に置き換えられて↑が発生するので、off
+       */
+      'nuxt/prefer-import-meta': 'off',
+    },
+  },
+
+  // tsconfigが必要なルールの設定
+  {
+    files: [
+      '**/*.ts',
+      '**/*.mts',
+      '**/*.cts',
+      '**/*.vue',
+      // 'Parsing error: Type expected'するので.tsxは除外
+    ],
+    ignores: [
+      '**/vitest.config.mts', // tsconfig.shared.jsonのexcludeに含まれているため除外
+      '**/*.js', // .jsファイルは型チェックルールの対象外
+      '**/*.mjs', // .mjsファイルも型チェックルールの対象外
+      '**/*.cjs', // .cjsファイルも型チェックルールの対象外
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: './tsconfig.json',
+      },
+    },
+    rules: {
+      ...typescriptEslint.configs.recommended.rules,
+      ...typescriptEslint.configs['recommended-type-checked'].rules,
+      ...basicConfig.rules,
+      '@typescript-eslint/restrict-template-expressions': 'off', // string interpolation `${e}` のeには、任意の型の値を許す
+      '@typescript-eslint/no-unsafe-call': 'off', // auto-importした関数がanyに推測されるので、off
+      // .vueの下記TODOコメントを参照 -- TODO: 「下記TODOコメント」はどこにいった？
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+    },
+  },
+
+  /*
+   * コーディングスタイルの設定（そのうちnuxt.config.tsに書けないもの）
+   * https://eslint.style/rules
+   */
+  {
+    plugins: {
+      '@stylistic': stylistic,
+    },
+    rules: {
+      '@stylistic/multiline-comment-style': ['warn', 'starred-block'],
+    },
+  },
+
+  // その他オーバーライド
+  {
+    files: ['**/test/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.jest,
+        vi: true,
+      },
+    },
+    rules: {
+      '@typescript-eslint/unbound-method': 'off', // テスト内でvi.fn()などを注入するために許可
+    },
+  },
+)
+````
+
+## File: layers/main/package.json
+````json
+{
+  "name": "vket-boilerplate-nuxt-main",
+  "private": true,
+  "type": "module",
+  "version": "1.0.1",
+  "scripts": {
+    "postinstall": "nuxt prepare",
+    "dev": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt dev",
+    "dev:local": "cross-env VITE_OUTPUT_ENV=local nuxt dev",
+    "build": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt build",
+    "build:local": "cross-env VITE_OUTPUT_ENV=local nuxt build",
+    "build:staging": "cross-env VITE_OUTPUT_ENV=staging nuxt build",
+    "generate": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt generate",
+    "generate:local": "cross-env VITE_OUTPUT_ENV=local nuxt generate",
+    "preview": "nuxt preview",
+    "typecheck": "cross-env VITE_OUTPUT_ENV=local nuxt typecheck",
+    "analyze": "cross-env VITE_OUTPUT_ENV=local nuxt analyze",
+    "lint": "bun lint:eslint && bun lint:stylelint",
+    "lint:eslint": "eslint --cache --cache-strategy content './app'",
+    "lint:stylelint": "stylelint --cache --cache-strategy content './app/**/*.{css,scss,sass,vue}'",
+    "fix": "bun fix:eslint && bun fix:stylelint",
+    "fix:eslint": "eslint --cache --cache-strategy content --fix './app'",
+    "fix:stylelint": "stylelint --cache-strategy content --fix './app/**/*.{css,scss,sass,vue}'",
+    "fix-openapi-models": "baseDir='./app/models/openapi' ext='\\.ts' cmd='eslint --cache --cache-strategy content --fix ./app/models/openapi' bun exec-if-file-exists",
+    "test:ut": "cmd='vitest run --dir ./app/test' bun exec-test",
+    "test:watch": "cmd='vitest --dir ./app/test' bun exec-test",
+    "test:ui": "cmd='vitest --ui --dir ./app/test' bun exec-test",
+    "test:coverage": "cmd='vitest run --dir ./app/test --coverage' bun exec-test",
+    "exec-test": "baseDir='./app/test' ext='\\.spec\\.ts' bun exec-if-file-exists",
+    "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true",
+    "package-update": "bunx npm-check-updates -i"
+  },
+  "dependencies": {
+    "vket-boilerplate-nuxt-base": "workspace:*"
+  }
 }
 ````
 
