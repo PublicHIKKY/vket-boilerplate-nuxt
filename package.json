@@ -8,7 +8,7 @@
     "layers/*"
   ],
   "scripts": {
-    "update-project": "bun update && bun upgrade && bun clean-install",
+    "update-project": "bun update && bun clean-install",
     "clean-install": "rm -rf node_modules && bun install",
     "prepare": "bun husky",
     "package-update": "bunx npm-check-updates -i",
