@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "update-project": "bun update && bun clean-install",
-    "clean-install": "rm -rf node_modules && bun install",
+    "clean-install": "rm -rf node_modules bun.lock && bun install",
     "prepare": "bun husky",
     "package-update": "bunx npm-check-updates -i",
     "repomix": "./scripts/generate_context.sh",
