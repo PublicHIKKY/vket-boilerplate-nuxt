@@ -88,6 +88,10 @@ layers/
           HmSocialShareLink.vue
           HmTab.vue
           HmTsx.vue
+        ho/
+          .gitkeep
+        ht/
+          .gitkeep
       layouts/
         default.vue
 ```
@@ -3086,383 +3090,6 @@ const goToPage = (page: number) => {
 </style>
 ```
 
-## File: layers/base/app/components/hm/HmSliderItem.vue
-```vue
-<template>
-  <div
-    :id="props.id"
-    class="slider-item"
-    role="tabpanel"
-  >
-    <div
-      class="slider-content"
-      role="presentation"
-    >
-      <slot />
-    </div>
-  </div>
-</template>
-
-<script lang="ts" setup>
-const props = defineProps<{
-  id: string
-}>()
-</script>
-
-<style lang="scss" scoped>
-.slider-content {
-  width: 100%;
-  height: 100%;
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/HmSocialShareLink.vue
-```vue
-<template>
-  <!--
-  - [x] Composition APIで書けている
-  - [-] Nuxt.jsに依存していない
-  - [-] unplugin-auto-import を導入する前提の書き方ができている
-  - [-] ロジック観点でのリファクタリング(FS主管)が完了している
-  - [-] デザイン観点でのリファクタリング(DD主管)が完了している
-  - [-] 適切にコメントが記載されている
-  - [-] Unit Testを通過している
-  - [-] storiesが適切に記載されている
- -->
-  <HaLink
-    class="hm-social-share-link"
-    :to="url"
-    :blank="true"
-  >
-    <slot />
-  </HaLink>
-</template>
-
-<script setup lang="ts">
-const _shareTargetServices = {
-  0: 'twitter',
-  1: 'facebook',
-  2: 'line',
-} as const
-type SharedTarget
-  = (typeof _shareTargetServices)[keyof typeof _shareTargetServices]
-
-const props = defineProps<{
-  name: SharedTarget | null
-  text?: string
-  twitterHashtags?: string[]
-  shareUrl?: string
-}>()
-
-const socialShareLink = useSocialShareLink()
-const url = computed(() => socialShareLink.getShareUrl(props.name || '', props))
-</script>
-```
-
-## File: layers/base/app/components/hm/HmTab.vue
-```vue
-<template>
-  <ul class="tablist">
-    <li
-      v-for="(value, key) in tabStatus"
-      :key="key"
-      role="presentation"
-      class="item"
-    >
-      <button
-        :id="'tab' + key"
-        class="tab"
-        role="tab"
-        :aria-expanded="value"
-        :aria-controls="'panel' + key"
-        @click="changeTab(key)"
-      >
-        <slot :name="'tab' + key" />
-      </button>
-    </li>
-  </ul>
-  <div
-    class="panel-container"
-    role="presentation"
-  >
-    <div
-      v-for="(value, key) in tabStatus"
-      :id="'panel' + key"
-      :key="key"
-      class="tabpanel"
-      role="tabpanel"
-      :aria-labelledby="'tab' + key"
-      :aria-hidden="!value"
-    >
-      <slot :name="'panel' + key" />
-    </div>
-  </div>
-</template>
-
-<script lang="ts" setup>
-const props = defineProps<{
-  amount: number
-}>()
-// タブのindexと開閉状態を表すbooleanを格納するオブジェクトのためのrefで、props.amountの数だけオブジェクトを作る
-const tabStatus = ref(range(0, props.amount - 1).map((_, i) => i === 0))
-
-// タブをクリックしたとき、クリックしたタブのindexと一致するパネルの表示状態がtrueになるようにする
-const changeTab = (index: number): void => {
-  for (const i of range(0, tabStatus.value.length - 1)) {
-    tabStatus.value[i] = false
-  }
-  tabStatus.value[index] = true
-}
-</script>
-
-<style scoped lang="scss">
-@use '#base/app/assets/styles/variables' as v;
-@use '#base/app/assets/styles/mixins' as m;
-
-.panel-container {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr;
-}
-
-.tabpanel {
-  display: none;
-  grid-area: 1 / 1 / 2 / 2;
-
-  opacity: 0;
-
-  transition: opacity 0.3s, display 0.3s;
-
-  transition-behavior: allow-discrete; // display:block -> noneにdurationを効かせる(transitionのショートハンドで上書きされないようにtransitionより下に書く)
-  &[aria-hidden='false'] {
-    display: block;
-    opacity: 1;
-    transition: opacity 0.3s, display 0.3s;
-
-    transition-behavior: allow-discrete; // display:block -> noneにdurationを効かせる(transitionのショートハンドで上書きされないようにtransitionより下に書く)
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/HmTsx.vue
-```vue
-<template>
-  <div class="hm-tsx">
-    <DefaultSlot />
-  </div>
-</template>
-
-<script lang="tsx" setup>
-import { Fragment } from 'vue'
-
-const slots = useSlots() as { default?: () => unknown }
-const defaultSlot = slots.default ? slots.default() : null
-
-const DefaultSlot = () => {
-  return <Fragment>{defaultSlot}</Fragment>
-}
-</script>
-```
-
-## File: layers/base/app/components/hm/icon/HmIconUser.vue
-```vue
-<template>
-  <span class="hm-icon-user">
-    <HaImage
-      class="image"
-      :src="props.src"
-      :noImage="noImage"
-      :draggable="false"
-    />
-  </span>
-</template>
-
-<script lang="ts" setup>
-import noImage from '#base/public/images/no-image_1x1.jpg'
-
-type Props = {
-  src: string
-}
-
-const props = defineProps<Props>()
-</script>
-
-<style lang="scss" scoped>
-// NOTE:
-// 汎用性を持たせるためにサイズについては、srcに設定した画像サイズを可能な範囲で反映するように作成しています。
-// プロジェクトの要件などで「設定した画像のサイズに関わらず固定の値を設定したい」場合は適宜CSSを変更してください。
-.hm-icon-user {
-  user-select: none;
-
-  overflow: hidden;
-  display: inline-block;
-
-  aspect-ratio: 1 / 1;
-  min-width: 24px;
-  border-radius: 50%;
-
-  > .image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/input/HmInputRadioChangeable.vue
-```vue
-<template>
-  <div class="hm-input-radio-changeable">
-    <div
-      v-for="(option, index) in props.options"
-      :key="option.value"
-      ref="radiobuttons"
-      class="radio"
-    >
-      <HaBaseInput
-        :id="option.value"
-        class="input"
-        type="radio"
-        :name="props.name"
-        :value="option.value"
-        :modelValue="option.value"
-        :checked="option.checked"
-        :disabled="option.disabled"
-        required
-        @change="onChange($event)"
-      />
-      <label
-        :for="option.value"
-        class="label"
-        :class="`option-${index}`"
-      >
-        <template v-if="option.before">
-          <ClientOnly>
-            <component
-              :is="option.before"
-              class="before"
-            />
-          </ClientOnly>
-        </template>
-        {{ option.label }}
-        <template v-if="option.after">
-          <ClientOnly>
-            <component
-              :is="option.after"
-              class="after"
-            />
-          </ClientOnly>
-        </template>
-      </label>
-    </div>
-  </div>
-</template>
-
-<script lang="ts" setup>
-import { z } from 'zod/v3'
-
-type Radio = {
-  label: string
-  value: string
-  checked?: boolean
-  disabled?: boolean
-  before?: Component
-  after?: Component
-}
-
-type Props = {
-  name: string
-  options: Radio[]
-}
-const props = defineProps<Props>()
-
-const radiobuttons = ref<HTMLDivElement[]>()
-
-/** props.optionsを監視し、親コンポーネントでの変更をラジオボタンに反映する */
-watch(toRef(props.options), (_next, _prev) => {
-  // チェックされているオブジェクトを探す
-  const checkedOptions
-    = props.options.find(element => element.checked)
-      ?? raiseError('HmInputRadioChangeable: watch: checkedOptions')
-
-  // チェック対象を探す
-  const buttons
-    = radiobuttons.value
-      ?? raiseError('HmInputRadioChangeable: watch: radiobuttons')
-  const checkTarget
-    = buttons.find(
-      // チェックされているオブジェクトとidが同じものがチェック対象
-      element => element.children[0]?.id === checkedOptions?.value,
-    ) ?? raiseError('HmInputRadioChangeable: watch: checkTarget')
-
-  // 探したチェック対象をチェック済にする
-  const checkbox = z
-    .object({ checked: z.boolean() })
-    .parse(checkTarget.children[0])
-  checkbox.checked = true
-})
-
-type Emits = {
-  (e: 'change', value: string): void
-}
-const emit = defineEmits<Emits>()
-const onChange = (e: Event) => {
-  if (e.target instanceof HTMLInputElement) {
-    emit('change', e.target.value)
-  }
-}
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-
-.hm-input-radio-changeable {
-  display: flex;
-  width: 100%;
-
-  .radio {
-    flex: 1;
-
-    > .label {
-      cursor: pointer;
-      user-select: none;
-
-      display: block;
-
-      height: 100%;
-      padding: v.space(2) 0;
-      border: solid 1px v.$navy-2;
-
-      text-align: center;
-      white-space: pre-wrap;
-
-      background-color: v.$navy-1;
-
-      &:hover {
-        background-color: v.$green-4;
-      }
-    }
-  }
-}
-
-.input {
-  display: none;
-
-  &:checked,
-  &:hover,
-  &:focus {
-    + .label {
-      border-color: v.$blue;
-      background-color: v.$green-4;
-    }
-  }
-}
-</style>
-```
-
 ## File: layers/base/app/components/hm/HmSlider.vue
 ```vue
 <template>
@@ -4056,6 +3683,383 @@ onBeforeUnmount(() => stopAutoPlay())
           padding-inline: calc(var(--gap-sp) * 0.5);
         }
       }
+    }
+  }
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/HmSliderItem.vue
+```vue
+<template>
+  <div
+    :id="props.id"
+    class="slider-item"
+    role="tabpanel"
+  >
+    <div
+      class="slider-content"
+      role="presentation"
+    >
+      <slot />
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+const props = defineProps<{
+  id: string
+}>()
+</script>
+
+<style lang="scss" scoped>
+.slider-content {
+  width: 100%;
+  height: 100%;
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/HmSocialShareLink.vue
+```vue
+<template>
+  <!--
+  - [x] Composition APIで書けている
+  - [-] Nuxt.jsに依存していない
+  - [-] unplugin-auto-import を導入する前提の書き方ができている
+  - [-] ロジック観点でのリファクタリング(FS主管)が完了している
+  - [-] デザイン観点でのリファクタリング(DD主管)が完了している
+  - [-] 適切にコメントが記載されている
+  - [-] Unit Testを通過している
+  - [-] storiesが適切に記載されている
+ -->
+  <HaLink
+    class="hm-social-share-link"
+    :to="url"
+    :blank="true"
+  >
+    <slot />
+  </HaLink>
+</template>
+
+<script setup lang="ts">
+const _shareTargetServices = {
+  0: 'twitter',
+  1: 'facebook',
+  2: 'line',
+} as const
+type SharedTarget
+  = (typeof _shareTargetServices)[keyof typeof _shareTargetServices]
+
+const props = defineProps<{
+  name: SharedTarget | null
+  text?: string
+  twitterHashtags?: string[]
+  shareUrl?: string
+}>()
+
+const socialShareLink = useSocialShareLink()
+const url = computed(() => socialShareLink.getShareUrl(props.name || '', props))
+</script>
+```
+
+## File: layers/base/app/components/hm/HmTab.vue
+```vue
+<template>
+  <ul class="tablist">
+    <li
+      v-for="(value, key) in tabStatus"
+      :key="key"
+      role="presentation"
+      class="item"
+    >
+      <button
+        :id="'tab' + key"
+        class="tab"
+        role="tab"
+        :aria-expanded="value"
+        :aria-controls="'panel' + key"
+        @click="changeTab(key)"
+      >
+        <slot :name="'tab' + key" />
+      </button>
+    </li>
+  </ul>
+  <div
+    class="panel-container"
+    role="presentation"
+  >
+    <div
+      v-for="(value, key) in tabStatus"
+      :id="'panel' + key"
+      :key="key"
+      class="tabpanel"
+      role="tabpanel"
+      :aria-labelledby="'tab' + key"
+      :aria-hidden="!value"
+    >
+      <slot :name="'panel' + key" />
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+const props = defineProps<{
+  amount: number
+}>()
+// タブのindexと開閉状態を表すbooleanを格納するオブジェクトのためのrefで、props.amountの数だけオブジェクトを作る
+const tabStatus = ref(range(0, props.amount - 1).map((_, i) => i === 0))
+
+// タブをクリックしたとき、クリックしたタブのindexと一致するパネルの表示状態がtrueになるようにする
+const changeTab = (index: number): void => {
+  for (const i of range(0, tabStatus.value.length - 1)) {
+    tabStatus.value[i] = false
+  }
+  tabStatus.value[index] = true
+}
+</script>
+
+<style scoped lang="scss">
+@use '#base/app/assets/styles/variables' as v;
+@use '#base/app/assets/styles/mixins' as m;
+
+.panel-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+
+.tabpanel {
+  display: none;
+  grid-area: 1 / 1 / 2 / 2;
+
+  opacity: 0;
+
+  transition: opacity 0.3s, display 0.3s;
+
+  transition-behavior: allow-discrete; // display:block -> noneにdurationを効かせる(transitionのショートハンドで上書きされないようにtransitionより下に書く)
+  &[aria-hidden='false'] {
+    display: block;
+    opacity: 1;
+    transition: opacity 0.3s, display 0.3s;
+
+    transition-behavior: allow-discrete; // display:block -> noneにdurationを効かせる(transitionのショートハンドで上書きされないようにtransitionより下に書く)
+  }
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/HmTsx.vue
+```vue
+<template>
+  <div class="hm-tsx">
+    <DefaultSlot />
+  </div>
+</template>
+
+<script lang="tsx" setup>
+import { Fragment } from 'vue'
+
+const slots = useSlots() as { default?: () => unknown }
+const defaultSlot = slots.default ? slots.default() : null
+
+const DefaultSlot = () => {
+  return <Fragment>{defaultSlot}</Fragment>
+}
+</script>
+```
+
+## File: layers/base/app/components/hm/icon/HmIconUser.vue
+```vue
+<template>
+  <span class="hm-icon-user">
+    <HaImage
+      class="image"
+      :src="props.src"
+      :noImage="noImage"
+      :draggable="false"
+    />
+  </span>
+</template>
+
+<script lang="ts" setup>
+import noImage from '#base/public/images/no-image_1x1.jpg'
+
+type Props = {
+  src: string
+}
+
+const props = defineProps<Props>()
+</script>
+
+<style lang="scss" scoped>
+// NOTE:
+// 汎用性を持たせるためにサイズについては、srcに設定した画像サイズを可能な範囲で反映するように作成しています。
+// プロジェクトの要件などで「設定した画像のサイズに関わらず固定の値を設定したい」場合は適宜CSSを変更してください。
+.hm-icon-user {
+  user-select: none;
+
+  overflow: hidden;
+  display: inline-block;
+
+  aspect-ratio: 1 / 1;
+  min-width: 24px;
+  border-radius: 50%;
+
+  > .image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/input/HmInputRadioChangeable.vue
+```vue
+<template>
+  <div class="hm-input-radio-changeable">
+    <div
+      v-for="(option, index) in props.options"
+      :key="option.value"
+      ref="radiobuttons"
+      class="radio"
+    >
+      <HaBaseInput
+        :id="option.value"
+        class="input"
+        type="radio"
+        :name="props.name"
+        :value="option.value"
+        :modelValue="option.value"
+        :checked="option.checked"
+        :disabled="option.disabled"
+        required
+        @change="onChange($event)"
+      />
+      <label
+        :for="option.value"
+        class="label"
+        :class="`option-${index}`"
+      >
+        <template v-if="option.before">
+          <ClientOnly>
+            <component
+              :is="option.before"
+              class="before"
+            />
+          </ClientOnly>
+        </template>
+        {{ option.label }}
+        <template v-if="option.after">
+          <ClientOnly>
+            <component
+              :is="option.after"
+              class="after"
+            />
+          </ClientOnly>
+        </template>
+      </label>
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { z } from 'zod/v3'
+
+type Radio = {
+  label: string
+  value: string
+  checked?: boolean
+  disabled?: boolean
+  before?: Component
+  after?: Component
+}
+
+type Props = {
+  name: string
+  options: Radio[]
+}
+const props = defineProps<Props>()
+
+const radiobuttons = ref<HTMLDivElement[]>()
+
+/** props.optionsを監視し、親コンポーネントでの変更をラジオボタンに反映する */
+watch(toRef(props.options), (_next, _prev) => {
+  // チェックされているオブジェクトを探す
+  const checkedOptions
+    = props.options.find(element => element.checked)
+      ?? raiseError('HmInputRadioChangeable: watch: checkedOptions')
+
+  // チェック対象を探す
+  const buttons
+    = radiobuttons.value
+      ?? raiseError('HmInputRadioChangeable: watch: radiobuttons')
+  const checkTarget
+    = buttons.find(
+      // チェックされているオブジェクトとidが同じものがチェック対象
+      element => element.children[0]?.id === checkedOptions?.value,
+    ) ?? raiseError('HmInputRadioChangeable: watch: checkTarget')
+
+  // 探したチェック対象をチェック済にする
+  const checkbox = z
+    .object({ checked: z.boolean() })
+    .parse(checkTarget.children[0])
+  checkbox.checked = true
+})
+
+type Emits = {
+  (e: 'change', value: string): void
+}
+const emit = defineEmits<Emits>()
+const onChange = (e: Event) => {
+  if (e.target instanceof HTMLInputElement) {
+    emit('change', e.target.value)
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+
+.hm-input-radio-changeable {
+  display: flex;
+  width: 100%;
+
+  .radio {
+    flex: 1;
+
+    > .label {
+      cursor: pointer;
+      user-select: none;
+
+      display: block;
+
+      height: 100%;
+      padding: v.space(2) 0;
+      border: solid 1px v.$navy-2;
+
+      text-align: center;
+      white-space: pre-wrap;
+
+      background-color: v.$navy-1;
+
+      &:hover {
+        background-color: v.$green-4;
+      }
+    }
+  }
+}
+
+.input {
+  display: none;
+
+  &:checked,
+  &:hover,
+  &:focus {
+    + .label {
+      border-color: v.$blue;
+      background-color: v.$green-4;
     }
   }
 }
