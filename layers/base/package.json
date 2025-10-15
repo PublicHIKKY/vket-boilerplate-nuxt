@@ -27,7 +27,8 @@
     "test:coverage": "cmd='vitest run --dir ./app/test --coverage' bun exec-test",
     "exec-test": "baseDir='./app/test' ext='\\.spec\\.ts' bun exec-if-file-exists",
     "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true",
-    "package-update": "bunx npm-check-updates -i"
+    "package-update": "bunx npm-check-updates -i",
+    "clean-install": "rm -rf bun.lock && rm -rf node_modules && bun install"
   },
   "dependencies": {
     "@gtm-support/vue-gtm": "^3.1.0",
