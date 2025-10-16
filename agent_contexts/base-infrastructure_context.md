@@ -235,7 +235,7 @@ export default defineNuxtPlugin(({ vueApp }) => {
   <NuxtLayout>
     <div class="animation-demo">
       <h1 class="demo-title">
-        HaAnimationScaleUp - All Variants Demo
+        Web Animation API - Scale Up Demo
       </h1>
 
       <div class="demo-controls">
@@ -257,17 +257,12 @@ export default defineNuxtPlugin(({ vueApp }) => {
             <div
               v-for="variant in basicVariants"
               :key="variant"
+              :ref="(el: unknown) => setItemRef(el, variant)"
               class="animation-item"
             >
-              <HaAnimationScaleUp
-                :active="activeVariants.includes(variant)"
-                :variant="variant"
-                :duration="0.5"
-              >
-                <div class="demo-box">
-                  {{ variant }}
-                </div>
-              </HaAnimationScaleUp>
+              <div class="demo-box">
+                {{ variant }}
+              </div>
             </div>
           </div>
         </div>
@@ -281,17 +276,12 @@ export default defineNuxtPlugin(({ vueApp }) => {
             <div
               v-for="variant in horizontalVariants"
               :key="variant"
+              :ref="(el: unknown) => setItemRef(el, variant)"
               class="animation-item"
             >
-              <HaAnimationScaleUp
-                :active="activeVariants.includes(variant)"
-                :variant="variant"
-                :duration="0.5"
-              >
-                <div class="demo-box">
-                  {{ variant }}
-                </div>
-              </HaAnimationScaleUp>
+              <div class="demo-box">
+                {{ variant }}
+              </div>
             </div>
           </div>
         </div>
@@ -305,17 +295,12 @@ export default defineNuxtPlugin(({ vueApp }) => {
             <div
               v-for="variant in verticalVariants"
               :key="variant"
+              :ref="(el: unknown) => setItemRef(el, variant)"
               class="animation-item"
             >
-              <HaAnimationScaleUp
-                :active="activeVariants.includes(variant)"
-                :variant="variant"
-                :duration="0.5"
-              >
-                <div class="demo-box">
-                  {{ variant }}
-                </div>
-              </HaAnimationScaleUp>
+              <div class="demo-box">
+                {{ variant }}
+              </div>
             </div>
           </div>
         </div>
@@ -327,24 +312,10 @@ export default defineNuxtPlugin(({ vueApp }) => {
 </template>
 
 <script setup lang="ts">
-type Variant
-  = | 'center'
-    | 'top'
-    | 'tr'
-    | 'right'
-    | 'br'
-    | 'bottom'
-    | 'bl'
-    | 'left'
-    | 'tl'
-    | 'hor-center'
-    | 'hor-left'
-    | 'hor-right'
-    | 'ver-center'
-    | 'ver-top'
-    | 'ver-bottom'
+import { scaleUp } from '~/utils/animation'
+import type { ScaleUpVariant } from '~/utils/animation'
 
-const basicVariants: Variant[] = [
+const basicVariants: ScaleUpVariant[] = [
   'center',
   'top',
   'tr',
@@ -356,36 +327,50 @@ const basicVariants: Variant[] = [
   'tl',
 ]
 
-const horizontalVariants: Variant[] = [
+const horizontalVariants: ScaleUpVariant[] = [
   'hor-center',
   'hor-left',
   'hor-right',
 ]
 
-const verticalVariants: Variant[] = [
+const verticalVariants: ScaleUpVariant[] = [
   'ver-center',
   'ver-top',
   'ver-bottom',
 ]
 
-const activeVariants = ref<Variant[]>([])
+// 各バリアントの要素を保持するMap
+const itemRefs = new Map<ScaleUpVariant, HTMLElement>()
 
-const replayAll = async () => {
-  activeVariants.value = []
+const setItemRef = (el: unknown, variant: ScaleUpVariant) => {
+  if (el && el instanceof HTMLElement) {
+    itemRefs.set(variant, el)
+  }
+}
 
-  await nextTick()
-
-  const allVariants: Variant[] = [
+const replayAll = () => {
+  const allVariants: ScaleUpVariant[] = [
     ...basicVariants,
     ...horizontalVariants,
     ...verticalVariants,
   ]
 
-  allVariants.forEach((variant, index) => {
+  // 各要素を順番にアニメーション
+  for (const [index, variant] of allVariants.entries()) {
     setTimeout(() => {
-      activeVariants.value.push(variant)
+      const element = itemRefs.get(variant)
+      if (element) {
+        // 内側の.demo-boxをアニメーション
+        const box = element.querySelector('.demo-box')
+        if (box) {
+          scaleUp(box, {
+            variant,
+            duration: 500,
+          })
+        }
+      }
     }, index * 100)
-  })
+  }
 }
 
 // 初回表示時に全てアニメーション
