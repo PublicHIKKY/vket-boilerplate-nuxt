@@ -40,6 +40,9 @@ layers/
     app/
       components/
         ha/
+          animation/
+            HaAnimationScaleUp.vue
+            README.md
           base/
             HaBaseButton.vue
             HaBaseInput.vue
@@ -88,14 +91,547 @@ layers/
           HmSocialShareLink.vue
           HmTab.vue
           HmTsx.vue
+        ho/
+          .gitkeep
+        ht/
+          .gitkeep
       layouts/
         default.vue
 ```
 
 # Files
 
-## File: layers/base/app/components/ha/base/HaBaseButton.vue
+## File: layers/base/app/components/ha/animation/HaAnimationScaleUp.vue
+````vue
+<template>
+  <div
+    :class="[
+      'ha-animation-scale-up',
+      variantClass,
+      { 'is-active': isActive },
+    ]"
+  >
+    <slot />
+  </div>
+</template>
+
+<script setup lang="ts">
+type Variant
+  = | 'center'
+    | 'top'
+    | 'tr'
+    | 'right'
+    | 'br'
+    | 'bottom'
+    | 'bl'
+    | 'left'
+    | 'tl'
+    | 'hor-center'
+    | 'hor-left'
+    | 'hor-right'
+    | 'ver-center'
+    | 'ver-top'
+    | 'ver-bottom'
+
+interface Props {
+  /**
+   * アニメーションの起点となる方向
+   * @default 'center'
+   */
+  variant?: Variant
+  /**
+   * アニメーションをアクティブにするかどうか
+   * @default false
+   */
+  active?: boolean
+  /**
+   * アニメーションの実行時間（秒）
+   * @default 0.4
+   */
+  duration?: number
+  /**
+   * アニメーションの遅延時間（秒）
+   * @default 0
+   */
+  delay?: number
+  /**
+   * アニメーションを無限にループするかどうか
+   * @default false
+   */
+  infinite?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  variant: 'center',
+  active: false,
+  duration: 0.4,
+  delay: 0,
+  infinite: false,
+})
+
+const isActive = ref(props.active)
+
+const variantClass = computed(() => `-${props.variant}`)
+
+// activeプロパティの変更を監視
+watch(() => props.active, (newValue) => {
+  isActive.value = newValue
+})
+
+// マウント時にactiveがtrueの場合、アニメーションを開始
+onMounted(() => {
+  if (props.active) {
+    isActive.value = true
+  }
+})
+</script>
+
+<style lang="scss" scoped>
+.ha-animation-scale-up {
+  display: inline-block;
+
+  &.is-active {
+    &.-center {
+      animation: scale-up-center v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
+    }
+
+    &.-top {
+      animation: scale-up-top v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
+    }
+
+    &.-tr {
+      animation: scale-up-tr v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
+    }
+
+    &.-right {
+      animation: scale-up-right v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
+    }
+
+    &.-br {
+      animation: scale-up-br v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
+    }
+
+    &.-bottom {
+      animation: scale-up-bottom v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
+    }
+
+    &.-bl {
+      animation: scale-up-bl v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
+    }
+
+    &.-left {
+      animation: scale-up-left v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
+    }
+
+    &.-tl {
+      animation: scale-up-tl v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
+    }
+
+    &.-hor-center {
+      animation: scale-up-hor-center v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
+    }
+
+    &.-hor-left {
+      animation: scale-up-hor-left v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
+    }
+
+    &.-hor-right {
+      animation: scale-up-hor-right v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
+    }
+
+    &.-ver-center {
+      animation: scale-up-ver-center v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
+    }
+
+    &.-ver-top {
+      animation: scale-up-ver-top v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
+    }
+
+    &.-ver-bottom {
+      animation: scale-up-ver-bottom v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
+    }
+  }
+}
+
+/* ----------------------------------------------
+ * Generated by Animista on 2025-10-16 17:38:18
+ * Licensed under FreeBSD License.
+ * See http://animista.net/license for more info.
+ * w: http://animista.net, t: @cssanimista
+ * ---------------------------------------------- */
+
+// Center
+@keyframes scale-up-center {
+  0% {
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+// Top
+@keyframes scale-up-top {
+  0% {
+    transform-origin: 50% 0%;
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform-origin: 50% 0%;
+    transform: scale(1);
+  }
+}
+
+// Top Right
+@keyframes scale-up-tr {
+  0% {
+    transform-origin: 100% 0%;
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform-origin: 100% 0%;
+    transform: scale(1);
+  }
+}
+
+// Right
+@keyframes scale-up-right {
+  0% {
+    transform-origin: 100% 50%;
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: scale(1);
+  }
+}
+
+// Bottom Right
+@keyframes scale-up-br {
+  0% {
+    transform-origin: 100% 100%;
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: scale(1);
+  }
+}
+
+// Bottom
+@keyframes scale-up-bottom {
+  0% {
+    transform-origin: 50% 100%;
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: scale(1);
+  }
+}
+
+// Bottom Left
+@keyframes scale-up-bl {
+  0% {
+    transform-origin: 0% 100%;
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform-origin: 0% 100%;
+    transform: scale(1);
+  }
+}
+
+// Left
+@keyframes scale-up-left {
+  0% {
+    transform-origin: 0% 50%;
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform-origin: 0% 50%;
+    transform: scale(1);
+  }
+}
+
+// Top Left
+@keyframes scale-up-tl {
+  0% {
+    transform-origin: 0% 0%;
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: scale(1);
+  }
+}
+
+// Horizontal Center
+@keyframes scale-up-hor-center {
+  0% {
+    transform: scaleX(0.4);
+  }
+
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+// Horizontal Left
+@keyframes scale-up-hor-left {
+  0% {
+    transform-origin: 0% 0%;
+    transform: scaleX(0.4);
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: scaleX(1);
+  }
+}
+
+// Horizontal Right
+@keyframes scale-up-hor-right {
+  0% {
+    transform-origin: 100% 100%;
+    transform: scaleX(0.4);
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: scaleX(1);
+  }
+}
+
+// Vertical Center
+@keyframes scale-up-ver-center {
+  0% {
+    transform: scaleY(0.4);
+  }
+
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+// Vertical Top
+@keyframes scale-up-ver-top {
+  0% {
+    transform-origin: 0% 0%;
+    transform: scaleY(0.4);
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: scaleY(1);
+  }
+}
+
+// Vertical Bottom
+@keyframes scale-up-ver-bottom {
+  0% {
+    transform-origin: 100% 100%;
+    transform: scaleY(0.4);
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: scaleY(1);
+  }
+}
+</style>
+````
+
+## File: layers/base/app/components/ha/animation/README.md
+````markdown
+# HaAnimationScaleUp
+
+Animista の scale-up アニメーションを使用した Vue コンポーネントです。
+
+## 概要
+
+`HaAnimationScaleUp` は、要素をスケールアップさせるアニメーション効果を提供します。15種類のバリエーションがあり、アニメーションの起点を柔軟に設定できます。
+
+## 基本的な使い方
+
 ```vue
+<template>
+  <HaAnimationScaleUp :active="isActive">
+    <div>アニメーションするコンテンツ</div>
+  </HaAnimationScaleUp>
+</template>
+
+<script setup lang="ts">
+const isActive = ref(false)
+
+// 1秒後にアニメーションを開始
+setTimeout(() => {
+  isActive.value = true
+}, 1000)
+</script>
+```
+
+## Props
+
+| プロパティ | 型 | デフォルト | 説明 |
+|-----------|-----|-----------|------|
+| `variant` | `Variant` | `'center'` | アニメーションの起点となる方向 |
+| `active` | `boolean` | `false` | アニメーションをアクティブにするかどうか |
+| `duration` | `number` | `0.4` | アニメーションの実行時間（秒） |
+| `delay` | `number` | `0` | アニメーションの遅延時間（秒） |
+| `infinite` | `boolean` | `false` | アニメーションを無限にループするかどうか |
+
+### Variant の種類
+
+#### 中心からのスケール
+- `center`: 中心から全方向にスケール
+
+#### 各方向からのスケール
+- `top`: 上から
+- `tr`: 右上から
+- `right`: 右から
+- `br`: 右下から
+- `bottom`: 下から
+- `bl`: 左下から
+- `left`: 左から
+- `tl`: 左上から
+
+#### 水平方向のみのスケール
+- `hor-center`: 水平方向に中心から
+- `hor-left`: 水平方向に左から
+- `hor-right`: 水平方向に右から
+
+#### 垂直方向のみのスケール
+- `ver-center`: 垂直方向に中心から
+- `ver-top`: 垂直方向に上から
+- `ver-bottom`: 垂直方向に下から
+
+## 使用例
+
+### 基本的なスケールアップ
+
+```vue
+<HaAnimationScaleUp :active="true">
+  <button>ボタン</button>
+</HaAnimationScaleUp>
+```
+
+### 左上から右下へスケールアップ
+
+```vue
+<HaAnimationScaleUp variant="tl" :active="isVisible">
+  <div class="card">カード要素</div>
+</HaAnimationScaleUp>
+```
+
+### カスタムタイミング設定
+
+```vue
+<HaAnimationScaleUp
+  :active="true"
+  :duration="0.8"
+  :delay="0.2"
+>
+  <div>ゆっくり表示</div>
+</HaAnimationScaleUp>
+```
+
+### 水平方向のみのアニメーション
+
+```vue
+<HaAnimationScaleUp variant="hor-center" :active="true">
+  <div class="progress-bar">プログレスバー</div>
+</HaAnimationScaleUp>
+```
+
+### 無限ループアニメーション
+
+```vue
+<HaAnimationScaleUp :active="true" :infinite="true">
+  <div class="pulse-effect">パルス効果</div>
+</HaAnimationScaleUp>
+```
+
+### クリックでアニメーション開始
+
+```vue
+<template>
+  <div>
+    <button @click="startAnimation">アニメーション開始</button>
+
+    <HaAnimationScaleUp :active="isAnimating" variant="center">
+      <div class="animated-content">
+        クリックでアニメーション！
+      </div>
+    </HaAnimationScaleUp>
+  </div>
+</template>
+
+<script setup lang="ts">
+const isAnimating = ref(false)
+
+const startAnimation = () => {
+  isAnimating.value = false
+  nextTick(() => {
+    isAnimating.value = true
+  })
+}
+</script>
+```
+
+### スクロールでアニメーション
+
+```vue
+<template>
+  <HaAnimationScaleUp
+    v-for="(item, index) in items"
+    :key="item.id"
+    :active="visibleItems.includes(index)"
+    variant="bottom"
+    :delay="index * 0.1"
+  >
+    <div class="item">{{ item.text }}</div>
+  </HaAnimationScaleUp>
+</template>
+
+<script setup lang="ts">
+const items = ref([...])
+const visibleItems = ref<number[]>([])
+
+// Intersection Observer を使ってスクロールで表示
+onMounted(() => {
+  // 実装例
+})
+</script>
+```
+
+## ライセンス
+
+このコンポーネントで使用しているアニメーションは Animista で生成されています。
+
+- Generated by Animista on 2025-10-16
+- Licensed under FreeBSD License
+- See http://animista.net/license for more info
+- w: http://animista.net, t: @cssanimista
+
+## 注意事項
+
+- `active` プロパティを `true` に設定することでアニメーションが開始されます
+- アニメーションを再実行したい場合は、一度 `active` を `false` にしてから再度 `true` にする必要があります
+- `infinite` を `true` にすると、アニメーションが繰り返し実行されます
+````
+
+## File: layers/base/app/components/ha/base/HaBaseButton.vue
+````vue
 <template>
   <button
     class="ha-base-button"
@@ -135,10 +671,10 @@ const onClick = (event: MouseEvent): void => {
   max-height: 100%;
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/ha/HaContainer.vue
-```vue
+````vue
 <template>
   <div class="ha-container">
     <slot />
@@ -164,10 +700,10 @@ const onClick = (event: MouseEvent): void => {
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/ha/HaDialog.vue
-```vue
+````vue
 <template>
   <div
     class="ha-dialog"
@@ -218,10 +754,10 @@ const handleCloseDialog = () => emit('close')
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/ha/HaHamburger.vue
-```vue
+````vue
 <template>
   <div
     class="ha-humberger-button"
@@ -306,10 +842,10 @@ const onClick = () => emits('click')
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/ha/HaImage.vue
-```vue
+````vue
 <template>
   <img
     ref="imageElement"
@@ -375,10 +911,10 @@ const onImageLoad = (): void => {
   }
 }
 </script>
-```
+````
 
 ## File: layers/base/app/components/ha/HaLabel.vue
-```vue
+````vue
 <template>
   <div
     class="ha-label"
@@ -412,10 +948,10 @@ const style = computed(() => ({
   'background-color': props.colorMap?.[props.text] ?? props.fallbackColor,
 }))
 </script>
-```
+````
 
 ## File: layers/base/app/components/ha/HaLink.vue
-```vue
+````vue
 <template>
   <component
     :is="component"
@@ -486,10 +1022,10 @@ const toUrl = ({
   return `${to}${queryStr}${hash ?? ''}`
 }
 </script>
-```
+````
 
 ## File: layers/base/app/components/ha/HaLoading.vue
-```vue
+````vue
 <template>
   <div
     v-if="loading"
@@ -589,10 +1125,10 @@ const loading = ref(props.manual)
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/ha/HaLoadingIcon.vue
-```vue
+````vue
 <template>
   <div class="ha-loading-icon" />
 </template>
@@ -624,10 +1160,10 @@ const loading = ref(props.manual)
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/ha/HaSkewBackground.vue
-```vue
+````vue
 <template>
   <div
     class="ha-skew"
@@ -681,10 +1217,10 @@ const contentStyle = computed(() => ({
   height: 100%;
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/ha/HaTag.vue
-```vue
+````vue
 <template>
   <span
     class="ha-tag"
@@ -848,10 +1384,10 @@ const onClick = () => {
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/ha/HaVideo.vue
-```vue
+````vue
 <template>
   <video
     ref="haVideoRef"
@@ -993,10 +1529,10 @@ onMounted(() => {
   )
 })
 </script>
-```
+````
 
 ## File: layers/base/app/components/hm/button/HmButton.vue
-```vue
+````vue
 <template>
   <HaBaseButton
     :class="[
@@ -1245,10 +1781,10 @@ function onClick(): void {
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/hm/button/HmButtonClose.vue
-```vue
+````vue
 <template>
   <HaBaseButton
     class="hm-button-close"
@@ -1299,10 +1835,10 @@ withDefaults(defineProps<Props>(), {
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/hm/HmAccordion.vue
-```vue
+````vue
 <template>
   <button
     :id="props.buttonname"
@@ -1411,10 +1947,10 @@ const changeExpanded = () => {
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/hm/HmAutoCarousel.vue
-```vue
+````vue
 <template>
   <div
     :class="['hm-auto-carousel', `-${props.orientation}`]"
@@ -1522,10 +2058,10 @@ const direction = computed(() => {
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/hm/HmClipping.vue
-```vue
+````vue
 <template>
   <div class="hm-clipping">
     <div class="cropper-container">
@@ -1669,10 +2205,10 @@ const clip = () => {
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/hm/HmMenuExample.vue
-```vue
+````vue
 <template>
   <section class="hm-menu-example">
     <Menu
@@ -1747,10 +2283,10 @@ import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/hm/HmNoteList.vue
-```vue
+````vue
 <template>
   <ul class="hm-note-list">
     <li
@@ -1786,10 +2322,10 @@ defineProps<{
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/hm/HmPicture.vue
-```vue
+````vue
 <template>
   <picture classs="hm-picture">
     <source
@@ -1845,10 +2381,10 @@ const imageUrlSp = computed(() =>
     : props.srcSp || defaultNoImage,
 )
 </script>
-```
+````
 
 ## File: layers/base/app/components/hm/HmPopup.vue
-```vue
+````vue
 <template>
   <HaDialog
     class="hm-popup"
@@ -1967,10 +2503,10 @@ const onConfirm = () => {
   margin: 0 12px;
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/hm/HmSkeletonScreen.vue
-```vue
+````vue
 <template>
   <div class="hm-skeleton-screen">
     <template v-if="isLoadingContent">
@@ -2051,10 +2587,10 @@ withDefaults(defineProps<Props>(), {
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/layouts/default.vue
-```vue
+````vue
 <template>
   <div class="layout -default">
     <h1 class="heading">
@@ -2069,10 +2605,10 @@ withDefaults(defineProps<Props>(), {
   overflow-x: hidden;
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/ha/base/HaBaseInput.vue
-```vue
+````vue
 <template>
   <input
     :id="props.id"
@@ -2223,10 +2759,10 @@ const capture_ = computed<'user' | 'environment' | true | undefined>(() => {
   max-height: 100%;
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/ha/HaModal.vue
-```vue
+````vue
 <template>
   <!-- モーダルを開くボタン -->
   <button
@@ -2405,10 +2941,10 @@ defineExpose({
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/hm/button/HmButtonFavorite.vue
-```vue
+````vue
 <template>
   <div
     class="hm-button-favorite"
@@ -2497,10 +3033,10 @@ const onClick = () => {
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/hm/input/HmInputFile.vue
-```vue
+````vue
 <template>
   <!-- TODO: エラーメッセージの表示をする際に、必要に応じてHmInputTextBase.vue同様の修正(DOM構造とエラーmsgのstyle)を行う -->
   <label
@@ -2706,10 +3242,10 @@ const onClick = () => {
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/hm/input/HmInputRadio.vue
-```vue
+````vue
 <template>
   <label class="hm-input-radio">
     <HaBaseInput
@@ -2806,10 +3342,10 @@ function onChange(e: Event): void {
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/hm/HmPaging.vue
-```vue
+````vue
 <i18n lang="yaml">
 ja:
   next: 次へ
@@ -3084,387 +3620,10 @@ const goToPage = (page: number) => {
   }
 }
 </style>
-```
-
-## File: layers/base/app/components/hm/HmSliderItem.vue
-```vue
-<template>
-  <div
-    :id="props.id"
-    class="slider-item"
-    role="tabpanel"
-  >
-    <div
-      class="slider-content"
-      role="presentation"
-    >
-      <slot />
-    </div>
-  </div>
-</template>
-
-<script lang="ts" setup>
-const props = defineProps<{
-  id: string
-}>()
-</script>
-
-<style lang="scss" scoped>
-.slider-content {
-  width: 100%;
-  height: 100%;
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/HmSocialShareLink.vue
-```vue
-<template>
-  <!--
-  - [x] Composition APIで書けている
-  - [-] Nuxt.jsに依存していない
-  - [-] unplugin-auto-import を導入する前提の書き方ができている
-  - [-] ロジック観点でのリファクタリング(FS主管)が完了している
-  - [-] デザイン観点でのリファクタリング(DD主管)が完了している
-  - [-] 適切にコメントが記載されている
-  - [-] Unit Testを通過している
-  - [-] storiesが適切に記載されている
- -->
-  <HaLink
-    class="hm-social-share-link"
-    :to="url"
-    :blank="true"
-  >
-    <slot />
-  </HaLink>
-</template>
-
-<script setup lang="ts">
-const _shareTargetServices = {
-  0: 'twitter',
-  1: 'facebook',
-  2: 'line',
-} as const
-type SharedTarget
-  = (typeof _shareTargetServices)[keyof typeof _shareTargetServices]
-
-const props = defineProps<{
-  name: SharedTarget | null
-  text?: string
-  twitterHashtags?: string[]
-  shareUrl?: string
-}>()
-
-const socialShareLink = useSocialShareLink()
-const url = computed(() => socialShareLink.getShareUrl(props.name || '', props))
-</script>
-```
-
-## File: layers/base/app/components/hm/HmTab.vue
-```vue
-<template>
-  <ul class="tablist">
-    <li
-      v-for="(value, key) in tabStatus"
-      :key="key"
-      role="presentation"
-      class="item"
-    >
-      <button
-        :id="'tab' + key"
-        class="tab"
-        role="tab"
-        :aria-expanded="value"
-        :aria-controls="'panel' + key"
-        @click="changeTab(key)"
-      >
-        <slot :name="'tab' + key" />
-      </button>
-    </li>
-  </ul>
-  <div
-    class="panel-container"
-    role="presentation"
-  >
-    <div
-      v-for="(value, key) in tabStatus"
-      :id="'panel' + key"
-      :key="key"
-      class="tabpanel"
-      role="tabpanel"
-      :aria-labelledby="'tab' + key"
-      :aria-hidden="!value"
-    >
-      <slot :name="'panel' + key" />
-    </div>
-  </div>
-</template>
-
-<script lang="ts" setup>
-const props = defineProps<{
-  amount: number
-}>()
-// タブのindexと開閉状態を表すbooleanを格納するオブジェクトのためのrefで、props.amountの数だけオブジェクトを作る
-const tabStatus = ref(range(0, props.amount - 1).map((_, i) => i === 0))
-
-// タブをクリックしたとき、クリックしたタブのindexと一致するパネルの表示状態がtrueになるようにする
-const changeTab = (index: number): void => {
-  for (const i of range(0, tabStatus.value.length - 1)) {
-    tabStatus.value[i] = false
-  }
-  tabStatus.value[index] = true
-}
-</script>
-
-<style scoped lang="scss">
-@use '#base/app/assets/styles/variables' as v;
-@use '#base/app/assets/styles/mixins' as m;
-
-.panel-container {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr;
-}
-
-.tabpanel {
-  display: none;
-  grid-area: 1 / 1 / 2 / 2;
-
-  opacity: 0;
-
-  transition: opacity 0.3s, display 0.3s;
-
-  transition-behavior: allow-discrete; // display:block -> noneにdurationを効かせる(transitionのショートハンドで上書きされないようにtransitionより下に書く)
-  &[aria-hidden='false'] {
-    display: block;
-    opacity: 1;
-    transition: opacity 0.3s, display 0.3s;
-
-    transition-behavior: allow-discrete; // display:block -> noneにdurationを効かせる(transitionのショートハンドで上書きされないようにtransitionより下に書く)
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/HmTsx.vue
-```vue
-<template>
-  <div class="hm-tsx">
-    <DefaultSlot />
-  </div>
-</template>
-
-<script lang="tsx" setup>
-import { Fragment } from 'vue'
-
-const slots = useSlots() as { default?: () => unknown }
-const defaultSlot = slots.default ? slots.default() : null
-
-const DefaultSlot = () => {
-  return <Fragment>{defaultSlot}</Fragment>
-}
-</script>
-```
-
-## File: layers/base/app/components/hm/icon/HmIconUser.vue
-```vue
-<template>
-  <span class="hm-icon-user">
-    <HaImage
-      class="image"
-      :src="props.src"
-      :noImage="noImage"
-      :draggable="false"
-    />
-  </span>
-</template>
-
-<script lang="ts" setup>
-import noImage from '#base/public/images/no-image_1x1.jpg'
-
-type Props = {
-  src: string
-}
-
-const props = defineProps<Props>()
-</script>
-
-<style lang="scss" scoped>
-// NOTE:
-// 汎用性を持たせるためにサイズについては、srcに設定した画像サイズを可能な範囲で反映するように作成しています。
-// プロジェクトの要件などで「設定した画像のサイズに関わらず固定の値を設定したい」場合は適宜CSSを変更してください。
-.hm-icon-user {
-  user-select: none;
-
-  overflow: hidden;
-  display: inline-block;
-
-  aspect-ratio: 1 / 1;
-  min-width: 24px;
-  border-radius: 50%;
-
-  > .image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/input/HmInputRadioChangeable.vue
-```vue
-<template>
-  <div class="hm-input-radio-changeable">
-    <div
-      v-for="(option, index) in props.options"
-      :key="option.value"
-      ref="radiobuttons"
-      class="radio"
-    >
-      <HaBaseInput
-        :id="option.value"
-        class="input"
-        type="radio"
-        :name="props.name"
-        :value="option.value"
-        :modelValue="option.value"
-        :checked="option.checked"
-        :disabled="option.disabled"
-        required
-        @change="onChange($event)"
-      />
-      <label
-        :for="option.value"
-        class="label"
-        :class="`option-${index}`"
-      >
-        <template v-if="option.before">
-          <ClientOnly>
-            <component
-              :is="option.before"
-              class="before"
-            />
-          </ClientOnly>
-        </template>
-        {{ option.label }}
-        <template v-if="option.after">
-          <ClientOnly>
-            <component
-              :is="option.after"
-              class="after"
-            />
-          </ClientOnly>
-        </template>
-      </label>
-    </div>
-  </div>
-</template>
-
-<script lang="ts" setup>
-import { z } from 'zod/v3'
-
-type Radio = {
-  label: string
-  value: string
-  checked?: boolean
-  disabled?: boolean
-  before?: Component
-  after?: Component
-}
-
-type Props = {
-  name: string
-  options: Radio[]
-}
-const props = defineProps<Props>()
-
-const radiobuttons = ref<HTMLDivElement[]>()
-
-/** props.optionsを監視し、親コンポーネントでの変更をラジオボタンに反映する */
-watch(toRef(props.options), (_next, _prev) => {
-  // チェックされているオブジェクトを探す
-  const checkedOptions
-    = props.options.find(element => element.checked)
-      ?? raiseError('HmInputRadioChangeable: watch: checkedOptions')
-
-  // チェック対象を探す
-  const buttons
-    = radiobuttons.value
-      ?? raiseError('HmInputRadioChangeable: watch: radiobuttons')
-  const checkTarget
-    = buttons.find(
-      // チェックされているオブジェクトとidが同じものがチェック対象
-      element => element.children[0]?.id === checkedOptions?.value,
-    ) ?? raiseError('HmInputRadioChangeable: watch: checkTarget')
-
-  // 探したチェック対象をチェック済にする
-  const checkbox = z
-    .object({ checked: z.boolean() })
-    .parse(checkTarget.children[0])
-  checkbox.checked = true
-})
-
-type Emits = {
-  (e: 'change', value: string): void
-}
-const emit = defineEmits<Emits>()
-const onChange = (e: Event) => {
-  if (e.target instanceof HTMLInputElement) {
-    emit('change', e.target.value)
-  }
-}
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-
-.hm-input-radio-changeable {
-  display: flex;
-  width: 100%;
-
-  .radio {
-    flex: 1;
-
-    > .label {
-      cursor: pointer;
-      user-select: none;
-
-      display: block;
-
-      height: 100%;
-      padding: v.space(2) 0;
-      border: solid 1px v.$navy-2;
-
-      text-align: center;
-      white-space: pre-wrap;
-
-      background-color: v.$navy-1;
-
-      &:hover {
-        background-color: v.$green-4;
-      }
-    }
-  }
-}
-
-.input {
-  display: none;
-
-  &:checked,
-  &:hover,
-  &:focus {
-    + .label {
-      border-color: v.$blue;
-      background-color: v.$green-4;
-    }
-  }
-}
-</style>
-```
+````
 
 ## File: layers/base/app/components/hm/HmSlider.vue
-```vue
+````vue
 <template>
   <div
     class="slider-wrap"
@@ -4060,10 +4219,387 @@ onBeforeUnmount(() => stopAutoPlay())
   }
 }
 </style>
-```
+````
+
+## File: layers/base/app/components/hm/HmSliderItem.vue
+````vue
+<template>
+  <div
+    :id="props.id"
+    class="slider-item"
+    role="tabpanel"
+  >
+    <div
+      class="slider-content"
+      role="presentation"
+    >
+      <slot />
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+const props = defineProps<{
+  id: string
+}>()
+</script>
+
+<style lang="scss" scoped>
+.slider-content {
+  width: 100%;
+  height: 100%;
+}
+</style>
+````
+
+## File: layers/base/app/components/hm/HmSocialShareLink.vue
+````vue
+<template>
+  <!--
+  - [x] Composition APIで書けている
+  - [-] Nuxt.jsに依存していない
+  - [-] unplugin-auto-import を導入する前提の書き方ができている
+  - [-] ロジック観点でのリファクタリング(FS主管)が完了している
+  - [-] デザイン観点でのリファクタリング(DD主管)が完了している
+  - [-] 適切にコメントが記載されている
+  - [-] Unit Testを通過している
+  - [-] storiesが適切に記載されている
+ -->
+  <HaLink
+    class="hm-social-share-link"
+    :to="url"
+    :blank="true"
+  >
+    <slot />
+  </HaLink>
+</template>
+
+<script setup lang="ts">
+const _shareTargetServices = {
+  0: 'twitter',
+  1: 'facebook',
+  2: 'line',
+} as const
+type SharedTarget
+  = (typeof _shareTargetServices)[keyof typeof _shareTargetServices]
+
+const props = defineProps<{
+  name: SharedTarget | null
+  text?: string
+  twitterHashtags?: string[]
+  shareUrl?: string
+}>()
+
+const socialShareLink = useSocialShareLink()
+const url = computed(() => socialShareLink.getShareUrl(props.name || '', props))
+</script>
+````
+
+## File: layers/base/app/components/hm/HmTab.vue
+````vue
+<template>
+  <ul class="tablist">
+    <li
+      v-for="(value, key) in tabStatus"
+      :key="key"
+      role="presentation"
+      class="item"
+    >
+      <button
+        :id="'tab' + key"
+        class="tab"
+        role="tab"
+        :aria-expanded="value"
+        :aria-controls="'panel' + key"
+        @click="changeTab(key)"
+      >
+        <slot :name="'tab' + key" />
+      </button>
+    </li>
+  </ul>
+  <div
+    class="panel-container"
+    role="presentation"
+  >
+    <div
+      v-for="(value, key) in tabStatus"
+      :id="'panel' + key"
+      :key="key"
+      class="tabpanel"
+      role="tabpanel"
+      :aria-labelledby="'tab' + key"
+      :aria-hidden="!value"
+    >
+      <slot :name="'panel' + key" />
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+const props = defineProps<{
+  amount: number
+}>()
+// タブのindexと開閉状態を表すbooleanを格納するオブジェクトのためのrefで、props.amountの数だけオブジェクトを作る
+const tabStatus = ref(range(0, props.amount - 1).map((_, i) => i === 0))
+
+// タブをクリックしたとき、クリックしたタブのindexと一致するパネルの表示状態がtrueになるようにする
+const changeTab = (index: number): void => {
+  for (const i of range(0, tabStatus.value.length - 1)) {
+    tabStatus.value[i] = false
+  }
+  tabStatus.value[index] = true
+}
+</script>
+
+<style scoped lang="scss">
+@use '#base/app/assets/styles/variables' as v;
+@use '#base/app/assets/styles/mixins' as m;
+
+.panel-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+
+.tabpanel {
+  display: none;
+  grid-area: 1 / 1 / 2 / 2;
+
+  opacity: 0;
+
+  transition: opacity 0.3s, display 0.3s;
+
+  transition-behavior: allow-discrete; // display:block -> noneにdurationを効かせる(transitionのショートハンドで上書きされないようにtransitionより下に書く)
+  &[aria-hidden='false'] {
+    display: block;
+    opacity: 1;
+    transition: opacity 0.3s, display 0.3s;
+
+    transition-behavior: allow-discrete; // display:block -> noneにdurationを効かせる(transitionのショートハンドで上書きされないようにtransitionより下に書く)
+  }
+}
+</style>
+````
+
+## File: layers/base/app/components/hm/HmTsx.vue
+````vue
+<template>
+  <div class="hm-tsx">
+    <DefaultSlot />
+  </div>
+</template>
+
+<script lang="tsx" setup>
+import { Fragment } from 'vue'
+
+const slots = useSlots() as { default?: () => unknown }
+const defaultSlot = slots.default ? slots.default() : null
+
+const DefaultSlot = () => {
+  return <Fragment>{defaultSlot}</Fragment>
+}
+</script>
+````
+
+## File: layers/base/app/components/hm/icon/HmIconUser.vue
+````vue
+<template>
+  <span class="hm-icon-user">
+    <HaImage
+      class="image"
+      :src="props.src"
+      :noImage="noImage"
+      :draggable="false"
+    />
+  </span>
+</template>
+
+<script lang="ts" setup>
+import noImage from '#base/public/images/no-image_1x1.jpg'
+
+type Props = {
+  src: string
+}
+
+const props = defineProps<Props>()
+</script>
+
+<style lang="scss" scoped>
+// NOTE:
+// 汎用性を持たせるためにサイズについては、srcに設定した画像サイズを可能な範囲で反映するように作成しています。
+// プロジェクトの要件などで「設定した画像のサイズに関わらず固定の値を設定したい」場合は適宜CSSを変更してください。
+.hm-icon-user {
+  user-select: none;
+
+  overflow: hidden;
+  display: inline-block;
+
+  aspect-ratio: 1 / 1;
+  min-width: 24px;
+  border-radius: 50%;
+
+  > .image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+</style>
+````
+
+## File: layers/base/app/components/hm/input/HmInputRadioChangeable.vue
+````vue
+<template>
+  <div class="hm-input-radio-changeable">
+    <div
+      v-for="(option, index) in props.options"
+      :key="option.value"
+      ref="radiobuttons"
+      class="radio"
+    >
+      <HaBaseInput
+        :id="option.value"
+        class="input"
+        type="radio"
+        :name="props.name"
+        :value="option.value"
+        :modelValue="option.value"
+        :checked="option.checked"
+        :disabled="option.disabled"
+        required
+        @change="onChange($event)"
+      />
+      <label
+        :for="option.value"
+        class="label"
+        :class="`option-${index}`"
+      >
+        <template v-if="option.before">
+          <ClientOnly>
+            <component
+              :is="option.before"
+              class="before"
+            />
+          </ClientOnly>
+        </template>
+        {{ option.label }}
+        <template v-if="option.after">
+          <ClientOnly>
+            <component
+              :is="option.after"
+              class="after"
+            />
+          </ClientOnly>
+        </template>
+      </label>
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { z } from 'zod/v3'
+
+type Radio = {
+  label: string
+  value: string
+  checked?: boolean
+  disabled?: boolean
+  before?: Component
+  after?: Component
+}
+
+type Props = {
+  name: string
+  options: Radio[]
+}
+const props = defineProps<Props>()
+
+const radiobuttons = ref<HTMLDivElement[]>()
+
+/** props.optionsを監視し、親コンポーネントでの変更をラジオボタンに反映する */
+watch(toRef(props.options), (_next, _prev) => {
+  // チェックされているオブジェクトを探す
+  const checkedOptions
+    = props.options.find(element => element.checked)
+      ?? raiseError('HmInputRadioChangeable: watch: checkedOptions')
+
+  // チェック対象を探す
+  const buttons
+    = radiobuttons.value
+      ?? raiseError('HmInputRadioChangeable: watch: radiobuttons')
+  const checkTarget
+    = buttons.find(
+      // チェックされているオブジェクトとidが同じものがチェック対象
+      element => element.children[0]?.id === checkedOptions?.value,
+    ) ?? raiseError('HmInputRadioChangeable: watch: checkTarget')
+
+  // 探したチェック対象をチェック済にする
+  const checkbox = z
+    .object({ checked: z.boolean() })
+    .parse(checkTarget.children[0])
+  checkbox.checked = true
+})
+
+type Emits = {
+  (e: 'change', value: string): void
+}
+const emit = defineEmits<Emits>()
+const onChange = (e: Event) => {
+  if (e.target instanceof HTMLInputElement) {
+    emit('change', e.target.value)
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+
+.hm-input-radio-changeable {
+  display: flex;
+  width: 100%;
+
+  .radio {
+    flex: 1;
+
+    > .label {
+      cursor: pointer;
+      user-select: none;
+
+      display: block;
+
+      height: 100%;
+      padding: v.space(2) 0;
+      border: solid 1px v.$navy-2;
+
+      text-align: center;
+      white-space: pre-wrap;
+
+      background-color: v.$navy-1;
+
+      &:hover {
+        background-color: v.$green-4;
+      }
+    }
+  }
+}
+
+.input {
+  display: none;
+
+  &:checked,
+  &:hover,
+  &:focus {
+    + .label {
+      border-color: v.$blue;
+      background-color: v.$green-4;
+    }
+  }
+}
+</style>
+````
 
 ## File: layers/base/app/components/ha/HaTextarea.vue
-```vue
+````vue
 <template>
   <div class="ha-textarea">
     <label
@@ -4260,10 +4796,10 @@ const count = computed((): string | number => {
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/hm/input/HmInputCheckbox.vue
-```vue
+````vue
 <template>
   <label
     class="hm-input-checkbox"
@@ -4450,10 +4986,10 @@ const innerValue = computed({
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/hm/input/HmInputText.vue
-```vue
+````vue
 <template>
   <div
     tag="div"
@@ -4782,10 +5318,10 @@ input[type='number'] {
   appearance: textfield;
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/hm/HmDialogElement.vue
-```vue
+````vue
 <!--
 HaDialogとの違いとして、HmDialogElementは別階層の別要素のz-indexの影響により、それよりも下に表示されてしまう
 と言った現象が起きません(dialog要素は常に最前面に表示される)。
@@ -4878,10 +5414,10 @@ defineExpose({
   cursor: pointer;
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/ha/HaDialogElement.vue
-```vue
+````vue
 <!--
 HaDialogとの違いとして、HaDialogElementは別階層の別要素のz-indexの影響により、それよりも下に表示されてしまう
 と言った現象が起きません(dialog要素は常に最前面に表示される)。
@@ -5088,10 +5624,10 @@ defineExpose({
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/ha/HaSelectBox.vue
-```vue
+````vue
 <template>
   <div class="ha-select-box">
     <select
@@ -5282,10 +5818,10 @@ const innerValue = computed({
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/hm/input/HmInputDatetime.vue
-```vue
+````vue
 <template>
   <div
     :name="validatorName"
@@ -5499,10 +6035,10 @@ const enter = () => {
   }
 }
 </style>
-```
+````
 
 ## File: layers/base/app/components/hm/input/HmInputSingleImage.vue
-```vue
+````vue
 <i18n lang="yaml">
 ja:
   explain: "画像を切り抜く範囲を指定して、「切り抜く」ボタンをクリックしてください。マウスホイールで拡大・縮小できます。"
@@ -5893,4 +6429,4 @@ const cancel = () => {
   }
 }
 </style>
-```
+````

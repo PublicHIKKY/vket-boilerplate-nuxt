@@ -42,6 +42,8 @@ layers/
       components.d.ts
     app/
       assets/
+        images/
+          .gitkeep
         styles/
           _base.scss
           _functions.scss
@@ -52,6 +54,12 @@ layers/
           _variables.scss
           style.scss
       components/
+        ha/
+          .gitkeep
+        hm/
+          .gitkeep
+        ho/
+          .gitkeep
         ht/
           HtTop.vue
       composables/
@@ -59,6 +67,8 @@ layers/
       layouts/
         default.vue
         top.vue
+      middleware/
+        .gitkeep
       models/
         json.ts
         todo.ts
@@ -67,6 +77,8 @@ layers/
       plugins/
         gtm.client.ts
         runtimeConfig.ts
+      repositories/
+        .gitkeep
       test/
         composables/
           useApi.spec.ts
@@ -97,6 +109,7 @@ layers/
       i18n.config.ts
     public/
       _robots.txt
+      favicon.ico
     server/
       tsconfig.json
     .stylelintrc.mjs
