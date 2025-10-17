@@ -235,8 +235,12 @@ export default defineNuxtPlugin(({ vueApp }) => {
   <NuxtLayout>
     <div class="animation-demo">
       <h1 class="demo-title">
-        Web Animation API - Scale Up Demo
+        SCSS Mixin - Scale Up Demo
       </h1>
+
+      <HmButton class="test">
+        テスト
+      </HmButton>
 
       <div class="demo-controls">
         <button
@@ -257,10 +261,11 @@ export default defineNuxtPlugin(({ vueApp }) => {
             <div
               v-for="variant in basicVariants"
               :key="variant"
-              :ref="(el: unknown) => setItemRef(el, variant)"
               class="animation-item"
             >
-              <div class="demo-box">
+              <div
+                :class="['demo-box', `variant-${variant}`, { 'is-animating': activeVariants.has(variant) }]"
+              >
                 {{ variant }}
               </div>
             </div>
@@ -276,10 +281,11 @@ export default defineNuxtPlugin(({ vueApp }) => {
             <div
               v-for="variant in horizontalVariants"
               :key="variant"
-              :ref="(el: unknown) => setItemRef(el, variant)"
               class="animation-item"
             >
-              <div class="demo-box">
+              <div
+                :class="['demo-box', `variant-${variant}`, { 'is-animating': activeVariants.has(variant) }]"
+              >
                 {{ variant }}
               </div>
             </div>
@@ -295,10 +301,11 @@ export default defineNuxtPlugin(({ vueApp }) => {
             <div
               v-for="variant in verticalVariants"
               :key="variant"
-              :ref="(el: unknown) => setItemRef(el, variant)"
               class="animation-item"
             >
-              <div class="demo-box">
+              <div
+                :class="['demo-box', `variant-${variant}`, { 'is-animating': activeVariants.has(variant) }]"
+              >
                 {{ variant }}
               </div>
             </div>
@@ -312,8 +319,22 @@ export default defineNuxtPlugin(({ vueApp }) => {
 </template>
 
 <script setup lang="ts">
-import { scaleUp } from '~/utils/animation'
-import type { ScaleUpVariant } from '~/utils/animation'
+type ScaleUpVariant
+  = | 'center'
+    | 'top'
+    | 'tr'
+    | 'right'
+    | 'br'
+    | 'bottom'
+    | 'bl'
+    | 'left'
+    | 'tl'
+    | 'hor-center'
+    | 'hor-left'
+    | 'hor-right'
+    | 'ver-center'
+    | 'ver-top'
+    | 'ver-bottom'
 
 const basicVariants: ScaleUpVariant[] = [
   'center',
@@ -339,16 +360,15 @@ const verticalVariants: ScaleUpVariant[] = [
   'ver-bottom',
 ]
 
-// 各バリアントの要素を保持するMap
-const itemRefs = new Map<ScaleUpVariant, HTMLElement>()
+// アニメーション中のバリアントを管理
+const activeVariants = ref<Set<ScaleUpVariant>>(new Set())
 
-const setItemRef = (el: unknown, variant: ScaleUpVariant) => {
-  if (el && el instanceof HTMLElement) {
-    itemRefs.set(variant, el)
-  }
-}
+const replayAll = async () => {
+  // 一旦全てクリア
+  activeVariants.value.clear()
 
-const replayAll = () => {
+  await nextTick()
+
   const allVariants: ScaleUpVariant[] = [
     ...basicVariants,
     ...horizontalVariants,
@@ -358,17 +378,7 @@ const replayAll = () => {
   // 各要素を順番にアニメーション
   for (const [index, variant] of allVariants.entries()) {
     setTimeout(() => {
-      const element = itemRefs.get(variant)
-      if (element) {
-        // 内側の.demo-boxをアニメーション
-        const box = element.querySelector('.demo-box')
-        if (box) {
-          scaleUp(box, {
-            variant,
-            duration: 500,
-          })
-        }
-      }
+      activeVariants.value = new Set(activeVariants.value).add(variant)
     }, index * 100)
   }
 }
@@ -382,6 +392,12 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+@use '#base/app/assets/styles/animations' as anim;
+
+.test {
+  @include anim.scale-up-hover('center');
+}
+
 .animation-demo {
   max-width: 1200px;
   min-height: 100vh;
@@ -487,6 +503,30 @@ onMounted(() => {
 
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+
+  // 各バリアントごとのアニメーション設定
+  &.is-animating {
+    // Basic Directions
+    &.variant-center { @include anim.scale-up('center', 0.5s); }
+    &.variant-top { @include anim.scale-up('top', 0.5s); }
+    &.variant-tr { @include anim.scale-up('tr', 0.5s); }
+    &.variant-right { @include anim.scale-up('right', 0.5s); }
+    &.variant-br { @include anim.scale-up('br', 0.5s); }
+    &.variant-bottom { @include anim.scale-up('bottom', 0.5s); }
+    &.variant-bl { @include anim.scale-up('bl', 0.5s); }
+    &.variant-left { @include anim.scale-up('left', 0.5s); }
+    &.variant-tl { @include anim.scale-up('tl', 0.5s); }
+
+    // Horizontal
+    &.variant-hor-center { @include anim.scale-up('hor-center', 0.5s); }
+    &.variant-hor-left { @include anim.scale-up('hor-left', 0.5s); }
+    &.variant-hor-right { @include anim.scale-up('hor-right', 0.5s); }
+
+    // Vertical
+    &.variant-ver-center { @include anim.scale-up('ver-center', 0.5s); }
+    &.variant-ver-top { @include anim.scale-up('ver-top', 0.5s); }
+    &.variant-ver-bottom { @include anim.scale-up('ver-bottom', 0.5s); }
+  }
 }
 </style>
 ```

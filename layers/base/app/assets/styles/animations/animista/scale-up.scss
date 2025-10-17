@@ -1,0 +1,337 @@
+/**
+ * Scale-up Animation
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Center
+@keyframes scale-up-center {
+  0% {
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+// Top
+@keyframes scale-up-top {
+  0% {
+    transform-origin: 50% 0%;
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform-origin: 50% 0%;
+    transform: scale(1);
+  }
+}
+
+// Top Right
+@keyframes scale-up-tr {
+  0% {
+    transform-origin: 100% 0%;
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform-origin: 100% 0%;
+    transform: scale(1);
+  }
+}
+
+// Right
+@keyframes scale-up-right {
+  0% {
+    transform-origin: 100% 50%;
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: scale(1);
+  }
+}
+
+// Bottom Right
+@keyframes scale-up-br {
+  0% {
+    transform-origin: 100% 100%;
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: scale(1);
+  }
+}
+
+// Bottom
+@keyframes scale-up-bottom {
+  0% {
+    transform-origin: 50% 100%;
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: scale(1);
+  }
+}
+
+// Bottom Left
+@keyframes scale-up-bl {
+  0% {
+    transform-origin: 0% 100%;
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform-origin: 0% 100%;
+    transform: scale(1);
+  }
+}
+
+// Left
+@keyframes scale-up-left {
+  0% {
+    transform-origin: 0% 50%;
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform-origin: 0% 50%;
+    transform: scale(1);
+  }
+}
+
+// Top Left
+@keyframes scale-up-tl {
+  0% {
+    transform-origin: 0% 0%;
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: scale(1);
+  }
+}
+
+// Horizontal Center
+@keyframes scale-up-hor-center {
+  0% {
+    transform: scaleX(0.4);
+  }
+
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+// Horizontal Left
+@keyframes scale-up-hor-left {
+  0% {
+    transform-origin: 0% 0%;
+    transform: scaleX(0.4);
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: scaleX(1);
+  }
+}
+
+// Horizontal Right
+@keyframes scale-up-hor-right {
+  0% {
+    transform-origin: 100% 100%;
+    transform: scaleX(0.4);
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: scaleX(1);
+  }
+}
+
+// Vertical Center
+@keyframes scale-up-ver-center {
+  0% {
+    transform: scaleY(0.4);
+  }
+
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+// Vertical Top
+@keyframes scale-up-ver-top {
+  0% {
+    transform-origin: 0% 0%;
+    transform: scaleY(0.4);
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: scaleY(1);
+  }
+}
+
+// Vertical Bottom
+@keyframes scale-up-ver-bottom {
+  0% {
+    transform-origin: 100% 100%;
+    transform: scaleY(0.4);
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: scaleY(1);
+  }
+}
+
+// ============================================
+// Mixin: Scale Up
+// ============================================
+
+/// Scale-upアニメーションを適用するmixin
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション
+///   Basic Directions (9種類):
+///     'center'  - 中心から拡大
+///     'top'     - 上から拡大
+///     'tr'      - 右上から拡大
+///     'right'   - 右から拡大
+///     'br'      - 右下から拡大
+///     'bottom'  - 下から拡大
+///     'bl'      - 左下から拡大
+///     'left'    - 左から拡大
+///     'tl'      - 左上から拡大
+///   Horizontal (3種類):
+///     'hor-center' - 水平方向に中心から
+///     'hor-left'   - 水平方向に左から
+///     'hor-right'  - 水平方向に右から
+///   Vertical (3種類):
+///     'ver-center' - 垂直方向に中心から
+///     'ver-top'    - 垂直方向に上から
+///     'ver-bottom' - 垂直方向に下から
+///
+/// @param {Number} $duration [0.4s] - アニメーションの実行時間
+///   例: 0.3s, 0.5s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.390, 0.575, 0.565, 1.000)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .box {
+///     @include scale-up('center');
+///   }
+///
+/// @example scss - カスタム設定
+///   .box {
+///     @include scale-up('bottom', 0.8s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .box {
+///     @include scale-up(
+///       $variant: 'center',
+///       $duration: 0.6s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 2,
+///       $fill: forwards
+///     );
+///   }
+@mixin scale-up(
+  $variant: 'center',
+  $duration: 0.4s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.390, 0.575, 0.565, 1.000),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: scale-up-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Scale-upアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション（scale-upと同じ15種類）
+/// @param {Number} $duration [0.4s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.390, 0.575, 0.565, 1.000)] - イージング関数
+///
+/// @example scss - ボタンのホバーエフェクト
+///   .button {
+///     @include scale-up-hover('center', 0.3s);
+///   }
+@mixin scale-up-hover(
+  $variant: 'center',
+  $duration: 0.4s,
+  $easing: cubic-bezier(0.390, 0.575, 0.565, 1.000)
+) {
+  transition: transform $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: scale-up-#{$variant} $duration $easing both;
+    }
+  }
+}
+
+// ============================================
+// Utility Classes (Optional)
+// ============================================
+
+/// ユーティリティクラスを生成するかどうか
+/// 親のindex.scssまたはstyle.scssで以下のように有効化:
+///   @use 'animations/animista/scale-up' with ($generate-utilities: true);
+///
+/// 有効化すると、以下のクラスが使えます:
+///   .scale-up-center, .scale-up-bottom, .scale-up-hover-center, etc.
+///
+/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
+$generate-utilities: false !default;
+
+@if $generate-utilities {
+  // Basic Directions
+  .scale-up-center { @include scale-up('center'); }
+  .scale-up-top { @include scale-up('top'); }
+  .scale-up-tr { @include scale-up('tr'); }
+  .scale-up-right { @include scale-up('right'); }
+  .scale-up-br { @include scale-up('br'); }
+  .scale-up-bottom { @include scale-up('bottom'); }
+  .scale-up-bl { @include scale-up('bl'); }
+  .scale-up-left { @include scale-up('left'); }
+  .scale-up-tl { @include scale-up('tl'); }
+
+  // Horizontal
+  .scale-up-hor-center { @include scale-up('hor-center'); }
+  .scale-up-hor-left { @include scale-up('hor-left'); }
+  .scale-up-hor-right { @include scale-up('hor-right'); }
+
+  // Vertical
+  .scale-up-ver-center { @include scale-up('ver-center'); }
+  .scale-up-ver-top { @include scale-up('ver-top'); }
+  .scale-up-ver-bottom { @include scale-up('ver-bottom'); }
+
+  // Hover variants
+  .scale-up-hover-center { @include scale-up-hover('center'); }
+  .scale-up-hover-bottom { @include scale-up-hover('bottom'); }
+}

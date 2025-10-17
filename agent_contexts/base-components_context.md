@@ -40,9 +40,6 @@ layers/
     app/
       components/
         ha/
-          animation/
-            HaAnimationScaleUp.vue
-            README.md
           base/
             HaBaseButton.vue
             HaBaseInput.vue
@@ -102,7 +99,7 @@ layers/
 # Files
 
 ## File: layers/base/app/components/ha/base/HaBaseButton.vue
-````vue
+```vue
 <template>
   <button
     class="ha-base-button"
@@ -142,10 +139,10 @@ const onClick = (event: MouseEvent): void => {
   max-height: 100%;
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/ha/HaContainer.vue
-````vue
+```vue
 <template>
   <div class="ha-container">
     <slot />
@@ -171,10 +168,10 @@ const onClick = (event: MouseEvent): void => {
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/ha/HaDialog.vue
-````vue
+```vue
 <template>
   <div
     class="ha-dialog"
@@ -225,10 +222,10 @@ const handleCloseDialog = () => emit('close')
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/ha/HaHamburger.vue
-````vue
+```vue
 <template>
   <div
     class="ha-humberger-button"
@@ -313,10 +310,10 @@ const onClick = () => emits('click')
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/ha/HaImage.vue
-````vue
+```vue
 <template>
   <img
     ref="imageElement"
@@ -382,10 +379,10 @@ const onImageLoad = (): void => {
   }
 }
 </script>
-````
+```
 
 ## File: layers/base/app/components/ha/HaLabel.vue
-````vue
+```vue
 <template>
   <div
     class="ha-label"
@@ -419,10 +416,10 @@ const style = computed(() => ({
   'background-color': props.colorMap?.[props.text] ?? props.fallbackColor,
 }))
 </script>
-````
+```
 
 ## File: layers/base/app/components/ha/HaLink.vue
-````vue
+```vue
 <template>
   <component
     :is="component"
@@ -493,10 +490,10 @@ const toUrl = ({
   return `${to}${queryStr}${hash ?? ''}`
 }
 </script>
-````
+```
 
 ## File: layers/base/app/components/ha/HaLoading.vue
-````vue
+```vue
 <template>
   <div
     v-if="loading"
@@ -596,10 +593,10 @@ const loading = ref(props.manual)
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/ha/HaLoadingIcon.vue
-````vue
+```vue
 <template>
   <div class="ha-loading-icon" />
 </template>
@@ -631,10 +628,10 @@ const loading = ref(props.manual)
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/ha/HaSkewBackground.vue
-````vue
+```vue
 <template>
   <div
     class="ha-skew"
@@ -688,10 +685,10 @@ const contentStyle = computed(() => ({
   height: 100%;
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/ha/HaTag.vue
-````vue
+```vue
 <template>
   <span
     class="ha-tag"
@@ -855,10 +852,10 @@ const onClick = () => {
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/ha/HaVideo.vue
-````vue
+```vue
 <template>
   <video
     ref="haVideoRef"
@@ -1000,10 +997,10 @@ onMounted(() => {
   )
 })
 </script>
-````
+```
 
 ## File: layers/base/app/components/hm/button/HmButton.vue
-````vue
+```vue
 <template>
   <HaBaseButton
     :class="[
@@ -1252,10 +1249,10 @@ function onClick(): void {
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/hm/button/HmButtonClose.vue
-````vue
+```vue
 <template>
   <HaBaseButton
     class="hm-button-close"
@@ -1306,10 +1303,10 @@ withDefaults(defineProps<Props>(), {
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/hm/HmAccordion.vue
-````vue
+```vue
 <template>
   <button
     :id="props.buttonname"
@@ -1418,10 +1415,10 @@ const changeExpanded = () => {
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/hm/HmAutoCarousel.vue
-````vue
+```vue
 <template>
   <div
     :class="['hm-auto-carousel', `-${props.orientation}`]"
@@ -1529,10 +1526,10 @@ const direction = computed(() => {
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/hm/HmClipping.vue
-````vue
+```vue
 <template>
   <div class="hm-clipping">
     <div class="cropper-container">
@@ -1676,10 +1673,10 @@ const clip = () => {
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/hm/HmMenuExample.vue
-````vue
+```vue
 <template>
   <section class="hm-menu-example">
     <Menu
@@ -1754,10 +1751,10 @@ import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/hm/HmNoteList.vue
-````vue
+```vue
 <template>
   <ul class="hm-note-list">
     <li
@@ -1793,10 +1790,10 @@ defineProps<{
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/hm/HmPaging.vue
-````vue
+```vue
 <i18n lang="yaml">
 ja:
   next: 次へ
@@ -2071,10 +2068,10 @@ const goToPage = (page: number) => {
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/hm/HmPicture.vue
-````vue
+```vue
 <template>
   <picture classs="hm-picture">
     <source
@@ -2130,10 +2127,10 @@ const imageUrlSp = computed(() =>
     : props.srcSp || defaultNoImage,
 )
 </script>
-````
+```
 
 ## File: layers/base/app/components/hm/HmPopup.vue
-````vue
+```vue
 <template>
   <HaDialog
     class="hm-popup"
@@ -2252,10 +2249,10 @@ const onConfirm = () => {
   margin: 0 12px;
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/hm/HmSkeletonScreen.vue
-````vue
+```vue
 <template>
   <div class="hm-skeleton-screen">
     <template v-if="isLoadingContent">
@@ -2336,10 +2333,10 @@ withDefaults(defineProps<Props>(), {
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/layouts/default.vue
-````vue
+```vue
 <template>
   <div class="layout -default">
     <h1 class="heading">
@@ -2354,539 +2351,10 @@ withDefaults(defineProps<Props>(), {
   overflow-x: hidden;
 }
 </style>
-````
-
-## File: layers/base/app/components/ha/animation/HaAnimationScaleUp.vue
-````vue
-<template>
-  <div
-    :class="[
-      'ha-animation-scale-up',
-      variantClass,
-      { 'is-active': isActive },
-    ]"
-  >
-    <slot />
-  </div>
-</template>
-
-<script setup lang="ts">
-type Variant
-  = | 'center'
-    | 'top'
-    | 'tr'
-    | 'right'
-    | 'br'
-    | 'bottom'
-    | 'bl'
-    | 'left'
-    | 'tl'
-    | 'hor-center'
-    | 'hor-left'
-    | 'hor-right'
-    | 'ver-center'
-    | 'ver-top'
-    | 'ver-bottom'
-
-interface Props {
-  /**
-   * アニメーションの起点となる方向
-   * @default 'center'
-   */
-  variant?: Variant
-  /**
-   * アニメーションをアクティブにするかどうか
-   * @default false
-   */
-  active?: boolean
-  /**
-   * アニメーションの実行時間（秒）
-   * @default 0.4
-   */
-  duration?: number
-  /**
-   * アニメーションの遅延時間（秒）
-   * @default 0
-   */
-  delay?: number
-  /**
-   * アニメーションを無限にループするかどうか
-   * @default false
-   */
-  infinite?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  variant: 'center',
-  active: false,
-  duration: 0.4,
-  delay: 0,
-  infinite: false,
-})
-
-const isActive = ref(props.active)
-
-const variantClass = computed(() => `-${props.variant}`)
-
-// activeプロパティの変更を監視
-watch(() => props.active, (newValue) => {
-  isActive.value = newValue
-})
-
-// マウント時にactiveがtrueの場合、アニメーションを開始
-onMounted(() => {
-  if (props.active) {
-    isActive.value = true
-  }
-})
-</script>
-
-<style lang="scss" scoped>
-.ha-animation-scale-up {
-  display: inline-block;
-
-  &.is-active {
-    &.-center {
-      animation: scale-up-center v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
-    }
-
-    &.-top {
-      animation: scale-up-top v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
-    }
-
-    &.-tr {
-      animation: scale-up-tr v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
-    }
-
-    &.-right {
-      animation: scale-up-right v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
-    }
-
-    &.-br {
-      animation: scale-up-br v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
-    }
-
-    &.-bottom {
-      animation: scale-up-bottom v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
-    }
-
-    &.-bl {
-      animation: scale-up-bl v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
-    }
-
-    &.-left {
-      animation: scale-up-left v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
-    }
-
-    &.-tl {
-      animation: scale-up-tl v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
-    }
-
-    &.-hor-center {
-      animation: scale-up-hor-center v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
-    }
-
-    &.-hor-left {
-      animation: scale-up-hor-left v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
-    }
-
-    &.-hor-right {
-      animation: scale-up-hor-right v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
-    }
-
-    &.-ver-center {
-      animation: scale-up-ver-center v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
-    }
-
-    &.-ver-top {
-      animation: scale-up-ver-top v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
-    }
-
-    &.-ver-bottom {
-      animation: scale-up-ver-bottom v-bind('`${duration}s`') cubic-bezier(0.390, 0.575, 0.565, 1.000) v-bind('`${delay}s`') v-bind('infinite ? "infinite" : "1"') normal both;
-    }
-  }
-}
-
-/* ----------------------------------------------
- * Generated by Animista on 2025-10-16 17:38:18
- * Licensed under FreeBSD License.
- * See http://animista.net/license for more info.
- * w: http://animista.net, t: @cssanimista
- * ---------------------------------------------- */
-
-// Center
-@keyframes scale-up-center {
-  0% {
-    transform: scale(0.5);
-  }
-
-  100% {
-    transform: scale(1);
-  }
-}
-
-// Top
-@keyframes scale-up-top {
-  0% {
-    transform-origin: 50% 0%;
-    transform: scale(0.5);
-  }
-
-  100% {
-    transform-origin: 50% 0%;
-    transform: scale(1);
-  }
-}
-
-// Top Right
-@keyframes scale-up-tr {
-  0% {
-    transform-origin: 100% 0%;
-    transform: scale(0.5);
-  }
-
-  100% {
-    transform-origin: 100% 0%;
-    transform: scale(1);
-  }
-}
-
-// Right
-@keyframes scale-up-right {
-  0% {
-    transform-origin: 100% 50%;
-    transform: scale(0.5);
-  }
-
-  100% {
-    transform-origin: 100% 50%;
-    transform: scale(1);
-  }
-}
-
-// Bottom Right
-@keyframes scale-up-br {
-  0% {
-    transform-origin: 100% 100%;
-    transform: scale(0.5);
-  }
-
-  100% {
-    transform-origin: 100% 100%;
-    transform: scale(1);
-  }
-}
-
-// Bottom
-@keyframes scale-up-bottom {
-  0% {
-    transform-origin: 50% 100%;
-    transform: scale(0.5);
-  }
-
-  100% {
-    transform-origin: 50% 100%;
-    transform: scale(1);
-  }
-}
-
-// Bottom Left
-@keyframes scale-up-bl {
-  0% {
-    transform-origin: 0% 100%;
-    transform: scale(0.5);
-  }
-
-  100% {
-    transform-origin: 0% 100%;
-    transform: scale(1);
-  }
-}
-
-// Left
-@keyframes scale-up-left {
-  0% {
-    transform-origin: 0% 50%;
-    transform: scale(0.5);
-  }
-
-  100% {
-    transform-origin: 0% 50%;
-    transform: scale(1);
-  }
-}
-
-// Top Left
-@keyframes scale-up-tl {
-  0% {
-    transform-origin: 0% 0%;
-    transform: scale(0.5);
-  }
-
-  100% {
-    transform-origin: 0% 0%;
-    transform: scale(1);
-  }
-}
-
-// Horizontal Center
-@keyframes scale-up-hor-center {
-  0% {
-    transform: scaleX(0.4);
-  }
-
-  100% {
-    transform: scaleX(1);
-  }
-}
-
-// Horizontal Left
-@keyframes scale-up-hor-left {
-  0% {
-    transform-origin: 0% 0%;
-    transform: scaleX(0.4);
-  }
-
-  100% {
-    transform-origin: 0% 0%;
-    transform: scaleX(1);
-  }
-}
-
-// Horizontal Right
-@keyframes scale-up-hor-right {
-  0% {
-    transform-origin: 100% 100%;
-    transform: scaleX(0.4);
-  }
-
-  100% {
-    transform-origin: 100% 100%;
-    transform: scaleX(1);
-  }
-}
-
-// Vertical Center
-@keyframes scale-up-ver-center {
-  0% {
-    transform: scaleY(0.4);
-  }
-
-  100% {
-    transform: scaleY(1);
-  }
-}
-
-// Vertical Top
-@keyframes scale-up-ver-top {
-  0% {
-    transform-origin: 0% 0%;
-    transform: scaleY(0.4);
-  }
-
-  100% {
-    transform-origin: 0% 0%;
-    transform: scaleY(1);
-  }
-}
-
-// Vertical Bottom
-@keyframes scale-up-ver-bottom {
-  0% {
-    transform-origin: 100% 100%;
-    transform: scaleY(0.4);
-  }
-
-  100% {
-    transform-origin: 100% 100%;
-    transform: scaleY(1);
-  }
-}
-</style>
-````
-
-## File: layers/base/app/components/ha/animation/README.md
-````markdown
-# HaAnimationScaleUp
-
-Animista の scale-up アニメーションを使用した Vue コンポーネントです。
-
-## 概要
-
-`HaAnimationScaleUp` は、要素をスケールアップさせるアニメーション効果を提供します。15種類のバリエーションがあり、アニメーションの起点を柔軟に設定できます。
-
-## 基本的な使い方
-
-```vue
-<template>
-  <HaAnimationScaleUp :active="isActive">
-    <div>アニメーションするコンテンツ</div>
-  </HaAnimationScaleUp>
-</template>
-
-<script setup lang="ts">
-const isActive = ref(false)
-
-// 1秒後にアニメーションを開始
-setTimeout(() => {
-  isActive.value = true
-}, 1000)
-</script>
 ```
-
-## Props
-
-| プロパティ | 型 | デフォルト | 説明 |
-|-----------|-----|-----------|------|
-| `variant` | `Variant` | `'center'` | アニメーションの起点となる方向 |
-| `active` | `boolean` | `false` | アニメーションをアクティブにするかどうか |
-| `duration` | `number` | `0.4` | アニメーションの実行時間（秒） |
-| `delay` | `number` | `0` | アニメーションの遅延時間（秒） |
-| `infinite` | `boolean` | `false` | アニメーションを無限にループするかどうか |
-
-### Variant の種類
-
-#### 中心からのスケール
-- `center`: 中心から全方向にスケール
-
-#### 各方向からのスケール
-- `top`: 上から
-- `tr`: 右上から
-- `right`: 右から
-- `br`: 右下から
-- `bottom`: 下から
-- `bl`: 左下から
-- `left`: 左から
-- `tl`: 左上から
-
-#### 水平方向のみのスケール
-- `hor-center`: 水平方向に中心から
-- `hor-left`: 水平方向に左から
-- `hor-right`: 水平方向に右から
-
-#### 垂直方向のみのスケール
-- `ver-center`: 垂直方向に中心から
-- `ver-top`: 垂直方向に上から
-- `ver-bottom`: 垂直方向に下から
-
-## 使用例
-
-### 基本的なスケールアップ
-
-```vue
-<HaAnimationScaleUp :active="true">
-  <button>ボタン</button>
-</HaAnimationScaleUp>
-```
-
-### 左上から右下へスケールアップ
-
-```vue
-<HaAnimationScaleUp variant="tl" :active="isVisible">
-  <div class="card">カード要素</div>
-</HaAnimationScaleUp>
-```
-
-### カスタムタイミング設定
-
-```vue
-<HaAnimationScaleUp
-  :active="true"
-  :duration="0.8"
-  :delay="0.2"
->
-  <div>ゆっくり表示</div>
-</HaAnimationScaleUp>
-```
-
-### 水平方向のみのアニメーション
-
-```vue
-<HaAnimationScaleUp variant="hor-center" :active="true">
-  <div class="progress-bar">プログレスバー</div>
-</HaAnimationScaleUp>
-```
-
-### 無限ループアニメーション
-
-```vue
-<HaAnimationScaleUp :active="true" :infinite="true">
-  <div class="pulse-effect">パルス効果</div>
-</HaAnimationScaleUp>
-```
-
-### クリックでアニメーション開始
-
-```vue
-<template>
-  <div>
-    <button @click="startAnimation">アニメーション開始</button>
-
-    <HaAnimationScaleUp :active="isAnimating" variant="center">
-      <div class="animated-content">
-        クリックでアニメーション！
-      </div>
-    </HaAnimationScaleUp>
-  </div>
-</template>
-
-<script setup lang="ts">
-const isAnimating = ref(false)
-
-const startAnimation = () => {
-  isAnimating.value = false
-  nextTick(() => {
-    isAnimating.value = true
-  })
-}
-</script>
-```
-
-### スクロールでアニメーション
-
-```vue
-<template>
-  <HaAnimationScaleUp
-    v-for="(item, index) in items"
-    :key="item.id"
-    :active="visibleItems.includes(index)"
-    variant="bottom"
-    :delay="index * 0.1"
-  >
-    <div class="item">{{ item.text }}</div>
-  </HaAnimationScaleUp>
-</template>
-
-<script setup lang="ts">
-const items = ref([...])
-const visibleItems = ref<number[]>([])
-
-// Intersection Observer を使ってスクロールで表示
-onMounted(() => {
-  // 実装例
-})
-</script>
-```
-
-## ライセンス
-
-このコンポーネントで使用しているアニメーションは Animista で生成されています。
-
-- Generated by Animista on 2025-10-16
-- Licensed under FreeBSD License
-- See http://animista.net/license for more info
-- w: http://animista.net, t: @cssanimista
-
-## 注意事項
-
-- `active` プロパティを `true` に設定することでアニメーションが開始されます
-- アニメーションを再実行したい場合は、一度 `active` を `false` にしてから再度 `true` にする必要があります
-- `infinite` を `true` にすると、アニメーションが繰り返し実行されます
-````
 
 ## File: layers/base/app/components/ha/base/HaBaseInput.vue
-````vue
+```vue
 <template>
   <input
     :id="props.id"
@@ -3037,10 +2505,10 @@ const capture_ = computed<'user' | 'environment' | true | undefined>(() => {
   max-height: 100%;
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/ha/HaModal.vue
-````vue
+```vue
 <template>
   <!-- モーダルを開くボタン -->
   <button
@@ -3219,10 +2687,10 @@ defineExpose({
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/hm/button/HmButtonFavorite.vue
-````vue
+```vue
 <template>
   <div
     class="hm-button-favorite"
@@ -3311,10 +2779,10 @@ const onClick = () => {
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/hm/input/HmInputFile.vue
-````vue
+```vue
 <template>
   <!-- TODO: エラーメッセージの表示をする際に、必要に応じてHmInputTextBase.vue同様の修正(DOM構造とエラーmsgのstyle)を行う -->
   <label
@@ -3520,10 +2988,10 @@ const onClick = () => {
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/hm/input/HmInputRadio.vue
-````vue
+```vue
 <template>
   <label class="hm-input-radio">
     <HaBaseInput
@@ -3620,10 +3088,10 @@ function onChange(e: Event): void {
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/hm/HmSlider.vue
-````vue
+```vue
 <template>
   <div
     class="slider-wrap"
@@ -4219,10 +3687,10 @@ onBeforeUnmount(() => stopAutoPlay())
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/hm/HmSliderItem.vue
-````vue
+```vue
 <template>
   <div
     :id="props.id"
@@ -4250,10 +3718,10 @@ const props = defineProps<{
   height: 100%;
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/hm/HmSocialShareLink.vue
-````vue
+```vue
 <template>
   <!--
   - [x] Composition APIで書けている
@@ -4293,10 +3761,10 @@ const props = defineProps<{
 const socialShareLink = useSocialShareLink()
 const url = computed(() => socialShareLink.getShareUrl(props.name || '', props))
 </script>
-````
+```
 
 ## File: layers/base/app/components/hm/HmTab.vue
-````vue
+```vue
 <template>
   <ul class="tablist">
     <li
@@ -4379,10 +3847,10 @@ const changeTab = (index: number): void => {
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/hm/HmTsx.vue
-````vue
+```vue
 <template>
   <div class="hm-tsx">
     <DefaultSlot />
@@ -4399,10 +3867,10 @@ const DefaultSlot = () => {
   return <Fragment>{defaultSlot}</Fragment>
 }
 </script>
-````
+```
 
 ## File: layers/base/app/components/hm/icon/HmIconUser.vue
-````vue
+```vue
 <template>
   <span class="hm-icon-user">
     <HaImage
@@ -4445,10 +3913,10 @@ const props = defineProps<Props>()
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/hm/input/HmInputRadioChangeable.vue
-````vue
+```vue
 <template>
   <div class="hm-input-radio-changeable">
     <div
@@ -4596,10 +4064,10 @@ const onChange = (e: Event) => {
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/ha/HaSelectBox.vue
-````vue
+```vue
 <template>
   <div class="ha-select-box">
     <select
@@ -4790,10 +4258,10 @@ const innerValue = computed({
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/ha/HaTextarea.vue
-````vue
+```vue
 <template>
   <div class="ha-textarea">
     <label
@@ -4990,10 +4458,10 @@ const count = computed((): string | number => {
   }
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/hm/input/HmInputCheckbox.vue
-````vue
+```vue
 <template>
   <label
     class="hm-input-checkbox"
@@ -5180,10 +4648,227 @@ const innerValue = computed({
   }
 }
 </style>
-````
+```
+
+## File: layers/base/app/components/hm/input/HmInputDatetime.vue
+```vue
+<template>
+  <div
+    :name="validatorName"
+    class="hm-input-datetime"
+  >
+    <label
+      :class="[
+        errorMessage
+          ? 'hm-input-datetime__label --error'
+          : 'hm-input-datetime__label',
+      ]"
+    >
+      <HaBaseInput
+        v-model="date"
+        :type="type"
+        :disabled="disabled"
+        :required="required"
+        :min="min"
+        :max="max"
+        class="hm-input-datetime__input"
+        @keyup.enter="enter"
+      />
+    </label>
+    <p
+      class="error-container"
+      :class="{ '-hide': hideDetails }"
+    >
+      <template v-if="errorMessage">
+        <span class="error">{{ errorMessage }}</span>
+      </template>
+    </p>
+  </div>
+</template>
+
+<script lang="ts">
+import { useField } from 'vee-validate'
+import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
+
+export default defineComponent({
+  name: 'HmInputDatetime',
+})
+
+export type Props = {
+  type?: 'datetime-local' | 'date' | 'time'
+  validatorName?: string
+  validatorRules?:
+    | ZodType<string, ZodTypeDef, string>
+    | ZodEffects<ZodType<string, ZodTypeDef, string>>
+  required?: boolean
+  modelValue?: string
+  disabled?: boolean
+  // FIXME: 型定義をstringからyyyy-mm-ddなどinput type=dateが許容している物にする
+  min?: number | string
+  // FIXME: 型定義をstringからyyyy-mm-ddなどinput type=dateが許容している物にする
+  max?: number | string
+  keyupEnter?: boolean
+  validateOnMount?: boolean
+  hideDetails?: boolean
+  error?: string | undefined
+}
+</script>
+
+<script setup lang="ts">
+const props = withDefaults(
+  defineProps<Props>(),
+  {
+    type: 'datetime-local',
+    validatorName: 'dateLocal',
+    validatorRules: undefined,
+    required: false,
+    modelValue: '',
+    disabled: false,
+    min: undefined,
+    max: undefined,
+    keyupEnter: false,
+    validateOnMount: false,
+  },
+)
+
+const emit = defineEmits<{
+  (e: 'update:modelValue' | 'input', value: string): void
+  (e: 'validation', isValid: boolean): void
+  (e: 'enter'): void
+}>()
+
+const { value: fieldValue, errorMessage: _errorMessage } = useField(
+  toRef(props, 'validatorName'),
+  props.validatorRules,
+  { initialValue: props.modelValue, validateOnMount: props.validateOnMount },
+)
+
+const date = computed({
+  get: () => {
+    if (props.modelValue === undefined) return ''
+    if (props.type === 'datetime-local')
+      return formatDate('YYYY-MM-DD HH:mm', props.modelValue)
+    if (props.type === 'date') return formatDate('YYYY-MM-DD', props.modelValue)
+    if (props.type === 'time')
+      return formatDate('HH:mm', `1970-00-00 ${props.modelValue}`)
+    return ''
+  },
+  set: (date: string) => {
+    emit('update:modelValue', date)
+    emit('input', date)
+    fieldValue.value = date
+    emit('validation', !!errorMessage.value)
+  },
+})
+
+const errorMessage = computed(() => {
+  if (props.error) return props.error
+  return _errorMessage.value
+})
+
+const enter = () => {
+  if (props.keyupEnter) {
+    emit('enter')
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+
+.hm-input-datetime {
+  &__label {
+    position: relative;
+
+    display: block;
+
+    width: 100%;
+    height: 44px;
+    padding: 9px 12px 11px;
+    border: 1px solid #d5d5d5;
+    border-radius: 3px;
+
+    background-color: v.$white;
+
+    &:disabled {
+      border-color: rgb(0 0 0 / 12%);
+    }
+
+    &:active,
+    &:focus,
+    &:hover,
+    &:focus-within {
+      border-color: v.$primary-color;
+
+      .hm-input-datetime {
+        &__input {
+          caret-color: v.$primary-color;
+        }
+      }
+    }
+
+    &.--error {
+      border-color: v.$red;
+
+      .hm-input-datetime {
+        &__input {
+          caret-color: v.$red;
+        }
+      }
+    }
+  }
+
+  &__counter {
+    position: absolute;
+    top: -18px;
+    right: 0;
+
+    display: block;
+
+    font-size: 11px;
+    text-align: right;
+  }
+
+  &__input {
+    width: 100%;
+    font-size: 16px;
+    line-height: 24px;
+
+    &::placeholder {
+      color: v.$gray-1;
+    }
+
+    &::selection {
+      color: v.$white;
+      background-color: v.$primary-color;
+    }
+  }
+}
+
+.error-container {
+  display: block;
+  min-height: 20px;
+  margin-top: 8px;
+
+  &.-hide {
+    display: none;
+  }
+
+  > .error {
+    display: block;
+
+    width: fit-content;
+
+    font-size: 12px;
+    font-weight: 400;
+    color: v.$red;
+  }
+}
+</style>
+```
 
 ## File: layers/base/app/components/hm/input/HmInputText.vue
-````vue
+```vue
 <template>
   <div
     tag="div"
@@ -5512,10 +5197,10 @@ input[type='number'] {
   appearance: textfield;
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/hm/HmDialogElement.vue
-````vue
+```vue
 <!--
 HaDialogとの違いとして、HmDialogElementは別階層の別要素のz-indexの影響により、それよりも下に表示されてしまう
 と言った現象が起きません(dialog要素は常に最前面に表示される)。
@@ -5608,10 +5293,10 @@ defineExpose({
   cursor: pointer;
 }
 </style>
-````
+```
 
 ## File: layers/base/app/components/ha/HaDialogElement.vue
-````vue
+```vue
 <!--
 HaDialogとの違いとして、HaDialogElementは別階層の別要素のz-indexの影響により、それよりも下に表示されてしまう
 と言った現象が起きません(dialog要素は常に最前面に表示される)。
@@ -5818,227 +5503,10 @@ defineExpose({
   }
 }
 </style>
-````
-
-## File: layers/base/app/components/hm/input/HmInputDatetime.vue
-````vue
-<template>
-  <div
-    :name="validatorName"
-    class="hm-input-datetime"
-  >
-    <label
-      :class="[
-        errorMessage
-          ? 'hm-input-datetime__label --error'
-          : 'hm-input-datetime__label',
-      ]"
-    >
-      <HaBaseInput
-        v-model="date"
-        :type="type"
-        :disabled="disabled"
-        :required="required"
-        :min="min"
-        :max="max"
-        class="hm-input-datetime__input"
-        @keyup.enter="enter"
-      />
-    </label>
-    <p
-      class="error-container"
-      :class="{ '-hide': hideDetails }"
-    >
-      <template v-if="errorMessage">
-        <span class="error">{{ errorMessage }}</span>
-      </template>
-    </p>
-  </div>
-</template>
-
-<script lang="ts">
-import { useField } from 'vee-validate'
-import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
-
-export default defineComponent({
-  name: 'HmInputDatetime',
-})
-
-export type Props = {
-  type?: 'datetime-local' | 'date' | 'time'
-  validatorName?: string
-  validatorRules?:
-    | ZodType<string, ZodTypeDef, string>
-    | ZodEffects<ZodType<string, ZodTypeDef, string>>
-  required?: boolean
-  modelValue?: string
-  disabled?: boolean
-  // FIXME: 型定義をstringからyyyy-mm-ddなどinput type=dateが許容している物にする
-  min?: number | string
-  // FIXME: 型定義をstringからyyyy-mm-ddなどinput type=dateが許容している物にする
-  max?: number | string
-  keyupEnter?: boolean
-  validateOnMount?: boolean
-  hideDetails?: boolean
-  error?: string | undefined
-}
-</script>
-
-<script setup lang="ts">
-const props = withDefaults(
-  defineProps<Props>(),
-  {
-    type: 'datetime-local',
-    validatorName: 'dateLocal',
-    validatorRules: undefined,
-    required: false,
-    modelValue: '',
-    disabled: false,
-    min: undefined,
-    max: undefined,
-    keyupEnter: false,
-    validateOnMount: false,
-  },
-)
-
-const emit = defineEmits<{
-  (e: 'update:modelValue' | 'input', value: string): void
-  (e: 'validation', isValid: boolean): void
-  (e: 'enter'): void
-}>()
-
-const { value: fieldValue, errorMessage: _errorMessage } = useField(
-  toRef(props, 'validatorName'),
-  props.validatorRules,
-  { initialValue: props.modelValue, validateOnMount: props.validateOnMount },
-)
-
-const date = computed({
-  get: () => {
-    if (props.modelValue === undefined) return ''
-    if (props.type === 'datetime-local')
-      return formatDate('YYYY-MM-DD HH:mm', props.modelValue)
-    if (props.type === 'date') return formatDate('YYYY-MM-DD', props.modelValue)
-    if (props.type === 'time')
-      return formatDate('HH:mm', `1970-00-00 ${props.modelValue}`)
-    return ''
-  },
-  set: (date: string) => {
-    emit('update:modelValue', date)
-    emit('input', date)
-    fieldValue.value = date
-    emit('validation', !!errorMessage.value)
-  },
-})
-
-const errorMessage = computed(() => {
-  if (props.error) return props.error
-  return _errorMessage.value
-})
-
-const enter = () => {
-  if (props.keyupEnter) {
-    emit('enter')
-  }
-}
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-
-.hm-input-datetime {
-  &__label {
-    position: relative;
-
-    display: block;
-
-    width: 100%;
-    height: 44px;
-    padding: 9px 12px 11px;
-    border: 1px solid #d5d5d5;
-    border-radius: 3px;
-
-    background-color: v.$white;
-
-    &:disabled {
-      border-color: rgb(0 0 0 / 12%);
-    }
-
-    &:active,
-    &:focus,
-    &:hover,
-    &:focus-within {
-      border-color: v.$primary-color;
-
-      .hm-input-datetime {
-        &__input {
-          caret-color: v.$primary-color;
-        }
-      }
-    }
-
-    &.--error {
-      border-color: v.$red;
-
-      .hm-input-datetime {
-        &__input {
-          caret-color: v.$red;
-        }
-      }
-    }
-  }
-
-  &__counter {
-    position: absolute;
-    top: -18px;
-    right: 0;
-
-    display: block;
-
-    font-size: 11px;
-    text-align: right;
-  }
-
-  &__input {
-    width: 100%;
-    font-size: 16px;
-    line-height: 24px;
-
-    &::placeholder {
-      color: v.$gray-1;
-    }
-
-    &::selection {
-      color: v.$white;
-      background-color: v.$primary-color;
-    }
-  }
-}
-
-.error-container {
-  display: block;
-  min-height: 20px;
-  margin-top: 8px;
-
-  &.-hide {
-    display: none;
-  }
-
-  > .error {
-    display: block;
-
-    width: fit-content;
-
-    font-size: 12px;
-    font-weight: 400;
-    color: v.$red;
-  }
-}
-</style>
-````
+```
 
 ## File: layers/base/app/components/hm/input/HmInputSingleImage.vue
-````vue
+```vue
 <i18n lang="yaml">
 ja:
   explain: "画像を切り抜く範囲を指定して、「切り抜く」ボタンをクリックしてください。マウスホイールで拡大・縮小できます。"
@@ -6429,4 +5897,4 @@ const cancel = () => {
   }
 }
 </style>
-````
+```
