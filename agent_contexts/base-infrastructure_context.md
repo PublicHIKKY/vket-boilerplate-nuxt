@@ -233,8 +233,8 @@ export default defineNuxtPlugin(({ vueApp }) => {
 ```vue
 <template>
   <NuxtLayout>
-    <NuxtPage />
     <NuxtRouteAnnouncer />
+    <NuxtWelcome />
   </NuxtLayout>
 </template>
 ```
