@@ -2940,6 +2940,71 @@ exports[`mount component 1`] = `
 exports[`mount component 1`] = `"<span data-v-1d2a94ab="" class="hm-icon-user"><img data-v-1d2a94ab="" class="ha-image image" loading="eager" fetchpriority="low" src="/image.png" alt="" role="presentation" decoding="auto" draggable="false"></span>"`;
 ````
 
+## File: layers/base/app/test/components/hm/icon/HmIconUser.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { describe, it, test, expect } from 'vitest'
+import HmIconUser from '#base/app/components/hm/icon/HmIconUser.vue'
+
+/**
+ * @see vitest.config.mtsのalias
+ */
+const defaultNoImage = '/images/no-image.png'
+
+test('ref component', () => {
+  expect(HmIconUser).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HmIconUser, {
+    props: {
+      src: '/image.png',
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+// propsのsrcが指定されている場合、その値が設定される
+describe('props', () => {
+  it(':src', () => {
+    const wrapper = mount(HmIconUser, {
+      props: {
+        src: '/image.png',
+      },
+    })
+    expect(wrapper.get('img').attributes('src')).toBe('/image.png')
+  })
+})
+
+// propsのsrcが空文字の場合、no image画像が設定される
+describe('if src empty, set no image', () => {
+  it(':src', () => {
+    const wrapper = mount(HmIconUser, {
+      props: {
+        src: '',
+      },
+    })
+    expect(wrapper.get('img').attributes('src')).toContain(defaultNoImage)
+  })
+})
+
+// propsのsrcに指定した画像でエラーが発生した場合、placeholder画像が設定される
+describe('if src error, set placeholder image', () => {
+  it(':src error', async () => {
+    const wrapper = mount(HmIconUser, {
+      props: {
+        src: '/foo-not-found.jpg',
+      },
+    })
+    await wrapper.get('img').trigger('error')
+    expect(wrapper.get('img').attributes('src')).toContain(
+      '/public/images/no-image_1x1.jpg',
+    )
+  })
+})
+````
+
 ## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputCheckbox.spec.ts.snap
 ````
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
@@ -5802,36 +5867,6 @@ describe('useExample', () => {
 })
 ````
 
-## File: layers/base/app/test/e2e/sample.spec.ts
-````typescript
-import { test, expect } from '@playwright/test'
-
-test.describe('Top Page', () => {
-  test('should display top page successfully', async ({ page }) => {
-    // トップページにアクセス
-    const response = await page.goto('/')
-
-    // ページが正常にロードされることを確認
-    await expect(page).toHaveTitle(/.*/)
-
-    // ページのステータスが200であることを確認（正常にレスポンスが返ってくる）
-    expect(response?.status()).toBe(200)
-  })
-
-  test('should have accessible content', async ({ page }) => {
-    await page.goto('/')
-
-    // ページのbody要素が存在することを確認
-    const body = page.locator('body')
-    await expect(body).toBeVisible()
-
-    // HTMLドキュメントが適切にレンダリングされていることを確認
-    const htmlContent = await page.content()
-    expect(htmlContent).toContain('<!DOCTYPE html>')
-  })
-})
-````
-
 ## File: layers/base/app/test/mock-icons/ri/close-line.js
 ````javascript
 export default {
@@ -8629,71 +8664,6 @@ exports[`mount component 1`] = `
 `;
 ````
 
-## File: layers/base/app/test/components/hm/icon/HmIconUser.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { describe, it, test, expect } from 'vitest'
-import HmIconUser from '#base/app/components/hm/icon/HmIconUser.vue'
-
-/**
- * @see vitest.config.mtsのalias
- */
-const defaultNoImage = '/images/no-image.png'
-
-test('ref component', () => {
-  expect(HmIconUser).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HmIconUser, {
-    props: {
-      src: '/image.png',
-    },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-// propsのsrcが指定されている場合、その値が設定される
-describe('props', () => {
-  it(':src', () => {
-    const wrapper = mount(HmIconUser, {
-      props: {
-        src: '/image.png',
-      },
-    })
-    expect(wrapper.get('img').attributes('src')).toBe('/image.png')
-  })
-})
-
-// propsのsrcが空文字の場合、no image画像が設定される
-describe('if src empty, set no image', () => {
-  it(':src', () => {
-    const wrapper = mount(HmIconUser, {
-      props: {
-        src: '',
-      },
-    })
-    expect(wrapper.get('img').attributes('src')).toContain(defaultNoImage)
-  })
-})
-
-// propsのsrcに指定した画像でエラーが発生した場合、placeholder画像が設定される
-describe('if src error, set placeholder image', () => {
-  it(':src error', async () => {
-    const wrapper = mount(HmIconUser, {
-      props: {
-        src: '/foo-not-found.jpg',
-      },
-    })
-    await wrapper.get('img').trigger('error')
-    expect(wrapper.get('img').attributes('src')).toContain(
-      '/public/images/no-image_1x1.jpg',
-    )
-  })
-})
-````
-
 ## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadio.spec.ts.snap
 ````
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
@@ -8702,6 +8672,20 @@ exports[`mount component 1`] = `
 "<label data-v-3deb71fa="" class="hm-input-radio"><input data-v-fc3f65b2="" data-v-3deb71fa="" class="ha-base-input button" type="radio" name="test name" value="1">
   <div data-v-3deb71fa="" class="content"></div>
 </label>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadioChangeable.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-3ec31731="" class="hm-input-radio-changeable">
+  <div data-v-3ec31731="" class="radio"><input data-v-fc3f65b2="" data-v-3ec31731="" id="testValue" class="ha-base-input input" type="radio" name="testName" required="" value="testValue"><label data-v-3ec31731="" for="testValue" class="label option-0">
+      <!--v-if--> testLabel
+      <!--v-if-->
+    </label></div>
+</div>"
 `;
 ````
 
@@ -9929,6 +9913,36 @@ test.prop([fc.nat(), fc.string()])('fails to validate max', (n, s) => {
 })
 ````
 
+## File: layers/base/app/test/e2e/sample.spec.ts
+````typescript
+import { test, expect } from '@playwright/test'
+
+test.describe('Top Page', () => {
+  test('should display top page successfully', async ({ page }) => {
+    // トップページにアクセス
+    const response = await page.goto('/')
+
+    // ページが正常にロードされることを確認
+    await expect(page).toHaveTitle(/.*/)
+
+    // ページのステータスが200であることを確認（正常にレスポンスが返ってくる）
+    expect(response?.status()).toBe(200)
+  })
+
+  test('should have accessible content', async ({ page }) => {
+    await page.goto('/')
+
+    // ページのbody要素が存在することを確認
+    const body = page.locator('body')
+    await expect(body).toBeVisible()
+
+    // HTMLドキュメントが適切にレンダリングされていることを確認
+    const htmlContent = await page.content()
+    expect(htmlContent).toContain('<!DOCTYPE html>')
+  })
+})
+````
+
 ## File: layers/base/app/test/utils/types/types.spec.ts
 ````typescript
 import { IsEqual } from 'type-fest'
@@ -10503,20 +10517,6 @@ describe('createUuidV4', () => {
     expect(uuidV4_1).not.toBe(uuidV4_2)
   })
 })
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadioChangeable.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-3ec31731="" class="hm-input-radio-changeable">
-  <div data-v-3ec31731="" class="radio"><input data-v-fc3f65b2="" data-v-3ec31731="" id="testValue" class="ha-base-input input" type="radio" name="testName" required="" value="testValue"><label data-v-3ec31731="" for="testValue" class="label option-0">
-      <!--v-if--> testLabel
-      <!--v-if-->
-    </label></div>
-</div>"
-`;
 ````
 
 ## File: layers/base/app/test/components/hm/input/HmInputSingleImage.spec.ts
