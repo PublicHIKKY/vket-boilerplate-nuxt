@@ -24,6 +24,8 @@
     "test:watch": "cmd='vitest --dir ./app/test' bun exec-test",
     "test:ui": "cmd='vitest --ui --dir ./app/test' bun exec-test",
     "test:coverage": "cmd='vitest run --dir ./app/test --coverage' bun exec-test",
+    "test:e2e:setup": "playwright install chromium",
+    "test:e2e:ui": "playwright test --ui",
     "exec-test": "baseDir='./app/test' ext='\\.spec\\.ts' bun exec-if-file-exists",
     "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true",
     "package-update": "bunx npm-check-updates -i"
