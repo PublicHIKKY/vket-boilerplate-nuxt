@@ -1,9 +1,9 @@
 /**
- * Showcases layer test example
+ * derived-main layer test example
  * This is a basic test to ensure the test environment is working
  */
 
-describe('Showcases Layer Tests', () => {
+describe('Derived-main Layer Tests', () => {
   it('should have working test environment', () => {
     expect(true).toBe(true)
   })
