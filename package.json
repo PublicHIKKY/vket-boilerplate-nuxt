@@ -9,7 +9,8 @@
   ],
   "scripts": {
     "update-project": "bun update && bun clean-install",
-    "clean-install": "rm -rf node_modules bun.lock && bun install",
+    "clean-install": "node ./scripts/clean_install.js",
+    "allclean-install": "node ./scripts/clean_install.js all",
     "prepare": "bun husky",
     "package-update": "bunx npm-check-updates -i",
     "repomix": "./scripts/generate_context.sh",
@@ -24,6 +25,7 @@
     "eslint": "^9.37.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.3",
+    "rimraf": "^6.0.1",
     "stylelint": "^16.25.0"
   },
   "lint-staged": {
