@@ -2,8 +2,8 @@ import { defineNuxtPlugin } from 'nuxt/app'
 import type { RuntimeConfig } from 'nuxt/schema'
 
 /**
- * 型を退化されたruntimeConfig。
- * [[requireRuntimeConfig]]のために、退化されました。
+ * 型を保持したruntimeConfig。
+ * [[requireRuntimeConfig]]のために、保持されています。
  */
 let runtimeConfig: RuntimeConfig | undefined
 
