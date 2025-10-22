@@ -5809,13 +5809,12 @@ import { test, expect } from '@playwright/test'
 test.describe('Top Page', () => {
   test('should display top page successfully', async ({ page }) => {
     // トップページにアクセス
-    await page.goto('/')
+    const response = await page.goto('/')
 
     // ページが正常にロードされることを確認
     await expect(page).toHaveTitle(/.*/)
 
     // ページのステータスが200であることを確認（正常にレスポンスが返ってくる）
-    const response = await page.goto('/')
     expect(response?.status()).toBe(200)
   })
 
