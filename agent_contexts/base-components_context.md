@@ -88,6 +88,10 @@ layers/
           HmSocialShareLink.vue
           HmTab.vue
           HmTsx.vue
+        ho/
+          .gitkeep
+        ht/
+          .gitkeep
       layouts/
         default.vue
 ```
@@ -1788,6 +1792,284 @@ defineProps<{
 </style>
 ```
 
+## File: layers/base/app/components/hm/HmPaging.vue
+```vue
+<i18n lang="yaml">
+ja:
+  next: 次へ
+  prev: 前へ
+en:
+  next: Next
+  prev: Prev
+</i18n>
+
+<template>
+  <nav
+    aria-label="Pagination Navigation"
+    class="pagination"
+  >
+    <!-- 前へ -->
+    <HaLink
+      :to="route.path"
+      :query="createPageQuery(currentPage - 1)"
+      class="pagination-prev"
+      :class="{
+        ['link-disabled text-disabled']: currentPage <= 1,
+      }"
+      :aria-disabled="currentPage >= totalPages"
+      @click="goToPage(currentPage - 1)"
+    >
+      <slot name="prev-icon">
+        &lt;
+      </slot>
+      {{ i18n.t('prev') }}
+    </HaLink>
+    <!-- 各ページへのリンク表示 -->
+    <ul class="pagination-list">
+      <li
+        v-for="(page, i) in pages"
+        :key="`${page}_${i}`"
+        :aria-disabled="currentPage == page"
+        @click="goToPage(Number(page))"
+      >
+        <HaLink
+          class="pagination-item"
+          :class="{
+            ['link-disabled active']: currentPage == page,
+            ['link-disabled ellipsis']: page == '...',
+          }"
+          :to="route.path"
+          :query="createPageQuery(Number(page))"
+        >
+          {{ page }}
+        </HaLink>
+      </li>
+    </ul>
+    <!-- 次へ -->
+    <HaLink
+      :to="route.path"
+      :query="createPageQuery(currentPage + 1)"
+      class="pagination-next"
+      :class="{ ['link-disabled']: currentPage >= totalPages }"
+      :aria-disabled="currentPage >= totalPages"
+      @click="goToPage(currentPage + 1)"
+    >
+      {{ i18n.t('next') }}
+      <slot name="next-icon">
+        &gt;
+      </slot>
+    </HaLink>
+  </nav>
+</template>
+
+<script lang="ts" setup>
+import { Paging } from '#base/app/utils/response'
+
+export type PageChangedEventObject = {
+  page: number // 新しいページ番号
+  offset: number // 新しいページのオフセット
+}
+
+const i18n = useI18n()
+const route = useRoute()
+
+const props = withDefaults(
+  defineProps<{
+    paging: Paging
+    totalVisible?: number
+    ellipsis?: string
+  }>(),
+  {
+    totalVisible: 7,
+    ellipsis: '...',
+  },
+)
+
+const emit = defineEmits<{
+  (e: 'changed', paging: PageChangedEventObject): void
+}>()
+
+const currentPage = computed(
+  () => Math.ceil(props.paging.offset / props.paging.limit) + 1,
+)
+const totalPages = computed(() =>
+  Math.ceil(props.paging.total / props.paging.limit),
+)
+
+const createPageQuery = (page: number) => {
+  return { ...route.query, page: page.toString() }
+}
+
+const createRange = (length: number, start = 0): number[] => {
+  return Array.from({ length }, (_, i) => start + i)
+}
+
+/*
+ * 表示すべきページ番号の配列を作成 ( ロジックの大元はVuetifyライブラリのPaginationコンポーネント参考 )
+ * https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/components/VPagination/VPagination.tsx
+ */
+const pages = computed(() => {
+  if (
+    totalPages.value <= 0
+    || isNaN(totalPages.value)
+    || isNaN(currentPage.value)
+    || totalPages.value > Number.MAX_SAFE_INTEGER
+  )
+    return []
+
+  if (props.totalVisible <= 0) return []
+  if (props.totalVisible === 1) return [currentPage.value]
+  if (totalPages.value <= props.totalVisible) {
+    return createRange(totalPages.value, 1)
+  }
+
+  // 表示するページ数とellipsisの合計数量を固定するためのロジック ( これがないとページ遷移のたびにページボタンの位置がずれて使いにくい )
+  const even = props.totalVisible % 2 === 0
+  const middle = even
+    ? props.totalVisible / 2
+    : Math.floor(props.totalVisible / 2)
+  const left = even ? middle : middle + 1
+  const right = totalPages.value - middle
+
+  if (left - currentPage.value >= 0) {
+    return [
+      ...createRange(Math.max(1, props.totalVisible - 1), 1),
+      props.ellipsis,
+      totalPages.value,
+    ]
+  } else if (currentPage.value - right >= (even ? 1 : 0)) {
+    const rangeLength = props.totalVisible - 1
+    const rangeStart = totalPages.value - rangeLength + 1
+    return [1, props.ellipsis, ...createRange(rangeLength, rangeStart)]
+  } else {
+    const rangeLength = Math.max(1, props.totalVisible - 3)
+    const rangeStart
+      = rangeLength === 1
+        ? currentPage.value
+        : currentPage.value - Math.ceil(rangeLength / 2) + 1
+    return [
+      1,
+      props.ellipsis,
+      ...createRange(rangeLength, rangeStart),
+      props.ellipsis,
+      totalPages.value,
+    ]
+  }
+})
+
+// ページ番号がクリックされた時に実行される関数
+const goToPage = (page: number) => {
+  // 有効なページ番号の時のみ処理を行う
+  if (page >= 1 && page <= totalPages.value) {
+    const newOffset = (page - 1) * props.paging.limit
+    emit('changed', { page, offset: newOffset })
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+@use '@/assets/styles/variables' as v;
+@use '@/assets/styles/mixins' as m;
+
+.pagination {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+
+  .link-disabled {
+    pointer-events: none;
+    cursor: default;
+  }
+
+  .pagination-prev,
+  .pagination-next {
+    cursor: pointer;
+    user-select: none;
+
+    display: flex;
+    align-items: center;
+
+    width: auto;
+    height: 32px;
+    padding: 4px 8px;
+
+    color: v.$base-font-color;
+
+    :deep(svg path) {
+      fill: v.$base-font-color;
+    }
+
+    &.text-disabled {
+      color: v.$button-disabled-color;
+
+      :deep(svg path) {
+        fill: v.$button-disabled-color;
+      }
+    }
+
+    &:hover {
+      color: v.$primary-button-default-color;
+
+      :deep(svg path) {
+        fill: v.$primary-button-default-color;
+      }
+    }
+  }
+
+  .pagination-list {
+    user-select: none;
+
+    display: flex;
+    gap: 4px;
+
+    padding: 0;
+
+    list-style: none;
+
+    .pagination-item {
+      cursor: pointer;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+
+      color: v.$base-font-color;
+
+      background: v.$white;
+
+      &.active {
+        font-weight: bold;
+        color: v.$white;
+        background-color: v.$primary-button-default-color;
+      }
+
+      &:hover:not(.active) {
+        color: v.$white;
+        background-color: v.$primary-button-default-color;
+      }
+
+      &.ellipsis {
+        pointer-events: none;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        width: 30px;
+
+        background: none;
+      }
+    }
+  }
+}
+</style>
+```
+
 ## File: layers/base/app/components/hm/HmPicture.vue
 ```vue
 <template>
@@ -2808,661 +3090,6 @@ function onChange(e: Event): void {
 </style>
 ```
 
-## File: layers/base/app/components/hm/HmPaging.vue
-```vue
-<i18n lang="yaml">
-ja:
-  next: 次へ
-  prev: 前へ
-en:
-  next: Next
-  prev: Prev
-</i18n>
-
-<template>
-  <nav
-    aria-label="Pagination Navigation"
-    class="pagination"
-  >
-    <!-- 前へ -->
-    <HaLink
-      :to="route.path"
-      :query="createPageQuery(currentPage - 1)"
-      class="pagination-prev"
-      :class="{
-        ['link-disabled text-disabled']: currentPage <= 1,
-      }"
-      :aria-disabled="currentPage >= totalPages"
-      @click="goToPage(currentPage - 1)"
-    >
-      <slot name="prev-icon">
-        &lt;
-      </slot>
-      {{ i18n.t('prev') }}
-    </HaLink>
-    <!-- 各ページへのリンク表示 -->
-    <ul class="pagination-list">
-      <li
-        v-for="(page, i) in pages"
-        :key="`${page}_${i}`"
-        :aria-disabled="currentPage == page"
-        @click="goToPage(Number(page))"
-      >
-        <HaLink
-          class="pagination-item"
-          :class="{
-            ['link-disabled active']: currentPage == page,
-            ['link-disabled ellipsis']: page == '...',
-          }"
-          :to="route.path"
-          :query="createPageQuery(Number(page))"
-        >
-          {{ page }}
-        </HaLink>
-      </li>
-    </ul>
-    <!-- 次へ -->
-    <HaLink
-      :to="route.path"
-      :query="createPageQuery(currentPage + 1)"
-      class="pagination-next"
-      :class="{ ['link-disabled']: currentPage >= totalPages }"
-      :aria-disabled="currentPage >= totalPages"
-      @click="goToPage(currentPage + 1)"
-    >
-      {{ i18n.t('next') }}
-      <slot name="next-icon">
-        &gt;
-      </slot>
-    </HaLink>
-  </nav>
-</template>
-
-<script lang="ts" setup>
-import { Paging } from '#base/app/utils/response'
-
-export type PageChangedEventObject = {
-  page: number // 新しいページ番号
-  offset: number // 新しいページのオフセット
-}
-
-const i18n = useI18n()
-const route = useRoute()
-
-const props = withDefaults(
-  defineProps<{
-    paging: Paging
-    totalVisible?: number
-    ellipsis?: string
-  }>(),
-  {
-    totalVisible: 7,
-    ellipsis: '...',
-  },
-)
-
-const emit = defineEmits<{
-  (e: 'changed', paging: PageChangedEventObject): void
-}>()
-
-const currentPage = computed(
-  () => Math.ceil(props.paging.offset / props.paging.limit) + 1,
-)
-const totalPages = computed(() =>
-  Math.ceil(props.paging.total / props.paging.limit),
-)
-
-const createPageQuery = (page: number) => {
-  return { ...route.query, page: page.toString() }
-}
-
-const createRange = (length: number, start = 0): number[] => {
-  return Array.from({ length }, (_, i) => start + i)
-}
-
-/*
- * 表示すべきページ番号の配列を作成 ( ロジックの大元はVuetifyライブラリのPaginationコンポーネント参考 )
- * https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/components/VPagination/VPagination.tsx
- */
-const pages = computed(() => {
-  if (
-    totalPages.value <= 0
-    || isNaN(totalPages.value)
-    || isNaN(currentPage.value)
-    || totalPages.value > Number.MAX_SAFE_INTEGER
-  )
-    return []
-
-  if (props.totalVisible <= 0) return []
-  if (props.totalVisible === 1) return [currentPage.value]
-  if (totalPages.value <= props.totalVisible) {
-    return createRange(totalPages.value, 1)
-  }
-
-  // 表示するページ数とellipsisの合計数量を固定するためのロジック ( これがないとページ遷移のたびにページボタンの位置がずれて使いにくい )
-  const even = props.totalVisible % 2 === 0
-  const middle = even
-    ? props.totalVisible / 2
-    : Math.floor(props.totalVisible / 2)
-  const left = even ? middle : middle + 1
-  const right = totalPages.value - middle
-
-  if (left - currentPage.value >= 0) {
-    return [
-      ...createRange(Math.max(1, props.totalVisible - 1), 1),
-      props.ellipsis,
-      totalPages.value,
-    ]
-  } else if (currentPage.value - right >= (even ? 1 : 0)) {
-    const rangeLength = props.totalVisible - 1
-    const rangeStart = totalPages.value - rangeLength + 1
-    return [1, props.ellipsis, ...createRange(rangeLength, rangeStart)]
-  } else {
-    const rangeLength = Math.max(1, props.totalVisible - 3)
-    const rangeStart
-      = rangeLength === 1
-        ? currentPage.value
-        : currentPage.value - Math.ceil(rangeLength / 2) + 1
-    return [
-      1,
-      props.ellipsis,
-      ...createRange(rangeLength, rangeStart),
-      props.ellipsis,
-      totalPages.value,
-    ]
-  }
-})
-
-// ページ番号がクリックされた時に実行される関数
-const goToPage = (page: number) => {
-  // 有効なページ番号の時のみ処理を行う
-  if (page >= 1 && page <= totalPages.value) {
-    const newOffset = (page - 1) * props.paging.limit
-    emit('changed', { page, offset: newOffset })
-  }
-}
-</script>
-
-<style lang="scss" scoped>
-@use '@/assets/styles/variables' as v;
-@use '@/assets/styles/mixins' as m;
-
-.pagination {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: center;
-
-  .link-disabled {
-    pointer-events: none;
-    cursor: default;
-  }
-
-  .pagination-prev,
-  .pagination-next {
-    cursor: pointer;
-    user-select: none;
-
-    display: flex;
-    align-items: center;
-
-    width: auto;
-    height: 32px;
-    padding: 4px 8px;
-
-    color: v.$base-font-color;
-
-    :deep(svg path) {
-      fill: v.$base-font-color;
-    }
-
-    &.text-disabled {
-      color: v.$button-disabled-color;
-
-      :deep(svg path) {
-        fill: v.$button-disabled-color;
-      }
-    }
-
-    &:hover {
-      color: v.$primary-button-default-color;
-
-      :deep(svg path) {
-        fill: v.$primary-button-default-color;
-      }
-    }
-  }
-
-  .pagination-list {
-    user-select: none;
-
-    display: flex;
-    gap: 4px;
-
-    padding: 0;
-
-    list-style: none;
-
-    .pagination-item {
-      cursor: pointer;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-
-      color: v.$base-font-color;
-
-      background: v.$white;
-
-      &.active {
-        font-weight: bold;
-        color: v.$white;
-        background-color: v.$primary-button-default-color;
-      }
-
-      &:hover:not(.active) {
-        color: v.$white;
-        background-color: v.$primary-button-default-color;
-      }
-
-      &.ellipsis {
-        pointer-events: none;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        width: 30px;
-
-        background: none;
-      }
-    }
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/HmSliderItem.vue
-```vue
-<template>
-  <div
-    :id="props.id"
-    class="slider-item"
-    role="tabpanel"
-  >
-    <div
-      class="slider-content"
-      role="presentation"
-    >
-      <slot />
-    </div>
-  </div>
-</template>
-
-<script lang="ts" setup>
-const props = defineProps<{
-  id: string
-}>()
-</script>
-
-<style lang="scss" scoped>
-.slider-content {
-  width: 100%;
-  height: 100%;
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/HmSocialShareLink.vue
-```vue
-<template>
-  <!--
-  - [x] Composition APIで書けている
-  - [-] Nuxt.jsに依存していない
-  - [-] unplugin-auto-import を導入する前提の書き方ができている
-  - [-] ロジック観点でのリファクタリング(FS主管)が完了している
-  - [-] デザイン観点でのリファクタリング(DD主管)が完了している
-  - [-] 適切にコメントが記載されている
-  - [-] Unit Testを通過している
-  - [-] storiesが適切に記載されている
- -->
-  <HaLink
-    class="hm-social-share-link"
-    :to="url"
-    :blank="true"
-  >
-    <slot />
-  </HaLink>
-</template>
-
-<script setup lang="ts">
-const _shareTargetServices = {
-  0: 'twitter',
-  1: 'facebook',
-  2: 'line',
-} as const
-type SharedTarget
-  = (typeof _shareTargetServices)[keyof typeof _shareTargetServices]
-
-const props = defineProps<{
-  name: SharedTarget | null
-  text?: string
-  twitterHashtags?: string[]
-  shareUrl?: string
-}>()
-
-const socialShareLink = useSocialShareLink()
-const url = computed(() => socialShareLink.getShareUrl(props.name || '', props))
-</script>
-```
-
-## File: layers/base/app/components/hm/HmTab.vue
-```vue
-<template>
-  <ul class="tablist">
-    <li
-      v-for="(value, key) in tabStatus"
-      :key="key"
-      role="presentation"
-      class="item"
-    >
-      <button
-        :id="'tab' + key"
-        class="tab"
-        role="tab"
-        :aria-expanded="value"
-        :aria-controls="'panel' + key"
-        @click="changeTab(key)"
-      >
-        <slot :name="'tab' + key" />
-      </button>
-    </li>
-  </ul>
-  <div
-    class="panel-container"
-    role="presentation"
-  >
-    <div
-      v-for="(value, key) in tabStatus"
-      :id="'panel' + key"
-      :key="key"
-      class="tabpanel"
-      role="tabpanel"
-      :aria-labelledby="'tab' + key"
-      :aria-hidden="!value"
-    >
-      <slot :name="'panel' + key" />
-    </div>
-  </div>
-</template>
-
-<script lang="ts" setup>
-const props = defineProps<{
-  amount: number
-}>()
-// タブのindexと開閉状態を表すbooleanを格納するオブジェクトのためのrefで、props.amountの数だけオブジェクトを作る
-const tabStatus = ref(range(0, props.amount - 1).map((_, i) => i === 0))
-
-// タブをクリックしたとき、クリックしたタブのindexと一致するパネルの表示状態がtrueになるようにする
-const changeTab = (index: number): void => {
-  for (const i of range(0, tabStatus.value.length - 1)) {
-    tabStatus.value[i] = false
-  }
-  tabStatus.value[index] = true
-}
-</script>
-
-<style scoped lang="scss">
-@use '#base/app/assets/styles/variables' as v;
-@use '#base/app/assets/styles/mixins' as m;
-
-.panel-container {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr;
-}
-
-.tabpanel {
-  display: none;
-  grid-area: 1 / 1 / 2 / 2;
-
-  opacity: 0;
-
-  transition: opacity 0.3s, display 0.3s;
-
-  transition-behavior: allow-discrete; // display:block -> noneにdurationを効かせる(transitionのショートハンドで上書きされないようにtransitionより下に書く)
-  &[aria-hidden='false'] {
-    display: block;
-    opacity: 1;
-    transition: opacity 0.3s, display 0.3s;
-
-    transition-behavior: allow-discrete; // display:block -> noneにdurationを効かせる(transitionのショートハンドで上書きされないようにtransitionより下に書く)
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/HmTsx.vue
-```vue
-<template>
-  <div class="hm-tsx">
-    <DefaultSlot />
-  </div>
-</template>
-
-<script lang="tsx" setup>
-import { Fragment } from 'vue'
-
-const slots = useSlots() as { default?: () => unknown }
-const defaultSlot = slots.default ? slots.default() : null
-
-const DefaultSlot = () => {
-  return <Fragment>{defaultSlot}</Fragment>
-}
-</script>
-```
-
-## File: layers/base/app/components/hm/icon/HmIconUser.vue
-```vue
-<template>
-  <span class="hm-icon-user">
-    <HaImage
-      class="image"
-      :src="props.src"
-      :noImage="noImage"
-      :draggable="false"
-    />
-  </span>
-</template>
-
-<script lang="ts" setup>
-import noImage from '#base/public/images/no-image_1x1.jpg'
-
-type Props = {
-  src: string
-}
-
-const props = defineProps<Props>()
-</script>
-
-<style lang="scss" scoped>
-// NOTE:
-// 汎用性を持たせるためにサイズについては、srcに設定した画像サイズを可能な範囲で反映するように作成しています。
-// プロジェクトの要件などで「設定した画像のサイズに関わらず固定の値を設定したい」場合は適宜CSSを変更してください。
-.hm-icon-user {
-  user-select: none;
-
-  overflow: hidden;
-  display: inline-block;
-
-  aspect-ratio: 1 / 1;
-  min-width: 24px;
-  border-radius: 50%;
-
-  > .image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/input/HmInputRadioChangeable.vue
-```vue
-<template>
-  <div class="hm-input-radio-changeable">
-    <div
-      v-for="(option, index) in props.options"
-      :key="option.value"
-      ref="radiobuttons"
-      class="radio"
-    >
-      <HaBaseInput
-        :id="option.value"
-        class="input"
-        type="radio"
-        :name="props.name"
-        :value="option.value"
-        :modelValue="option.value"
-        :checked="option.checked"
-        :disabled="option.disabled"
-        required
-        @change="onChange($event)"
-      />
-      <label
-        :for="option.value"
-        class="label"
-        :class="`option-${index}`"
-      >
-        <template v-if="option.before">
-          <ClientOnly>
-            <component
-              :is="option.before"
-              class="before"
-            />
-          </ClientOnly>
-        </template>
-        {{ option.label }}
-        <template v-if="option.after">
-          <ClientOnly>
-            <component
-              :is="option.after"
-              class="after"
-            />
-          </ClientOnly>
-        </template>
-      </label>
-    </div>
-  </div>
-</template>
-
-<script lang="ts" setup>
-import { z } from 'zod/v3'
-
-type Radio = {
-  label: string
-  value: string
-  checked?: boolean
-  disabled?: boolean
-  before?: Component
-  after?: Component
-}
-
-type Props = {
-  name: string
-  options: Radio[]
-}
-const props = defineProps<Props>()
-
-const radiobuttons = ref<HTMLDivElement[]>()
-
-/** props.optionsを監視し、親コンポーネントでの変更をラジオボタンに反映する */
-watch(toRef(props.options), (_next, _prev) => {
-  // チェックされているオブジェクトを探す
-  const checkedOptions
-    = props.options.find(element => element.checked)
-      ?? raiseError('HmInputRadioChangeable: watch: checkedOptions')
-
-  // チェック対象を探す
-  const buttons
-    = radiobuttons.value
-      ?? raiseError('HmInputRadioChangeable: watch: radiobuttons')
-  const checkTarget
-    = buttons.find(
-      // チェックされているオブジェクトとidが同じものがチェック対象
-      element => element.children[0]?.id === checkedOptions?.value,
-    ) ?? raiseError('HmInputRadioChangeable: watch: checkTarget')
-
-  // 探したチェック対象をチェック済にする
-  const checkbox = z
-    .object({ checked: z.boolean() })
-    .parse(checkTarget.children[0])
-  checkbox.checked = true
-})
-
-type Emits = {
-  (e: 'change', value: string): void
-}
-const emit = defineEmits<Emits>()
-const onChange = (e: Event) => {
-  if (e.target instanceof HTMLInputElement) {
-    emit('change', e.target.value)
-  }
-}
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-
-.hm-input-radio-changeable {
-  display: flex;
-  width: 100%;
-
-  .radio {
-    flex: 1;
-
-    > .label {
-      cursor: pointer;
-      user-select: none;
-
-      display: block;
-
-      height: 100%;
-      padding: v.space(2) 0;
-      border: solid 1px v.$navy-2;
-
-      text-align: center;
-      white-space: pre-wrap;
-
-      background-color: v.$navy-1;
-
-      &:hover {
-        background-color: v.$green-4;
-      }
-    }
-  }
-}
-
-.input {
-  display: none;
-
-  &:checked,
-  &:hover,
-  &:focus {
-    + .label {
-      border-color: v.$blue;
-      background-color: v.$green-4;
-    }
-  }
-}
-</style>
-```
-
 ## File: layers/base/app/components/hm/HmSlider.vue
 ```vue
 <template>
@@ -4056,6 +3683,577 @@ onBeforeUnmount(() => stopAutoPlay())
           padding-inline: calc(var(--gap-sp) * 0.5);
         }
       }
+    }
+  }
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/HmSliderItem.vue
+```vue
+<template>
+  <div
+    :id="props.id"
+    class="slider-item"
+    role="tabpanel"
+  >
+    <div
+      class="slider-content"
+      role="presentation"
+    >
+      <slot />
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+const props = defineProps<{
+  id: string
+}>()
+</script>
+
+<style lang="scss" scoped>
+.slider-content {
+  width: 100%;
+  height: 100%;
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/HmSocialShareLink.vue
+```vue
+<template>
+  <!--
+  - [x] Composition APIで書けている
+  - [-] Nuxt.jsに依存していない
+  - [-] unplugin-auto-import を導入する前提の書き方ができている
+  - [-] ロジック観点でのリファクタリング(FS主管)が完了している
+  - [-] デザイン観点でのリファクタリング(DD主管)が完了している
+  - [-] 適切にコメントが記載されている
+  - [-] Unit Testを通過している
+  - [-] storiesが適切に記載されている
+ -->
+  <HaLink
+    class="hm-social-share-link"
+    :to="url"
+    :blank="true"
+  >
+    <slot />
+  </HaLink>
+</template>
+
+<script setup lang="ts">
+const _shareTargetServices = {
+  0: 'twitter',
+  1: 'facebook',
+  2: 'line',
+} as const
+type SharedTarget
+  = (typeof _shareTargetServices)[keyof typeof _shareTargetServices]
+
+const props = defineProps<{
+  name: SharedTarget | null
+  text?: string
+  twitterHashtags?: string[]
+  shareUrl?: string
+}>()
+
+const socialShareLink = useSocialShareLink()
+const url = computed(() => socialShareLink.getShareUrl(props.name || '', props))
+</script>
+```
+
+## File: layers/base/app/components/hm/HmTab.vue
+```vue
+<template>
+  <ul class="tablist">
+    <li
+      v-for="(value, key) in tabStatus"
+      :key="key"
+      role="presentation"
+      class="item"
+    >
+      <button
+        :id="'tab' + key"
+        class="tab"
+        role="tab"
+        :aria-expanded="value"
+        :aria-controls="'panel' + key"
+        @click="changeTab(key)"
+      >
+        <slot :name="'tab' + key" />
+      </button>
+    </li>
+  </ul>
+  <div
+    class="panel-container"
+    role="presentation"
+  >
+    <div
+      v-for="(value, key) in tabStatus"
+      :id="'panel' + key"
+      :key="key"
+      class="tabpanel"
+      role="tabpanel"
+      :aria-labelledby="'tab' + key"
+      :aria-hidden="!value"
+    >
+      <slot :name="'panel' + key" />
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+const props = defineProps<{
+  amount: number
+}>()
+// タブのindexと開閉状態を表すbooleanを格納するオブジェクトのためのrefで、props.amountの数だけオブジェクトを作る
+const tabStatus = ref(range(0, props.amount - 1).map((_, i) => i === 0))
+
+// タブをクリックしたとき、クリックしたタブのindexと一致するパネルの表示状態がtrueになるようにする
+const changeTab = (index: number): void => {
+  for (const i of range(0, tabStatus.value.length - 1)) {
+    tabStatus.value[i] = false
+  }
+  tabStatus.value[index] = true
+}
+</script>
+
+<style scoped lang="scss">
+@use '#base/app/assets/styles/variables' as v;
+@use '#base/app/assets/styles/mixins' as m;
+
+.panel-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+
+.tabpanel {
+  display: none;
+  grid-area: 1 / 1 / 2 / 2;
+
+  opacity: 0;
+
+  transition: opacity 0.3s, display 0.3s;
+
+  transition-behavior: allow-discrete; // display:block -> noneにdurationを効かせる(transitionのショートハンドで上書きされないようにtransitionより下に書く)
+  &[aria-hidden='false'] {
+    display: block;
+    opacity: 1;
+    transition: opacity 0.3s, display 0.3s;
+
+    transition-behavior: allow-discrete; // display:block -> noneにdurationを効かせる(transitionのショートハンドで上書きされないようにtransitionより下に書く)
+  }
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/HmTsx.vue
+```vue
+<template>
+  <div class="hm-tsx">
+    <DefaultSlot />
+  </div>
+</template>
+
+<script lang="tsx" setup>
+import { Fragment } from 'vue'
+
+const slots = useSlots() as { default?: () => unknown }
+const defaultSlot = slots.default ? slots.default() : null
+
+const DefaultSlot = () => {
+  return <Fragment>{defaultSlot}</Fragment>
+}
+</script>
+```
+
+## File: layers/base/app/components/hm/icon/HmIconUser.vue
+```vue
+<template>
+  <span class="hm-icon-user">
+    <HaImage
+      class="image"
+      :src="props.src"
+      :noImage="noImage"
+      :draggable="false"
+    />
+  </span>
+</template>
+
+<script lang="ts" setup>
+import noImage from '#base/public/images/no-image_1x1.jpg'
+
+type Props = {
+  src: string
+}
+
+const props = defineProps<Props>()
+</script>
+
+<style lang="scss" scoped>
+// NOTE:
+// 汎用性を持たせるためにサイズについては、srcに設定した画像サイズを可能な範囲で反映するように作成しています。
+// プロジェクトの要件などで「設定した画像のサイズに関わらず固定の値を設定したい」場合は適宜CSSを変更してください。
+.hm-icon-user {
+  user-select: none;
+
+  overflow: hidden;
+  display: inline-block;
+
+  aspect-ratio: 1 / 1;
+  min-width: 24px;
+  border-radius: 50%;
+
+  > .image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/input/HmInputRadioChangeable.vue
+```vue
+<template>
+  <div class="hm-input-radio-changeable">
+    <div
+      v-for="(option, index) in props.options"
+      :key="option.value"
+      ref="radiobuttons"
+      class="radio"
+    >
+      <HaBaseInput
+        :id="option.value"
+        class="input"
+        type="radio"
+        :name="props.name"
+        :value="option.value"
+        :modelValue="option.value"
+        :checked="option.checked"
+        :disabled="option.disabled"
+        required
+        @change="onChange($event)"
+      />
+      <label
+        :for="option.value"
+        class="label"
+        :class="`option-${index}`"
+      >
+        <template v-if="option.before">
+          <ClientOnly>
+            <component
+              :is="option.before"
+              class="before"
+            />
+          </ClientOnly>
+        </template>
+        {{ option.label }}
+        <template v-if="option.after">
+          <ClientOnly>
+            <component
+              :is="option.after"
+              class="after"
+            />
+          </ClientOnly>
+        </template>
+      </label>
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { z } from 'zod/v3'
+
+type Radio = {
+  label: string
+  value: string
+  checked?: boolean
+  disabled?: boolean
+  before?: Component
+  after?: Component
+}
+
+type Props = {
+  name: string
+  options: Radio[]
+}
+const props = defineProps<Props>()
+
+const radiobuttons = ref<HTMLDivElement[]>()
+
+/** props.optionsを監視し、親コンポーネントでの変更をラジオボタンに反映する */
+watch(toRef(props.options), (_next, _prev) => {
+  // チェックされているオブジェクトを探す
+  const checkedOptions
+    = props.options.find(element => element.checked)
+      ?? raiseError('HmInputRadioChangeable: watch: checkedOptions')
+
+  // チェック対象を探す
+  const buttons
+    = radiobuttons.value
+      ?? raiseError('HmInputRadioChangeable: watch: radiobuttons')
+  const checkTarget
+    = buttons.find(
+      // チェックされているオブジェクトとidが同じものがチェック対象
+      element => element.children[0]?.id === checkedOptions?.value,
+    ) ?? raiseError('HmInputRadioChangeable: watch: checkTarget')
+
+  // 探したチェック対象をチェック済にする
+  const checkbox = z
+    .object({ checked: z.boolean() })
+    .parse(checkTarget.children[0])
+  checkbox.checked = true
+})
+
+type Emits = {
+  (e: 'change', value: string): void
+}
+const emit = defineEmits<Emits>()
+const onChange = (e: Event) => {
+  if (e.target instanceof HTMLInputElement) {
+    emit('change', e.target.value)
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+
+.hm-input-radio-changeable {
+  display: flex;
+  width: 100%;
+
+  .radio {
+    flex: 1;
+
+    > .label {
+      cursor: pointer;
+      user-select: none;
+
+      display: block;
+
+      height: 100%;
+      padding: v.space(2) 0;
+      border: solid 1px v.$navy-2;
+
+      text-align: center;
+      white-space: pre-wrap;
+
+      background-color: v.$navy-1;
+
+      &:hover {
+        background-color: v.$green-4;
+      }
+    }
+  }
+}
+
+.input {
+  display: none;
+
+  &:checked,
+  &:hover,
+  &:focus {
+    + .label {
+      border-color: v.$blue;
+      background-color: v.$green-4;
+    }
+  }
+}
+</style>
+```
+
+## File: layers/base/app/components/ha/HaSelectBox.vue
+```vue
+<template>
+  <div class="ha-select-box">
+    <select
+      v-model="innerValue"
+      :name="validatorName"
+      :disabled="disabled"
+      :required="required"
+      class="select"
+      :class="[{ '-error': !!errorMessage }, { '-small': small }]"
+    >
+      <option
+        :disabled="disabledPlaceholder"
+        :value="null"
+      >
+        {{ placeholder }}
+      </option>
+      <option
+        v-for="(option, index) in options"
+        :key="index"
+        :disabled="option.disabled"
+        :value="option.value"
+      >
+        {{ option.text }}
+      </option>
+    </select>
+    <span
+      v-if="validatorRules && errorMessage"
+      class="error"
+    >{{
+      errorMessage
+    }}</span>
+  </div>
+</template>
+
+<script lang="ts">
+import { useField } from 'vee-validate'
+import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
+
+export type Option = {
+  value: number | string | null
+  text: string
+  disabled?: boolean
+}
+
+type FieldInput = string | number | null
+
+export type Props = {
+  modelValue?: number | string | null
+  validatorName: string
+  validatorRules?:
+    | ZodType<string, ZodTypeDef, FieldInput>
+    | ZodEffects<ZodType<string, ZodTypeDef, FieldInput>>
+  options: readonly Option[]
+  placeholder?: string
+  disabledPlaceholder?: boolean
+  disabled?: boolean
+  required?: boolean
+  small?: boolean
+  keepValueOnUnmount?: boolean
+}
+
+export default defineComponent({
+  name: 'HaSelectBox',
+})
+</script>
+
+<script setup lang="ts">
+const props = withDefaults(
+  defineProps<Props>(),
+  {
+    modelValue: null,
+    validatorRules: undefined,
+    placeholder: '---Select---',
+    disabledPlaceholder: false,
+    disabled: false,
+    required: false,
+    small: false,
+    keepValueOnUnmount: false,
+  },
+)
+
+const emit = defineEmits<{
+  (e: 'update:modelValue' | 'input', value: number | string | null): void
+}>()
+
+const { value: fieldValue, errorMessage } = useField(
+  toRef(props, 'validatorName'),
+  props.validatorRules,
+  {
+    initialValue: props.modelValue,
+    keepValueOnUnmount: props.keepValueOnUnmount,
+    syncVModel: true,
+  },
+)
+
+const innerValue = computed({
+  get(): number | string | null {
+    return fieldValue.value
+  },
+  set(value: number | string | null): void {
+    emit('update:modelValue', value)
+    fieldValue.value = value
+    emit('input', value)
+  },
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+@use '#base/app/assets/styles/mixins' as m;
+
+.ha-select-box {
+  position: relative;
+
+  > .select {
+    cursor: pointer;
+
+    width: 100%;
+    height: 44px;
+    padding: 8px 16px;
+    border: 1px solid v.$primary-color;
+    border-radius: 4px;
+
+    font-size: 15px;
+    line-height: 1;
+    color: v.$black;
+    text-overflow: ellipsis;
+
+    background-color: v.$white;
+    outline: none;
+
+    &::placeholder {
+      color: v.$gray;
+    }
+
+    &:disabled {
+      border-color: rgb(0 0 0 / 12%);
+      color: v.$gray;
+      opacity: 0.5;
+      background-color: v.$gray-2;
+    }
+
+    &:focus {
+      border-color: v.$primary-color;
+    }
+
+    &.-error {
+      border: 2px solid v.$red;
+
+      &:focus {
+        border: 2px solid v.$red;
+      }
+    }
+
+    &.-small {
+      height: 30px;
+      padding: 0 10px;
+    }
+  }
+
+  > .error {
+    display: block;
+
+    width: fit-content;
+    min-height: 20px;
+    margin-top: 8px;
+
+    font-size: 10px;
+    font-weight: 400;
+    color: v.$red;
+  }
+
+  @include m.sp {
+    > .select {
+      font-size: v.$base-font-size;
+    }
+  }
+
+  // ヘッダー検索窓用設定
+  &.-search {
+    > .select {
+      border-color: v.$gray-2;
+    }
+
+    > .error {
+      display: none;
     }
   }
 }
@@ -5085,200 +5283,6 @@ defineExpose({
 
   to {
     opacity: 1;
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/ha/HaSelectBox.vue
-```vue
-<template>
-  <div class="ha-select-box">
-    <select
-      v-model="innerValue"
-      :name="validatorName"
-      :disabled="disabled"
-      :required="required"
-      class="select"
-      :class="[{ '-error': !!errorMessage }, { '-small': small }]"
-    >
-      <option
-        :disabled="disabledPlaceholder"
-        :value="null"
-      >
-        {{ placeholder }}
-      </option>
-      <option
-        v-for="(option, index) in options"
-        :key="index"
-        :disabled="option.disabled"
-        :value="option.value"
-      >
-        {{ option.text }}
-      </option>
-    </select>
-    <span
-      v-if="validatorRules && errorMessage"
-      class="error"
-    >{{
-      errorMessage
-    }}</span>
-  </div>
-</template>
-
-<script lang="ts">
-import { useField } from 'vee-validate'
-import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
-
-export type Option = {
-  value: number | string | null
-  text: string
-  disabled?: boolean
-}
-
-type FieldInput = string | number | null
-
-export type Props = {
-  modelValue?: number | string | null
-  validatorName: string
-  validatorRules?:
-    | ZodType<string, ZodTypeDef, FieldInput>
-    | ZodEffects<ZodType<string, ZodTypeDef, FieldInput>>
-  options: readonly Option[]
-  placeholder?: string
-  disabledPlaceholder?: boolean
-  disabled?: boolean
-  required?: boolean
-  small?: boolean
-  keepValueOnUnmount?: boolean
-}
-
-export default defineComponent({
-  name: 'HaSelectBox',
-})
-</script>
-
-<script setup lang="ts">
-const props = withDefaults(
-  defineProps<Props>(),
-  {
-    modelValue: null,
-    validatorRules: undefined,
-    placeholder: '---Select---',
-    disabledPlaceholder: false,
-    disabled: false,
-    required: false,
-    small: false,
-    keepValueOnUnmount: false,
-  },
-)
-
-const emit = defineEmits<{
-  (e: 'update:modelValue' | 'input', value: number | string | null): void
-}>()
-
-const { value: fieldValue, errorMessage } = useField(
-  toRef(props, 'validatorName'),
-  props.validatorRules,
-  {
-    initialValue: props.modelValue,
-    keepValueOnUnmount: props.keepValueOnUnmount,
-    syncVModel: true,
-  },
-)
-
-const innerValue = computed({
-  get(): number | string | null {
-    return fieldValue.value
-  },
-  set(value: number | string | null): void {
-    emit('update:modelValue', value)
-    fieldValue.value = value
-    emit('input', value)
-  },
-})
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-@use '#base/app/assets/styles/mixins' as m;
-
-.ha-select-box {
-  position: relative;
-
-  > .select {
-    cursor: pointer;
-
-    width: 100%;
-    height: 44px;
-    padding: 8px 16px;
-    border: 1px solid v.$primary-color;
-    border-radius: 4px;
-
-    font-size: 15px;
-    line-height: 1;
-    color: v.$black;
-    text-overflow: ellipsis;
-
-    background-color: v.$white;
-    outline: none;
-
-    &::placeholder {
-      color: v.$gray;
-    }
-
-    &:disabled {
-      border-color: rgb(0 0 0 / 12%);
-      color: v.$gray;
-      opacity: 0.5;
-      background-color: v.$gray-2;
-    }
-
-    &:focus {
-      border-color: v.$primary-color;
-    }
-
-    &.-error {
-      border: 2px solid v.$red;
-
-      &:focus {
-        border: 2px solid v.$red;
-      }
-    }
-
-    &.-small {
-      height: 30px;
-      padding: 0 10px;
-    }
-  }
-
-  > .error {
-    display: block;
-
-    width: fit-content;
-    min-height: 20px;
-    margin-top: 8px;
-
-    font-size: 10px;
-    font-weight: 400;
-    color: v.$red;
-  }
-
-  @include m.sp {
-    > .select {
-      font-size: v.$base-font-size;
-    }
-  }
-
-  // ヘッダー検索窓用設定
-  &.-search {
-    > .select {
-      border-color: v.$gray-2;
-    }
-
-    > .error {
-      display: none;
-    }
   }
 }
 </style>

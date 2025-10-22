@@ -47,6 +47,7 @@ sw.*
 playwright/.cache/
 playwright-report
 playwright-output
+test-results
 
 # cache
 .eslintcache
