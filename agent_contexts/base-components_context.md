@@ -88,6 +88,10 @@ layers/
           HmSocialShareLink.vue
           HmTab.vue
           HmTsx.vue
+        ho/
+          .gitkeep
+        ht/
+          .gitkeep
       layouts/
         default.vue
 ```
