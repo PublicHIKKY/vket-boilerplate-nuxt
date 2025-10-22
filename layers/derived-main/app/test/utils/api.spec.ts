@@ -58,7 +58,7 @@ describe('api', () => {
     expect(result).toMatchObject(expectObj)
   })
   it('post', async () => {
-    // NOET: 以下getと同様にテストする。methodはgetではなく、相送信methodに準じた値に変化するので注意
+    // NOTE: 以下getと同様にテストする。methodはgetではなく、該当するmethodに準じた値に変化するので注意
     const expectObj = {
       options: {
         baseURL: '/test-api',
