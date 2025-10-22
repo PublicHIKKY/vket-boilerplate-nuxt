@@ -4,6 +4,7 @@ export default defineVitestConfig({
   test: {
     globals: true,
     environment: 'nuxt',
+    exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**', '**/.nuxt/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

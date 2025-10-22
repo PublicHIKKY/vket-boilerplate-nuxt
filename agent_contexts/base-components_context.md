@@ -1788,6 +1788,284 @@ defineProps<{
 </style>
 ```
 
+## File: layers/base/app/components/hm/HmPaging.vue
+```vue
+<i18n lang="yaml">
+ja:
+  next: 次へ
+  prev: 前へ
+en:
+  next: Next
+  prev: Prev
+</i18n>
+
+<template>
+  <nav
+    aria-label="Pagination Navigation"
+    class="pagination"
+  >
+    <!-- 前へ -->
+    <HaLink
+      :to="route.path"
+      :query="createPageQuery(currentPage - 1)"
+      class="pagination-prev"
+      :class="{
+        ['link-disabled text-disabled']: currentPage <= 1,
+      }"
+      :aria-disabled="currentPage >= totalPages"
+      @click="goToPage(currentPage - 1)"
+    >
+      <slot name="prev-icon">
+        &lt;
+      </slot>
+      {{ i18n.t('prev') }}
+    </HaLink>
+    <!-- 各ページへのリンク表示 -->
+    <ul class="pagination-list">
+      <li
+        v-for="(page, i) in pages"
+        :key="`${page}_${i}`"
+        :aria-disabled="currentPage == page"
+        @click="goToPage(Number(page))"
+      >
+        <HaLink
+          class="pagination-item"
+          :class="{
+            ['link-disabled active']: currentPage == page,
+            ['link-disabled ellipsis']: page == '...',
+          }"
+          :to="route.path"
+          :query="createPageQuery(Number(page))"
+        >
+          {{ page }}
+        </HaLink>
+      </li>
+    </ul>
+    <!-- 次へ -->
+    <HaLink
+      :to="route.path"
+      :query="createPageQuery(currentPage + 1)"
+      class="pagination-next"
+      :class="{ ['link-disabled']: currentPage >= totalPages }"
+      :aria-disabled="currentPage >= totalPages"
+      @click="goToPage(currentPage + 1)"
+    >
+      {{ i18n.t('next') }}
+      <slot name="next-icon">
+        &gt;
+      </slot>
+    </HaLink>
+  </nav>
+</template>
+
+<script lang="ts" setup>
+import { Paging } from '#base/app/utils/response'
+
+export type PageChangedEventObject = {
+  page: number // 新しいページ番号
+  offset: number // 新しいページのオフセット
+}
+
+const i18n = useI18n()
+const route = useRoute()
+
+const props = withDefaults(
+  defineProps<{
+    paging: Paging
+    totalVisible?: number
+    ellipsis?: string
+  }>(),
+  {
+    totalVisible: 7,
+    ellipsis: '...',
+  },
+)
+
+const emit = defineEmits<{
+  (e: 'changed', paging: PageChangedEventObject): void
+}>()
+
+const currentPage = computed(
+  () => Math.ceil(props.paging.offset / props.paging.limit) + 1,
+)
+const totalPages = computed(() =>
+  Math.ceil(props.paging.total / props.paging.limit),
+)
+
+const createPageQuery = (page: number) => {
+  return { ...route.query, page: page.toString() }
+}
+
+const createRange = (length: number, start = 0): number[] => {
+  return Array.from({ length }, (_, i) => start + i)
+}
+
+/*
+ * 表示すべきページ番号の配列を作成 ( ロジックの大元はVuetifyライブラリのPaginationコンポーネント参考 )
+ * https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/components/VPagination/VPagination.tsx
+ */
+const pages = computed(() => {
+  if (
+    totalPages.value <= 0
+    || isNaN(totalPages.value)
+    || isNaN(currentPage.value)
+    || totalPages.value > Number.MAX_SAFE_INTEGER
+  )
+    return []
+
+  if (props.totalVisible <= 0) return []
+  if (props.totalVisible === 1) return [currentPage.value]
+  if (totalPages.value <= props.totalVisible) {
+    return createRange(totalPages.value, 1)
+  }
+
+  // 表示するページ数とellipsisの合計数量を固定するためのロジック ( これがないとページ遷移のたびにページボタンの位置がずれて使いにくい )
+  const even = props.totalVisible % 2 === 0
+  const middle = even
+    ? props.totalVisible / 2
+    : Math.floor(props.totalVisible / 2)
+  const left = even ? middle : middle + 1
+  const right = totalPages.value - middle
+
+  if (left - currentPage.value >= 0) {
+    return [
+      ...createRange(Math.max(1, props.totalVisible - 1), 1),
+      props.ellipsis,
+      totalPages.value,
+    ]
+  } else if (currentPage.value - right >= (even ? 1 : 0)) {
+    const rangeLength = props.totalVisible - 1
+    const rangeStart = totalPages.value - rangeLength + 1
+    return [1, props.ellipsis, ...createRange(rangeLength, rangeStart)]
+  } else {
+    const rangeLength = Math.max(1, props.totalVisible - 3)
+    const rangeStart
+      = rangeLength === 1
+        ? currentPage.value
+        : currentPage.value - Math.ceil(rangeLength / 2) + 1
+    return [
+      1,
+      props.ellipsis,
+      ...createRange(rangeLength, rangeStart),
+      props.ellipsis,
+      totalPages.value,
+    ]
+  }
+})
+
+// ページ番号がクリックされた時に実行される関数
+const goToPage = (page: number) => {
+  // 有効なページ番号の時のみ処理を行う
+  if (page >= 1 && page <= totalPages.value) {
+    const newOffset = (page - 1) * props.paging.limit
+    emit('changed', { page, offset: newOffset })
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+@use '@/assets/styles/variables' as v;
+@use '@/assets/styles/mixins' as m;
+
+.pagination {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+
+  .link-disabled {
+    pointer-events: none;
+    cursor: default;
+  }
+
+  .pagination-prev,
+  .pagination-next {
+    cursor: pointer;
+    user-select: none;
+
+    display: flex;
+    align-items: center;
+
+    width: auto;
+    height: 32px;
+    padding: 4px 8px;
+
+    color: v.$base-font-color;
+
+    :deep(svg path) {
+      fill: v.$base-font-color;
+    }
+
+    &.text-disabled {
+      color: v.$button-disabled-color;
+
+      :deep(svg path) {
+        fill: v.$button-disabled-color;
+      }
+    }
+
+    &:hover {
+      color: v.$primary-button-default-color;
+
+      :deep(svg path) {
+        fill: v.$primary-button-default-color;
+      }
+    }
+  }
+
+  .pagination-list {
+    user-select: none;
+
+    display: flex;
+    gap: 4px;
+
+    padding: 0;
+
+    list-style: none;
+
+    .pagination-item {
+      cursor: pointer;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+
+      color: v.$base-font-color;
+
+      background: v.$white;
+
+      &.active {
+        font-weight: bold;
+        color: v.$white;
+        background-color: v.$primary-button-default-color;
+      }
+
+      &:hover:not(.active) {
+        color: v.$white;
+        background-color: v.$primary-button-default-color;
+      }
+
+      &.ellipsis {
+        pointer-events: none;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        width: 30px;
+
+        background: none;
+      }
+    }
+  }
+}
+</style>
+```
+
 ## File: layers/base/app/components/hm/HmPicture.vue
 ```vue
 <template>
@@ -2499,6 +2777,52 @@ const onClick = () => {
 </style>
 ```
 
+## File: layers/base/app/components/hm/icon/HmIconUser.vue
+```vue
+<template>
+  <span class="hm-icon-user">
+    <HaImage
+      class="image"
+      :src="props.src"
+      :noImage="noImage"
+      :draggable="false"
+    />
+  </span>
+</template>
+
+<script lang="ts" setup>
+import noImage from '#base/public/images/no-image_1x1.jpg'
+
+type Props = {
+  src: string
+}
+
+const props = defineProps<Props>()
+</script>
+
+<style lang="scss" scoped>
+// NOTE:
+// 汎用性を持たせるためにサイズについては、srcに設定した画像サイズを可能な範囲で反映するように作成しています。
+// プロジェクトの要件などで「設定した画像のサイズに関わらず固定の値を設定したい」場合は適宜CSSを変更してください。
+.hm-icon-user {
+  user-select: none;
+
+  overflow: hidden;
+  display: inline-block;
+
+  aspect-ratio: 1 / 1;
+  min-width: 24px;
+  border-radius: 50%;
+
+  > .image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+</style>
+```
+
 ## File: layers/base/app/components/hm/input/HmInputFile.vue
 ```vue
 <template>
@@ -2808,510 +3132,6 @@ function onChange(e: Event): void {
 </style>
 ```
 
-## File: layers/base/app/components/hm/HmPaging.vue
-```vue
-<i18n lang="yaml">
-ja:
-  next: 次へ
-  prev: 前へ
-en:
-  next: Next
-  prev: Prev
-</i18n>
-
-<template>
-  <nav
-    aria-label="Pagination Navigation"
-    class="pagination"
-  >
-    <!-- 前へ -->
-    <HaLink
-      :to="route.path"
-      :query="createPageQuery(currentPage - 1)"
-      class="pagination-prev"
-      :class="{
-        ['link-disabled text-disabled']: currentPage <= 1,
-      }"
-      :aria-disabled="currentPage >= totalPages"
-      @click="goToPage(currentPage - 1)"
-    >
-      <slot name="prev-icon">
-        &lt;
-      </slot>
-      {{ i18n.t('prev') }}
-    </HaLink>
-    <!-- 各ページへのリンク表示 -->
-    <ul class="pagination-list">
-      <li
-        v-for="(page, i) in pages"
-        :key="`${page}_${i}`"
-        :aria-disabled="currentPage == page"
-        @click="goToPage(Number(page))"
-      >
-        <HaLink
-          class="pagination-item"
-          :class="{
-            ['link-disabled active']: currentPage == page,
-            ['link-disabled ellipsis']: page == '...',
-          }"
-          :to="route.path"
-          :query="createPageQuery(Number(page))"
-        >
-          {{ page }}
-        </HaLink>
-      </li>
-    </ul>
-    <!-- 次へ -->
-    <HaLink
-      :to="route.path"
-      :query="createPageQuery(currentPage + 1)"
-      class="pagination-next"
-      :class="{ ['link-disabled']: currentPage >= totalPages }"
-      :aria-disabled="currentPage >= totalPages"
-      @click="goToPage(currentPage + 1)"
-    >
-      {{ i18n.t('next') }}
-      <slot name="next-icon">
-        &gt;
-      </slot>
-    </HaLink>
-  </nav>
-</template>
-
-<script lang="ts" setup>
-import { Paging } from '#base/app/utils/response'
-
-export type PageChangedEventObject = {
-  page: number // 新しいページ番号
-  offset: number // 新しいページのオフセット
-}
-
-const i18n = useI18n()
-const route = useRoute()
-
-const props = withDefaults(
-  defineProps<{
-    paging: Paging
-    totalVisible?: number
-    ellipsis?: string
-  }>(),
-  {
-    totalVisible: 7,
-    ellipsis: '...',
-  },
-)
-
-const emit = defineEmits<{
-  (e: 'changed', paging: PageChangedEventObject): void
-}>()
-
-const currentPage = computed(
-  () => Math.ceil(props.paging.offset / props.paging.limit) + 1,
-)
-const totalPages = computed(() =>
-  Math.ceil(props.paging.total / props.paging.limit),
-)
-
-const createPageQuery = (page: number) => {
-  return { ...route.query, page: page.toString() }
-}
-
-const createRange = (length: number, start = 0): number[] => {
-  return Array.from({ length }, (_, i) => start + i)
-}
-
-/*
- * 表示すべきページ番号の配列を作成 ( ロジックの大元はVuetifyライブラリのPaginationコンポーネント参考 )
- * https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/components/VPagination/VPagination.tsx
- */
-const pages = computed(() => {
-  if (
-    totalPages.value <= 0
-    || isNaN(totalPages.value)
-    || isNaN(currentPage.value)
-    || totalPages.value > Number.MAX_SAFE_INTEGER
-  )
-    return []
-
-  if (props.totalVisible <= 0) return []
-  if (props.totalVisible === 1) return [currentPage.value]
-  if (totalPages.value <= props.totalVisible) {
-    return createRange(totalPages.value, 1)
-  }
-
-  // 表示するページ数とellipsisの合計数量を固定するためのロジック ( これがないとページ遷移のたびにページボタンの位置がずれて使いにくい )
-  const even = props.totalVisible % 2 === 0
-  const middle = even
-    ? props.totalVisible / 2
-    : Math.floor(props.totalVisible / 2)
-  const left = even ? middle : middle + 1
-  const right = totalPages.value - middle
-
-  if (left - currentPage.value >= 0) {
-    return [
-      ...createRange(Math.max(1, props.totalVisible - 1), 1),
-      props.ellipsis,
-      totalPages.value,
-    ]
-  } else if (currentPage.value - right >= (even ? 1 : 0)) {
-    const rangeLength = props.totalVisible - 1
-    const rangeStart = totalPages.value - rangeLength + 1
-    return [1, props.ellipsis, ...createRange(rangeLength, rangeStart)]
-  } else {
-    const rangeLength = Math.max(1, props.totalVisible - 3)
-    const rangeStart
-      = rangeLength === 1
-        ? currentPage.value
-        : currentPage.value - Math.ceil(rangeLength / 2) + 1
-    return [
-      1,
-      props.ellipsis,
-      ...createRange(rangeLength, rangeStart),
-      props.ellipsis,
-      totalPages.value,
-    ]
-  }
-})
-
-// ページ番号がクリックされた時に実行される関数
-const goToPage = (page: number) => {
-  // 有効なページ番号の時のみ処理を行う
-  if (page >= 1 && page <= totalPages.value) {
-    const newOffset = (page - 1) * props.paging.limit
-    emit('changed', { page, offset: newOffset })
-  }
-}
-</script>
-
-<style lang="scss" scoped>
-@use '@/assets/styles/variables' as v;
-@use '@/assets/styles/mixins' as m;
-
-.pagination {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: center;
-
-  .link-disabled {
-    pointer-events: none;
-    cursor: default;
-  }
-
-  .pagination-prev,
-  .pagination-next {
-    cursor: pointer;
-    user-select: none;
-
-    display: flex;
-    align-items: center;
-
-    width: auto;
-    height: 32px;
-    padding: 4px 8px;
-
-    color: v.$base-font-color;
-
-    :deep(svg path) {
-      fill: v.$base-font-color;
-    }
-
-    &.text-disabled {
-      color: v.$button-disabled-color;
-
-      :deep(svg path) {
-        fill: v.$button-disabled-color;
-      }
-    }
-
-    &:hover {
-      color: v.$primary-button-default-color;
-
-      :deep(svg path) {
-        fill: v.$primary-button-default-color;
-      }
-    }
-  }
-
-  .pagination-list {
-    user-select: none;
-
-    display: flex;
-    gap: 4px;
-
-    padding: 0;
-
-    list-style: none;
-
-    .pagination-item {
-      cursor: pointer;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-
-      color: v.$base-font-color;
-
-      background: v.$white;
-
-      &.active {
-        font-weight: bold;
-        color: v.$white;
-        background-color: v.$primary-button-default-color;
-      }
-
-      &:hover:not(.active) {
-        color: v.$white;
-        background-color: v.$primary-button-default-color;
-      }
-
-      &.ellipsis {
-        pointer-events: none;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        width: 30px;
-
-        background: none;
-      }
-    }
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/HmSliderItem.vue
-```vue
-<template>
-  <div
-    :id="props.id"
-    class="slider-item"
-    role="tabpanel"
-  >
-    <div
-      class="slider-content"
-      role="presentation"
-    >
-      <slot />
-    </div>
-  </div>
-</template>
-
-<script lang="ts" setup>
-const props = defineProps<{
-  id: string
-}>()
-</script>
-
-<style lang="scss" scoped>
-.slider-content {
-  width: 100%;
-  height: 100%;
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/HmSocialShareLink.vue
-```vue
-<template>
-  <!--
-  - [x] Composition APIで書けている
-  - [-] Nuxt.jsに依存していない
-  - [-] unplugin-auto-import を導入する前提の書き方ができている
-  - [-] ロジック観点でのリファクタリング(FS主管)が完了している
-  - [-] デザイン観点でのリファクタリング(DD主管)が完了している
-  - [-] 適切にコメントが記載されている
-  - [-] Unit Testを通過している
-  - [-] storiesが適切に記載されている
- -->
-  <HaLink
-    class="hm-social-share-link"
-    :to="url"
-    :blank="true"
-  >
-    <slot />
-  </HaLink>
-</template>
-
-<script setup lang="ts">
-const _shareTargetServices = {
-  0: 'twitter',
-  1: 'facebook',
-  2: 'line',
-} as const
-type SharedTarget
-  = (typeof _shareTargetServices)[keyof typeof _shareTargetServices]
-
-const props = defineProps<{
-  name: SharedTarget | null
-  text?: string
-  twitterHashtags?: string[]
-  shareUrl?: string
-}>()
-
-const socialShareLink = useSocialShareLink()
-const url = computed(() => socialShareLink.getShareUrl(props.name || '', props))
-</script>
-```
-
-## File: layers/base/app/components/hm/HmTab.vue
-```vue
-<template>
-  <ul class="tablist">
-    <li
-      v-for="(value, key) in tabStatus"
-      :key="key"
-      role="presentation"
-      class="item"
-    >
-      <button
-        :id="'tab' + key"
-        class="tab"
-        role="tab"
-        :aria-expanded="value"
-        :aria-controls="'panel' + key"
-        @click="changeTab(key)"
-      >
-        <slot :name="'tab' + key" />
-      </button>
-    </li>
-  </ul>
-  <div
-    class="panel-container"
-    role="presentation"
-  >
-    <div
-      v-for="(value, key) in tabStatus"
-      :id="'panel' + key"
-      :key="key"
-      class="tabpanel"
-      role="tabpanel"
-      :aria-labelledby="'tab' + key"
-      :aria-hidden="!value"
-    >
-      <slot :name="'panel' + key" />
-    </div>
-  </div>
-</template>
-
-<script lang="ts" setup>
-const props = defineProps<{
-  amount: number
-}>()
-// タブのindexと開閉状態を表すbooleanを格納するオブジェクトのためのrefで、props.amountの数だけオブジェクトを作る
-const tabStatus = ref(range(0, props.amount - 1).map((_, i) => i === 0))
-
-// タブをクリックしたとき、クリックしたタブのindexと一致するパネルの表示状態がtrueになるようにする
-const changeTab = (index: number): void => {
-  for (const i of range(0, tabStatus.value.length - 1)) {
-    tabStatus.value[i] = false
-  }
-  tabStatus.value[index] = true
-}
-</script>
-
-<style scoped lang="scss">
-@use '#base/app/assets/styles/variables' as v;
-@use '#base/app/assets/styles/mixins' as m;
-
-.panel-container {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr;
-}
-
-.tabpanel {
-  display: none;
-  grid-area: 1 / 1 / 2 / 2;
-
-  opacity: 0;
-
-  transition: opacity 0.3s, display 0.3s;
-
-  transition-behavior: allow-discrete; // display:block -> noneにdurationを効かせる(transitionのショートハンドで上書きされないようにtransitionより下に書く)
-  &[aria-hidden='false'] {
-    display: block;
-    opacity: 1;
-    transition: opacity 0.3s, display 0.3s;
-
-    transition-behavior: allow-discrete; // display:block -> noneにdurationを効かせる(transitionのショートハンドで上書きされないようにtransitionより下に書く)
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/HmTsx.vue
-```vue
-<template>
-  <div class="hm-tsx">
-    <DefaultSlot />
-  </div>
-</template>
-
-<script lang="tsx" setup>
-import { Fragment } from 'vue'
-
-const slots = useSlots() as { default?: () => unknown }
-const defaultSlot = slots.default ? slots.default() : null
-
-const DefaultSlot = () => {
-  return <Fragment>{defaultSlot}</Fragment>
-}
-</script>
-```
-
-## File: layers/base/app/components/hm/icon/HmIconUser.vue
-```vue
-<template>
-  <span class="hm-icon-user">
-    <HaImage
-      class="image"
-      :src="props.src"
-      :noImage="noImage"
-      :draggable="false"
-    />
-  </span>
-</template>
-
-<script lang="ts" setup>
-import noImage from '#base/public/images/no-image_1x1.jpg'
-
-type Props = {
-  src: string
-}
-
-const props = defineProps<Props>()
-</script>
-
-<style lang="scss" scoped>
-// NOTE:
-// 汎用性を持たせるためにサイズについては、srcに設定した画像サイズを可能な範囲で反映するように作成しています。
-// プロジェクトの要件などで「設定した画像のサイズに関わらず固定の値を設定したい」場合は適宜CSSを変更してください。
-.hm-icon-user {
-  user-select: none;
-
-  overflow: hidden;
-  display: inline-block;
-
-  aspect-ratio: 1 / 1;
-  min-width: 24px;
-  border-radius: 50%;
-
-  > .image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-}
-</style>
-```
-
 ## File: layers/base/app/components/hm/input/HmInputRadioChangeable.vue
 ```vue
 <template>
@@ -3459,6 +3279,102 @@ const onChange = (e: Event) => {
       background-color: v.$green-4;
     }
   }
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/HmDialogElement.vue
+```vue
+<!--
+HaDialogとの違いとして、HmDialogElementは別階層の別要素のz-indexの影響により、それよりも下に表示されてしまう
+と言った現象が起きません(dialog要素は常に最前面に表示される)。
+ -->
+<template>
+  <!-- ダイアログを開くボタン -->
+  <component
+    :is="props.openButtonHtmlTag"
+    :tabindex="props.openButtonHtmlTag !== 'button' ? 0 : undefined"
+    class="open"
+    aria-expanded="false"
+    @click.stop="openDialog"
+  >
+    <slot name="open">
+      <span class="text">{{
+        i18n.locale.value === 'ja' ? 'ダイアログを開く' : 'Open the dialog'
+      }}</span>
+    </slot>
+  </component>
+  <!-- ダイアログ -->
+  <template v-if="isActive">
+    <HaDialogElement
+      ref="dialog"
+      :closeButtonHtmlTag="props.closeButtonHtmlTag"
+      :closedby="props.closedby"
+    >
+      <template
+        v-if="$slots.close"
+        #close
+      >
+        <slot name="close"></slot>
+      </template>
+      <template #inner>
+        <slot name="inner"></slot>
+      </template>
+    </HaDialogElement>
+  </template>
+</template>
+
+<script lang="ts" setup>
+import HaDialogElement from '#base/app/components/ha/HaDialogElement.vue'
+// import RiCloseLine from '~icons/ri/close-line'
+
+export type Props = {
+  openButtonHtmlTag?: string
+  closeButtonHtmlTag?: string
+  closedby?: 'any' | 'closerequest' | 'none' | undefined
+}
+const props = withDefaults(defineProps<Props>(), {
+  openButtonHtmlTag: 'button',
+  closeButtonHtmlTag: 'button',
+  closedby: 'any',
+})
+
+// aria-label用のi18n
+const i18n = useI18n()
+
+// dialog要素をrefにする
+const dialog = ref<InstanceType<typeof HaDialogElement>>()
+const isActive = ref(false)
+
+// dialogを開く関数
+const openDialog = async () => {
+  isActive.value = true
+  await nextTick()
+  if (!dialog.value) {
+    throw new Error('dialogコンポーネントはnull (HmDialogElement openDialog)')
+  }
+  dialog.value.openDialog()
+}
+
+// dialogを閉じる関数
+const closeDialog = () => {
+  if (!dialog.value) {
+    throw new Error('dialogコンポーネントはnull (HmDialogElement closeDialog)')
+  }
+  dialog.value.closeDialog()
+  isActive.value = false
+}
+
+defineExpose({
+  openDialog,
+  closeDialog,
+  isActive,
+})
+</script>
+
+<style lang="scss" scoped>
+.open {
+  cursor: pointer;
 }
 </style>
 ```
@@ -4062,822 +3978,184 @@ onBeforeUnmount(() => stopAutoPlay())
 </style>
 ```
 
-## File: layers/base/app/components/ha/HaTextarea.vue
-```vue
-<template>
-  <div class="ha-textarea">
-    <label
-      class="label"
-      :class="[errorMessage ? '-error' : '']"
-    >
-      <template v-if="counter">
-        <span class="counter">{{ count }}</span>
-      </template>
-      <textarea
-        v-model="text"
-        :type="type"
-        :placeholder="placeholder"
-        :disabled="disabled"
-        :required="required"
-        :rows="rows"
-        class="input"
-      />
-    </label>
-    <p :class="['error-container', { '-hide': hideDetails }]">
-      <span
-        v-if="errorMessage"
-        class="error"
-      >{{ errorMessage }}</span>
-    </p>
-  </div>
-</template>
-
-<script setup lang="ts">
-import { useField } from 'vee-validate'
-import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
-
-type FieldInput = string | number | null
-
-const props = withDefaults(
-  defineProps<{
-    placeholder?: string
-    type?: string
-    validatorName?: string
-    validatorRules?:
-      | ZodType<string, ZodTypeDef, FieldInput>
-      | ZodEffects<ZodType<string, ZodTypeDef, FieldInput>>
-    required?: boolean
-    modelValue?: string | number
-    disabled?: boolean
-    rows?: number
-    counter?: boolean | { max: number }
-    hideDetails?: boolean
-    keepValueOnUnmount?: boolean
-  }>(),
-  {
-    placeholder: 'Input Text',
-    type: 'text',
-    validatorName: 'FileInput',
-    validatorRules: undefined,
-    required: false,
-    modelValue: '',
-    disabled: false,
-    rows: 5,
-    counter: false,
-    hideDetails: false,
-    keepValueOnUnmount: false,
-  },
-)
-
-const emit = defineEmits<{
-  (e: 'update:modelValue' | 'input', text: string): void
-  (e: 'validate', isValid: boolean): void
-}>()
-
-const fieldOptions = {
-  initialValue: props.modelValue,
-  keepValueOnUnmount: props.keepValueOnUnmount,
-}
-
-const { value: fieldValue, errorMessage } = useField(
-  toRef(props, 'validatorName'), props.validatorRules, fieldOptions,
-)
-
-const text = computed({
-  get(): string {
-    if (fieldValue.value === null) {
-      return ''
-    }
-    return '' + fieldValue.value
-  },
-  set(text: string): void {
-    emit('update:modelValue', text)
-    emit('input', text)
-    fieldValue.value = text
-    emit('validate', !!errorMessage.value)
-  },
-})
-
-/** 肩に表示する文字数カウント文字列 */
-const count = computed((): string | number => {
-  const inputLength = text.value.length
-  const max = typeof props.counter === 'object' ? props.counter.max : undefined
-  const maxRuleLength = max ?? getMax(props.validatorRules?._def)
-  return maxRuleLength ? `${inputLength}/${maxRuleLength}` : inputLength
-})
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-
-.ha-textarea {
-  > .label {
-    position: relative;
-
-    display: block;
-
-    width: 100%;
-    border: 1px solid #d5d5d5;
-    border-radius: 3px;
-
-    background-color: v.$white;
-
-    &:disabled {
-      border-color: rgb(0 0 0 / 12%);
-    }
-
-    &:active,
-    &:focus,
-    &:hover,
-    &:focus-within {
-      border-color: v.$primary-color;
-
-      .ha-textarea {
-        &__input {
-          caret-color: v.$primary-color;
-        }
-      }
-    }
-
-    &.-error {
-      border-color: v.$red;
-
-      > .input {
-        caret-color: v.$red;
-      }
-    }
-  }
-
-  > .label > .counter {
-    position: absolute;
-    top: -18px;
-    right: 0;
-
-    display: block;
-
-    font-size: 11px;
-    text-align: right;
-  }
-
-  > .label > .input {
-    width: 100%;
-    padding: 9px 12px 11px;
-
-    font-size: 16px;
-    line-height: 24px;
-    color: v.$black;
-
-    &::placeholder {
-      color: v.$gray-1;
-    }
-
-    &::selection {
-      color: v.$white;
-      background-color: v.$primary-color;
-    }
-  }
-
-  > .error-container {
-    display: block;
-    min-height: 20px;
-    margin-top: 8px;
-
-    > .error {
-      display: block;
-
-      width: fit-content;
-
-      font-size: 12px;
-      font-weight: 400;
-      color: v.$red;
-    }
-
-    &.-hide {
-      display: none;
-      min-height: auto;
-      margin-top: 0;
-    }
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/input/HmInputCheckbox.vue
-```vue
-<template>
-  <label
-    class="hm-input-checkbox"
-    :class="{ ['-disabled']: disabled }"
-  >
-    <HaBaseInput
-      v-model="innerValue"
-      type="checkbox"
-      class="button"
-      :name="name"
-      :disabled="disabled"
-      :required="required"
-      :checked="innerValue"
-    />
-    <div class="content">
-      <slot />
-    </div>
-    <span
-      v-if="validatorRules && errorMessage"
-      class="error"
-    >{{
-      errorMessage
-    }}</span>
-  </label>
-</template>
-
-<script setup lang="ts">
-import { useField } from 'vee-validate'
-import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
-
-const props = withDefaults(
-  defineProps<{
-    validatorName?: string
-    validatorRules?:
-      | ZodType<boolean, ZodTypeDef, boolean>
-      | ZodEffects<ZodType<boolean, ZodTypeDef, boolean>>
-    name: string
-    modelValue?: boolean
-    required?: boolean
-    disabled?: boolean
-  }>(),
-  {
-    validatorName: 'checkbox',
-    validatorRules: undefined,
-    modelValue: false,
-    required: false,
-    disabled: false,
-  },
-)
-
-const emit = defineEmits<{
-  (e: 'update:modelValue' | 'validate' | 'input', value: boolean): void
-}>()
-
-const { value: fieldValue, errorMessage } = useField(
-  toRef(props, 'validatorName'),
-  props.validatorRules,
-  { initialValue: props.modelValue },
-)
-
-const innerValue = computed({
-  get(): boolean {
-    return props.modelValue
-  },
-  set(value: boolean): void {
-    emit('update:modelValue', value)
-    emit('input', value)
-    fieldValue.value = value
-    emit('validate', !!errorMessage.value)
-  },
-})
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-
-.hm-input-checkbox {
-  cursor: pointer;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-
-  &.-disabled {
-    cursor: default;
-    color: v.$gray-1;
-  }
-
-  > .button {
-    display: none;
-  }
-
-  > .button:checked + .content {
-    &::after {
-      display: block;
-    }
-  }
-
-  > .error {
-    display: block;
-
-    width: 100%;
-    margin-top: 8px;
-
-    font-size: 10px;
-    font-weight: 400;
-    color: v.$red;
-  }
-
-  > .content {
-    position: relative;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    width: 100%;
-    padding-left: 34px;
-
-    &::before {
-      content: '';
-
-      position: absolute;
-      top: 50%;
-      left: 0;
-      transform: translateY(-50%);
-
-      width: 24px;
-      height: 24px;
-      border: 1px solid v.$primary-color;
-      border-radius: 20%;
-
-      background-color: v.$white;
-    }
-
-    &::after {
-      content: '';
-
-      position: absolute;
-      top: 50%;
-      left: 11px;
-      transform: translate(-50%, -50%) rotate(-140deg);
-
-      display: none;
-
-      width: 10px;
-      height: 14px;
-      border-top: 4px solid v.$primary-color;
-      border-left: 4px solid v.$primary-color;
-    }
-  }
-
-  &.-disabled > .content {
-    &::before {
-      border: 1px solid v.$gray-1;
-    }
-
-    &::after {
-      border-top: 4px solid v.$gray-1;
-      border-left: 4px solid v.$gray-1;
-    }
-  }
-
-  // ヘッダー検索窓用設定
-  &.-search {
-    > .content {
-      padding-left: 28px;
-
-      &::before {
-        width: 20px;
-        height: 20px;
-        border: 3px solid v.$gray-2;
-        background-color: transparent;
-      }
-
-      &::after {
-        top: 45%;
-        left: 10px;
-      }
-    }
-
-    > .error {
-      display: none;
-    }
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/input/HmInputText.vue
+## File: layers/base/app/components/hm/HmSliderItem.vue
 ```vue
 <template>
   <div
-    tag="div"
-    class="hm-input-text"
+    :id="props.id"
+    class="slider-item"
+    role="tabpanel"
   >
-    <label :class="['label', { '-error': error }, { '-small': small }]">
-      <template v-if="counter">
-        <span class="counter">{{ count }}</span>
-      </template>
-      <template v-if="isLazy">
-        <template v-if="isTrim">
-          <HaBaseInput
-            v-model.trim.lazy="text"
-            :type="type"
-            :placeholder="placeholder"
-            :disabled="disabled"
-            :required="required"
-            :min="typeof min === 'boolean' ? undefined : min"
-            class="input"
-            :class="{ '-small': small }"
-            :name="name"
-            :list="list"
-            @keyup.enter="enter"
-          />
-        </template>
-        <template v-else>
-          <HaBaseInput
-            v-model.lazy="text"
-            :type="type"
-            :placeholder="placeholder"
-            :disabled="disabled"
-            :required="required"
-            :min="typeof min === 'boolean' ? undefined : min"
-            class="input"
-            :class="{ '-small': small }"
-            :name="name"
-            :list="list"
-            @keyup.enter="enter"
-          />
-        </template>
-      </template>
-      <template v-else-if="isTrim">
-        <HaBaseInput
-          v-model.trim="text"
-          :type="type"
-          :placeholder="placeholder"
-          :disabled="disabled"
-          :required="required"
-          :min="typeof min === 'boolean' ? undefined : min"
-          class="input"
-          :class="{ '-small': small }"
-          :name="name"
-          :list="list"
-          @keyup.enter="enter"
-        />
-      </template>
-      <template v-else>
-        <HaBaseInput
-          v-model="text"
-          :type="type"
-          :placeholder="placeholder"
-          :disabled="disabled"
-          :required="required"
-          :min="typeof min === 'boolean' ? undefined : min"
-          class="input"
-          :class="{ '-small': small }"
-          :name="name"
-          :list="list"
-          @keyup.enter="enter"
-        />
-      </template>
-    </label>
-    <template v-if="!noValidate">
-      <p :class="['error-container', { '-hide': hideDetails }]">
-        <template v-if="error">
-          <span class="error">{{ error }}</span>
-        </template>
-      </p>
-    </template>
+    <div
+      class="slider-content"
+      role="presentation"
+    >
+      <slot />
+    </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import { InputType } from '#base/app/components/ha/base/HaBaseInput.vue'
-import { useField } from 'vee-validate'
-import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
-
-type FieldInput = string | number | null
-
-const props = withDefaults(
-  defineProps<{
-    placeholder?: string
-    type?: InputType
-    validatorName?: string
-    validatorRules?:
-      | ZodType<string, ZodTypeDef, FieldInput>
-      | ZodEffects<ZodType<string, ZodTypeDef, FieldInput>>
-    required?: boolean
-    modelValue?: FieldInput
-    disabled?: boolean
-    counter?: boolean | { max: number }
-    min?: number | boolean
-    keyupEnter?: boolean
-    isLazy?: boolean
-    isTrim?: boolean
-    small?: boolean
-    name?: string | undefined
-    error?: string | undefined
-    hideDetails?: boolean
-    list?: string | undefined
-    keepValueOnUnmount?: boolean
-    validateOnMount?: boolean
-  }>(),
-  {
-    placeholder: 'Input Text',
-    type: 'text',
-    validatorName: 'FileInput',
-    validatorRules: undefined,
-    required: false,
-    modelValue: '',
-    disabled: false,
-    counter: false,
-    min: false,
-    keyupEnter: false,
-    isLazy: false,
-    isTrim: false,
-    small: false,
-    name: undefined,
-    error: undefined,
-    hideDetails: false,
-    list: undefined,
-    keepValueOnUnmount: false,
-    validateOnMount: false,
-  },
-)
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void
-  (e: 'validate', isValid: boolean): void
-  (e: 'enter'): void
+<script lang="ts" setup>
+const props = defineProps<{
+  id: string
 }>()
-
-/**
- * v-if によってフォームが再表示された場合など、
- * レンダリング時にmodelValueがから出ない場合にバリデーションを実行する
- */
-const validateOnMount
-  = props.validateOnMount
-    && typeof props.modelValue?.toString() === 'string'
-    && props.modelValue.toString().length > 0
-
-const { value, errorMessage } = useField(
-  toRef(props, 'validatorName'),
-  props.validatorRules,
-  { initialValue: props.modelValue, validateOnMount },
-)
-
-const text = computed({
-  get(): string {
-    if (value.value === null) return ''
-    return '' + value.value
-  },
-  set(text: string): void {
-    emit('update:modelValue', text)
-    value.value = text
-    emit('validate', !!errorMessage.value)
-  },
-})
-
-/** バリデーションがない場合、エラー領域を出さない */
-const noValidate = computed(
-  () =>
-    props.validatorName === 'FileInput' && props.validatorRules === undefined,
-)
-
-/** 肩に表示する文字数カウント文字列 */
-const count = computed((): string | number => {
-  const inputLength = text.value.length
-  const max = typeof props.counter === 'object' ? props.counter.max : undefined
-  const maxRuleLength = max ?? getMax(props.validatorRules?._def)
-  return maxRuleLength ? `${inputLength}/${maxRuleLength}` : inputLength
-})
-
-/** 外からエラーメッセージを上書きするパターン用エスケープハッチ */
-const error = computed(() => errorMessage.value || props.error)
-
-function enter(): void {
-  if (props.keyupEnter) {
-    emit('enter')
-  }
-}
 </script>
 
 <style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-
-.hm-input-text {
-  > .label {
-    position: relative;
-
-    display: block;
-
-    width: 100%;
-    height: 44px;
-    border: 1px solid #d5d5d5;
-    border-radius: 4px;
-
-    background-color: v.$white;
-
-    &:disabled {
-      border-color: rgb(0 0 0 / 12%);
-    }
-
-    &:active,
-    &:focus,
-    &:hover,
-    &:focus-within {
-      border-color: v.$primary-color;
-
-      .hm-input-text {
-        > .input {
-          caret-color: v.$primary-color;
-        }
-      }
-    }
-
-    &.-error {
-      border-color: v.$red;
-
-      .hm-input-text {
-        > .input {
-          caret-color: v.$red;
-        }
-      }
-    }
-
-    &.-small {
-      height: 30px;
-    }
-  }
-
-  > .label > .counter {
-    position: absolute;
-    top: -18px;
-    right: 0;
-
-    display: block;
-
-    font-size: 11px;
-    text-align: right;
-  }
-
-  > .label > .input {
-    width: 100%;
-    padding: 9px 12px 11px;
-
-    font-size: 16px;
-    line-height: 24px;
-    color: v.$black;
-
-    &::placeholder {
-      color: v.$gray-1;
-    }
-
-    &::selection {
-      color: v.$white;
-      background-color: v.$primary-color;
-    }
-
-    &:disabled {
-      height: 100%;
-      padding: 0 12px;
-      background: rgb(0 0 0 / 12.6%);
-    }
-
-    &.-small {
-      padding: 0 11px;
-      font-size: 12px;
-      line-height: 28px;
-    }
-  }
-
-  > .error-container {
-    display: block;
-    min-height: 20px;
-    margin-top: 8px;
-
-    > .error {
-      display: block;
-
-      width: fit-content;
-
-      font-size: 12px;
-      font-weight: 400;
-      color: v.$red;
-    }
-  }
-
-  > .error-container.-hide {
-    display: none;
-    min-height: auto;
-    margin-top: 0;
-  }
-
-  // カタログヘッダー検索窓用設定
-  &.-search {
-    > .label {
-      border-color: v.$gray-2;
-
-      > .input {
-        padding-right: 72px;
-      }
-    }
-  }
-}
-
-// input type=numberの時に出るスピンボタンを消す
-input[type='number']::-webkit-outer-spin-button,
-input[type='number']::-webkit-inner-spin-button {
-  margin: 0;
-  -webkit-appearance: none;
-}
-
-input[type='number'] {
-  -moz-appearance: textfield;
-  appearance: textfield;
+.slider-content {
+  width: 100%;
+  height: 100%;
 }
 </style>
 ```
 
-## File: layers/base/app/components/hm/HmDialogElement.vue
+## File: layers/base/app/components/hm/HmSocialShareLink.vue
 ```vue
-<!--
-HaDialogとの違いとして、HmDialogElementは別階層の別要素のz-indexの影響により、それよりも下に表示されてしまう
-と言った現象が起きません(dialog要素は常に最前面に表示される)。
- -->
 <template>
-  <!-- ダイアログを開くボタン -->
-  <component
-    :is="props.openButtonHtmlTag"
-    :tabindex="props.openButtonHtmlTag !== 'button' ? 0 : undefined"
-    class="open"
-    aria-expanded="false"
-    @click.stop="openDialog"
+  <!--
+  - [x] Composition APIで書けている
+  - [-] Nuxt.jsに依存していない
+  - [-] unplugin-auto-import を導入する前提の書き方ができている
+  - [-] ロジック観点でのリファクタリング(FS主管)が完了している
+  - [-] デザイン観点でのリファクタリング(DD主管)が完了している
+  - [-] 適切にコメントが記載されている
+  - [-] Unit Testを通過している
+  - [-] storiesが適切に記載されている
+ -->
+  <HaLink
+    class="hm-social-share-link"
+    :to="url"
+    :blank="true"
   >
-    <slot name="open">
-      <span class="text">{{
-        i18n.locale.value === 'ja' ? 'ダイアログを開く' : 'Open the dialog'
-      }}</span>
-    </slot>
-  </component>
-  <!-- ダイアログ -->
-  <template v-if="isActive">
-    <HaDialogElement
-      ref="dialog"
-      :closeButtonHtmlTag="props.closeButtonHtmlTag"
-      :closedby="props.closedby"
+    <slot />
+  </HaLink>
+</template>
+
+<script setup lang="ts">
+const _shareTargetServices = {
+  0: 'twitter',
+  1: 'facebook',
+  2: 'line',
+} as const
+type SharedTarget
+  = (typeof _shareTargetServices)[keyof typeof _shareTargetServices]
+
+const props = defineProps<{
+  name: SharedTarget | null
+  text?: string
+  twitterHashtags?: string[]
+  shareUrl?: string
+}>()
+
+const socialShareLink = useSocialShareLink()
+const url = computed(() => socialShareLink.getShareUrl(props.name || '', props))
+</script>
+```
+
+## File: layers/base/app/components/hm/HmTab.vue
+```vue
+<template>
+  <ul class="tablist">
+    <li
+      v-for="(value, key) in tabStatus"
+      :key="key"
+      role="presentation"
+      class="item"
     >
-      <template
-        v-if="$slots.close"
-        #close
+      <button
+        :id="'tab' + key"
+        class="tab"
+        role="tab"
+        :aria-expanded="value"
+        :aria-controls="'panel' + key"
+        @click="changeTab(key)"
       >
-        <slot name="close"></slot>
-      </template>
-      <template #inner>
-        <slot name="inner"></slot>
-      </template>
-    </HaDialogElement>
-  </template>
+        <slot :name="'tab' + key" />
+      </button>
+    </li>
+  </ul>
+  <div
+    class="panel-container"
+    role="presentation"
+  >
+    <div
+      v-for="(value, key) in tabStatus"
+      :id="'panel' + key"
+      :key="key"
+      class="tabpanel"
+      role="tabpanel"
+      :aria-labelledby="'tab' + key"
+      :aria-hidden="!value"
+    >
+      <slot :name="'panel' + key" />
+    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
-import HaDialogElement from '#base/app/components/ha/HaDialogElement.vue'
-// import RiCloseLine from '~icons/ri/close-line'
+const props = defineProps<{
+  amount: number
+}>()
+// タブのindexと開閉状態を表すbooleanを格納するオブジェクトのためのrefで、props.amountの数だけオブジェクトを作る
+const tabStatus = ref(range(0, props.amount - 1).map((_, i) => i === 0))
 
-export type Props = {
-  openButtonHtmlTag?: string
-  closeButtonHtmlTag?: string
-  closedby?: 'any' | 'closerequest' | 'none' | undefined
-}
-const props = withDefaults(defineProps<Props>(), {
-  openButtonHtmlTag: 'button',
-  closeButtonHtmlTag: 'button',
-  closedby: 'any',
-})
-
-// aria-label用のi18n
-const i18n = useI18n()
-
-// dialog要素をrefにする
-const dialog = ref<InstanceType<typeof HaDialogElement>>()
-const isActive = ref(false)
-
-// dialogを開く関数
-const openDialog = async () => {
-  isActive.value = true
-  await nextTick()
-  if (!dialog.value) {
-    throw new Error('dialogコンポーネントはnull (HmDialogElement openDialog)')
+// タブをクリックしたとき、クリックしたタブのindexと一致するパネルの表示状態がtrueになるようにする
+const changeTab = (index: number): void => {
+  for (const i of range(0, tabStatus.value.length - 1)) {
+    tabStatus.value[i] = false
   }
-  dialog.value.openDialog()
+  tabStatus.value[index] = true
 }
-
-// dialogを閉じる関数
-const closeDialog = () => {
-  if (!dialog.value) {
-    throw new Error('dialogコンポーネントはnull (HmDialogElement closeDialog)')
-  }
-  dialog.value.closeDialog()
-  isActive.value = false
-}
-
-defineExpose({
-  openDialog,
-  closeDialog,
-  isActive,
-})
 </script>
 
-<style lang="scss" scoped>
-.open {
-  cursor: pointer;
+<style scoped lang="scss">
+@use '#base/app/assets/styles/variables' as v;
+@use '#base/app/assets/styles/mixins' as m;
+
+.panel-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+
+.tabpanel {
+  display: none;
+  grid-area: 1 / 1 / 2 / 2;
+
+  opacity: 0;
+
+  transition: opacity 0.3s, display 0.3s;
+
+  transition-behavior: allow-discrete; // display:block -> noneにdurationを効かせる(transitionのショートハンドで上書きされないようにtransitionより下に書く)
+  &[aria-hidden='false'] {
+    display: block;
+    opacity: 1;
+    transition: opacity 0.3s, display 0.3s;
+
+    transition-behavior: allow-discrete; // display:block -> noneにdurationを効かせる(transitionのショートハンドで上書きされないようにtransitionより下に書く)
+  }
 }
 </style>
+```
+
+## File: layers/base/app/components/hm/HmTsx.vue
+```vue
+<template>
+  <div class="hm-tsx">
+    <DefaultSlot />
+  </div>
+</template>
+
+<script lang="tsx" setup>
+import { Fragment } from 'vue'
+
+const slots = useSlots() as { default?: () => unknown }
+const defaultSlot = slots.default ? slots.default() : null
+
+const DefaultSlot = () => {
+  return <Fragment>{defaultSlot}</Fragment>
+}
+</script>
 ```
 
 ## File: layers/base/app/components/ha/HaDialogElement.vue
@@ -5274,6 +4552,396 @@ const innerValue = computed({
   &.-search {
     > .select {
       border-color: v.$gray-2;
+    }
+
+    > .error {
+      display: none;
+    }
+  }
+}
+</style>
+```
+
+## File: layers/base/app/components/ha/HaTextarea.vue
+```vue
+<template>
+  <div class="ha-textarea">
+    <label
+      class="label"
+      :class="[errorMessage ? '-error' : '']"
+    >
+      <template v-if="counter">
+        <span class="counter">{{ count }}</span>
+      </template>
+      <textarea
+        v-model="text"
+        :type="type"
+        :placeholder="placeholder"
+        :disabled="disabled"
+        :required="required"
+        :rows="rows"
+        class="input"
+      />
+    </label>
+    <p :class="['error-container', { '-hide': hideDetails }]">
+      <span
+        v-if="errorMessage"
+        class="error"
+      >{{ errorMessage }}</span>
+    </p>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useField } from 'vee-validate'
+import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
+
+type FieldInput = string | number | null
+
+const props = withDefaults(
+  defineProps<{
+    placeholder?: string
+    type?: string
+    validatorName?: string
+    validatorRules?:
+      | ZodType<string, ZodTypeDef, FieldInput>
+      | ZodEffects<ZodType<string, ZodTypeDef, FieldInput>>
+    required?: boolean
+    modelValue?: string | number
+    disabled?: boolean
+    rows?: number
+    counter?: boolean | { max: number }
+    hideDetails?: boolean
+    keepValueOnUnmount?: boolean
+  }>(),
+  {
+    placeholder: 'Input Text',
+    type: 'text',
+    validatorName: 'FileInput',
+    validatorRules: undefined,
+    required: false,
+    modelValue: '',
+    disabled: false,
+    rows: 5,
+    counter: false,
+    hideDetails: false,
+    keepValueOnUnmount: false,
+  },
+)
+
+const emit = defineEmits<{
+  (e: 'update:modelValue' | 'input', text: string): void
+  (e: 'validate', isValid: boolean): void
+}>()
+
+const fieldOptions = {
+  initialValue: props.modelValue,
+  keepValueOnUnmount: props.keepValueOnUnmount,
+}
+
+const { value: fieldValue, errorMessage } = useField(
+  toRef(props, 'validatorName'), props.validatorRules, fieldOptions,
+)
+
+const text = computed({
+  get(): string {
+    if (fieldValue.value === null) {
+      return ''
+    }
+    return '' + fieldValue.value
+  },
+  set(text: string): void {
+    emit('update:modelValue', text)
+    emit('input', text)
+    fieldValue.value = text
+    emit('validate', !!errorMessage.value)
+  },
+})
+
+/** 肩に表示する文字数カウント文字列 */
+const count = computed((): string | number => {
+  const inputLength = text.value.length
+  const max = typeof props.counter === 'object' ? props.counter.max : undefined
+  const maxRuleLength = max ?? getMax(props.validatorRules?._def)
+  return maxRuleLength ? `${inputLength}/${maxRuleLength}` : inputLength
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+
+.ha-textarea {
+  > .label {
+    position: relative;
+
+    display: block;
+
+    width: 100%;
+    border: 1px solid #d5d5d5;
+    border-radius: 3px;
+
+    background-color: v.$white;
+
+    &:disabled {
+      border-color: rgb(0 0 0 / 12%);
+    }
+
+    &:active,
+    &:focus,
+    &:hover,
+    &:focus-within {
+      border-color: v.$primary-color;
+
+      .ha-textarea {
+        &__input {
+          caret-color: v.$primary-color;
+        }
+      }
+    }
+
+    &.-error {
+      border-color: v.$red;
+
+      > .input {
+        caret-color: v.$red;
+      }
+    }
+  }
+
+  > .label > .counter {
+    position: absolute;
+    top: -18px;
+    right: 0;
+
+    display: block;
+
+    font-size: 11px;
+    text-align: right;
+  }
+
+  > .label > .input {
+    width: 100%;
+    padding: 9px 12px 11px;
+
+    font-size: 16px;
+    line-height: 24px;
+    color: v.$black;
+
+    &::placeholder {
+      color: v.$gray-1;
+    }
+
+    &::selection {
+      color: v.$white;
+      background-color: v.$primary-color;
+    }
+  }
+
+  > .error-container {
+    display: block;
+    min-height: 20px;
+    margin-top: 8px;
+
+    > .error {
+      display: block;
+
+      width: fit-content;
+
+      font-size: 12px;
+      font-weight: 400;
+      color: v.$red;
+    }
+
+    &.-hide {
+      display: none;
+      min-height: auto;
+      margin-top: 0;
+    }
+  }
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/input/HmInputCheckbox.vue
+```vue
+<template>
+  <label
+    class="hm-input-checkbox"
+    :class="{ ['-disabled']: disabled }"
+  >
+    <HaBaseInput
+      v-model="innerValue"
+      type="checkbox"
+      class="button"
+      :name="name"
+      :disabled="disabled"
+      :required="required"
+      :checked="innerValue"
+    />
+    <div class="content">
+      <slot />
+    </div>
+    <span
+      v-if="validatorRules && errorMessage"
+      class="error"
+    >{{
+      errorMessage
+    }}</span>
+  </label>
+</template>
+
+<script setup lang="ts">
+import { useField } from 'vee-validate'
+import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
+
+const props = withDefaults(
+  defineProps<{
+    validatorName?: string
+    validatorRules?:
+      | ZodType<boolean, ZodTypeDef, boolean>
+      | ZodEffects<ZodType<boolean, ZodTypeDef, boolean>>
+    name: string
+    modelValue?: boolean
+    required?: boolean
+    disabled?: boolean
+  }>(),
+  {
+    validatorName: 'checkbox',
+    validatorRules: undefined,
+    modelValue: false,
+    required: false,
+    disabled: false,
+  },
+)
+
+const emit = defineEmits<{
+  (e: 'update:modelValue' | 'validate' | 'input', value: boolean): void
+}>()
+
+const { value: fieldValue, errorMessage } = useField(
+  toRef(props, 'validatorName'),
+  props.validatorRules,
+  { initialValue: props.modelValue },
+)
+
+const innerValue = computed({
+  get(): boolean {
+    return props.modelValue
+  },
+  set(value: boolean): void {
+    emit('update:modelValue', value)
+    emit('input', value)
+    fieldValue.value = value
+    emit('validate', !!errorMessage.value)
+  },
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+
+.hm-input-checkbox {
+  cursor: pointer;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+
+  &.-disabled {
+    cursor: default;
+    color: v.$gray-1;
+  }
+
+  > .button {
+    display: none;
+  }
+
+  > .button:checked + .content {
+    &::after {
+      display: block;
+    }
+  }
+
+  > .error {
+    display: block;
+
+    width: 100%;
+    margin-top: 8px;
+
+    font-size: 10px;
+    font-weight: 400;
+    color: v.$red;
+  }
+
+  > .content {
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    width: 100%;
+    padding-left: 34px;
+
+    &::before {
+      content: '';
+
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+
+      width: 24px;
+      height: 24px;
+      border: 1px solid v.$primary-color;
+      border-radius: 20%;
+
+      background-color: v.$white;
+    }
+
+    &::after {
+      content: '';
+
+      position: absolute;
+      top: 50%;
+      left: 11px;
+      transform: translate(-50%, -50%) rotate(-140deg);
+
+      display: none;
+
+      width: 10px;
+      height: 14px;
+      border-top: 4px solid v.$primary-color;
+      border-left: 4px solid v.$primary-color;
+    }
+  }
+
+  &.-disabled > .content {
+    &::before {
+      border: 1px solid v.$gray-1;
+    }
+
+    &::after {
+      border-top: 4px solid v.$gray-1;
+      border-left: 4px solid v.$gray-1;
+    }
+  }
+
+  // ヘッダー検索窓用設定
+  &.-search {
+    > .content {
+      padding-left: 28px;
+
+      &::before {
+        width: 20px;
+        height: 20px;
+        border: 3px solid v.$gray-2;
+        background-color: transparent;
+      }
+
+      &::after {
+        top: 45%;
+        left: 10px;
+      }
     }
 
     > .error {
@@ -5891,6 +5559,338 @@ const cancel = () => {
   &:deep(.dialog-window) {
     height: 100%;
   }
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/input/HmInputText.vue
+```vue
+<template>
+  <div
+    tag="div"
+    class="hm-input-text"
+  >
+    <label :class="['label', { '-error': error }, { '-small': small }]">
+      <template v-if="counter">
+        <span class="counter">{{ count }}</span>
+      </template>
+      <template v-if="isLazy">
+        <template v-if="isTrim">
+          <HaBaseInput
+            v-model.trim.lazy="text"
+            :type="type"
+            :placeholder="placeholder"
+            :disabled="disabled"
+            :required="required"
+            :min="typeof min === 'boolean' ? undefined : min"
+            class="input"
+            :class="{ '-small': small }"
+            :name="name"
+            :list="list"
+            @keyup.enter="enter"
+          />
+        </template>
+        <template v-else>
+          <HaBaseInput
+            v-model.lazy="text"
+            :type="type"
+            :placeholder="placeholder"
+            :disabled="disabled"
+            :required="required"
+            :min="typeof min === 'boolean' ? undefined : min"
+            class="input"
+            :class="{ '-small': small }"
+            :name="name"
+            :list="list"
+            @keyup.enter="enter"
+          />
+        </template>
+      </template>
+      <template v-else-if="isTrim">
+        <HaBaseInput
+          v-model.trim="text"
+          :type="type"
+          :placeholder="placeholder"
+          :disabled="disabled"
+          :required="required"
+          :min="typeof min === 'boolean' ? undefined : min"
+          class="input"
+          :class="{ '-small': small }"
+          :name="name"
+          :list="list"
+          @keyup.enter="enter"
+        />
+      </template>
+      <template v-else>
+        <HaBaseInput
+          v-model="text"
+          :type="type"
+          :placeholder="placeholder"
+          :disabled="disabled"
+          :required="required"
+          :min="typeof min === 'boolean' ? undefined : min"
+          class="input"
+          :class="{ '-small': small }"
+          :name="name"
+          :list="list"
+          @keyup.enter="enter"
+        />
+      </template>
+    </label>
+    <template v-if="!noValidate">
+      <p :class="['error-container', { '-hide': hideDetails }]">
+        <template v-if="error">
+          <span class="error">{{ error }}</span>
+        </template>
+      </p>
+    </template>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { InputType } from '#base/app/components/ha/base/HaBaseInput.vue'
+import { useField } from 'vee-validate'
+import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
+
+type FieldInput = string | number | null
+
+const props = withDefaults(
+  defineProps<{
+    placeholder?: string
+    type?: InputType
+    validatorName?: string
+    validatorRules?:
+      | ZodType<string, ZodTypeDef, FieldInput>
+      | ZodEffects<ZodType<string, ZodTypeDef, FieldInput>>
+    required?: boolean
+    modelValue?: FieldInput
+    disabled?: boolean
+    counter?: boolean | { max: number }
+    min?: number | boolean
+    keyupEnter?: boolean
+    isLazy?: boolean
+    isTrim?: boolean
+    small?: boolean
+    name?: string | undefined
+    error?: string | undefined
+    hideDetails?: boolean
+    list?: string | undefined
+    keepValueOnUnmount?: boolean
+    validateOnMount?: boolean
+  }>(),
+  {
+    placeholder: 'Input Text',
+    type: 'text',
+    validatorName: 'FileInput',
+    validatorRules: undefined,
+    required: false,
+    modelValue: '',
+    disabled: false,
+    counter: false,
+    min: false,
+    keyupEnter: false,
+    isLazy: false,
+    isTrim: false,
+    small: false,
+    name: undefined,
+    error: undefined,
+    hideDetails: false,
+    list: undefined,
+    keepValueOnUnmount: false,
+    validateOnMount: false,
+  },
+)
+
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: string): void
+  (e: 'validate', isValid: boolean): void
+  (e: 'enter'): void
+}>()
+
+/**
+ * v-if によってフォームが再表示された場合など、
+ * レンダリング時にmodelValueがから出ない場合にバリデーションを実行する
+ */
+const validateOnMount
+  = props.validateOnMount
+    && typeof props.modelValue?.toString() === 'string'
+    && props.modelValue.toString().length > 0
+
+const { value, errorMessage } = useField(
+  toRef(props, 'validatorName'),
+  props.validatorRules,
+  { initialValue: props.modelValue, validateOnMount },
+)
+
+const text = computed({
+  get(): string {
+    if (value.value === null) return ''
+    return '' + value.value
+  },
+  set(text: string): void {
+    emit('update:modelValue', text)
+    value.value = text
+    emit('validate', !!errorMessage.value)
+  },
+})
+
+/** バリデーションがない場合、エラー領域を出さない */
+const noValidate = computed(
+  () =>
+    props.validatorName === 'FileInput' && props.validatorRules === undefined,
+)
+
+/** 肩に表示する文字数カウント文字列 */
+const count = computed((): string | number => {
+  const inputLength = text.value.length
+  const max = typeof props.counter === 'object' ? props.counter.max : undefined
+  const maxRuleLength = max ?? getMax(props.validatorRules?._def)
+  return maxRuleLength ? `${inputLength}/${maxRuleLength}` : inputLength
+})
+
+/** 外からエラーメッセージを上書きするパターン用エスケープハッチ */
+const error = computed(() => errorMessage.value || props.error)
+
+function enter(): void {
+  if (props.keyupEnter) {
+    emit('enter')
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+
+.hm-input-text {
+  > .label {
+    position: relative;
+
+    display: block;
+
+    width: 100%;
+    height: 44px;
+    border: 1px solid #d5d5d5;
+    border-radius: 4px;
+
+    background-color: v.$white;
+
+    &:disabled {
+      border-color: rgb(0 0 0 / 12%);
+    }
+
+    &:active,
+    &:focus,
+    &:hover,
+    &:focus-within {
+      border-color: v.$primary-color;
+
+      .hm-input-text {
+        > .input {
+          caret-color: v.$primary-color;
+        }
+      }
+    }
+
+    &.-error {
+      border-color: v.$red;
+
+      .hm-input-text {
+        > .input {
+          caret-color: v.$red;
+        }
+      }
+    }
+
+    &.-small {
+      height: 30px;
+    }
+  }
+
+  > .label > .counter {
+    position: absolute;
+    top: -18px;
+    right: 0;
+
+    display: block;
+
+    font-size: 11px;
+    text-align: right;
+  }
+
+  > .label > .input {
+    width: 100%;
+    padding: 9px 12px 11px;
+
+    font-size: 16px;
+    line-height: 24px;
+    color: v.$black;
+
+    &::placeholder {
+      color: v.$gray-1;
+    }
+
+    &::selection {
+      color: v.$white;
+      background-color: v.$primary-color;
+    }
+
+    &:disabled {
+      height: 100%;
+      padding: 0 12px;
+      background: rgb(0 0 0 / 12.6%);
+    }
+
+    &.-small {
+      padding: 0 11px;
+      font-size: 12px;
+      line-height: 28px;
+    }
+  }
+
+  > .error-container {
+    display: block;
+    min-height: 20px;
+    margin-top: 8px;
+
+    > .error {
+      display: block;
+
+      width: fit-content;
+
+      font-size: 12px;
+      font-weight: 400;
+      color: v.$red;
+    }
+  }
+
+  > .error-container.-hide {
+    display: none;
+    min-height: auto;
+    margin-top: 0;
+  }
+
+  // カタログヘッダー検索窓用設定
+  &.-search {
+    > .label {
+      border-color: v.$gray-2;
+
+      > .input {
+        padding-right: 72px;
+      }
+    }
+  }
+}
+
+// input type=numberの時に出るスピンボタンを消す
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 </style>
 ```

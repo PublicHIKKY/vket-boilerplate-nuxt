@@ -91,9 +91,7 @@ export default withNuxt(
     plugins: {
       '@stylistic': stylistic,
     },
-    rules: {
-      '@stylistic/multiline-comment-style': ['warn', 'starred-block'],
-    },
+    rules: {},
   },
 
   // その他オーバーライド

@@ -187,7 +187,7 @@ a {
 // markdown 用スタイリング
 @use 'variables' as v;
 
-.hm-markdowon {
+.hm-markdown {
   h1,
   h2,
   h3,

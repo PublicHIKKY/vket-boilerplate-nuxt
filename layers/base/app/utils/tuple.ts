@@ -12,6 +12,6 @@ export const tupleWideningDo = <T>(
   x: string | undefined | null,
   f: (
     xs: readonly (string | undefined | null)[],
-    x: string | undefined | null
+    x: string | undefined | null,
   ) => T,
 ) => f(xs, x)
