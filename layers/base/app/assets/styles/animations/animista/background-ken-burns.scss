@@ -1,0 +1,203 @@
+/**
+ * Ken Burns Animation (Background with Ken Burns Effect)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Ken Burns Top
+@keyframes kenburns-top {
+  0% {
+    transform-origin: 50% 16%;
+    transform: scale(1) translateY(0);
+  }
+
+  100% {
+    transform-origin: top;
+    transform: scale(1.25) translateY(-15px);
+  }
+}
+
+// Ken Burns Top Right
+@keyframes kenburns-top-right {
+  0% {
+    transform-origin: 84% 16%;
+    transform: scale(1) translate(0, 0);
+  }
+
+  100% {
+    transform-origin: top right;
+    transform: scale(1.25) translate(20px, -15px);
+  }
+}
+
+// Ken Burns Right
+@keyframes kenburns-right {
+  0% {
+    transform-origin: 84% 50%;
+    transform: scale(1) translate(0, 0);
+  }
+
+  100% {
+    transform-origin: right;
+    transform: scale(1.25) translateX(20px);
+  }
+}
+
+// Ken Burns Bottom Right
+@keyframes kenburns-bottom-right {
+  0% {
+    transform-origin: 84% 84%;
+    transform: scale(1) translate(0, 0);
+  }
+
+  100% {
+    transform-origin: bottom right;
+    transform: scale(1.25) translate(20px, 15px);
+  }
+}
+
+// Ken Burns Bottom
+@keyframes kenburns-bottom {
+  0% {
+    transform-origin: 50% 84%;
+    transform: scale(1) translateY(0);
+  }
+
+  100% {
+    transform-origin: bottom;
+    transform: scale(1.25) translateY(15px);
+  }
+}
+
+// Ken Burns Bottom Left
+@keyframes kenburns-bottom-left {
+  0% {
+    transform-origin: 16% 84%;
+    transform: scale(1) translate(0, 0);
+  }
+
+  100% {
+    transform-origin: bottom left;
+    transform: scale(1.25) translate(-20px, 15px);
+  }
+}
+
+// Ken Burns Left
+@keyframes kenburns-left {
+  0% {
+    transform-origin: 16% 50%;
+    transform: scale(1) translate(0, 0);
+  }
+
+  100% {
+    transform-origin: left;
+    transform: scale(1.25) translateX(-20px);
+  }
+}
+
+// Ken Burns Top Left
+@keyframes kenburns-top-left {
+  0% {
+    transform-origin: 16% 16%;
+    transform: scale(1) translate(0, 0);
+  }
+
+  100% {
+    transform-origin: top left;
+    transform: scale(1.25) translate(-20px, -15px);
+  }
+}
+
+// ============================================
+// Mixin: Ken Burns
+// ============================================
+
+/// Ken Burnsアニメーション（背景のズーム＆パン効果）を適用するmixin
+///
+/// @param {String} $variant ['top'] - アニメーションのバリエーション
+///   8方向のKen Burnsパターン:
+///     'top'          - 上方向（scale + translateY負）
+///     'top-right'    - 右上方向（scale + translate正負）
+///     'right'        - 右方向（scale + translateX正）
+///     'bottom-right' - 右下方向（scale + translate正正）
+///     'bottom'       - 下方向（scale + translateY正）
+///     'bottom-left'  - 左下方向（scale + translate負正）
+///     'left'         - 左方向（scale + translateX負）
+///     'top-left'     - 左上方向（scale + translate負負）
+///
+/// @param {Number} $duration [5s] - アニメーションの実行時間
+///   例: 5s, 3s, 8s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.5s, 1s
+///
+/// @param {String} $easing [ease-out] - イージング関数
+///   例: ease-out, ease, linear
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .hero-image {
+///     @include ken-burns('top');
+///   }
+///
+/// @example scss - カスタム設定
+///   .background {
+///     @include ken-burns('right', 8s, 0s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .cover {
+///     @include ken-burns(
+///       $variant: 'bottom-right',
+///       $duration: 10s,
+///       $delay: 0.5s,
+///       $easing: ease-out,
+///       $iterations: infinite,
+///       $fill: both
+///     );
+///   }
+@mixin ken-burns(
+  $variant: 'top',
+  $duration: 5s,
+  $delay: 0s,
+  $easing: ease-out,
+  $iterations: 1,
+  $fill: both
+) {
+  animation: kenburns-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+// ============================================
+// Utility Classes (Optional)
+// ============================================
+
+/// ユーティリティクラスを生成するかどうか
+/// 親のindex.scssまたはstyle.scssで以下のように有効化:
+///   @use 'animations/animista/background-ken-burns' with ($generate-utilities: true);
+///
+/// 有効化すると、以下のクラスが使えます:
+///   .kenburns-top, .kenburns-top-right, .kenburns-right, .kenburns-bottom-right,
+///   .kenburns-bottom, .kenburns-bottom-left, .kenburns-left, .kenburns-top-left
+///
+/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
+$generate-utilities: false !default;
+
+@if $generate-utilities {
+  // 8 directions
+  .kenburns-top { @include ken-burns('top'); }
+  .kenburns-top-right { @include ken-burns('top-right'); }
+  .kenburns-right { @include ken-burns('right'); }
+  .kenburns-bottom-right { @include ken-burns('bottom-right'); }
+  .kenburns-bottom { @include ken-burns('bottom'); }
+  .kenburns-bottom-left { @include ken-burns('bottom-left'); }
+  .kenburns-left { @include ken-burns('left'); }
+  .kenburns-top-left { @include ken-burns('top-left'); }
+}

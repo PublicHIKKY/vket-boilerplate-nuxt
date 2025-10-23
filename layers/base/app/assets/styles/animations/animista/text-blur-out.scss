@@ -1,0 +1,193 @@
+/**
+ * Blur-Out Animation (Text with Focus to Blur Exit Effect)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Text Blur Out
+@keyframes text-blur-out {
+  0% {
+    filter: blur(0.01);
+  }
+
+  100% {
+    filter: blur(12px) opacity(0%);
+  }
+}
+
+// Blur Out Contract
+@keyframes blur-out-contract {
+  0% {
+    filter: blur(0.01);
+  }
+
+  100% {
+    letter-spacing: -0.5em;
+    filter: blur(12px) opacity(0%);
+  }
+}
+
+// Blur Out Contract Backward
+@keyframes blur-out-contract-bck {
+  0% {
+    filter: blur(0.01);
+  }
+
+  100% {
+    transform: translateZ(-500px);
+    letter-spacing: -0.5em;
+    filter: blur(12px) opacity(0%);
+  }
+}
+
+// Blur Out Expand
+@keyframes blur-out-expand {
+  0% {
+    filter: blur(0.01);
+  }
+
+  100% {
+    letter-spacing: 1em;
+    filter: blur(12px) opacity(0%);
+  }
+}
+
+// Blur Out Expand Forward
+@keyframes blur-out-expand-fwd {
+  0% {
+    filter: blur(0.01);
+  }
+
+  100% {
+    transform: translateZ(300px);
+    letter-spacing: 1em;
+    filter: blur(12px) opacity(0%);
+  }
+}
+
+// ============================================
+// Mixin: Blur Out
+// ============================================
+
+/// Blur-Outアニメーション（フォーカスからブラーへの退場エフェクト）を適用するmixin
+///
+/// @param {String} $variant [''] - アニメーションのバリエーション
+///   Basic:
+///     ''                  - 基本的なブラー（filter blur 0.01→12px + opacity 100%→0%）
+///   Contract (2種類) - 文字間隔を縮めながらブラー:
+///     'contract'          - 縮小ブラー（letter-spacing 0→-0.5em + filter blur 0.01→12px + opacity 100%→0%）
+///     'contract-bck'      - 後方へ縮小ブラー（letter-spacing 0→-0.5em + filter blur 0.01→12px + translateZ 0→-500px + opacity 100%→0%）
+///   Expand (2種類) - 文字間隔を広げながらブラー:
+///     'expand'            - 拡大ブラー（letter-spacing 0→1em + filter blur 0.01→12px + opacity 100%→0%）
+///     'expand-fwd'        - 前方へ拡大ブラー（letter-spacing 0→1em + filter blur 0.01→12px + translateZ 0→300px + opacity 100%→0%）
+///
+/// @param {Number} $duration [1.2s] - アニメーションの実行時間
+///   例: 1s, 1.2s, 1.5s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.550, 0.085, 0.680, 0.530)] - イージング関数
+///   例: ease-in, cubic-bezier(0.550, 0.085, 0.680, 0.530)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .title {
+///     @include blur-out();
+///   }
+///
+/// @example scss - カスタム設定
+///   .heading {
+///     @include blur-out('expand', 1s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .text {
+///     @include blur-out(
+///       $variant: 'contract-bck',
+///       $duration: 1.5s,
+///       $delay: 0.1s,
+///       $easing: ease-in,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin blur-out(
+  $variant: '',
+  $duration: 1.2s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.550, 0.085, 0.680, 0.530),
+  $iterations: 1,
+  $fill: both
+) {
+  $animation-name: if($variant == '', 'text-blur-out', 'blur-out-#{$variant}');
+
+  animation: $animation-name $duration $easing $delay $iterations normal $fill;
+}
+
+/// Blur-Outアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant [''] - アニメーションのバリエーション（blur-outと同じ5種類）
+/// @param {Number} $duration [1.2s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.550, 0.085, 0.680, 0.530)] - イージング関数
+///
+/// @example scss - タイトルのホバーエフェクト
+///   .title {
+///     @include blur-out-hover('expand', 1s);
+///   }
+@mixin blur-out-hover(
+  $variant: '',
+  $duration: 1.2s,
+  $easing: cubic-bezier(0.550, 0.085, 0.680, 0.530)
+) {
+  transition: letter-spacing $duration $easing, filter $duration $easing, transform $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      $animation-name: if($variant == '', 'text-blur-out', 'blur-out-#{$variant}');
+
+      animation: $animation-name $duration $easing both;
+    }
+  }
+}
+
+// ============================================
+// Utility Classes (Optional)
+// ============================================
+
+/// ユーティリティクラスを生成するかどうか
+/// 親のindex.scssまたはstyle.scssで以下のように有効化:
+///   @use 'animations/animista/blur-out' with ($generate-utilities: true);
+///
+/// 有効化すると、以下のクラスが使えます:
+///   .text-blur-out, .blur-out-contract, .blur-out-hover, etc.
+///
+/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
+$generate-utilities: false !default;
+
+@if $generate-utilities {
+  // Basic
+  .text-blur-out { @include blur-out; }
+
+  // Contract
+  .blur-out-contract { @include blur-out('contract'); }
+  .blur-out-contract-bck { @include blur-out('contract-bck'); }
+
+  // Expand
+  .blur-out-expand { @include blur-out('expand'); }
+  .blur-out-expand-fwd { @include blur-out('expand-fwd'); }
+
+  // Hover variants
+  .blur-out-hover { @include blur-out-hover; }
+  .blur-out-hover-expand { @include blur-out-hover('expand'); }
+}

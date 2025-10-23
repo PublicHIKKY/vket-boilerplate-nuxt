@@ -1,0 +1,404 @@
+/**
+ * Flicker-In Animation (Entrance with Flickering Opacity Effect)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Flicker In 1 (Opacity Only)
+@keyframes flicker-in-1 {
+  0% {
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 0;
+  }
+
+  10.1% {
+    opacity: 1;
+  }
+
+  10.2% {
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 0;
+  }
+
+  20.1% {
+    opacity: 1;
+  }
+
+  20.6% {
+    opacity: 0;
+  }
+
+  30% {
+    opacity: 0;
+  }
+
+  30.1% {
+    opacity: 1;
+  }
+
+  30.5% {
+    opacity: 1;
+  }
+
+  30.6% {
+    opacity: 0;
+  }
+
+  45% {
+    opacity: 0;
+  }
+
+  45.1% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  55% {
+    opacity: 1;
+  }
+
+  55.1% {
+    opacity: 0;
+  }
+
+  57% {
+    opacity: 0;
+  }
+
+  57.1% {
+    opacity: 1;
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  60.1% {
+    opacity: 0;
+  }
+
+  65% {
+    opacity: 0;
+  }
+
+  65.1% {
+    opacity: 1;
+  }
+
+  75% {
+    opacity: 1;
+  }
+
+  75.1% {
+    opacity: 0;
+  }
+
+  77% {
+    opacity: 0;
+  }
+
+  77.1% {
+    opacity: 1;
+  }
+
+  85% {
+    opacity: 1;
+  }
+
+  85.1% {
+    opacity: 0;
+  }
+
+  86% {
+    opacity: 0;
+  }
+
+  86.1% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+// Flicker In 2 (Opacity + Box Shadow Glow)
+@keyframes flicker-in-2 {
+  0% {
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 0;
+    box-shadow: none;
+  }
+
+  10.1% {
+    opacity: 1;
+    box-shadow: none;
+  }
+
+  10.2% {
+    opacity: 0;
+    box-shadow: none;
+  }
+
+  20% {
+    opacity: 0;
+    box-shadow: none;
+  }
+
+  20.1% {
+    opacity: 1;
+    box-shadow: 0 0 30px rgb(255 255 255 / 25%);
+  }
+
+  20.6% {
+    opacity: 0;
+    box-shadow: none;
+  }
+
+  30% {
+    opacity: 0;
+    box-shadow: none;
+  }
+
+  30.1% {
+    opacity: 1;
+    box-shadow: 0 0 30px rgb(255 255 255 / 45%), 0 0 60px rgb(255 255 255 / 25%);
+  }
+
+  30.5% {
+    opacity: 1;
+    box-shadow: 0 0 30px rgb(255 255 255 / 45%), 0 0 60px rgb(255 255 255 / 25%);
+  }
+
+  30.6% {
+    opacity: 0;
+    box-shadow: none;
+  }
+
+  45% {
+    opacity: 0;
+    box-shadow: none;
+  }
+
+  45.1% {
+    opacity: 1;
+    box-shadow: 0 0 30px rgb(255 255 255 / 45%), 0 0 60px rgb(255 255 255 / 25%);
+  }
+
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 30px rgb(255 255 255 / 45%), 0 0 60px rgb(255 255 255 / 25%);
+  }
+
+  55% {
+    opacity: 1;
+    box-shadow: 0 0 30px rgb(255 255 255 / 45%), 0 0 60px rgb(255 255 255 / 25%);
+  }
+
+  55.1% {
+    opacity: 0;
+    box-shadow: none;
+  }
+
+  57% {
+    opacity: 0;
+    box-shadow: none;
+  }
+
+  57.1% {
+    opacity: 1;
+    box-shadow: 0 0 30px rgb(255 255 255 / 55%), 0 0 60px rgb(255 255 255 / 30%);
+  }
+
+  60% {
+    opacity: 1;
+    box-shadow: 0 0 30px rgb(255 255 255 / 55%), 0 0 60px rgb(255 255 255 / 30%);
+  }
+
+  60.1% {
+    opacity: 0;
+    box-shadow: none;
+  }
+
+  65% {
+    opacity: 0;
+    box-shadow: none;
+  }
+
+  65.1% {
+    opacity: 1;
+    box-shadow: 0 0 30px rgb(255 255 255 / 55%), 0 0 60px rgb(255 255 255 / 30%), 0 0 100px rgb(255 255 255 / 10%);
+  }
+
+  75% {
+    opacity: 1;
+    box-shadow: 0 0 30px rgb(255 255 255 / 55%), 0 0 60px rgb(255 255 255 / 30%), 0 0 100px rgb(255 255 255 / 10%);
+  }
+
+  75.1% {
+    opacity: 0;
+    box-shadow: none;
+  }
+
+  77% {
+    opacity: 0;
+    box-shadow: none;
+  }
+
+  77.1% {
+    opacity: 1;
+    box-shadow: 0 0 30px rgb(255 255 255 / 60%), 0 0 60px rgb(255 255 255 / 40%), 0 0 110px rgb(255 255 255 / 20%), 0 0 100px rgb(255 255 255 / 10%);
+  }
+
+  85% {
+    opacity: 1;
+    box-shadow: 0 0 30px rgb(255 255 255 / 60%), 0 0 60px rgb(255 255 255 / 40%), 0 0 110px rgb(255 255 255 / 20%), 0 0 100px rgb(255 255 255 / 10%);
+  }
+
+  85.1% {
+    opacity: 0;
+    box-shadow: none;
+  }
+
+  86% {
+    opacity: 0;
+    box-shadow: none;
+  }
+
+  86.1% {
+    opacity: 1;
+    box-shadow: 0 0 30px rgb(255 255 255 / 60%), 0 0 60px rgb(255 255 255 / 45%), 0 0 110px rgb(255 255 255 / 25%), 0 0 100px rgb(255 255 255 / 10%);
+  }
+
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 30px rgb(255 255 255 / 60%), 0 0 60px rgb(255 255 255 / 45%), 0 0 110px rgb(255 255 255 / 25%), 0 0 100px rgb(255 255 255 / 10%);
+  }
+}
+
+// ============================================
+// Mixin: Flicker In
+// ============================================
+
+/// Flicker-Inアニメーション（フリッカー効果による入場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['1'] - アニメーションのバリエーション
+///   Basic (2種類) - 点滅効果による入場:
+///     '1' - 透明度のみの点滅（opacity 0⇄1の繰り返し）
+///     '2' - 透明度+光彩効果（opacity + box-shadow glowの繰り返し）
+///
+/// @param {Number} $duration [2s] - アニメーションの実行時間
+///   例: 1.5s, 2s, 3s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [linear] - イージング関数
+///   例: linear, ease, ease-in-out
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include flicker-in('1');
+///   }
+///
+/// @example scss - カスタム設定
+///   .modal {
+///     @include flicker-in('2', 1.5s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include flicker-in(
+///       $variant: '2',
+///       $duration: 3s,
+///       $delay: 0.1s,
+///       $easing: linear,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin flicker-in(
+  $variant: '1',
+  $duration: 2s,
+  $delay: 0s,
+  $easing: linear,
+  $iterations: 1,
+  $fill: both
+) {
+  animation: flicker-in-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Flicker-Inアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['1'] - アニメーションのバリエーション（flicker-inと同じ2種類）
+/// @param {Number} $duration [2s] - アニメーションの実行時間
+/// @param {String} $easing [linear] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include flicker-in-hover('1', 1.5s);
+///   }
+@mixin flicker-in-hover(
+  $variant: '1',
+  $duration: 2s,
+  $easing: linear
+) {
+  @if $variant == '2' {
+    transition: opacity $duration $easing, box-shadow $duration $easing;
+  } @else {
+    transition: opacity $duration $easing;
+  }
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: flicker-in-#{$variant} $duration $easing both;
+    }
+  }
+}
+
+// ============================================
+// Utility Classes (Optional)
+// ============================================
+
+/// ユーティリティクラスを生成するかどうか
+/// 親のindex.scssまたはstyle.scssで以下のように有効化:
+///   @use 'animations/animista/flicker-in' with ($generate-utilities: true);
+///
+/// 有効化すると、以下のクラスが使えます:
+///   .flicker-in-1, .flicker-in-2, .flicker-in-hover-1, etc.
+///
+/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
+$generate-utilities: false !default;
+
+@if $generate-utilities {
+  // Basic
+  .flicker-in-1 { @include flicker-in('1'); }
+  .flicker-in-2 { @include flicker-in('2'); }
+
+  // Hover variants
+  .flicker-in-hover-1 { @include flicker-in-hover('1'); }
+  .flicker-in-hover-2 { @include flicker-in-hover('2'); }
+}

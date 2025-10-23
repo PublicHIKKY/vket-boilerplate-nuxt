@@ -32,4 +32,101 @@
 // Animista Animations
 // ============================================
 
-@forward 'scale-up';
+// ============================================
+// Basic Category
+// ============================================
+@forward 'basic-scale-up';
+@forward 'basic-scale-down';
+@forward 'basic-rotate';
+@forward 'basic-rotate-scale';
+@forward 'basic-rotate-90';
+@forward 'basic-flip';
+@forward 'basic-flip-2';
+@forward 'basic-flip-scale';
+@forward 'basic-flip-scale-2';
+@forward 'basic-swing';
+@forward 'basic-slide';
+@forward 'basic-slide-bck';
+@forward 'basic-slide-fwd';
+@forward 'basic-slide-rotate';
+@forward 'basic-shadow-drop';
+@forward 'basic-shadow-drop-2';
+@forward 'basic-shadow-pop';
+@forward 'basic-shadow-inset';
+
+// ============================================
+// Entrances Category
+// ============================================
+@forward 'entrances-scale-in';
+@forward 'entrances-rotate-in';
+@forward 'entrances-rotate-in-2';
+@forward 'entrances-swirl-in';
+@forward 'entrances-flip-in';
+@forward 'entrances-slit-in';
+@forward 'entrances-slide-in';
+@forward 'entrances-slide-in-fwd';
+@forward 'entrances-slide-in-bck';
+@forward 'entrances-slide-in-blurred';
+@forward 'entrances-slide-in-elliptic';
+@forward 'entrances-bounce-in';
+@forward 'entrances-roll-in';
+@forward 'entrances-roll-in-blurred';
+@forward 'entrances-tilt-in';
+@forward 'entrances-tilt-in-fwd';
+@forward 'entrances-swing-in';
+@forward 'entrances-fade-in';
+@forward 'entrances-puff-in';
+@forward 'entrances-flicker-in';
+
+// ============================================
+// Exits Category
+// ============================================
+@forward 'exits-scale-out';
+@forward 'exits-rotate-out';
+@forward 'exits-rotate-out-2';
+@forward 'exits-swirl-out';
+@forward 'exits-flip-out';
+@forward 'exits-slit-out';
+@forward 'exits-slide-out';
+@forward 'exits-slide-out-bck';
+@forward 'exits-slide-out-fwd';
+@forward 'exits-slide-out-blurred';
+@forward 'exits-slide-out-elliptic';
+@forward 'exits-bounce-out';
+@forward 'exits-roll-out';
+@forward 'exits-roll-out-blurred';
+@forward 'exits-swing-out';
+@forward 'exits-fade-out';
+@forward 'exits-puff-out';
+@forward 'exits-flicker-out';
+
+// ============================================
+// Text Category
+// ============================================
+@forward 'text-tracking-in';
+@forward 'text-tracking-out';
+@forward 'text-focus-in';
+@forward 'text-blur-out';
+@forward 'text-flicker';
+@forward 'text-shadow-drop';
+@forward 'text-shadow-pop';
+@forward 'text-pop-up';
+
+// ============================================
+// Attention Category
+// ============================================
+@forward 'attention-vibrate';
+@forward 'attention-flicker';
+@forward 'attention-shake';
+@forward 'attention-jello';
+@forward 'attention-wobble';
+@forward 'attention-bounce';
+@forward 'attention-pulsate';
+@forward 'attention-blink';
+
+// ============================================
+// Background Category
+// ============================================
+@forward 'background-ken-burns';
+@forward 'background-bg-pan';
+@forward 'background-color-change';
