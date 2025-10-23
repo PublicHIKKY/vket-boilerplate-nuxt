@@ -233,32 +233,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/slide-out-blurred' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .slide-out-blurred-top, .slide-out-blurred-right, .slide-out-blurred-hover-top, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Directional
-  .slide-out-blurred-top { @include slide-out-blurred('top'); }
-  .slide-out-blurred-tr { @include slide-out-blurred('tr'); }
-  .slide-out-blurred-right { @include slide-out-blurred('right'); }
-  .slide-out-blurred-br { @include slide-out-blurred('br'); }
-  .slide-out-blurred-bottom { @include slide-out-blurred('bottom'); }
-  .slide-out-blurred-bl { @include slide-out-blurred('bl'); }
-  .slide-out-blurred-left { @include slide-out-blurred('left'); }
-  .slide-out-blurred-tl { @include slide-out-blurred('tl'); }
-
-  // Hover variants
-  .slide-out-blurred-hover-top { @include slide-out-blurred-hover('top'); }
-  .slide-out-blurred-hover-right { @include slide-out-blurred-hover('right'); }
-}

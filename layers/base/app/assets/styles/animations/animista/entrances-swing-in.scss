@@ -217,34 +217,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/swing-in' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .swing-in-top-fwd, .swing-in-right-bck, .swing-in-hover-top-fwd, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Forward variants
-  .swing-in-top-fwd { @include swing-in('top-fwd'); }
-  .swing-in-right-fwd { @include swing-in('right-fwd'); }
-  .swing-in-bottom-fwd { @include swing-in('bottom-fwd'); }
-  .swing-in-left-fwd { @include swing-in('left-fwd'); }
-
-  // Backward variants
-  .swing-in-top-bck { @include swing-in('top-bck'); }
-  .swing-in-right-bck { @include swing-in('right-bck'); }
-  .swing-in-bottom-bck { @include swing-in('bottom-bck'); }
-  .swing-in-left-bck { @include swing-in('left-bck'); }
-
-  // Hover variants
-  .swing-in-hover-top-fwd { @include swing-in-hover('top-fwd'); }
-  .swing-in-hover-right-fwd { @include swing-in-hover('right-fwd'); }
-}

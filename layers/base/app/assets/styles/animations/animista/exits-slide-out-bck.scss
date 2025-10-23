@@ -215,33 +215,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/slide-out-bck' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .slide-out-bck-center, .slide-out-bck-top, .slide-out-bck-hover-center, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Directional
-  .slide-out-bck-center { @include slide-out-bck('center'); }
-  .slide-out-bck-top { @include slide-out-bck('top'); }
-  .slide-out-bck-tr { @include slide-out-bck('tr'); }
-  .slide-out-bck-right { @include slide-out-bck('right'); }
-  .slide-out-bck-br { @include slide-out-bck('br'); }
-  .slide-out-bck-bottom { @include slide-out-bck('bottom'); }
-  .slide-out-bck-bl { @include slide-out-bck('bl'); }
-  .slide-out-bck-left { @include slide-out-bck('left'); }
-  .slide-out-bck-tl { @include slide-out-bck('tl'); }
-
-  // Hover variants
-  .slide-out-bck-hover-center { @include slide-out-bck-hover('center'); }
-  .slide-out-bck-hover-top { @include slide-out-bck-hover('top'); }
-}

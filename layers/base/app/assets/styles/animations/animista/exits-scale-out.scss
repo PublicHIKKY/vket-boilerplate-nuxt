@@ -323,39 +323,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/scale-out' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .scale-out-center, .scale-out-top, .scale-out-hover-center, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Basic & Directional
-  .scale-out-center { @include scale-out('center'); }
-  .scale-out-top { @include scale-out('top'); }
-  .scale-out-tr { @include scale-out('tr'); }
-  .scale-out-right { @include scale-out('right'); }
-  .scale-out-br { @include scale-out('br'); }
-  .scale-out-bottom { @include scale-out('bottom'); }
-  .scale-out-bl { @include scale-out('bl'); }
-  .scale-out-left { @include scale-out('left'); }
-  .scale-out-tl { @include scale-out('tl'); }
-  .scale-out-horizontal { @include scale-out('horizontal'); }
-  .scale-out-hor-left { @include scale-out('hor-left'); }
-  .scale-out-hor-right { @include scale-out('hor-right'); }
-  .scale-out-vertical { @include scale-out('vertical'); }
-  .scale-out-ver-top { @include scale-out('ver-top'); }
-  .scale-out-ver-bottom { @include scale-out('ver-bottom'); }
-
-  // Hover variants
-  .scale-out-hover-center { @include scale-out-hover('center'); }
-  .scale-out-hover-horizontal { @include scale-out-hover('horizontal'); }
-}

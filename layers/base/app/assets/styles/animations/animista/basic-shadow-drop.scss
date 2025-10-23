@@ -225,39 +225,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/shadow-drop' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .shadow-drop-center, .shadow-drop-bottom, .shadow-drop-hover-center, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Basic
-  .shadow-drop-center { @include shadow-drop('center'); }
-  .shadow-drop-top { @include shadow-drop('top'); }
-  .shadow-drop-right { @include shadow-drop('right'); }
-  .shadow-drop-bottom { @include shadow-drop('bottom'); }
-  .shadow-drop-left { @include shadow-drop('left'); }
-
-  // Combined
-  .shadow-drop-lr { @include shadow-drop('lr'); }
-  .shadow-drop-tb { @include shadow-drop('tb'); }
-
-  // Diagonal
-  .shadow-drop-tr { @include shadow-drop('tr'); }
-  .shadow-drop-br { @include shadow-drop('br'); }
-  .shadow-drop-bl { @include shadow-drop('bl'); }
-  .shadow-drop-tl { @include shadow-drop('tl'); }
-
-  // Hover variants
-  .shadow-drop-hover-center { @include shadow-drop-hover('center'); }
-  .shadow-drop-hover-bottom { @include shadow-drop-hover('bottom'); }
-}

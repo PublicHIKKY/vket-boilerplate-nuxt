@@ -220,38 +220,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/flip-scale' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .flip-scale-up-hor, .flip-scale-down-ver, .flip-scale-hover-up-hor, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Horizontal
-  .flip-scale-up-hor { @include flip-scale('up-hor'); }
-  .flip-scale-down-hor { @include flip-scale('down-hor'); }
-
-  // Vertical
-  .flip-scale-up-ver { @include flip-scale('up-ver'); }
-  .flip-scale-down-ver { @include flip-scale('down-ver'); }
-
-  // Diagonal 1
-  .flip-scale-up-diag-1 { @include flip-scale('up-diag-1'); }
-  .flip-scale-down-diag-1 { @include flip-scale('down-diag-1'); }
-
-  // Diagonal 2
-  .flip-scale-up-diag-2 { @include flip-scale('up-diag-2'); }
-  .flip-scale-down-diag-2 { @include flip-scale('down-diag-2'); }
-
-  // Hover variants
-  .flip-scale-hover-up-hor { @include flip-scale-hover('up-hor'); }
-  .flip-scale-hover-down-ver { @include flip-scale-hover('down-ver'); }
-}

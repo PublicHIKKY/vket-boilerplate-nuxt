@@ -199,37 +199,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/slide-bck' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .slide-bck-center, .slide-bck-top, .slide-bck-hover-center, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Center
-  .slide-bck-center { @include slide-bck('center'); }
-
-  // Cardinal Directions
-  .slide-bck-top { @include slide-bck('top'); }
-  .slide-bck-right { @include slide-bck('right'); }
-  .slide-bck-bottom { @include slide-bck('bottom'); }
-  .slide-bck-left { @include slide-bck('left'); }
-
-  // Diagonal Directions
-  .slide-bck-tr { @include slide-bck('tr'); }
-  .slide-bck-br { @include slide-bck('br'); }
-  .slide-bck-bl { @include slide-bck('bl'); }
-  .slide-bck-tl { @include slide-bck('tl'); }
-
-  // Hover variants
-  .slide-bck-hover-center { @include slide-bck-hover('center'); }
-  .slide-bck-hover-top { @include slide-bck-hover('top'); }
-}

@@ -405,26 +405,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/text-flicker' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .text-flicker-in-glow, .text-flicker-out-glow, .text-flicker-hover-in-glow, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Flicker
-  .text-flicker-in-glow { @include text-flicker('in-glow'); }
-  .text-flicker-out-glow { @include text-flicker('out-glow'); }
-
-  // Hover variants
-  .text-flicker-hover-in-glow { @include text-flicker-hover('in-glow'); }
-  .text-flicker-hover-out-glow { @include text-flicker-hover('out-glow'); }
-}

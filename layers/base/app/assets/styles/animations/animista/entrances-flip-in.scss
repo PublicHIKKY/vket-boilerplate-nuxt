@@ -203,36 +203,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/flip-in' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .flip-in-hor-bottom, .flip-in-ver-right, .flip-in-hover-hor-bottom, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Horizontal
-  .flip-in-hor-bottom { @include flip-in('hor-bottom'); }
-  .flip-in-hor-top { @include flip-in('hor-top'); }
-
-  // Vertical
-  .flip-in-ver-right { @include flip-in('ver-right'); }
-  .flip-in-ver-left { @include flip-in('ver-left'); }
-
-  // Diagonal
-  .flip-in-diag-1-tr { @include flip-in('diag-1-tr'); }
-  .flip-in-diag-1-bl { @include flip-in('diag-1-bl'); }
-  .flip-in-diag-2-tl { @include flip-in('diag-2-tl'); }
-  .flip-in-diag-2-br { @include flip-in('diag-2-br'); }
-
-  // Hover variants
-  .flip-in-hover-hor-bottom { @include flip-in-hover('hor-bottom'); }
-  .flip-in-hover-ver-right { @include flip-in-hover('ver-right'); }
-}

@@ -201,34 +201,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/flip-out' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .flip-out-hor-top, .flip-out-ver-left, .flip-out-hover-hor-top, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Horizontal & Vertical
-  .flip-out-hor-top { @include flip-out('hor-top'); }
-  .flip-out-hor-bottom { @include flip-out('hor-bottom'); }
-  .flip-out-ver-left { @include flip-out('ver-left'); }
-  .flip-out-ver-right { @include flip-out('ver-right'); }
-
-  // Diagonal variants
-  .flip-out-diag-1-tr { @include flip-out('diag-1-tr'); }
-  .flip-out-diag-1-bl { @include flip-out('diag-1-bl'); }
-  .flip-out-diag-2-tl { @include flip-out('diag-2-tl'); }
-  .flip-out-diag-2-br { @include flip-out('diag-2-br'); }
-
-  // Hover variants
-  .flip-out-hover-hor-top { @include flip-out-hover('hor-top'); }
-  .flip-out-hover-ver-left { @include flip-out-hover('ver-left'); }
-}

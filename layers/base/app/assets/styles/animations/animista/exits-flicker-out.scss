@@ -391,26 +391,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/flicker-out' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .flicker-out-1, .flicker-out-2, .flicker-out-hover-1, .flicker-out-hover-2
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Flicker
-  .flicker-out-1 { @include flicker-out('1'); }
-  .flicker-out-2 { @include flicker-out('2'); }
-
-  // Hover variants
-  .flicker-out-hover-1 { @include flicker-out-hover('1'); }
-  .flicker-out-hover-2 { @include flicker-out-hover('2'); }
-}

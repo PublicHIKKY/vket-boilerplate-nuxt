@@ -216,35 +216,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/slide-in-fwd' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .slide-in-fwd-center, .slide-in-fwd-top, .slide-in-fwd-hover-center, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Basic
-  .slide-in-fwd-center { @include slide-in-fwd('center'); }
-
-  // Directional
-  .slide-in-fwd-top { @include slide-in-fwd('top'); }
-  .slide-in-fwd-tr { @include slide-in-fwd('tr'); }
-  .slide-in-fwd-right { @include slide-in-fwd('right'); }
-  .slide-in-fwd-br { @include slide-in-fwd('br'); }
-  .slide-in-fwd-bottom { @include slide-in-fwd('bottom'); }
-  .slide-in-fwd-bl { @include slide-in-fwd('bl'); }
-  .slide-in-fwd-left { @include slide-in-fwd('left'); }
-  .slide-in-fwd-tl { @include slide-in-fwd('tl'); }
-
-  // Hover variants
-  .slide-in-fwd-hover-center { @include slide-in-fwd-hover('center'); }
-  .slide-in-fwd-hover-top { @include slide-in-fwd-hover('top'); }
-}

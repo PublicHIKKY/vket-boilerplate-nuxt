@@ -145,28 +145,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/shadow-pop' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .shadow-pop-tr, .shadow-pop-br, .shadow-pop-hover-tr, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Diagonal
-  .shadow-pop-tr { @include shadow-pop('tr'); }
-  .shadow-pop-br { @include shadow-pop('br'); }
-  .shadow-pop-bl { @include shadow-pop('bl'); }
-  .shadow-pop-tl { @include shadow-pop('tl'); }
-
-  // Hover variants
-  .shadow-pop-hover-tr { @include shadow-pop-hover('tr'); }
-  .shadow-pop-hover-br { @include shadow-pop-hover('br'); }
-}

@@ -269,28 +269,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/attention-bounce' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .bounce-top, .bounce-bottom, .bounce-left, .bounce-right, .bounce-hover-top, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // 4 directions
-  .bounce-top { @include bounce('top'); }
-  .bounce-bottom { @include bounce('bottom'); }
-  .bounce-left { @include bounce('left'); }
-  .bounce-right { @include bounce('right'); }
-
-  // Hover variants
-  .bounce-hover-top { @include bounce-hover('top'); }
-  .bounce-hover-left { @include bounce-hover('left'); }
-}

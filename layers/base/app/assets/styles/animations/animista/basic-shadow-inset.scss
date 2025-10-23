@@ -225,39 +225,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/shadow-inset' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .shadow-inset-center, .shadow-inset-bottom, .shadow-inset-hover-center, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Basic
-  .shadow-inset-center { @include shadow-inset('center'); }
-  .shadow-inset-top { @include shadow-inset('top'); }
-  .shadow-inset-right { @include shadow-inset('right'); }
-  .shadow-inset-bottom { @include shadow-inset('bottom'); }
-  .shadow-inset-left { @include shadow-inset('left'); }
-
-  // Combined
-  .shadow-inset-lr { @include shadow-inset('lr'); }
-  .shadow-inset-tb { @include shadow-inset('tb'); }
-
-  // Diagonal
-  .shadow-inset-tr { @include shadow-inset('tr'); }
-  .shadow-inset-br { @include shadow-inset('br'); }
-  .shadow-inset-bl { @include shadow-inset('bl'); }
-  .shadow-inset-tl { @include shadow-inset('tl'); }
-
-  // Hover variants
-  .shadow-inset-hover-center { @include shadow-inset-hover('center'); }
-  .shadow-inset-hover-bottom { @include shadow-inset-hover('bottom'); }
-}

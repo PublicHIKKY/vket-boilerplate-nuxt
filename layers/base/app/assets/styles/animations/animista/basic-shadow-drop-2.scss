@@ -247,39 +247,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/shadow-drop-2' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .shadow-drop-2-center, .shadow-drop-2-bottom, .shadow-drop-2-hover-center, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Basic
-  .shadow-drop-2-center { @include shadow-drop-2('center'); }
-  .shadow-drop-2-top { @include shadow-drop-2('top'); }
-  .shadow-drop-2-right { @include shadow-drop-2('right'); }
-  .shadow-drop-2-bottom { @include shadow-drop-2('bottom'); }
-  .shadow-drop-2-left { @include shadow-drop-2('left'); }
-
-  // Combined
-  .shadow-drop-2-lr { @include shadow-drop-2('lr'); }
-  .shadow-drop-2-tb { @include shadow-drop-2('tb'); }
-
-  // Diagonal
-  .shadow-drop-2-tr { @include shadow-drop-2('tr'); }
-  .shadow-drop-2-br { @include shadow-drop-2('br'); }
-  .shadow-drop-2-bl { @include shadow-drop-2('bl'); }
-  .shadow-drop-2-tl { @include shadow-drop-2('tl'); }
-
-  // Hover variants
-  .shadow-drop-2-hover-center { @include shadow-drop-2-hover('center'); }
-  .shadow-drop-2-hover-bottom { @include shadow-drop-2-hover('bottom'); }
-}

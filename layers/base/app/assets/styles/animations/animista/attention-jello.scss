@@ -217,28 +217,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/attention-jello' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .jello-horizontal, .jello-vertical, .jello-diagonal-1, .jello-diagonal-2, .jello-hover-horizontal, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // 4 variants
-  .jello-horizontal { @include jello('horizontal'); }
-  .jello-vertical { @include jello('vertical'); }
-  .jello-diagonal-1 { @include jello('diagonal-1'); }
-  .jello-diagonal-2 { @include jello('diagonal-2'); }
-
-  // Hover variants
-  .jello-hover-horizontal { @include jello-hover('horizontal'); }
-  .jello-hover-vertical { @include jello-hover('vertical'); }
-}

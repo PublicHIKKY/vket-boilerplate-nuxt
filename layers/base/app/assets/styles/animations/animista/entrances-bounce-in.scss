@@ -367,32 +367,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/bounce-in' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .bounce-in-top, .bounce-in-right, .bounce-in-hover-top, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Directional
-  .bounce-in-top { @include bounce-in('top'); }
-  .bounce-in-right { @include bounce-in('right'); }
-  .bounce-in-bottom { @include bounce-in('bottom'); }
-  .bounce-in-left { @include bounce-in('left'); }
-
-  // Depth
-  .bounce-in-fwd { @include bounce-in('fwd'); }
-  .bounce-in-bck { @include bounce-in('bck'); }
-
-  // Hover variants
-  .bounce-in-hover-top { @include bounce-in-hover('top'); }
-  .bounce-in-hover-fwd { @include bounce-in-hover('fwd'); }
-}

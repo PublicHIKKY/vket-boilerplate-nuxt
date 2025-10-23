@@ -173,33 +173,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/focus-in' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .text-focus-in, .focus-in-expand, .focus-in-hover, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Basic
-  .text-focus-in { @include focus-in; }
-
-  // Expand
-  .focus-in-expand { @include focus-in('expand'); }
-  .focus-in-expand-fwd { @include focus-in('expand-fwd'); }
-
-  // Contract
-  .focus-in-contract { @include focus-in('contract'); }
-  .focus-in-contract-bck { @include focus-in('contract-bck'); }
-
-  // Hover variants
-  .focus-in-hover { @include focus-in-hover; }
-  .focus-in-hover-expand { @include focus-in-hover('expand'); }
-}

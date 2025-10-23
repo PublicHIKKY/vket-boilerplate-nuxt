@@ -281,35 +281,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/puff-in' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .puff-in-center, .puff-in-top, .puff-in-hover-center, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Basic & Directional
-  .puff-in-center { @include puff-in('center'); }
-  .puff-in-top { @include puff-in('top'); }
-  .puff-in-tr { @include puff-in('tr'); }
-  .puff-in-right { @include puff-in('right'); }
-  .puff-in-br { @include puff-in('br'); }
-  .puff-in-bottom { @include puff-in('bottom'); }
-  .puff-in-bl { @include puff-in('bl'); }
-  .puff-in-left { @include puff-in('left'); }
-  .puff-in-tl { @include puff-in('tl'); }
-  .puff-in-hor { @include puff-in('hor'); }
-  .puff-in-ver { @include puff-in('ver'); }
-
-  // Hover variants
-  .puff-in-hover-center { @include puff-in-hover('center'); }
-  .puff-in-hover-top { @include puff-in-hover('top'); }
-}

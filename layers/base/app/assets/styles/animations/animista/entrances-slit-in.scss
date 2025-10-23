@@ -169,30 +169,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/slit-in' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .slit-in-vertical, .slit-in-horizontal, .slit-in-hover-vertical, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Axis-based
-  .slit-in-vertical { @include slit-in('vertical'); }
-  .slit-in-horizontal { @include slit-in('horizontal'); }
-
-  // Diagonal
-  .slit-in-diagonal-1 { @include slit-in('diagonal-1'); }
-  .slit-in-diagonal-2 { @include slit-in('diagonal-2'); }
-
-  // Hover variants
-  .slit-in-hover-vertical { @include slit-in-hover('vertical'); }
-  .slit-in-hover-horizontal { @include slit-in-hover('horizontal'); }
-}

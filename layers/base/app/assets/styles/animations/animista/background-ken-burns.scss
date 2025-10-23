@@ -175,29 +175,3 @@
   animation: kenburns-#{$variant} $duration $easing $delay $iterations normal $fill;
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/background-ken-burns' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .kenburns-top, .kenburns-top-right, .kenburns-right, .kenburns-bottom-right,
-///   .kenburns-bottom, .kenburns-bottom-left, .kenburns-left, .kenburns-top-left
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // 8 directions
-  .kenburns-top { @include ken-burns('top'); }
-  .kenburns-top-right { @include ken-burns('top-right'); }
-  .kenburns-right { @include ken-burns('right'); }
-  .kenburns-bottom-right { @include ken-burns('bottom-right'); }
-  .kenburns-bottom { @include ken-burns('bottom'); }
-  .kenburns-bottom-left { @include ken-burns('bottom-left'); }
-  .kenburns-left { @include ken-burns('left'); }
-  .kenburns-top-left { @include ken-burns('top-left'); }
-}

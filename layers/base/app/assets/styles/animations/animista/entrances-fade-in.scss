@@ -250,37 +250,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/fade-in' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .fade-in, .fade-in-top, .fade-in-hover, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Basic & Depth
-  .fade-in { @include fade-in; }
-  .fade-in-fwd { @include fade-in('fwd'); }
-  .fade-in-bck { @include fade-in('bck'); }
-
-  // Directional
-  .fade-in-top { @include fade-in('top'); }
-  .fade-in-tr { @include fade-in('tr'); }
-  .fade-in-right { @include fade-in('right'); }
-  .fade-in-br { @include fade-in('br'); }
-  .fade-in-bottom { @include fade-in('bottom'); }
-  .fade-in-bl { @include fade-in('bl'); }
-  .fade-in-left { @include fade-in('left'); }
-  .fade-in-tl { @include fade-in('tl'); }
-
-  // Hover variants
-  .fade-in-hover { @include fade-in-hover; }
-  .fade-in-hover-top { @include fade-in-hover('top'); }
-}

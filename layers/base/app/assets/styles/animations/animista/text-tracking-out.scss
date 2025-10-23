@@ -232,34 +232,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/tracking-out' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .tracking-out-contract, .tracking-out-expand, .tracking-out-hover-contract, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Contract
-  .tracking-out-contract { @include tracking-out('contract'); }
-  .tracking-out-contract-bck { @include tracking-out('contract-bck'); }
-  .tracking-out-contract-bck-top { @include tracking-out('contract-bck-top'); }
-  .tracking-out-contract-bck-bottom { @include tracking-out('contract-bck-bottom'); }
-
-  // Expand
-  .tracking-out-expand { @include tracking-out('expand'); }
-  .tracking-out-expand-fwd { @include tracking-out('expand-fwd'); }
-  .tracking-out-expand-fwd-top { @include tracking-out('expand-fwd-top'); }
-  .tracking-out-expand-fwd-bottom { @include tracking-out('expand-fwd-bottom'); }
-
-  // Hover variants
-  .tracking-out-hover-contract { @include tracking-out-hover('contract'); }
-  .tracking-out-hover-expand { @include tracking-out-hover('expand'); }
-}

@@ -216,35 +216,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/slide-in-bck' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .slide-in-bck-center, .slide-in-bck-top, .slide-in-bck-hover-center, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Basic
-  .slide-in-bck-center { @include slide-in-bck('center'); }
-
-  // Directional
-  .slide-in-bck-top { @include slide-in-bck('top'); }
-  .slide-in-bck-tr { @include slide-in-bck('tr'); }
-  .slide-in-bck-right { @include slide-in-bck('right'); }
-  .slide-in-bck-br { @include slide-in-bck('br'); }
-  .slide-in-bck-bottom { @include slide-in-bck('bottom'); }
-  .slide-in-bck-bl { @include slide-in-bck('bl'); }
-  .slide-in-bck-left { @include slide-in-bck('left'); }
-  .slide-in-bck-tl { @include slide-in-bck('tl'); }
-
-  // Hover variants
-  .slide-in-bck-hover-center { @include slide-in-bck-hover('center'); }
-  .slide-in-bck-hover-top { @include slide-in-bck-hover('top'); }
-}

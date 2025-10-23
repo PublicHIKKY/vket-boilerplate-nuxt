@@ -152,28 +152,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/roll-out-blurred' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .roll-out-blurred-left, .roll-out-blurred-right, .roll-out-blurred-hover-left, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Directional
-  .roll-out-blurred-left { @include roll-out-blurred('left'); }
-  .roll-out-blurred-top { @include roll-out-blurred('top'); }
-  .roll-out-blurred-right { @include roll-out-blurred('right'); }
-  .roll-out-blurred-bottom { @include roll-out-blurred('bottom'); }
-
-  // Hover variants
-  .roll-out-blurred-hover-left { @include roll-out-blurred-hover('left'); }
-  .roll-out-blurred-hover-right { @include roll-out-blurred-hover('right'); }
-}

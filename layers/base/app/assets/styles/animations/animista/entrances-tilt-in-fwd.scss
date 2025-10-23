@@ -145,28 +145,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/tilt-in-fwd' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .tilt-in-fwd-tr, .tilt-in-fwd-bl, .tilt-in-fwd-hover-tr, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Diagonal
-  .tilt-in-fwd-tr { @include tilt-in-fwd('tr'); }
-  .tilt-in-fwd-br { @include tilt-in-fwd('br'); }
-  .tilt-in-fwd-bl { @include tilt-in-fwd('bl'); }
-  .tilt-in-fwd-tl { @include tilt-in-fwd('tl'); }
-
-  // Hover variants
-  .tilt-in-fwd-hover-tr { @include tilt-in-fwd-hover('tr'); }
-  .tilt-in-fwd-hover-bl { @include tilt-in-fwd-hover('bl'); }
-}

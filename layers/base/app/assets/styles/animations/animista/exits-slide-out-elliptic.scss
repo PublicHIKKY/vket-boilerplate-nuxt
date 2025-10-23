@@ -235,32 +235,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/slide-out-elliptic' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .slide-out-elliptic-top-bck, .slide-out-elliptic-right-fwd, .slide-out-elliptic-hover-top-bck, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Elliptic Motion
-  .slide-out-elliptic-top-bck { @include slide-out-elliptic('top-bck'); }
-  .slide-out-elliptic-top-fwd { @include slide-out-elliptic('top-fwd'); }
-  .slide-out-elliptic-right-bck { @include slide-out-elliptic('right-bck'); }
-  .slide-out-elliptic-right-fwd { @include slide-out-elliptic('right-fwd'); }
-  .slide-out-elliptic-bottom-bck { @include slide-out-elliptic('bottom-bck'); }
-  .slide-out-elliptic-bottom-fwd { @include slide-out-elliptic('bottom-fwd'); }
-  .slide-out-elliptic-left-bck { @include slide-out-elliptic('left-bck'); }
-  .slide-out-elliptic-left-fwd { @include slide-out-elliptic('left-fwd'); }
-
-  // Hover variants
-  .slide-out-elliptic-hover-top-bck { @include slide-out-elliptic-hover('top-bck'); }
-  .slide-out-elliptic-hover-top-fwd { @include slide-out-elliptic-hover('top-fwd'); }
-}

@@ -186,34 +186,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/slide' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .slide-top, .slide-right, .slide-hover-top, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Cardinal Directions
-  .slide-top { @include slide('top'); }
-  .slide-right { @include slide('right'); }
-  .slide-bottom { @include slide('bottom'); }
-  .slide-left { @include slide('left'); }
-
-  // Diagonal Directions
-  .slide-tr { @include slide('tr'); }
-  .slide-br { @include slide('br'); }
-  .slide-bl { @include slide('bl'); }
-  .slide-tl { @include slide('tl'); }
-
-  // Hover variants
-  .slide-hover-top { @include slide-hover('top'); }
-  .slide-hover-right { @include slide-hover('right'); }
-}

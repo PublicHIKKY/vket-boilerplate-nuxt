@@ -159,29 +159,3 @@
   animation: bg-pan-#{$variant} $duration $easing $delay $iterations normal $fill;
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/background-bg-pan' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .bg-pan-left, .bg-pan-right, .bg-pan-top, .bg-pan-bottom,
-///   .bg-pan-tr, .bg-pan-br, .bg-pan-bl, .bg-pan-tl
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // 8 directions
-  .bg-pan-left { @include bg-pan('left'); }
-  .bg-pan-right { @include bg-pan('right'); }
-  .bg-pan-top { @include bg-pan('top'); }
-  .bg-pan-bottom { @include bg-pan('bottom'); }
-  .bg-pan-tr { @include bg-pan('tr'); }
-  .bg-pan-br { @include bg-pan('br'); }
-  .bg-pan-bl { @include bg-pan('bl'); }
-  .bg-pan-tl { @include bg-pan('tl'); }
-}

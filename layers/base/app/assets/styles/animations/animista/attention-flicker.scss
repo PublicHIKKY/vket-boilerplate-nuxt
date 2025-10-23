@@ -281,10 +281,6 @@
     opacity: 1;
   }
 
-  -0.02% {
-    opacity: 1;
-  }
-
   1% {
     opacity: 1;
   }
@@ -592,14 +588,6 @@
   99.98% {
     opacity: 1;
   }
-
-  101% {
-    opacity: 1;
-  }
-
-  101.02% {
-    opacity: 1;
-  }
 }
 
 // ============================================
@@ -689,29 +677,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/attention-flicker' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .flicker-1, .flicker-2, .flicker-3, .flicker-4, .flicker-5, .flicker-hover-1, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // 5 variants
-  .flicker-1 { @include flicker('1'); }
-  .flicker-2 { @include flicker('2'); }
-  .flicker-3 { @include flicker('3'); }
-  .flicker-4 { @include flicker('4'); }
-  .flicker-5 { @include flicker('5'); }
-
-  // Hover variants
-  .flicker-hover-1 { @include flicker-hover('1'); }
-  .flicker-hover-3 { @include flicker-hover('3'); }
-}

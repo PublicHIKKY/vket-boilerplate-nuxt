@@ -165,28 +165,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/slit-out' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .slit-out-vertical, .slit-out-horizontal, .slit-out-hover-vertical, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Directional
-  .slit-out-vertical { @include slit-out('vertical'); }
-  .slit-out-horizontal { @include slit-out('horizontal'); }
-  .slit-out-diagonal-1 { @include slit-out('diagonal-1'); }
-  .slit-out-diagonal-2 { @include slit-out('diagonal-2'); }
-
-  // Hover variants
-  .slit-out-hover-vertical { @include slit-out-hover('vertical'); }
-  .slit-out-hover-horizontal { @include slit-out-hover('horizontal'); }
-}

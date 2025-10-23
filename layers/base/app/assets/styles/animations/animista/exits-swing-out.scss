@@ -217,32 +217,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/swing-out' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .swing-out-top-bck, .swing-out-right-fwd, .swing-out-hover-top-bck, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Swinging Motion
-  .swing-out-top-bck { @include swing-out('top-bck'); }
-  .swing-out-top-fwd { @include swing-out('top-fwd'); }
-  .swing-out-right-bck { @include swing-out('right-bck'); }
-  .swing-out-right-fwd { @include swing-out('right-fwd'); }
-  .swing-out-bottom-bck { @include swing-out('bottom-bck'); }
-  .swing-out-bottom-fwd { @include swing-out('bottom-fwd'); }
-  .swing-out-left-bck { @include swing-out('left-bck'); }
-  .swing-out-left-fwd { @include swing-out('left-fwd'); }
-
-  // Hover variants
-  .swing-out-hover-top-bck { @include swing-out-hover('top-bck'); }
-  .swing-out-hover-top-fwd { @include swing-out-hover('top-fwd'); }
-}

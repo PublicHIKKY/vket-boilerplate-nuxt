@@ -140,24 +140,3 @@
   animation: color-change-#{$variant} $duration $easing $delay $iterations $direction $fill;
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/background-color-change' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .color-change-2x, .color-change-3x, .color-change-4x, .color-change-5x
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // 4 variants
-  .color-change-2x { @include color-change('2x'); }
-  .color-change-3x { @include color-change('3x'); }
-  .color-change-4x { @include color-change('4x'); }
-  .color-change-5x { @include color-change('5x'); }
-}

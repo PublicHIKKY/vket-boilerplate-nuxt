@@ -379,26 +379,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/flicker-in' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .flicker-in-1, .flicker-in-2, .flicker-in-hover-1, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // Basic
-  .flicker-in-1 { @include flicker-in('1'); }
-  .flicker-in-2 { @include flicker-in('2'); }
-
-  // Hover variants
-  .flicker-in-hover-1 { @include flicker-in-hover('1'); }
-  .flicker-in-hover-2 { @include flicker-in-hover('2'); }
-}

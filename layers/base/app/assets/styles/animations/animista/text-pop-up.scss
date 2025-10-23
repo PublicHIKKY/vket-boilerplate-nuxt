@@ -217,32 +217,3 @@
   }
 }
 
-// ============================================
-// Utility Classes (Optional)
-// ============================================
-
-/// ユーティリティクラスを生成するかどうか
-/// 親のindex.scssまたはstyle.scssで以下のように有効化:
-///   @use 'animations/animista/text-pop-up' with ($generate-utilities: true);
-///
-/// 有効化すると、以下のクラスが使えます:
-///   .text-pop-up-top, .text-pop-up-br, .text-pop-up-hover-bottom, etc.
-///
-/// 注意: 不要な場合はCSSファイルサイズが増加するため、必要な場合のみ有効化してください
-$generate-utilities: false !default;
-
-@if $generate-utilities {
-  // 8 directions
-  .text-pop-up-top { @include text-pop-up('top'); }
-  .text-pop-up-tr { @include text-pop-up('tr'); }
-  .text-pop-up-right { @include text-pop-up('right'); }
-  .text-pop-up-br { @include text-pop-up('br'); }
-  .text-pop-up-bottom { @include text-pop-up('bottom'); }
-  .text-pop-up-bl { @include text-pop-up('bl'); }
-  .text-pop-up-left { @include text-pop-up('left'); }
-  .text-pop-up-tl { @include text-pop-up('tl'); }
-
-  // Hover variants
-  .text-pop-up-hover-top { @include text-pop-up-hover('top'); }
-  .text-pop-up-hover-br { @include text-pop-up-hover('br'); }
-}
