@@ -37,6 +37,21 @@ ja:
     slide:
       name: Slide
       description: スライドアニメーション（9パターン）
+    slideBck:
+      name: Slide Backward
+      description: スライド後方アニメーション（9パターン）
+    slideFwd:
+      name: Slide Forward
+      description: スライド前方アニメーション（9パターン）
+    slideRotate:
+      name: Slide Rotate
+      description: スライド＋回転アニメーション（12パターン）
+    shadowDrop:
+      name: Shadow Drop
+      description: シャドウ出現アニメーション（11パターン）
+    shadowDrop2:
+      name: Shadow Drop 2
+      description: シャドウ＋Z軸移動アニメーション（11パターン）
 en:
   title: Animista
   description: CSS animation demos from Animista
@@ -75,6 +90,21 @@ en:
     slide:
       name: Slide
       description: Slide animations (9 patterns)
+    slideBck:
+      name: Slide Backward
+      description: Slide backward animations (9 patterns)
+    slideFwd:
+      name: Slide Forward
+      description: Slide forward animations (9 patterns)
+    slideRotate:
+      name: Slide Rotate
+      description: Slide + rotation animations (12 patterns)
+    shadowDrop:
+      name: Shadow Drop
+      description: Shadow drop animations (11 patterns)
+    shadowDrop2:
+      name: Shadow Drop 2
+      description: Shadow drop + Z-axis animations (11 patterns)
 </i18n>
 
 <template>
@@ -158,6 +188,26 @@ en:
       v-else-if="currentView === 'slide'"
       @back="handleBackToList"
     />
+    <HoAnimistaSlideBck
+      v-else-if="currentView === 'slide-bck'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSlideFwd
+      v-else-if="currentView === 'slide-fwd'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSlideRotate
+      v-else-if="currentView === 'slide-rotate'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaShadowDrop
+      v-else-if="currentView === 'shadow-drop'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaShadowDrop2
+      v-else-if="currentView === 'shadow-drop-2'"
+      @back="handleBackToList"
+    />
   </div>
 </template>
 
@@ -168,7 +218,7 @@ const emit = defineEmits<{
   back: []
 }>()
 
-type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide'
+type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2'
 
 const currentView = ref<ViewType>('scale-up')
 
@@ -184,6 +234,11 @@ const tabs = [
   { value: 'flip-scale-2', key: 'flipScale2', icon: '🔁' },
   { value: 'swing', key: 'swing', icon: '⚖️' },
   { value: 'slide', key: 'slide', icon: '➡️' },
+  { value: 'slide-bck', key: 'slideBck', icon: '⬅️' },
+  { value: 'slide-fwd', key: 'slideFwd', icon: '⤴️' },
+  { value: 'slide-rotate', key: 'slideRotate', icon: '🔃' },
+  { value: 'shadow-drop', key: 'shadowDrop', icon: '💧' },
+  { value: 'shadow-drop-2', key: 'shadowDrop2', icon: '💦' },
 ] as const
 
 const handleSelectAnimation = (animationType: string) => {

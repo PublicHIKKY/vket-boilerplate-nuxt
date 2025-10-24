@@ -8673,6 +8673,20 @@ exports[`mount component 1`] = `
 `;
 ````
 
+## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadioChangeable.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-3ec31731="" class="hm-input-radio-changeable">
+  <div data-v-3ec31731="" class="radio"><input data-v-fc3f65b2="" data-v-3ec31731="" id="testValue" class="ha-base-input input" type="radio" name="testName" required="" value="testValue"><label data-v-3ec31731="" for="testValue" class="label option-0">
+      <!--v-if--> testLabel
+      <!--v-if-->
+    </label></div>
+</div>"
+`;
+````
+
 ## File: layers/base/app/test/components/hm/input/HmInputCheckbox.spec.ts
 ````typescript
 import { mount } from '@vue/test-utils'
@@ -10471,20 +10485,6 @@ describe('createUuidV4', () => {
     expect(uuidV4_1).not.toBe(uuidV4_2)
   })
 })
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadioChangeable.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-3ec31731="" class="hm-input-radio-changeable">
-  <div data-v-3ec31731="" class="radio"><input data-v-fc3f65b2="" data-v-3ec31731="" id="testValue" class="ha-base-input input" type="radio" name="testName" required="" value="testValue"><label data-v-3ec31731="" for="testValue" class="label option-0">
-      <!--v-if--> testLabel
-      <!--v-if-->
-    </label></div>
-</div>"
-`;
 ````
 
 ## File: layers/base/app/test/components/hm/input/HmInputSingleImage.spec.ts
