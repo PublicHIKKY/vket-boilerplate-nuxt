@@ -7,6 +7,21 @@ ja:
     scaleUp:
       name: Scale Up
       description: スケールアップアニメーション（15パターン）
+    scaleDown:
+      name: Scale Down
+      description: スケールダウンアニメーション（15パターン）
+    rotate:
+      name: Rotate
+      description: 回転アニメーション（4パターン）
+    rotateScale:
+      name: Rotate Scale
+      description: 回転＋スケールアニメーション（6パターン）
+    rotate90:
+      name: Rotate 90°
+      description: 90度回転アニメーション（8パターン）
+    flip:
+      name: Flip
+      description: フリップアニメーション（4パターン）
 en:
   title: Animista
   description: CSS animation demos from Animista
@@ -15,15 +30,27 @@ en:
     scaleUp:
       name: Scale Up
       description: Scale up animations (15 patterns)
+    scaleDown:
+      name: Scale Down
+      description: Scale down animations (15 patterns)
+    rotate:
+      name: Rotate
+      description: Rotate animations (4 patterns)
+    rotateScale:
+      name: Rotate Scale
+      description: Rotate scale animations (6 patterns)
+    rotate90:
+      name: Rotate 90°
+      description: 90° rotation animations (8 patterns)
+    flip:
+      name: Flip
+      description: Flip animations (4 patterns)
 </i18n>
 
 <template>
   <div class="ho-animista">
-    <!-- アニメーション一覧 -->
-    <div
-      v-if="currentView === 'list'"
-      class="container"
-    >
+    <div class="container">
+      <!-- ヘッダー -->
       <div class="header-controls">
         <button
           class="back-button"
@@ -42,66 +69,74 @@ en:
         </p>
       </header>
 
-      <section class="section">
-        <h2 class="section-title">
-          {{ t('animations.title') }}
-        </h2>
-
-        <div class="animation-list">
-          <button
-            class="animation-card"
-            @click="handleSelectAnimation('scale-up')"
-          >
-            <div class="card-icon">
-              📐
-            </div>
-            <div class="card-content">
-              <h3 class="card-title">
-                {{ t('animations.scaleUp.name') }}
-              </h3>
-              <p class="card-description">
-                {{ t('animations.scaleUp.description') }}
-              </p>
-            </div>
-            <div class="card-arrow">
-              →
-            </div>
-          </button>
-
-          <!-- 今後、他のアニメーションを追加 -->
-        </div>
-      </section>
+      <!-- タブナビゲーション -->
+      <nav class="tab-navigation">
+        <button
+          v-for="tab in tabs"
+          :key="tab.value"
+          :class="['tab-button', { active: currentView === tab.value }]"
+          @click="handleSelectAnimation(tab.value)"
+        >
+          <span class="tab-icon">{{ tab.icon }}</span>
+          <span class="tab-label">{{ t(`animations.${tab.key}.name`) }}</span>
+        </button>
+      </nav>
     </div>
 
     <!-- アニメーション詳細 -->
     <HoAnimistaScaleUp
-      v-else-if="currentView === 'scale-up'"
+      v-if="currentView === 'scale-up'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaScaleDown
+      v-else-if="currentView === 'scale-down'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaRotate
+      v-else-if="currentView === 'rotate'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaRotateScale
+      v-else-if="currentView === 'rotate-scale'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaRotate90
+      v-else-if="currentView === 'rotate-90'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaFlip
+      v-else-if="currentView === 'flip'"
       @back="handleBackToList"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import HoAnimistaScaleUp from './HoAnimistaScaleUp.vue'
-
 const { t } = useI18n()
 
 const emit = defineEmits<{
   back: []
 }>()
 
-type ViewType = 'list' | 'scale-up'
+type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip'
 
-const currentView = ref<ViewType>('list')
+const currentView = ref<ViewType>('scale-up')
+
+const tabs = [
+  { value: 'scale-up', key: 'scaleUp', icon: '📐' },
+  { value: 'scale-down', key: 'scaleDown', icon: '🔽' },
+  { value: 'rotate', key: 'rotate', icon: '🔄' },
+  { value: 'rotate-scale', key: 'rotateScale', icon: '↩️' },
+  { value: 'rotate-90', key: 'rotate90', icon: '⤴️' },
+  { value: 'flip', key: 'flip', icon: '🔃' },
+] as const
 
 const handleSelectAnimation = (animationType: string) => {
-  if (animationType === 'scale-up') {
-    currentView.value = 'scale-up'
-  }
+  currentView.value = animationType as ViewType
 }
 
 const handleBackToList = () => {
-  currentView.value = 'list'
+  currentView.value = 'scale-up'
 }
 </script>
 
@@ -239,5 +274,54 @@ const handleBackToList = () => {
   .animation-card:hover & {
     transform: translateX(4px);
   }
+}
+
+.tab-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+
+  margin-bottom: 40px;
+}
+
+.tab-button {
+  cursor: pointer;
+
+  display: flex;
+  gap: 8px;
+  align-items: center;
+
+  padding: 12px 24px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(255 255 255 / 10%);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 20%);
+  }
+
+  &.active {
+    color: #667eea;
+    background: white;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 20%);
+  }
+}
+
+.tab-icon {
+  font-size: 20px;
+}
+
+.tab-label {
+  font-weight: inherit;
 }
 </style>

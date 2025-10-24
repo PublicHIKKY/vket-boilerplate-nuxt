@@ -97,6 +97,36 @@
   }
 }
 
+// Rotate Scale Up Forward (3D - Z-axis translation with rotation)
+@keyframes rotate-scale-up-fwd {
+  0% {
+    transform: translateZ(0) rotateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateZ(160px) rotateY(180deg) scale(1.5);
+  }
+
+  100% {
+    transform: translateZ(0) rotateY(360deg) scale(1);
+  }
+}
+
+// Rotate Scale Down Forward (3D - Z-axis translation with rotation)
+@keyframes rotate-scale-down-fwd {
+  0% {
+    transform: translateZ(0) rotateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateZ(160px) rotateY(180deg) scale(0.5);
+  }
+
+  100% {
+    transform: translateZ(0) rotateY(360deg) scale(1);
+  }
+}
+
 // Rotate Scale Up Diagonal 1 (3D)
 @keyframes rotate-scale-up-diag-1 {
   0% {
@@ -173,6 +203,9 @@
 ///   Vertical (2種類) - Y軸回転:
 ///     'up-ver'   - 垂直回転しながらスケールアップ
 ///     'down-ver' - 垂直回転しながらスケールダウン
+///   Forward (2種類) - 3D前方移動回転:
+///     'up-fwd'   - 前方に移動しながらスケールアップして回転
+///     'down-fwd' - 前方に移動しながらスケールダウンして回転
 ///   Diagonal (4種類) - 3D回転:
 ///     'up-diag-1'   - 対角線1方向にスケールアップしながら回転
 ///     'down-diag-1' - 対角線1方向にスケールダウンしながら回転
