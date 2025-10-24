@@ -76,6 +76,21 @@ ja:
     slitIn:
       name: Slit In
       description: スリット入場アニメーション（4パターン）
+    slideIn:
+      name: Slide In
+      description: スライド入場アニメーション（8パターン）
+    slideInFwd:
+      name: Slide In Forward
+      description: 前方スライド入場アニメーション（9パターン）
+    slideInBck:
+      name: Slide In Backward
+      description: 後方スライド入場アニメーション（9パターン）
+    slideInBlurred:
+      name: Slide In Blurred
+      description: ブラースライド入場アニメーション（8パターン）
+    slideInElliptic:
+      name: Slide In Elliptic
+      description: 楕円軌道スライド入場アニメーション（8パターン）
     bounceIn:
       name: Bounce In
       description: バウンス入場アニメーション（6パターン）
@@ -162,6 +177,21 @@ en:
     slitIn:
       name: Slit In
       description: Slit entrance animations (4 patterns)
+    slideIn:
+      name: Slide In
+      description: Slide entrance animations (8 patterns)
+    slideInFwd:
+      name: Slide In Forward
+      description: Forward slide entrance animations (9 patterns)
+    slideInBck:
+      name: Slide In Backward
+      description: Backward slide entrance animations (9 patterns)
+    slideInBlurred:
+      name: Slide In Blurred
+      description: Blurred slide entrance animations (8 patterns)
+    slideInElliptic:
+      name: Slide In Elliptic
+      description: Elliptic slide entrance animations (8 patterns)
     bounceIn:
       name: Bounce In
       description: Bounce entrance animations (6 patterns)
@@ -306,6 +336,26 @@ en:
       v-else-if="currentView === 'slit-in'"
       @back="handleBackToList"
     />
+    <HoAnimistaSlideIn
+      v-else-if="currentView === 'slide-in'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSlideInFwd
+      v-else-if="currentView === 'slide-in-fwd'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSlideInBck
+      v-else-if="currentView === 'slide-in-bck'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSlideInBlurred
+      v-else-if="currentView === 'slide-in-blurred'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSlideInElliptic
+      v-else-if="currentView === 'slide-in-elliptic'"
+      @back="handleBackToList"
+    />
     <HoAnimistaBounceIn
       v-else-if="currentView === 'bounce-in'"
       @back="handleBackToList"
@@ -328,7 +378,7 @@ const emit = defineEmits<{
   back: []
 }>()
 
-type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'bounce-in' | 'fade-in' | 'flicker-in'
+type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'slide-in' | 'slide-in-fwd' | 'slide-in-bck' | 'slide-in-blurred' | 'slide-in-elliptic' | 'bounce-in' | 'fade-in' | 'flicker-in'
 
 const currentView = ref<ViewType>('scale-up')
 
@@ -357,6 +407,11 @@ const tabs = [
   { value: 'swirl-in', key: 'swirlIn', icon: '🌪️' },
   { value: 'flip-in', key: 'flipIn', icon: '🔃' },
   { value: 'slit-in', key: 'slitIn', icon: '✂️' },
+  { value: 'slide-in', key: 'slideIn', icon: '🔽' },
+  { value: 'slide-in-fwd', key: 'slideInFwd', icon: '⤵️' },
+  { value: 'slide-in-bck', key: 'slideInBck', icon: '⤴️' },
+  { value: 'slide-in-blurred', key: 'slideInBlurred', icon: '💨' },
+  { value: 'slide-in-elliptic', key: 'slideInElliptic', icon: '🌊' },
   { value: 'bounce-in', key: 'bounceIn', icon: '🎾' },
   { value: 'fade-in', key: 'fadeIn', icon: '👻' },
   { value: 'flicker-in', key: 'flickerIn', icon: '✨' },
