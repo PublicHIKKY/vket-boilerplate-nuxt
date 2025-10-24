@@ -52,6 +52,39 @@ ja:
     shadowDrop2:
       name: Shadow Drop 2
       description: シャドウ＋Z軸移動アニメーション（11パターン）
+    shadowPop:
+      name: Shadow Pop
+      description: レイヤードシャドウアニメーション（4パターン）
+    shadowInset:
+      name: Shadow Inset
+      description: 内側シャドウアニメーション（11パターン）
+    scaleIn:
+      name: Scale In
+      description: スケール入場アニメーション（15パターン）
+    rotateIn:
+      name: Rotate In
+      description: 回転入場アニメーション（13パターン）
+    rotateIn2:
+      name: Rotate In 2
+      description: 回転＋Z軸入場アニメーション（14パターン）
+    swirlIn:
+      name: Swirl In
+      description: スワール入場アニメーション（18パターン）
+    flipIn:
+      name: Flip In
+      description: フリップ入場アニメーション（8パターン）
+    slitIn:
+      name: Slit In
+      description: スリット入場アニメーション（4パターン）
+    bounceIn:
+      name: Bounce In
+      description: バウンス入場アニメーション（6パターン）
+    fadeIn:
+      name: Fade In
+      description: フェード入場アニメーション（11パターン）
+    flickerIn:
+      name: Flicker In
+      description: フリッカー入場アニメーション（2パターン）
 en:
   title: Animista
   description: CSS animation demos from Animista
@@ -105,6 +138,39 @@ en:
     shadowDrop2:
       name: Shadow Drop 2
       description: Shadow drop + Z-axis animations (11 patterns)
+    shadowPop:
+      name: Shadow Pop
+      description: Layered shadow pop animations (4 patterns)
+    shadowInset:
+      name: Shadow Inset
+      description: Inset shadow animations (11 patterns)
+    scaleIn:
+      name: Scale In
+      description: Scale entrance animations (15 patterns)
+    rotateIn:
+      name: Rotate In
+      description: Rotate entrance animations (13 patterns)
+    rotateIn2:
+      name: Rotate In 2
+      description: Rotate + Z-axis entrance animations (14 patterns)
+    swirlIn:
+      name: Swirl In
+      description: Swirl entrance animations (18 patterns)
+    flipIn:
+      name: Flip In
+      description: Flip entrance animations (8 patterns)
+    slitIn:
+      name: Slit In
+      description: Slit entrance animations (4 patterns)
+    bounceIn:
+      name: Bounce In
+      description: Bounce entrance animations (6 patterns)
+    fadeIn:
+      name: Fade In
+      description: Fade entrance animations (11 patterns)
+    flickerIn:
+      name: Flicker In
+      description: Flicker entrance animations (2 patterns)
 </i18n>
 
 <template>
@@ -208,6 +274,50 @@ en:
       v-else-if="currentView === 'shadow-drop-2'"
       @back="handleBackToList"
     />
+    <HoAnimistaShadowPop
+      v-else-if="currentView === 'shadow-pop'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaShadowInset
+      v-else-if="currentView === 'shadow-inset'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaScaleIn
+      v-else-if="currentView === 'scale-in'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaRotateIn
+      v-else-if="currentView === 'rotate-in'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaRotateIn2
+      v-else-if="currentView === 'rotate-in-2'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSwirlIn
+      v-else-if="currentView === 'swirl-in'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaFlipIn
+      v-else-if="currentView === 'flip-in'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSlitIn
+      v-else-if="currentView === 'slit-in'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaBounceIn
+      v-else-if="currentView === 'bounce-in'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaFadeIn
+      v-else-if="currentView === 'fade-in'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaFlickerIn
+      v-else-if="currentView === 'flicker-in'"
+      @back="handleBackToList"
+    />
   </div>
 </template>
 
@@ -218,7 +328,7 @@ const emit = defineEmits<{
   back: []
 }>()
 
-type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2'
+type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'bounce-in' | 'fade-in' | 'flicker-in'
 
 const currentView = ref<ViewType>('scale-up')
 
@@ -239,6 +349,17 @@ const tabs = [
   { value: 'slide-rotate', key: 'slideRotate', icon: '🔃' },
   { value: 'shadow-drop', key: 'shadowDrop', icon: '💧' },
   { value: 'shadow-drop-2', key: 'shadowDrop2', icon: '💦' },
+  { value: 'shadow-pop', key: 'shadowPop', icon: '⭐' },
+  { value: 'shadow-inset', key: 'shadowInset', icon: '🔲' },
+  { value: 'scale-in', key: 'scaleIn', icon: '📏' },
+  { value: 'rotate-in', key: 'rotateIn', icon: '🔄' },
+  { value: 'rotate-in-2', key: 'rotateIn2', icon: '🌀' },
+  { value: 'swirl-in', key: 'swirlIn', icon: '🌪️' },
+  { value: 'flip-in', key: 'flipIn', icon: '🔃' },
+  { value: 'slit-in', key: 'slitIn', icon: '✂️' },
+  { value: 'bounce-in', key: 'bounceIn', icon: '🎾' },
+  { value: 'fade-in', key: 'fadeIn', icon: '👻' },
+  { value: 'flicker-in', key: 'flickerIn', icon: '✨' },
 ] as const
 
 const handleSelectAnimation = (animationType: string) => {

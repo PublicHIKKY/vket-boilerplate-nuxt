@@ -61,22 +61,33 @@ layers/
         ho/
           animista/
             HoAnimista.vue
+            HoAnimistaBounceIn.vue
+            HoAnimistaFadeIn.vue
+            HoAnimistaFlickerIn.vue
             HoAnimistaFlip.vue
             HoAnimistaFlip2.vue
+            HoAnimistaFlipIn.vue
             HoAnimistaFlipScale.vue
             HoAnimistaFlipScale2.vue
             HoAnimistaRotate.vue
             HoAnimistaRotate90.vue
+            HoAnimistaRotateIn.vue
+            HoAnimistaRotateIn2.vue
             HoAnimistaRotateScale.vue
             HoAnimistaScaleDown.vue
+            HoAnimistaScaleIn.vue
             HoAnimistaScaleUp.vue
             HoAnimistaShadowDrop.vue
             HoAnimistaShadowDrop2.vue
+            HoAnimistaShadowInset.vue
+            HoAnimistaShadowPop.vue
             HoAnimistaSlide.vue
             HoAnimistaSlideBck.vue
             HoAnimistaSlideFwd.vue
             HoAnimistaSlideRotate.vue
+            HoAnimistaSlitIn.vue
             HoAnimistaSwing.vue
+            HoAnimistaSwirlIn.vue
           .gitkeep
           HoCssAnimations.vue
         ht/
@@ -655,10 +666,10 @@ $zindex-loading: 400;
 @forward 'base';
 ````
 
-## File: layers/showcases/app/components/ho/animista/HoAnimistaShadowDrop.vue
+## File: layers/showcases/app/components/ho/animista/HoAnimistaBounceIn.vue
 ````vue
 <template>
-  <div class="ho-animista-shadow-drop">
+  <div class="ho-animista-bounce-in">
     <div class="header-controls">
       <button
         class="back-button"
@@ -669,11 +680,11 @@ $zindex-loading: 400;
     </div>
 
     <h1 class="demo-title">
-      Shadow Drop Animations
+      Bounce In Animations
     </h1>
 
     <p class="demo-description">
-      11種類のシャドウ出現アニメーションのデモ。SCSS mixinで実装されています。
+      6種類のバウンス入場アニメーションのデモ。SCSS mixinで実装されています。
     </p>
 
     <div class="demo-controls">
@@ -688,14 +699,9 @@ $zindex-loading: 400;
     <div class="animation-grid">
       <div class="animation-section">
         <h2 class="section-title">
-          Basic Directions (5 patterns)
+          All Directions (6 patterns)
         </h2>
         <div class="grid">
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-center', { 'is-animating': activeVariants.has('center') }]">
-              center
-            </div>
-          </div>
           <div class="animation-item">
             <div :class="['demo-box', 'variant-top', { 'is-animating': activeVariants.has('top') }]">
               top
@@ -716,22 +722,289 @@ $zindex-loading: 400;
               left
             </div>
           </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-fwd', { 'is-animating': activeVariants.has('fwd') }]">
+              fwd
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bck', { 'is-animating': activeVariants.has('bck') }]">
+              bck
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const emit = defineEmits<{
+  back: []
+}>()
+
+type BounceInVariant = 'top' | 'right' | 'bottom' | 'left' | 'fwd' | 'bck'
+
+const allVariants: BounceInVariant[] = [
+  'top',
+  'right',
+  'bottom',
+  'left',
+  'fwd',
+  'bck',
+]
+
+const activeVariants = ref<Set<BounceInVariant>>(new Set())
+
+const replayAll = async () => {
+  activeVariants.value.clear()
+  await nextTick()
+
+  for (const [index, variant] of allVariants.entries()) {
+    setTimeout(() => {
+      activeVariants.value = new Set(activeVariants.value).add(variant)
+    }, index * 150)
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    void replayAll()
+  }, 500)
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/animations' as anim;
+
+// ============================================
+// Animation Variants
+// ============================================
+
+.variant-top.is-animating { @include anim.bounce-in('top', 1.1s); }
+.variant-right.is-animating { @include anim.bounce-in('right', 1.1s); }
+.variant-bottom.is-animating { @include anim.bounce-in('bottom', 1.1s); }
+.variant-left.is-animating { @include anim.bounce-in('left', 1.1s); }
+.variant-fwd.is-animating { @include anim.bounce-in('fwd', 0.6s); }
+.variant-bck.is-animating { @include anim.bounce-in('bck', 0.7s); }
+
+// ============================================
+// Page Layout Styles
+// ============================================
+
+.ho-animista-bounce-in {
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 20px;
+
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+}
+
+.header-controls { margin-bottom: 24px; }
+
+.back-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #f472b6;
+    background: white;
+  }
+}
+
+.demo-title {
+  margin-bottom: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.demo-description {
+  margin-bottom: 32px;
+  font-size: 16px;
+  color: rgb(255 255 255 / 90%);
+  text-align: center;
+}
+
+.demo-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.replay-button {
+  cursor: pointer;
+
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+
+  background: rgb(99 102 241);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(79 70 229);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.animation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.animation-section {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.section-title {
+  margin-bottom: 20px;
+
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.animation-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  overflow-wrap: break-word;
+
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+}
+</style>
+````
+
+## File: layers/showcases/app/components/ho/animista/HoAnimistaFadeIn.vue
+````vue
+<template>
+  <div class="ho-animista-fade-in">
+    <div class="header-controls">
+      <button
+        class="back-button"
+        @click="emit('back')"
+      >
+        ← Back
+      </button>
+    </div>
+
+    <h1 class="demo-title">
+      Fade In Animations
+    </h1>
+
+    <p class="demo-description">
+      11種類のフェード入場アニメーションのデモ。SCSS mixinで実装されています。
+    </p>
+
+    <div class="demo-controls">
+      <button
+        class="replay-button"
+        @click="replayAll"
+      >
+        🔄 Replay All
+      </button>
+    </div>
+
+    <div class="animation-grid">
+      <div class="animation-section">
+        <h2 class="section-title">
+          Basic & Z-axis (3 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-basic', { 'is-animating': activeVariants.has('') }]">
+              basic
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-fwd', { 'is-animating': activeVariants.has('fwd') }]">
+              fwd
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bck', { 'is-animating': activeVariants.has('bck') }]">
+              bck
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="animation-section">
         <h2 class="section-title">
-          Combined Directions (2 patterns)
+          Basic Directions (4 patterns)
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-lr', { 'is-animating': activeVariants.has('lr') }]">
-              lr
+            <div :class="['demo-box', 'variant-top', { 'is-animating': activeVariants.has('top') }]">
+              top
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-tb', { 'is-animating': activeVariants.has('tb') }]">
-              tb
+            <div :class="['demo-box', 'variant-right', { 'is-animating': activeVariants.has('right') }]">
+              right
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bottom', { 'is-animating': activeVariants.has('bottom') }]">
+              bottom
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-left', { 'is-animating': activeVariants.has('left') }]">
+              left
             </div>
           </div>
         </div>
@@ -773,23 +1046,23 @@ const emit = defineEmits<{
   back: []
 }>()
 
-type ShadowDropVariant = 'center' | 'top' | 'right' | 'bottom' | 'left' | 'lr' | 'tb' | 'tr' | 'br' | 'bl' | 'tl'
+type FadeInVariant = '' | 'fwd' | 'bck' | 'top' | 'tr' | 'right' | 'br' | 'bottom' | 'bl' | 'left' | 'tl'
 
-const allVariants: ShadowDropVariant[] = [
-  'center',
+const allVariants: FadeInVariant[] = [
+  '',
+  'fwd',
+  'bck',
   'top',
   'right',
   'bottom',
   'left',
-  'lr',
-  'tb',
   'tr',
   'br',
   'bl',
   'tl',
 ]
 
-const activeVariants = ref<Set<ShadowDropVariant>>(new Set())
+const activeVariants = ref<Set<FadeInVariant>>(new Set())
 
 const replayAll = async () => {
   activeVariants.value.clear()
@@ -816,34 +1089,34 @@ onMounted(() => {
 // Animation Variants
 // ============================================
 
-// Basic Directions (5 patterns)
-.variant-center.is-animating { @include anim.shadow-drop('center', 0.4s); }
-.variant-top.is-animating { @include anim.shadow-drop('top', 0.4s); }
-.variant-right.is-animating { @include anim.shadow-drop('right', 0.4s); }
-.variant-bottom.is-animating { @include anim.shadow-drop('bottom', 0.4s); }
-.variant-left.is-animating { @include anim.shadow-drop('left', 0.4s); }
+// Basic & Z-axis (3 patterns)
+.variant-basic.is-animating { @include anim.fade-in('', 1.2s); }
+.variant-fwd.is-animating { @include anim.fade-in('fwd', 0.6s); }
+.variant-bck.is-animating { @include anim.fade-in('bck', 1.2s); }
 
-// Combined Directions (2 patterns)
-.variant-lr.is-animating { @include anim.shadow-drop('lr', 0.4s); }
-.variant-tb.is-animating { @include anim.shadow-drop('tb', 0.4s); }
+// Basic Directions (4 patterns)
+.variant-top.is-animating { @include anim.fade-in('top', 1.2s); }
+.variant-right.is-animating { @include anim.fade-in('right', 1.2s); }
+.variant-bottom.is-animating { @include anim.fade-in('bottom', 1.2s); }
+.variant-left.is-animating { @include anim.fade-in('left', 1.2s); }
 
 // Diagonal Directions (4 patterns)
-.variant-tr.is-animating { @include anim.shadow-drop('tr', 0.4s); }
-.variant-br.is-animating { @include anim.shadow-drop('br', 0.4s); }
-.variant-bl.is-animating { @include anim.shadow-drop('bl', 0.4s); }
-.variant-tl.is-animating { @include anim.shadow-drop('tl', 0.4s); }
+.variant-tr.is-animating { @include anim.fade-in('tr', 1.2s); }
+.variant-br.is-animating { @include anim.fade-in('br', 1.2s); }
+.variant-bl.is-animating { @include anim.fade-in('bl', 1.2s); }
+.variant-tl.is-animating { @include anim.fade-in('tl', 1.2s); }
 
 // ============================================
 // Page Layout Styles
 // ============================================
 
-.ho-animista-shadow-drop {
+.ho-animista-fade-in {
   max-width: 1200px;
   min-height: 100vh;
   margin: 0 auto;
   padding: 40px 20px;
 
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
 }
 
 .header-controls { margin-bottom: 24px; }
@@ -864,7 +1137,1585 @@ onMounted(() => {
   transition: all 0.3s ease;
 
   &:hover {
-    color: #667eea;
+    color: #a78bfa;
+    background: white;
+  }
+}
+
+.demo-title {
+  margin-bottom: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.demo-description {
+  margin-bottom: 32px;
+  font-size: 16px;
+  color: rgb(255 255 255 / 90%);
+  text-align: center;
+}
+
+.demo-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.replay-button {
+  cursor: pointer;
+
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+
+  background: rgb(99 102 241);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(79 70 229);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.animation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.animation-section {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.section-title {
+  margin-bottom: 20px;
+
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.animation-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  overflow-wrap: break-word;
+
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+}
+</style>
+````
+
+## File: layers/showcases/app/components/ho/animista/HoAnimistaFlickerIn.vue
+````vue
+<template>
+  <div class="ho-animista-flicker-in">
+    <div class="header-controls">
+      <button
+        class="back-button"
+        @click="emit('back')"
+      >
+        ← Back
+      </button>
+    </div>
+
+    <h1 class="demo-title">
+      Flicker In Animations
+    </h1>
+
+    <p class="demo-description">
+      2種類のフリッカー入場アニメーションのデモ。SCSS mixinで実装されています。
+    </p>
+
+    <div class="demo-controls">
+      <button
+        class="replay-button"
+        @click="replayAll"
+      >
+        🔄 Replay All
+      </button>
+    </div>
+
+    <div class="animation-grid">
+      <div class="animation-section">
+        <h2 class="section-title">
+          Flicker Patterns (2 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-1', { 'is-animating': activeVariants.has('1') }]">
+              flicker 1
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-2', { 'is-animating': activeVariants.has('2') }]">
+              flicker 2
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const emit = defineEmits<{
+  back: []
+}>()
+
+type FlickerInVariant = '1' | '2'
+
+const allVariants: FlickerInVariant[] = [
+  '1',
+  '2',
+]
+
+const activeVariants = ref<Set<FlickerInVariant>>(new Set())
+
+const replayAll = async () => {
+  activeVariants.value.clear()
+  await nextTick()
+
+  for (const [index, variant] of allVariants.entries()) {
+    setTimeout(() => {
+      activeVariants.value = new Set(activeVariants.value).add(variant)
+    }, index * 200)
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    void replayAll()
+  }, 500)
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/animations' as anim;
+
+// ============================================
+// Animation Variants
+// ============================================
+
+.variant-1.is-animating { @include anim.flicker-in('1', 2s); }
+.variant-2.is-animating { @include anim.flicker-in('2', 4s); }
+
+// ============================================
+// Page Layout Styles
+// ============================================
+
+.ho-animista-flicker-in {
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 20px;
+
+  background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%);
+}
+
+.header-controls { margin-bottom: 24px; }
+
+.back-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #fcd34d;
+    background: white;
+  }
+}
+
+.demo-title {
+  margin-bottom: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.demo-description {
+  margin-bottom: 32px;
+  font-size: 16px;
+  color: rgb(255 255 255 / 90%);
+  text-align: center;
+}
+
+.demo-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.replay-button {
+  cursor: pointer;
+
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+
+  background: rgb(99 102 241);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(79 70 229);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.animation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.animation-section {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.section-title {
+  margin-bottom: 20px;
+
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.animation-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: bold;
+  color: #1f2937;
+  text-align: center;
+  overflow-wrap: break-word;
+
+  background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%);
+}
+</style>
+````
+
+## File: layers/showcases/app/components/ho/animista/HoAnimistaFlipIn.vue
+````vue
+<template>
+  <div class="ho-animista-flip-in">
+    <div class="header-controls">
+      <button
+        class="back-button"
+        @click="emit('back')"
+      >
+        ← Back
+      </button>
+    </div>
+
+    <h1 class="demo-title">
+      Flip In Animations
+    </h1>
+
+    <p class="demo-description">
+      8種類のフリップ入場アニメーションのデモ。SCSS mixinで実装されています。
+    </p>
+
+    <div class="demo-controls">
+      <button
+        class="replay-button"
+        @click="replayAll"
+      >
+        🔄 Replay All
+      </button>
+    </div>
+
+    <div class="animation-grid">
+      <div class="animation-section">
+        <h2 class="section-title">
+          Horizontal Flip (2 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-hor-top', { 'is-animating': activeVariants.has('hor-top') }]">
+              hor-top
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-hor-bottom', { 'is-animating': activeVariants.has('hor-bottom') }]">
+              hor-bottom
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Vertical Flip (2 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-ver-left', { 'is-animating': activeVariants.has('ver-left') }]">
+              ver-left
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-ver-right', { 'is-animating': activeVariants.has('ver-right') }]">
+              ver-right
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Diagonal Flip (4 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-diag-1-tr', { 'is-animating': activeVariants.has('diag-1-tr') }]">
+              diag-1-tr
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-diag-1-bl', { 'is-animating': activeVariants.has('diag-1-bl') }]">
+              diag-1-bl
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-diag-2-tl', { 'is-animating': activeVariants.has('diag-2-tl') }]">
+              diag-2-tl
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-diag-2-br', { 'is-animating': activeVariants.has('diag-2-br') }]">
+              diag-2-br
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const emit = defineEmits<{
+  back: []
+}>()
+
+type FlipInVariant = 'hor-top' | 'hor-bottom' | 'ver-left' | 'ver-right' | 'diag-1-tr' | 'diag-1-bl' | 'diag-2-tl' | 'diag-2-br'
+
+const allVariants: FlipInVariant[] = [
+  'hor-top',
+  'hor-bottom',
+  'ver-left',
+  'ver-right',
+  'diag-1-tr',
+  'diag-1-bl',
+  'diag-2-tl',
+  'diag-2-br',
+]
+
+const activeVariants = ref<Set<FlipInVariant>>(new Set())
+
+const replayAll = async () => {
+  activeVariants.value.clear()
+  await nextTick()
+
+  for (const [index, variant] of allVariants.entries()) {
+    setTimeout(() => {
+      activeVariants.value = new Set(activeVariants.value).add(variant)
+    }, index * 150)
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    void replayAll()
+  }, 500)
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/animations' as anim;
+
+// ============================================
+// Animation Variants
+// ============================================
+
+// Horizontal Flip (2 patterns)
+.variant-hor-top.is-animating { @include anim.flip-in('hor-top', 0.5s); }
+.variant-hor-bottom.is-animating { @include anim.flip-in('hor-bottom', 0.5s); }
+
+// Vertical Flip (2 patterns)
+.variant-ver-left.is-animating { @include anim.flip-in('ver-left', 0.5s); }
+.variant-ver-right.is-animating { @include anim.flip-in('ver-right', 0.5s); }
+
+// Diagonal Flip (4 patterns)
+.variant-diag-1-tr.is-animating { @include anim.flip-in('diag-1-tr', 0.5s); }
+.variant-diag-1-bl.is-animating { @include anim.flip-in('diag-1-bl', 0.5s); }
+.variant-diag-2-tl.is-animating { @include anim.flip-in('diag-2-tl', 0.5s); }
+.variant-diag-2-br.is-animating { @include anim.flip-in('diag-2-br', 0.5s); }
+
+// ============================================
+// Page Layout Styles
+// ============================================
+
+.ho-animista-flip-in {
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 20px;
+
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.header-controls { margin-bottom: 24px; }
+
+.back-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #8b5cf6;
+    background: white;
+  }
+}
+
+.demo-title {
+  margin-bottom: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.demo-description {
+  margin-bottom: 32px;
+  font-size: 16px;
+  color: rgb(255 255 255 / 90%);
+  text-align: center;
+}
+
+.demo-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.replay-button {
+  cursor: pointer;
+
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+
+  background: rgb(99 102 241);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(79 70 229);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.animation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.animation-section {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.section-title {
+  margin-bottom: 20px;
+
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.animation-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  overflow-wrap: break-word;
+
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+</style>
+````
+
+## File: layers/showcases/app/components/ho/animista/HoAnimistaRotateIn.vue
+````vue
+<template>
+  <div class="ho-animista-rotate-in">
+    <div class="header-controls">
+      <button
+        class="back-button"
+        @click="emit('back')"
+      >
+        ← Back
+      </button>
+    </div>
+
+    <h1 class="demo-title">
+      Rotate In Animations
+    </h1>
+
+    <p class="demo-description">
+      13種類の回転入場アニメーションのデモ。SCSS mixinで実装されています。
+    </p>
+
+    <div class="demo-controls">
+      <button
+        class="replay-button"
+        @click="replayAll"
+      >
+        🔄 Replay All
+      </button>
+    </div>
+
+    <div class="animation-grid">
+      <div class="animation-section">
+        <h2 class="section-title">
+          Center (1 pattern)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-center', { 'is-animating': activeVariants.has('center') }]">
+              center
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Basic Directions (4 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-top', { 'is-animating': activeVariants.has('top') }]">
+              top
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-right', { 'is-animating': activeVariants.has('right') }]">
+              right
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bottom', { 'is-animating': activeVariants.has('bottom') }]">
+              bottom
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-left', { 'is-animating': activeVariants.has('left') }]">
+              left
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Diagonal Directions (4 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tr', { 'is-animating': activeVariants.has('tr') }]">
+              tr
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-br', { 'is-animating': activeVariants.has('br') }]">
+              br
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bl', { 'is-animating': activeVariants.has('bl') }]">
+              bl
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tl', { 'is-animating': activeVariants.has('tl') }]">
+              tl
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Axis Variations (4 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-hor', { 'is-animating': activeVariants.has('hor') }]">
+              hor
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-ver', { 'is-animating': activeVariants.has('ver') }]">
+              ver
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-diag-1', { 'is-animating': activeVariants.has('diag-1') }]">
+              diag-1
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-diag-2', { 'is-animating': activeVariants.has('diag-2') }]">
+              diag-2
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const emit = defineEmits<{
+  back: []
+}>()
+
+type RotateInVariant = 'center' | 'top' | 'tr' | 'right' | 'br' | 'bottom' | 'bl' | 'left' | 'tl' | 'hor' | 'ver' | 'diag-1' | 'diag-2'
+
+const allVariants: RotateInVariant[] = [
+  'center',
+  'top',
+  'right',
+  'bottom',
+  'left',
+  'tr',
+  'br',
+  'bl',
+  'tl',
+  'hor',
+  'ver',
+  'diag-1',
+  'diag-2',
+]
+
+const activeVariants = ref<Set<RotateInVariant>>(new Set())
+
+const replayAll = async () => {
+  activeVariants.value.clear()
+  await nextTick()
+
+  for (const [index, variant] of allVariants.entries()) {
+    setTimeout(() => {
+      activeVariants.value = new Set(activeVariants.value).add(variant)
+    }, index * 100)
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    void replayAll()
+  }, 500)
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/animations' as anim;
+
+// ============================================
+// Animation Variants
+// ============================================
+
+// Center (1 pattern)
+.variant-center.is-animating { @include anim.rotate-in('center', 0.6s); }
+
+// Basic Directions (4 patterns)
+.variant-top.is-animating { @include anim.rotate-in('top', 0.6s); }
+.variant-right.is-animating { @include anim.rotate-in('right', 0.6s); }
+.variant-bottom.is-animating { @include anim.rotate-in('bottom', 0.6s); }
+.variant-left.is-animating { @include anim.rotate-in('left', 0.6s); }
+
+// Diagonal Directions (4 patterns)
+.variant-tr.is-animating { @include anim.rotate-in('tr', 0.6s); }
+.variant-br.is-animating { @include anim.rotate-in('br', 0.6s); }
+.variant-bl.is-animating { @include anim.rotate-in('bl', 0.6s); }
+.variant-tl.is-animating { @include anim.rotate-in('tl', 0.6s); }
+
+// Axis Variations (4 patterns)
+.variant-hor.is-animating { @include anim.rotate-in('hor', 0.6s); }
+.variant-ver.is-animating { @include anim.rotate-in('ver', 0.6s); }
+.variant-diag-1.is-animating { @include anim.rotate-in('diag-1', 0.6s); }
+.variant-diag-2.is-animating { @include anim.rotate-in('diag-2', 0.6s); }
+
+// ============================================
+// Page Layout Styles
+// ============================================
+
+.ho-animista-rotate-in {
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 20px;
+
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+}
+
+.header-controls { margin-bottom: 24px; }
+
+.back-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #60a5fa;
+    background: white;
+  }
+}
+
+.demo-title {
+  margin-bottom: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.demo-description {
+  margin-bottom: 32px;
+  font-size: 16px;
+  color: rgb(255 255 255 / 90%);
+  text-align: center;
+}
+
+.demo-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.replay-button {
+  cursor: pointer;
+
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+
+  background: rgb(99 102 241);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(79 70 229);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.animation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.animation-section {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.section-title {
+  margin-bottom: 20px;
+
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.animation-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  overflow-wrap: break-word;
+
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+}
+</style>
+````
+
+## File: layers/showcases/app/components/ho/animista/HoAnimistaRotateIn2.vue
+````vue
+<template>
+  <div class="ho-animista-rotate-in-2">
+    <div class="header-controls">
+      <button
+        class="back-button"
+        @click="emit('back')"
+      >
+        ← Back
+      </button>
+    </div>
+
+    <h1 class="demo-title">
+      Rotate In 2 Animations
+    </h1>
+
+    <p class="demo-description">
+      14種類の回転＋Z軸移動入場アニメーションのデモ。SCSS mixinで実装されています。
+    </p>
+
+    <div class="demo-controls">
+      <button
+        class="replay-button"
+        @click="replayAll"
+      >
+        🔄 Replay All
+      </button>
+    </div>
+
+    <div class="animation-grid">
+      <div class="animation-section">
+        <h2 class="section-title">
+          Basic Rotation (2 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-cw', { 'is-animating': activeVariants.has('cw') }]">
+              cw
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-ccw', { 'is-animating': activeVariants.has('ccw') }]">
+              ccw
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Forward/Backward (4 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-fwd-cw', { 'is-animating': activeVariants.has('fwd-cw') }]">
+              fwd-cw
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-fwd-ccw', { 'is-animating': activeVariants.has('fwd-ccw') }]">
+              fwd-ccw
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bck-cw', { 'is-animating': activeVariants.has('bck-cw') }]">
+              bck-cw
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bck-ccw', { 'is-animating': activeVariants.has('bck-ccw') }]">
+              bck-ccw
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Diagonal Corners (8 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tr-cw', { 'is-animating': activeVariants.has('tr-cw') }]">
+              tr-cw
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tr-ccw', { 'is-animating': activeVariants.has('tr-ccw') }]">
+              tr-ccw
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-br-cw', { 'is-animating': activeVariants.has('br-cw') }]">
+              br-cw
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-br-ccw', { 'is-animating': activeVariants.has('br-ccw') }]">
+              br-ccw
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bl-cw', { 'is-animating': activeVariants.has('bl-cw') }]">
+              bl-cw
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bl-ccw', { 'is-animating': activeVariants.has('bl-ccw') }]">
+              bl-ccw
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tl-cw', { 'is-animating': activeVariants.has('tl-cw') }]">
+              tl-cw
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tl-ccw', { 'is-animating': activeVariants.has('tl-ccw') }]">
+              tl-ccw
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const emit = defineEmits<{
+  back: []
+}>()
+
+type RotateIn2Variant = 'cw' | 'ccw' | 'fwd-cw' | 'fwd-ccw' | 'bck-cw' | 'bck-ccw' | 'tr-cw' | 'tr-ccw' | 'br-cw' | 'br-ccw' | 'bl-cw' | 'bl-ccw' | 'tl-cw' | 'tl-ccw'
+
+const allVariants: RotateIn2Variant[] = [
+  'cw',
+  'ccw',
+  'fwd-cw',
+  'fwd-ccw',
+  'bck-cw',
+  'bck-ccw',
+  'tr-cw',
+  'tr-ccw',
+  'br-cw',
+  'br-ccw',
+  'bl-cw',
+  'bl-ccw',
+  'tl-cw',
+  'tl-ccw',
+]
+
+const activeVariants = ref<Set<RotateIn2Variant>>(new Set())
+
+const replayAll = async () => {
+  activeVariants.value.clear()
+  await nextTick()
+
+  for (const [index, variant] of allVariants.entries()) {
+    setTimeout(() => {
+      activeVariants.value = new Set(activeVariants.value).add(variant)
+    }, index * 100)
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    void replayAll()
+  }, 500)
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/animations' as anim;
+
+// ============================================
+// Animation Variants
+// ============================================
+
+// Basic Rotation (2 patterns)
+.variant-cw.is-animating { @include anim.rotate-in-2('cw', 0.6s); }
+.variant-ccw.is-animating { @include anim.rotate-in-2('ccw', 0.6s); }
+
+// Forward/Backward (4 patterns)
+.variant-fwd-cw.is-animating { @include anim.rotate-in-2('fwd-cw', 0.6s); }
+.variant-fwd-ccw.is-animating { @include anim.rotate-in-2('fwd-ccw', 0.6s); }
+.variant-bck-cw.is-animating { @include anim.rotate-in-2('bck-cw', 0.6s); }
+.variant-bck-ccw.is-animating { @include anim.rotate-in-2('bck-ccw', 0.6s); }
+
+// Diagonal Corners (8 patterns)
+.variant-tr-cw.is-animating { @include anim.rotate-in-2('tr-cw', 0.6s); }
+.variant-tr-ccw.is-animating { @include anim.rotate-in-2('tr-ccw', 0.6s); }
+.variant-br-cw.is-animating { @include anim.rotate-in-2('br-cw', 0.6s); }
+.variant-br-ccw.is-animating { @include anim.rotate-in-2('br-ccw', 0.6s); }
+.variant-bl-cw.is-animating { @include anim.rotate-in-2('bl-cw', 0.6s); }
+.variant-bl-ccw.is-animating { @include anim.rotate-in-2('bl-ccw', 0.6s); }
+.variant-tl-cw.is-animating { @include anim.rotate-in-2('tl-cw', 0.6s); }
+.variant-tl-ccw.is-animating { @include anim.rotate-in-2('tl-ccw', 0.6s); }
+
+// ============================================
+// Page Layout Styles
+// ============================================
+
+.ho-animista-rotate-in-2 {
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 20px;
+
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.header-controls { margin-bottom: 24px; }
+
+.back-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #f59e0b;
+    background: white;
+  }
+}
+
+.demo-title {
+  margin-bottom: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.demo-description {
+  margin-bottom: 32px;
+  font-size: 16px;
+  color: rgb(255 255 255 / 90%);
+  text-align: center;
+}
+
+.demo-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.replay-button {
+  cursor: pointer;
+
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+
+  background: rgb(99 102 241);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(79 70 229);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.animation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.animation-section {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.section-title {
+  margin-bottom: 20px;
+
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.animation-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  overflow-wrap: break-word;
+
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+</style>
+````
+
+## File: layers/showcases/app/components/ho/animista/HoAnimistaScaleIn.vue
+````vue
+<template>
+  <div class="ho-animista-scale-in">
+    <div class="header-controls">
+      <button
+        class="back-button"
+        @click="emit('back')"
+      >
+        ← Back
+      </button>
+    </div>
+
+    <h1 class="demo-title">
+      Scale In Animations
+    </h1>
+
+    <p class="demo-description">
+      15種類のスケール入場アニメーションのデモ。SCSS mixinで実装されています。
+    </p>
+
+    <div class="demo-controls">
+      <button
+        class="replay-button"
+        @click="replayAll"
+      >
+        🔄 Replay All
+      </button>
+    </div>
+
+    <div class="animation-grid">
+      <div class="animation-section">
+        <h2 class="section-title">
+          Center (1 pattern)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-center', { 'is-animating': activeVariants.has('center') }]">
+              center
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Basic Directions (4 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-top', { 'is-animating': activeVariants.has('top') }]">
+              top
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-right', { 'is-animating': activeVariants.has('right') }]">
+              right
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bottom', { 'is-animating': activeVariants.has('bottom') }]">
+              bottom
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-left', { 'is-animating': activeVariants.has('left') }]">
+              left
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Diagonal Directions (4 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tr', { 'is-animating': activeVariants.has('tr') }]">
+              tr
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-br', { 'is-animating': activeVariants.has('br') }]">
+              br
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bl', { 'is-animating': activeVariants.has('bl') }]">
+              bl
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tl', { 'is-animating': activeVariants.has('tl') }]">
+              tl
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Horizontal Variations (3 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-hor-center', { 'is-animating': activeVariants.has('hor-center') }]">
+              hor-center
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-hor-left', { 'is-animating': activeVariants.has('hor-left') }]">
+              hor-left
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-hor-right', { 'is-animating': activeVariants.has('hor-right') }]">
+              hor-right
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Vertical Variations (3 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-ver-center', { 'is-animating': activeVariants.has('ver-center') }]">
+              ver-center
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-ver-top', { 'is-animating': activeVariants.has('ver-top') }]">
+              ver-top
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-ver-bottom', { 'is-animating': activeVariants.has('ver-bottom') }]">
+              ver-bottom
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const emit = defineEmits<{
+  back: []
+}>()
+
+type ScaleInVariant = 'center' | 'top' | 'tr' | 'right' | 'br' | 'bottom' | 'bl' | 'left' | 'tl' | 'hor-center' | 'hor-left' | 'hor-right' | 'ver-center' | 'ver-top' | 'ver-bottom'
+
+const allVariants: ScaleInVariant[] = [
+  'center',
+  'top',
+  'right',
+  'bottom',
+  'left',
+  'tr',
+  'br',
+  'bl',
+  'tl',
+  'hor-center',
+  'hor-left',
+  'hor-right',
+  'ver-center',
+  'ver-top',
+  'ver-bottom',
+]
+
+const activeVariants = ref<Set<ScaleInVariant>>(new Set())
+
+const replayAll = async () => {
+  activeVariants.value.clear()
+  await nextTick()
+
+  for (const [index, variant] of allVariants.entries()) {
+    setTimeout(() => {
+      activeVariants.value = new Set(activeVariants.value).add(variant)
+    }, index * 100)
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    void replayAll()
+  }, 500)
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/animations' as anim;
+
+// ============================================
+// Animation Variants
+// ============================================
+
+// Center (1 pattern)
+.variant-center.is-animating { @include anim.scale-in('center', 0.5s); }
+
+// Basic Directions (4 patterns)
+.variant-top.is-animating { @include anim.scale-in('top', 0.5s); }
+.variant-right.is-animating { @include anim.scale-in('right', 0.5s); }
+.variant-bottom.is-animating { @include anim.scale-in('bottom', 0.5s); }
+.variant-left.is-animating { @include anim.scale-in('left', 0.5s); }
+
+// Diagonal Directions (4 patterns)
+.variant-tr.is-animating { @include anim.scale-in('tr', 0.5s); }
+.variant-br.is-animating { @include anim.scale-in('br', 0.5s); }
+.variant-bl.is-animating { @include anim.scale-in('bl', 0.5s); }
+.variant-tl.is-animating { @include anim.scale-in('tl', 0.5s); }
+
+// Horizontal Variations (3 patterns)
+.variant-hor-center.is-animating { @include anim.scale-in('hor-center', 0.5s); }
+.variant-hor-left.is-animating { @include anim.scale-in('hor-left', 0.5s); }
+.variant-hor-right.is-animating { @include anim.scale-in('hor-right', 0.5s); }
+
+// Vertical Variations (3 patterns)
+.variant-ver-center.is-animating { @include anim.scale-in('ver-center', 0.5s); }
+.variant-ver-top.is-animating { @include anim.scale-in('ver-top', 0.5s); }
+.variant-ver-bottom.is-animating { @include anim.scale-in('ver-bottom', 0.5s); }
+
+// ============================================
+// Page Layout Styles
+// ============================================
+
+.ho-animista-scale-in {
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 20px;
+
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+}
+
+.header-controls { margin-bottom: 24px; }
+
+.back-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #34d399;
     background: white;
   }
 }
@@ -973,10 +2824,10 @@ onMounted(() => {
 </style>
 ````
 
-## File: layers/showcases/app/components/ho/animista/HoAnimistaShadowDrop2.vue
+## File: layers/showcases/app/components/ho/animista/HoAnimistaShadowInset.vue
 ````vue
 <template>
-  <div class="ho-animista-shadow-drop-2">
+  <div class="ho-animista-shadow-inset">
     <div class="header-controls">
       <button
         class="back-button"
@@ -987,11 +2838,11 @@ onMounted(() => {
     </div>
 
     <h1 class="demo-title">
-      Shadow Drop 2 Animations
+      Shadow Inset Animations
     </h1>
 
     <p class="demo-description">
-      11種類のシャドウ＋Z軸移動アニメーションのデモ。SCSS mixinで実装されています。
+      11種類の内側シャドウアニメーションのデモ。SCSS mixinで実装されています。
     </p>
 
     <div class="demo-controls">
@@ -1091,9 +2942,9 @@ const emit = defineEmits<{
   back: []
 }>()
 
-type ShadowDrop2Variant = 'center' | 'top' | 'right' | 'bottom' | 'left' | 'lr' | 'tb' | 'tr' | 'br' | 'bl' | 'tl'
+type ShadowInsetVariant = 'center' | 'top' | 'right' | 'bottom' | 'left' | 'lr' | 'tb' | 'tr' | 'br' | 'bl' | 'tl'
 
-const allVariants: ShadowDrop2Variant[] = [
+const allVariants: ShadowInsetVariant[] = [
   'center',
   'top',
   'right',
@@ -1107,7 +2958,7 @@ const allVariants: ShadowDrop2Variant[] = [
   'tl',
 ]
 
-const activeVariants = ref<Set<ShadowDrop2Variant>>(new Set())
+const activeVariants = ref<Set<ShadowInsetVariant>>(new Set())
 
 const replayAll = async () => {
   activeVariants.value.clear()
@@ -1135,27 +2986,27 @@ onMounted(() => {
 // ============================================
 
 // Basic Directions (5 patterns)
-.variant-center.is-animating { @include anim.shadow-drop-2('center', 0.4s); }
-.variant-top.is-animating { @include anim.shadow-drop-2('top', 0.4s); }
-.variant-right.is-animating { @include anim.shadow-drop-2('right', 0.4s); }
-.variant-bottom.is-animating { @include anim.shadow-drop-2('bottom', 0.4s); }
-.variant-left.is-animating { @include anim.shadow-drop-2('left', 0.4s); }
+.variant-center.is-animating { @include anim.shadow-inset('center', 0.4s); }
+.variant-top.is-animating { @include anim.shadow-inset('top', 0.4s); }
+.variant-right.is-animating { @include anim.shadow-inset('right', 0.4s); }
+.variant-bottom.is-animating { @include anim.shadow-inset('bottom', 0.4s); }
+.variant-left.is-animating { @include anim.shadow-inset('left', 0.4s); }
 
 // Combined Directions (2 patterns)
-.variant-lr.is-animating { @include anim.shadow-drop-2('lr', 0.4s); }
-.variant-tb.is-animating { @include anim.shadow-drop-2('tb', 0.4s); }
+.variant-lr.is-animating { @include anim.shadow-inset('lr', 0.4s); }
+.variant-tb.is-animating { @include anim.shadow-inset('tb', 0.4s); }
 
 // Diagonal Directions (4 patterns)
-.variant-tr.is-animating { @include anim.shadow-drop-2('tr', 0.4s); }
-.variant-br.is-animating { @include anim.shadow-drop-2('br', 0.4s); }
-.variant-bl.is-animating { @include anim.shadow-drop-2('bl', 0.4s); }
-.variant-tl.is-animating { @include anim.shadow-drop-2('tl', 0.4s); }
+.variant-tr.is-animating { @include anim.shadow-inset('tr', 0.4s); }
+.variant-br.is-animating { @include anim.shadow-inset('br', 0.4s); }
+.variant-bl.is-animating { @include anim.shadow-inset('bl', 0.4s); }
+.variant-tl.is-animating { @include anim.shadow-inset('tl', 0.4s); }
 
 // ============================================
 // Page Layout Styles
 // ============================================
 
-.ho-animista-shadow-drop-2 {
+.ho-animista-shadow-inset {
   max-width: 1200px;
   min-height: 100vh;
   margin: 0 auto;
@@ -1286,15 +3137,15 @@ onMounted(() => {
   text-align: center;
   overflow-wrap: break-word;
 
-  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
 }
 </style>
 ````
 
-## File: layers/showcases/app/components/ho/animista/HoAnimistaSlideBck.vue
+## File: layers/showcases/app/components/ho/animista/HoAnimistaShadowPop.vue
 ````vue
 <template>
-  <div class="ho-animista-slide-bck">
+  <div class="ho-animista-shadow-pop">
     <div class="header-controls">
       <button
         class="back-button"
@@ -1305,11 +3156,11 @@ onMounted(() => {
     </div>
 
     <h1 class="demo-title">
-      Slide Backward Animations
+      Shadow Pop Animations
     </h1>
 
     <p class="demo-description">
-      9種類のスライド後方アニメーションのデモ。SCSS mixinで実装されています。
+      4種類のレイヤードシャドウアニメーションのデモ。SCSS mixinで実装されています。
     </p>
 
     <div class="demo-controls">
@@ -1324,27 +3175,12 @@ onMounted(() => {
     <div class="animation-grid">
       <div class="animation-section">
         <h2 class="section-title">
-          All Directions (9 patterns)
+          Diagonal Directions (4 patterns)
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-center', { 'is-animating': activeVariants.has('center') }]">
-              center
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-top', { 'is-animating': activeVariants.has('top') }]">
-              top
-            </div>
-          </div>
-          <div class="animation-item">
             <div :class="['demo-box', 'variant-tr', { 'is-animating': activeVariants.has('tr') }]">
               tr
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-right', { 'is-animating': activeVariants.has('right') }]">
-              right
             </div>
           </div>
           <div class="animation-item">
@@ -1353,18 +3189,8 @@ onMounted(() => {
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-bottom', { 'is-animating': activeVariants.has('bottom') }]">
-              bottom
-            </div>
-          </div>
-          <div class="animation-item">
             <div :class="['demo-box', 'variant-bl', { 'is-animating': activeVariants.has('bl') }]">
               bl
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-left', { 'is-animating': activeVariants.has('left') }]">
-              left
             </div>
           </div>
           <div class="animation-item">
@@ -1383,21 +3209,16 @@ const emit = defineEmits<{
   back: []
 }>()
 
-type SlideBckVariant = 'center' | 'top' | 'tr' | 'right' | 'br' | 'bottom' | 'bl' | 'left' | 'tl'
+type ShadowPopVariant = 'tr' | 'br' | 'bl' | 'tl'
 
-const allVariants: SlideBckVariant[] = [
-  'center',
-  'top',
+const allVariants: ShadowPopVariant[] = [
   'tr',
-  'right',
   'br',
-  'bottom',
   'bl',
-  'left',
   'tl',
 ]
 
-const activeVariants = ref<Set<SlideBckVariant>>(new Set())
+const activeVariants = ref<Set<ShadowPopVariant>>(new Set())
 
 const replayAll = async () => {
   activeVariants.value.clear()
@@ -1406,7 +3227,7 @@ const replayAll = async () => {
   for (const [index, variant] of allVariants.entries()) {
     setTimeout(() => {
       activeVariants.value = new Set(activeVariants.value).add(variant)
-    }, index * 100)
+    }, index * 150)
   }
 }
 
@@ -1424,637 +3245,16 @@ onMounted(() => {
 // Animation Variants
 // ============================================
 
-.variant-center.is-animating { @include anim.slide-bck('center', 0.5s); }
-.variant-top.is-animating { @include anim.slide-bck('top', 0.5s); }
-.variant-tr.is-animating { @include anim.slide-bck('tr', 0.5s); }
-.variant-right.is-animating { @include anim.slide-bck('right', 0.5s); }
-.variant-br.is-animating { @include anim.slide-bck('br', 0.5s); }
-.variant-bottom.is-animating { @include anim.slide-bck('bottom', 0.5s); }
-.variant-bl.is-animating { @include anim.slide-bck('bl', 0.5s); }
-.variant-left.is-animating { @include anim.slide-bck('left', 0.5s); }
-.variant-tl.is-animating { @include anim.slide-bck('tl', 0.5s); }
+.variant-tr.is-animating { @include anim.shadow-pop('tr', 0.3s); }
+.variant-br.is-animating { @include anim.shadow-pop('br', 0.3s); }
+.variant-bl.is-animating { @include anim.shadow-pop('bl', 0.3s); }
+.variant-tl.is-animating { @include anim.shadow-pop('tl', 0.3s); }
 
 // ============================================
 // Page Layout Styles
 // ============================================
 
-.ho-animista-slide-bck {
-  max-width: 1200px;
-  min-height: 100vh;
-  margin: 0 auto;
-  padding: 40px 20px;
-
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.header-controls { margin-bottom: 24px; }
-
-.back-button {
-  cursor: pointer;
-
-  padding: 8px 20px;
-  border: 2px solid white;
-  border-radius: 8px;
-
-  font-size: 16px;
-  font-weight: bold;
-  color: white;
-
-  background: transparent;
-
-  transition: all 0.3s ease;
-
-  &:hover {
-    color: #667eea;
-    background: white;
-  }
-}
-
-.demo-title {
-  margin-bottom: 12px;
-
-  font-size: 32px;
-  font-weight: bold;
-  color: white;
-  text-align: center;
-  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
-}
-
-.demo-description {
-  margin-bottom: 32px;
-  font-size: 16px;
-  color: rgb(255 255 255 / 90%);
-  text-align: center;
-}
-
-.demo-controls {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 40px;
-}
-
-.replay-button {
-  cursor: pointer;
-
-  padding: 12px 32px;
-  border: none;
-  border-radius: 8px;
-
-  font-size: 18px;
-  font-weight: bold;
-  color: white;
-
-  background: rgb(99 102 241);
-  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
-
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    background: rgb(79 70 229);
-    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
-  }
-
-  &:active { transform: translateY(0); }
-}
-
-.animation-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-}
-
-.animation-section {
-  padding: 24px;
-  border-radius: 16px;
-  background: white;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
-}
-
-.section-title {
-  margin-bottom: 20px;
-
-  font-size: 20px;
-  font-weight: bold;
-  color: #374151;
-  text-align: center;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 20px;
-}
-
-.animation-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 120px;
-}
-
-.demo-box {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 140px;
-  height: 100px;
-  padding: 16px;
-  border-radius: 12px;
-
-  font-size: 14px;
-  font-weight: bold;
-  color: #1f2937;
-  text-align: center;
-  overflow-wrap: break-word;
-
-  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
-  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
-}
-</style>
-````
-
-## File: layers/showcases/app/components/ho/animista/HoAnimistaSlideFwd.vue
-````vue
-<template>
-  <div class="ho-animista-slide-fwd">
-    <div class="header-controls">
-      <button
-        class="back-button"
-        @click="emit('back')"
-      >
-        ← Back
-      </button>
-    </div>
-
-    <h1 class="demo-title">
-      Slide Forward Animations
-    </h1>
-
-    <p class="demo-description">
-      9種類のスライド前方アニメーションのデモ。SCSS mixinで実装されています。
-    </p>
-
-    <div class="demo-controls">
-      <button
-        class="replay-button"
-        @click="replayAll"
-      >
-        🔄 Replay All
-      </button>
-    </div>
-
-    <div class="animation-grid">
-      <div class="animation-section">
-        <h2 class="section-title">
-          All Directions (9 patterns)
-        </h2>
-        <div class="grid">
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-center', { 'is-animating': activeVariants.has('center') }]">
-              center
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-top', { 'is-animating': activeVariants.has('top') }]">
-              top
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-tr', { 'is-animating': activeVariants.has('tr') }]">
-              tr
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-right', { 'is-animating': activeVariants.has('right') }]">
-              right
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-br', { 'is-animating': activeVariants.has('br') }]">
-              br
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-bottom', { 'is-animating': activeVariants.has('bottom') }]">
-              bottom
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-bl', { 'is-animating': activeVariants.has('bl') }]">
-              bl
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-left', { 'is-animating': activeVariants.has('left') }]">
-              left
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-tl', { 'is-animating': activeVariants.has('tl') }]">
-              tl
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<script setup lang="ts">
-const emit = defineEmits<{
-  back: []
-}>()
-
-type SlideFwdVariant = 'center' | 'top' | 'tr' | 'right' | 'br' | 'bottom' | 'bl' | 'left' | 'tl'
-
-const allVariants: SlideFwdVariant[] = [
-  'center',
-  'top',
-  'tr',
-  'right',
-  'br',
-  'bottom',
-  'bl',
-  'left',
-  'tl',
-]
-
-const activeVariants = ref<Set<SlideFwdVariant>>(new Set())
-
-const replayAll = async () => {
-  activeVariants.value.clear()
-  await nextTick()
-
-  for (const [index, variant] of allVariants.entries()) {
-    setTimeout(() => {
-      activeVariants.value = new Set(activeVariants.value).add(variant)
-    }, index * 100)
-  }
-}
-
-onMounted(() => {
-  setTimeout(() => {
-    void replayAll()
-  }, 500)
-})
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/animations' as anim;
-
-// ============================================
-// Animation Variants
-// ============================================
-
-.variant-center.is-animating { @include anim.slide-fwd('center', 0.5s); }
-.variant-top.is-animating { @include anim.slide-fwd('top', 0.5s); }
-.variant-tr.is-animating { @include anim.slide-fwd('tr', 0.5s); }
-.variant-right.is-animating { @include anim.slide-fwd('right', 0.5s); }
-.variant-br.is-animating { @include anim.slide-fwd('br', 0.5s); }
-.variant-bottom.is-animating { @include anim.slide-fwd('bottom', 0.5s); }
-.variant-bl.is-animating { @include anim.slide-fwd('bl', 0.5s); }
-.variant-left.is-animating { @include anim.slide-fwd('left', 0.5s); }
-.variant-tl.is-animating { @include anim.slide-fwd('tl', 0.5s); }
-
-// ============================================
-// Page Layout Styles
-// ============================================
-
-.ho-animista-slide-fwd {
-  max-width: 1200px;
-  min-height: 100vh;
-  margin: 0 auto;
-  padding: 40px 20px;
-
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.header-controls { margin-bottom: 24px; }
-
-.back-button {
-  cursor: pointer;
-
-  padding: 8px 20px;
-  border: 2px solid white;
-  border-radius: 8px;
-
-  font-size: 16px;
-  font-weight: bold;
-  color: white;
-
-  background: transparent;
-
-  transition: all 0.3s ease;
-
-  &:hover {
-    color: #667eea;
-    background: white;
-  }
-}
-
-.demo-title {
-  margin-bottom: 12px;
-
-  font-size: 32px;
-  font-weight: bold;
-  color: white;
-  text-align: center;
-  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
-}
-
-.demo-description {
-  margin-bottom: 32px;
-  font-size: 16px;
-  color: rgb(255 255 255 / 90%);
-  text-align: center;
-}
-
-.demo-controls {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 40px;
-}
-
-.replay-button {
-  cursor: pointer;
-
-  padding: 12px 32px;
-  border: none;
-  border-radius: 8px;
-
-  font-size: 18px;
-  font-weight: bold;
-  color: white;
-
-  background: rgb(99 102 241);
-  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
-
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    background: rgb(79 70 229);
-    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
-  }
-
-  &:active { transform: translateY(0); }
-}
-
-.animation-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-}
-
-.animation-section {
-  padding: 24px;
-  border-radius: 16px;
-  background: white;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
-}
-
-.section-title {
-  margin-bottom: 20px;
-
-  font-size: 20px;
-  font-weight: bold;
-  color: #374151;
-  text-align: center;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 20px;
-}
-
-.animation-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 120px;
-}
-
-.demo-box {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 140px;
-  height: 100px;
-  padding: 16px;
-  border-radius: 12px;
-
-  font-size: 14px;
-  font-weight: bold;
-  color: #1f2937;
-  text-align: center;
-  overflow-wrap: break-word;
-
-  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
-  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
-}
-</style>
-````
-
-## File: layers/showcases/app/components/ho/animista/HoAnimistaSlideRotate.vue
-````vue
-<template>
-  <div class="ho-animista-slide-rotate">
-    <div class="header-controls">
-      <button
-        class="back-button"
-        @click="emit('back')"
-      >
-        ← Back
-      </button>
-    </div>
-
-    <h1 class="demo-title">
-      Slide Rotate Animations
-    </h1>
-
-    <p class="demo-description">
-      12種類のスライド＋回転アニメーションのデモ。SCSS mixinで実装されています。
-    </p>
-
-    <div class="demo-controls">
-      <button
-        class="replay-button"
-        @click="replayAll"
-      >
-        🔄 Replay All
-      </button>
-    </div>
-
-    <div class="animation-grid">
-      <div class="animation-section">
-        <h2 class="section-title">
-          Horizontal Top (3 patterns)
-        </h2>
-        <div class="grid">
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-hor-top', { 'is-animating': activeVariants.has('hor-top') }]">
-              hor-top
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-hor-t-bck', { 'is-animating': activeVariants.has('hor-t-bck') }]">
-              hor-t-bck
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-hor-t-fwd', { 'is-animating': activeVariants.has('hor-t-fwd') }]">
-              hor-t-fwd
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="animation-section">
-        <h2 class="section-title">
-          Vertical Right (3 patterns)
-        </h2>
-        <div class="grid">
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-ver-right', { 'is-animating': activeVariants.has('ver-right') }]">
-              ver-right
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-ver-r-bck', { 'is-animating': activeVariants.has('ver-r-bck') }]">
-              ver-r-bck
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-ver-r-fwd', { 'is-animating': activeVariants.has('ver-r-fwd') }]">
-              ver-r-fwd
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="animation-section">
-        <h2 class="section-title">
-          Horizontal Bottom (3 patterns)
-        </h2>
-        <div class="grid">
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-hor-bottom', { 'is-animating': activeVariants.has('hor-bottom') }]">
-              hor-bottom
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-hor-b-bck', { 'is-animating': activeVariants.has('hor-b-bck') }]">
-              hor-b-bck
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-hor-b-fwd', { 'is-animating': activeVariants.has('hor-b-fwd') }]">
-              hor-b-fwd
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="animation-section">
-        <h2 class="section-title">
-          Vertical Left (3 patterns)
-        </h2>
-        <div class="grid">
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-ver-left', { 'is-animating': activeVariants.has('ver-left') }]">
-              ver-left
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-ver-l-bck', { 'is-animating': activeVariants.has('ver-l-bck') }]">
-              ver-l-bck
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-ver-l-fwd', { 'is-animating': activeVariants.has('ver-l-fwd') }]">
-              ver-l-fwd
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<script setup lang="ts">
-const emit = defineEmits<{
-  back: []
-}>()
-
-type SlideRotateVariant
-  = 'hor-top' | 'hor-t-bck' | 'hor-t-fwd'
-    | 'ver-right' | 'ver-r-bck' | 'ver-r-fwd'
-    | 'hor-bottom' | 'hor-b-bck' | 'hor-b-fwd'
-    | 'ver-left' | 'ver-l-bck' | 'ver-l-fwd'
-
-const allVariants: SlideRotateVariant[] = [
-  'hor-top', 'hor-t-bck', 'hor-t-fwd',
-  'ver-right', 'ver-r-bck', 'ver-r-fwd',
-  'hor-bottom', 'hor-b-bck', 'hor-b-fwd',
-  'ver-left', 'ver-l-bck', 'ver-l-fwd',
-]
-
-const activeVariants = ref<Set<SlideRotateVariant>>(new Set())
-
-const replayAll = async () => {
-  activeVariants.value.clear()
-  await nextTick()
-
-  for (const [index, variant] of allVariants.entries()) {
-    setTimeout(() => {
-      activeVariants.value = new Set(activeVariants.value).add(variant)
-    }, index * 120)
-  }
-}
-
-onMounted(() => {
-  setTimeout(() => {
-    void replayAll()
-  }, 500)
-})
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/animations' as anim;
-
-// ============================================
-// Animation Variants
-// ============================================
-
-// Horizontal Top (3 patterns)
-.variant-hor-top.is-animating { @include anim.slide-rotate('hor-top', 0.5s); }
-.variant-hor-t-bck.is-animating { @include anim.slide-rotate('hor-t-bck', 0.5s); }
-.variant-hor-t-fwd.is-animating { @include anim.slide-rotate('hor-t-fwd', 0.5s); }
-
-// Vertical Right (3 patterns)
-.variant-ver-right.is-animating { @include anim.slide-rotate('ver-right', 0.5s); }
-.variant-ver-r-bck.is-animating { @include anim.slide-rotate('ver-r-bck', 0.5s); }
-.variant-ver-r-fwd.is-animating { @include anim.slide-rotate('ver-r-fwd', 0.5s); }
-
-// Horizontal Bottom (3 patterns)
-.variant-hor-bottom.is-animating { @include anim.slide-rotate('hor-bottom', 0.5s); }
-.variant-hor-b-bck.is-animating { @include anim.slide-rotate('hor-b-bck', 0.5s); }
-.variant-hor-b-fwd.is-animating { @include anim.slide-rotate('hor-b-fwd', 0.5s); }
-
-// Vertical Left (3 patterns)
-.variant-ver-left.is-animating { @include anim.slide-rotate('ver-left', 0.5s); }
-.variant-ver-l-bck.is-animating { @include anim.slide-rotate('ver-l-bck', 0.5s); }
-.variant-ver-l-fwd.is-animating { @include anim.slide-rotate('ver-l-fwd', 0.5s); }
-
-// ============================================
-// Page Layout Styles
-// ============================================
-
-.ho-animista-slide-rotate {
+.ho-animista-shadow-pop {
   max-width: 1200px;
   min-height: 100vh;
   margin: 0 auto;
@@ -2186,7 +3386,621 @@ onMounted(() => {
   overflow-wrap: break-word;
 
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+</style>
+````
+
+## File: layers/showcases/app/components/ho/animista/HoAnimistaSlitIn.vue
+````vue
+<template>
+  <div class="ho-animista-slit-in">
+    <div class="header-controls">
+      <button
+        class="back-button"
+        @click="emit('back')"
+      >
+        ← Back
+      </button>
+    </div>
+
+    <h1 class="demo-title">
+      Slit In Animations
+    </h1>
+
+    <p class="demo-description">
+      4種類のスリット入場アニメーションのデモ。SCSS mixinで実装されています。
+    </p>
+
+    <div class="demo-controls">
+      <button
+        class="replay-button"
+        @click="replayAll"
+      >
+        🔄 Replay All
+      </button>
+    </div>
+
+    <div class="animation-grid">
+      <div class="animation-section">
+        <h2 class="section-title">
+          All Directions (4 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-vertical', { 'is-animating': activeVariants.has('vertical') }]">
+              vertical
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-horizontal', { 'is-animating': activeVariants.has('horizontal') }]">
+              horizontal
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-diagonal-1', { 'is-animating': activeVariants.has('diagonal-1') }]">
+              diagonal-1
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-diagonal-2', { 'is-animating': activeVariants.has('diagonal-2') }]">
+              diagonal-2
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const emit = defineEmits<{
+  back: []
+}>()
+
+type SlitInVariant = 'vertical' | 'horizontal' | 'diagonal-1' | 'diagonal-2'
+
+const allVariants: SlitInVariant[] = [
+  'vertical',
+  'horizontal',
+  'diagonal-1',
+  'diagonal-2',
+]
+
+const activeVariants = ref<Set<SlitInVariant>>(new Set())
+
+const replayAll = async () => {
+  activeVariants.value.clear()
+  await nextTick()
+
+  for (const [index, variant] of allVariants.entries()) {
+    setTimeout(() => {
+      activeVariants.value = new Set(activeVariants.value).add(variant)
+    }, index * 200)
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    void replayAll()
+  }, 500)
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/animations' as anim;
+
+// ============================================
+// Animation Variants
+// ============================================
+
+.variant-vertical.is-animating { @include anim.slit-in('vertical', 0.45s); }
+.variant-horizontal.is-animating { @include anim.slit-in('horizontal', 0.45s); }
+.variant-diagonal-1.is-animating { @include anim.slit-in('diagonal-1', 0.45s); }
+.variant-diagonal-2.is-animating { @include anim.slit-in('diagonal-2', 0.45s); }
+
+// ============================================
+// Page Layout Styles
+// ============================================
+
+.ho-animista-slit-in {
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 20px;
+
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+}
+
+.header-controls { margin-bottom: 24px; }
+
+.back-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #14b8a6;
+    background: white;
+  }
+}
+
+.demo-title {
+  margin-bottom: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.demo-description {
+  margin-bottom: 32px;
+  font-size: 16px;
+  color: rgb(255 255 255 / 90%);
+  text-align: center;
+}
+
+.demo-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.replay-button {
+  cursor: pointer;
+
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+
+  background: rgb(99 102 241);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(79 70 229);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.animation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.animation-section {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.section-title {
+  margin-bottom: 20px;
+
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.animation-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  overflow-wrap: break-word;
+
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+}
+</style>
+````
+
+## File: layers/showcases/app/components/ho/animista/HoAnimistaSwirlIn.vue
+````vue
+<template>
+  <div class="ho-animista-swirl-in">
+    <div class="header-controls">
+      <button
+        class="back-button"
+        @click="emit('back')"
+      >
+        ← Back
+      </button>
+    </div>
+
+    <h1 class="demo-title">
+      Swirl In Animations
+    </h1>
+
+    <p class="demo-description">
+      18種類のスワール入場アニメーションのデモ。SCSS mixinで実装されています。
+    </p>
+
+    <div class="demo-controls">
+      <button
+        class="replay-button"
+        @click="replayAll"
+      >
+        🔄 Replay All
+      </button>
+    </div>
+
+    <div class="animation-grid">
+      <div class="animation-section">
+        <h2 class="section-title">
+          Basic Forward/Backward (2 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-fwd', { 'is-animating': activeVariants.has('fwd') }]">
+              fwd
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bck', { 'is-animating': activeVariants.has('bck') }]">
+              bck
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Directional (8 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-top-fwd', { 'is-animating': activeVariants.has('top-fwd') }]">
+              top-fwd
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-top-bck', { 'is-animating': activeVariants.has('top-bck') }]">
+              top-bck
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-right-fwd', { 'is-animating': activeVariants.has('right-fwd') }]">
+              right-fwd
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-right-bck', { 'is-animating': activeVariants.has('right-bck') }]">
+              right-bck
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bottom-fwd', { 'is-animating': activeVariants.has('bottom-fwd') }]">
+              bottom-fwd
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bottom-bck', { 'is-animating': activeVariants.has('bottom-bck') }]">
+              bottom-bck
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-left-fwd', { 'is-animating': activeVariants.has('left-fwd') }]">
+              left-fwd
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-left-bck', { 'is-animating': activeVariants.has('left-bck') }]">
+              left-bck
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Diagonal (8 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tr-fwd', { 'is-animating': activeVariants.has('tr-fwd') }]">
+              tr-fwd
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tr-bck', { 'is-animating': activeVariants.has('tr-bck') }]">
+              tr-bck
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-br-fwd', { 'is-animating': activeVariants.has('br-fwd') }]">
+              br-fwd
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-br-bck', { 'is-animating': activeVariants.has('br-bck') }]">
+              br-bck
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bl-fwd', { 'is-animating': activeVariants.has('bl-fwd') }]">
+              bl-fwd
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bl-bck', { 'is-animating': activeVariants.has('bl-bck') }]">
+              bl-bck
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tl-fwd', { 'is-animating': activeVariants.has('tl-fwd') }]">
+              tl-fwd
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tl-bck', { 'is-animating': activeVariants.has('tl-bck') }]">
+              tl-bck
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const emit = defineEmits<{
+  back: []
+}>()
+
+type SwirlInVariant = 'fwd' | 'bck' | 'top-fwd' | 'top-bck' | 'right-fwd' | 'right-bck' | 'bottom-fwd' | 'bottom-bck' | 'left-fwd' | 'left-bck' | 'tr-fwd' | 'tr-bck' | 'br-fwd' | 'br-bck' | 'bl-fwd' | 'bl-bck' | 'tl-fwd' | 'tl-bck'
+
+const allVariants: SwirlInVariant[] = [
+  'fwd',
+  'bck',
+  'top-fwd',
+  'top-bck',
+  'right-fwd',
+  'right-bck',
+  'bottom-fwd',
+  'bottom-bck',
+  'left-fwd',
+  'left-bck',
+  'tr-fwd',
+  'tr-bck',
+  'br-fwd',
+  'br-bck',
+  'bl-fwd',
+  'bl-bck',
+  'tl-fwd',
+  'tl-bck',
+]
+
+const activeVariants = ref<Set<SwirlInVariant>>(new Set())
+
+const replayAll = async () => {
+  activeVariants.value.clear()
+  await nextTick()
+
+  for (const [index, variant] of allVariants.entries()) {
+    setTimeout(() => {
+      activeVariants.value = new Set(activeVariants.value).add(variant)
+    }, index * 100)
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    void replayAll()
+  }, 500)
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/animations' as anim;
+
+// ============================================
+// Animation Variants
+// ============================================
+
+// Basic Forward/Backward (2 patterns)
+.variant-fwd.is-animating { @include anim.swirl-in('fwd', 0.6s); }
+.variant-bck.is-animating { @include anim.swirl-in('bck', 0.6s); }
+
+// Directional (8 patterns)
+.variant-top-fwd.is-animating { @include anim.swirl-in('top-fwd', 0.6s); }
+.variant-top-bck.is-animating { @include anim.swirl-in('top-bck', 0.6s); }
+.variant-right-fwd.is-animating { @include anim.swirl-in('right-fwd', 0.6s); }
+.variant-right-bck.is-animating { @include anim.swirl-in('right-bck', 0.6s); }
+.variant-bottom-fwd.is-animating { @include anim.swirl-in('bottom-fwd', 0.6s); }
+.variant-bottom-bck.is-animating { @include anim.swirl-in('bottom-bck', 0.6s); }
+.variant-left-fwd.is-animating { @include anim.swirl-in('left-fwd', 0.6s); }
+.variant-left-bck.is-animating { @include anim.swirl-in('left-bck', 0.6s); }
+
+// Diagonal (8 patterns)
+.variant-tr-fwd.is-animating { @include anim.swirl-in('tr-fwd', 0.6s); }
+.variant-tr-bck.is-animating { @include anim.swirl-in('tr-bck', 0.6s); }
+.variant-br-fwd.is-animating { @include anim.swirl-in('br-fwd', 0.6s); }
+.variant-br-bck.is-animating { @include anim.swirl-in('br-bck', 0.6s); }
+.variant-bl-fwd.is-animating { @include anim.swirl-in('bl-fwd', 0.6s); }
+.variant-bl-bck.is-animating { @include anim.swirl-in('bl-bck', 0.6s); }
+.variant-tl-fwd.is-animating { @include anim.swirl-in('tl-fwd', 0.6s); }
+.variant-tl-bck.is-animating { @include anim.swirl-in('tl-bck', 0.6s); }
+
+// ============================================
+// Page Layout Styles
+// ============================================
+
+.ho-animista-swirl-in {
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 20px;
+
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+}
+
+.header-controls { margin-bottom: 24px; }
+
+.back-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #ec4899;
+    background: white;
+  }
+}
+
+.demo-title {
+  margin-bottom: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.demo-description {
+  margin-bottom: 32px;
+  font-size: 16px;
+  color: rgb(255 255 255 / 90%);
+  text-align: center;
+}
+
+.demo-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.replay-button {
+  cursor: pointer;
+
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+
+  background: rgb(99 102 241);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(79 70 229);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.animation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.animation-section {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.section-title {
+  margin-bottom: 20px;
+
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.animation-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  overflow-wrap: break-word;
+
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
 }
 </style>
 ````
@@ -7769,6 +9583,642 @@ onMounted(() => {
 </style>
 ````
 
+## File: layers/showcases/app/components/ho/animista/HoAnimistaShadowDrop.vue
+````vue
+<template>
+  <div class="ho-animista-shadow-drop">
+    <div class="header-controls">
+      <button
+        class="back-button"
+        @click="emit('back')"
+      >
+        ← Back
+      </button>
+    </div>
+
+    <h1 class="demo-title">
+      Shadow Drop Animations
+    </h1>
+
+    <p class="demo-description">
+      11種類のシャドウ出現アニメーションのデモ。SCSS mixinで実装されています。
+    </p>
+
+    <div class="demo-controls">
+      <button
+        class="replay-button"
+        @click="replayAll"
+      >
+        🔄 Replay All
+      </button>
+    </div>
+
+    <div class="animation-grid">
+      <div class="animation-section">
+        <h2 class="section-title">
+          Basic Directions (5 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-center', { 'is-animating': activeVariants.has('center') }]">
+              center
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-top', { 'is-animating': activeVariants.has('top') }]">
+              top
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-right', { 'is-animating': activeVariants.has('right') }]">
+              right
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bottom', { 'is-animating': activeVariants.has('bottom') }]">
+              bottom
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-left', { 'is-animating': activeVariants.has('left') }]">
+              left
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Combined Directions (2 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-lr', { 'is-animating': activeVariants.has('lr') }]">
+              lr
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tb', { 'is-animating': activeVariants.has('tb') }]">
+              tb
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Diagonal Directions (4 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tr', { 'is-animating': activeVariants.has('tr') }]">
+              tr
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-br', { 'is-animating': activeVariants.has('br') }]">
+              br
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bl', { 'is-animating': activeVariants.has('bl') }]">
+              bl
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tl', { 'is-animating': activeVariants.has('tl') }]">
+              tl
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const emit = defineEmits<{
+  back: []
+}>()
+
+type ShadowDropVariant = 'center' | 'top' | 'right' | 'bottom' | 'left' | 'lr' | 'tb' | 'tr' | 'br' | 'bl' | 'tl'
+
+const allVariants: ShadowDropVariant[] = [
+  'center',
+  'top',
+  'right',
+  'bottom',
+  'left',
+  'lr',
+  'tb',
+  'tr',
+  'br',
+  'bl',
+  'tl',
+]
+
+const activeVariants = ref<Set<ShadowDropVariant>>(new Set())
+
+const replayAll = async () => {
+  activeVariants.value.clear()
+  await nextTick()
+
+  for (const [index, variant] of allVariants.entries()) {
+    setTimeout(() => {
+      activeVariants.value = new Set(activeVariants.value).add(variant)
+    }, index * 100)
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    void replayAll()
+  }, 500)
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/animations' as anim;
+
+// ============================================
+// Animation Variants
+// ============================================
+
+// Basic Directions (5 patterns)
+.variant-center.is-animating { @include anim.shadow-drop('center', 0.4s); }
+.variant-top.is-animating { @include anim.shadow-drop('top', 0.4s); }
+.variant-right.is-animating { @include anim.shadow-drop('right', 0.4s); }
+.variant-bottom.is-animating { @include anim.shadow-drop('bottom', 0.4s); }
+.variant-left.is-animating { @include anim.shadow-drop('left', 0.4s); }
+
+// Combined Directions (2 patterns)
+.variant-lr.is-animating { @include anim.shadow-drop('lr', 0.4s); }
+.variant-tb.is-animating { @include anim.shadow-drop('tb', 0.4s); }
+
+// Diagonal Directions (4 patterns)
+.variant-tr.is-animating { @include anim.shadow-drop('tr', 0.4s); }
+.variant-br.is-animating { @include anim.shadow-drop('br', 0.4s); }
+.variant-bl.is-animating { @include anim.shadow-drop('bl', 0.4s); }
+.variant-tl.is-animating { @include anim.shadow-drop('tl', 0.4s); }
+
+// ============================================
+// Page Layout Styles
+// ============================================
+
+.ho-animista-shadow-drop {
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 20px;
+
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.header-controls { margin-bottom: 24px; }
+
+.back-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #667eea;
+    background: white;
+  }
+}
+
+.demo-title {
+  margin-bottom: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.demo-description {
+  margin-bottom: 32px;
+  font-size: 16px;
+  color: rgb(255 255 255 / 90%);
+  text-align: center;
+}
+
+.demo-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.replay-button {
+  cursor: pointer;
+
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+
+  background: rgb(99 102 241);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(79 70 229);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.animation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.animation-section {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.section-title {
+  margin-bottom: 20px;
+
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.animation-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  overflow-wrap: break-word;
+
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+}
+</style>
+````
+
+## File: layers/showcases/app/components/ho/animista/HoAnimistaShadowDrop2.vue
+````vue
+<template>
+  <div class="ho-animista-shadow-drop-2">
+    <div class="header-controls">
+      <button
+        class="back-button"
+        @click="emit('back')"
+      >
+        ← Back
+      </button>
+    </div>
+
+    <h1 class="demo-title">
+      Shadow Drop 2 Animations
+    </h1>
+
+    <p class="demo-description">
+      11種類のシャドウ＋Z軸移動アニメーションのデモ。SCSS mixinで実装されています。
+    </p>
+
+    <div class="demo-controls">
+      <button
+        class="replay-button"
+        @click="replayAll"
+      >
+        🔄 Replay All
+      </button>
+    </div>
+
+    <div class="animation-grid">
+      <div class="animation-section">
+        <h2 class="section-title">
+          Basic Directions (5 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-center', { 'is-animating': activeVariants.has('center') }]">
+              center
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-top', { 'is-animating': activeVariants.has('top') }]">
+              top
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-right', { 'is-animating': activeVariants.has('right') }]">
+              right
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bottom', { 'is-animating': activeVariants.has('bottom') }]">
+              bottom
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-left', { 'is-animating': activeVariants.has('left') }]">
+              left
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Combined Directions (2 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-lr', { 'is-animating': activeVariants.has('lr') }]">
+              lr
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tb', { 'is-animating': activeVariants.has('tb') }]">
+              tb
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Diagonal Directions (4 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tr', { 'is-animating': activeVariants.has('tr') }]">
+              tr
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-br', { 'is-animating': activeVariants.has('br') }]">
+              br
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bl', { 'is-animating': activeVariants.has('bl') }]">
+              bl
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tl', { 'is-animating': activeVariants.has('tl') }]">
+              tl
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const emit = defineEmits<{
+  back: []
+}>()
+
+type ShadowDrop2Variant = 'center' | 'top' | 'right' | 'bottom' | 'left' | 'lr' | 'tb' | 'tr' | 'br' | 'bl' | 'tl'
+
+const allVariants: ShadowDrop2Variant[] = [
+  'center',
+  'top',
+  'right',
+  'bottom',
+  'left',
+  'lr',
+  'tb',
+  'tr',
+  'br',
+  'bl',
+  'tl',
+]
+
+const activeVariants = ref<Set<ShadowDrop2Variant>>(new Set())
+
+const replayAll = async () => {
+  activeVariants.value.clear()
+  await nextTick()
+
+  for (const [index, variant] of allVariants.entries()) {
+    setTimeout(() => {
+      activeVariants.value = new Set(activeVariants.value).add(variant)
+    }, index * 100)
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    void replayAll()
+  }, 500)
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/animations' as anim;
+
+// ============================================
+// Animation Variants
+// ============================================
+
+// Basic Directions (5 patterns)
+.variant-center.is-animating { @include anim.shadow-drop-2('center', 0.4s); }
+.variant-top.is-animating { @include anim.shadow-drop-2('top', 0.4s); }
+.variant-right.is-animating { @include anim.shadow-drop-2('right', 0.4s); }
+.variant-bottom.is-animating { @include anim.shadow-drop-2('bottom', 0.4s); }
+.variant-left.is-animating { @include anim.shadow-drop-2('left', 0.4s); }
+
+// Combined Directions (2 patterns)
+.variant-lr.is-animating { @include anim.shadow-drop-2('lr', 0.4s); }
+.variant-tb.is-animating { @include anim.shadow-drop-2('tb', 0.4s); }
+
+// Diagonal Directions (4 patterns)
+.variant-tr.is-animating { @include anim.shadow-drop-2('tr', 0.4s); }
+.variant-br.is-animating { @include anim.shadow-drop-2('br', 0.4s); }
+.variant-bl.is-animating { @include anim.shadow-drop-2('bl', 0.4s); }
+.variant-tl.is-animating { @include anim.shadow-drop-2('tl', 0.4s); }
+
+// ============================================
+// Page Layout Styles
+// ============================================
+
+.ho-animista-shadow-drop-2 {
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 20px;
+
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.header-controls { margin-bottom: 24px; }
+
+.back-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #667eea;
+    background: white;
+  }
+}
+
+.demo-title {
+  margin-bottom: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.demo-description {
+  margin-bottom: 32px;
+  font-size: 16px;
+  color: rgb(255 255 255 / 90%);
+  text-align: center;
+}
+
+.demo-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.replay-button {
+  cursor: pointer;
+
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+
+  background: rgb(99 102 241);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(79 70 229);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.animation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.animation-section {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.section-title {
+  margin-bottom: 20px;
+
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.animation-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  overflow-wrap: break-word;
+
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+}
+</style>
+````
+
 ## File: layers/showcases/app/components/ho/animista/HoAnimistaSlide.vue
 ````vue
 <template>
@@ -8048,6 +10498,906 @@ onMounted(() => {
   overflow-wrap: break-word;
 
   background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+</style>
+````
+
+## File: layers/showcases/app/components/ho/animista/HoAnimistaSlideBck.vue
+````vue
+<template>
+  <div class="ho-animista-slide-bck">
+    <div class="header-controls">
+      <button
+        class="back-button"
+        @click="emit('back')"
+      >
+        ← Back
+      </button>
+    </div>
+
+    <h1 class="demo-title">
+      Slide Backward Animations
+    </h1>
+
+    <p class="demo-description">
+      9種類のスライド後方アニメーションのデモ。SCSS mixinで実装されています。
+    </p>
+
+    <div class="demo-controls">
+      <button
+        class="replay-button"
+        @click="replayAll"
+      >
+        🔄 Replay All
+      </button>
+    </div>
+
+    <div class="animation-grid">
+      <div class="animation-section">
+        <h2 class="section-title">
+          All Directions (9 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-center', { 'is-animating': activeVariants.has('center') }]">
+              center
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-top', { 'is-animating': activeVariants.has('top') }]">
+              top
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tr', { 'is-animating': activeVariants.has('tr') }]">
+              tr
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-right', { 'is-animating': activeVariants.has('right') }]">
+              right
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-br', { 'is-animating': activeVariants.has('br') }]">
+              br
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bottom', { 'is-animating': activeVariants.has('bottom') }]">
+              bottom
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bl', { 'is-animating': activeVariants.has('bl') }]">
+              bl
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-left', { 'is-animating': activeVariants.has('left') }]">
+              left
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tl', { 'is-animating': activeVariants.has('tl') }]">
+              tl
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const emit = defineEmits<{
+  back: []
+}>()
+
+type SlideBckVariant = 'center' | 'top' | 'tr' | 'right' | 'br' | 'bottom' | 'bl' | 'left' | 'tl'
+
+const allVariants: SlideBckVariant[] = [
+  'center',
+  'top',
+  'tr',
+  'right',
+  'br',
+  'bottom',
+  'bl',
+  'left',
+  'tl',
+]
+
+const activeVariants = ref<Set<SlideBckVariant>>(new Set())
+
+const replayAll = async () => {
+  activeVariants.value.clear()
+  await nextTick()
+
+  for (const [index, variant] of allVariants.entries()) {
+    setTimeout(() => {
+      activeVariants.value = new Set(activeVariants.value).add(variant)
+    }, index * 100)
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    void replayAll()
+  }, 500)
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/animations' as anim;
+
+// ============================================
+// Animation Variants
+// ============================================
+
+.variant-center.is-animating { @include anim.slide-bck('center', 0.5s); }
+.variant-top.is-animating { @include anim.slide-bck('top', 0.5s); }
+.variant-tr.is-animating { @include anim.slide-bck('tr', 0.5s); }
+.variant-right.is-animating { @include anim.slide-bck('right', 0.5s); }
+.variant-br.is-animating { @include anim.slide-bck('br', 0.5s); }
+.variant-bottom.is-animating { @include anim.slide-bck('bottom', 0.5s); }
+.variant-bl.is-animating { @include anim.slide-bck('bl', 0.5s); }
+.variant-left.is-animating { @include anim.slide-bck('left', 0.5s); }
+.variant-tl.is-animating { @include anim.slide-bck('tl', 0.5s); }
+
+// ============================================
+// Page Layout Styles
+// ============================================
+
+.ho-animista-slide-bck {
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 20px;
+
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.header-controls { margin-bottom: 24px; }
+
+.back-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #667eea;
+    background: white;
+  }
+}
+
+.demo-title {
+  margin-bottom: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.demo-description {
+  margin-bottom: 32px;
+  font-size: 16px;
+  color: rgb(255 255 255 / 90%);
+  text-align: center;
+}
+
+.demo-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.replay-button {
+  cursor: pointer;
+
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+
+  background: rgb(99 102 241);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(79 70 229);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.animation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.animation-section {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.section-title {
+  margin-bottom: 20px;
+
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.animation-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: bold;
+  color: #1f2937;
+  text-align: center;
+  overflow-wrap: break-word;
+
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+</style>
+````
+
+## File: layers/showcases/app/components/ho/animista/HoAnimistaSlideFwd.vue
+````vue
+<template>
+  <div class="ho-animista-slide-fwd">
+    <div class="header-controls">
+      <button
+        class="back-button"
+        @click="emit('back')"
+      >
+        ← Back
+      </button>
+    </div>
+
+    <h1 class="demo-title">
+      Slide Forward Animations
+    </h1>
+
+    <p class="demo-description">
+      9種類のスライド前方アニメーションのデモ。SCSS mixinで実装されています。
+    </p>
+
+    <div class="demo-controls">
+      <button
+        class="replay-button"
+        @click="replayAll"
+      >
+        🔄 Replay All
+      </button>
+    </div>
+
+    <div class="animation-grid">
+      <div class="animation-section">
+        <h2 class="section-title">
+          All Directions (9 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-center', { 'is-animating': activeVariants.has('center') }]">
+              center
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-top', { 'is-animating': activeVariants.has('top') }]">
+              top
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tr', { 'is-animating': activeVariants.has('tr') }]">
+              tr
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-right', { 'is-animating': activeVariants.has('right') }]">
+              right
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-br', { 'is-animating': activeVariants.has('br') }]">
+              br
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bottom', { 'is-animating': activeVariants.has('bottom') }]">
+              bottom
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bl', { 'is-animating': activeVariants.has('bl') }]">
+              bl
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-left', { 'is-animating': activeVariants.has('left') }]">
+              left
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tl', { 'is-animating': activeVariants.has('tl') }]">
+              tl
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const emit = defineEmits<{
+  back: []
+}>()
+
+type SlideFwdVariant = 'center' | 'top' | 'tr' | 'right' | 'br' | 'bottom' | 'bl' | 'left' | 'tl'
+
+const allVariants: SlideFwdVariant[] = [
+  'center',
+  'top',
+  'tr',
+  'right',
+  'br',
+  'bottom',
+  'bl',
+  'left',
+  'tl',
+]
+
+const activeVariants = ref<Set<SlideFwdVariant>>(new Set())
+
+const replayAll = async () => {
+  activeVariants.value.clear()
+  await nextTick()
+
+  for (const [index, variant] of allVariants.entries()) {
+    setTimeout(() => {
+      activeVariants.value = new Set(activeVariants.value).add(variant)
+    }, index * 100)
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    void replayAll()
+  }, 500)
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/animations' as anim;
+
+// ============================================
+// Animation Variants
+// ============================================
+
+.variant-center.is-animating { @include anim.slide-fwd('center', 0.5s); }
+.variant-top.is-animating { @include anim.slide-fwd('top', 0.5s); }
+.variant-tr.is-animating { @include anim.slide-fwd('tr', 0.5s); }
+.variant-right.is-animating { @include anim.slide-fwd('right', 0.5s); }
+.variant-br.is-animating { @include anim.slide-fwd('br', 0.5s); }
+.variant-bottom.is-animating { @include anim.slide-fwd('bottom', 0.5s); }
+.variant-bl.is-animating { @include anim.slide-fwd('bl', 0.5s); }
+.variant-left.is-animating { @include anim.slide-fwd('left', 0.5s); }
+.variant-tl.is-animating { @include anim.slide-fwd('tl', 0.5s); }
+
+// ============================================
+// Page Layout Styles
+// ============================================
+
+.ho-animista-slide-fwd {
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 20px;
+
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.header-controls { margin-bottom: 24px; }
+
+.back-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #667eea;
+    background: white;
+  }
+}
+
+.demo-title {
+  margin-bottom: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.demo-description {
+  margin-bottom: 32px;
+  font-size: 16px;
+  color: rgb(255 255 255 / 90%);
+  text-align: center;
+}
+
+.demo-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.replay-button {
+  cursor: pointer;
+
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+
+  background: rgb(99 102 241);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(79 70 229);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.animation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.animation-section {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.section-title {
+  margin-bottom: 20px;
+
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.animation-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: bold;
+  color: #1f2937;
+  text-align: center;
+  overflow-wrap: break-word;
+
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+</style>
+````
+
+## File: layers/showcases/app/components/ho/animista/HoAnimistaSlideRotate.vue
+````vue
+<template>
+  <div class="ho-animista-slide-rotate">
+    <div class="header-controls">
+      <button
+        class="back-button"
+        @click="emit('back')"
+      >
+        ← Back
+      </button>
+    </div>
+
+    <h1 class="demo-title">
+      Slide Rotate Animations
+    </h1>
+
+    <p class="demo-description">
+      12種類のスライド＋回転アニメーションのデモ。SCSS mixinで実装されています。
+    </p>
+
+    <div class="demo-controls">
+      <button
+        class="replay-button"
+        @click="replayAll"
+      >
+        🔄 Replay All
+      </button>
+    </div>
+
+    <div class="animation-grid">
+      <div class="animation-section">
+        <h2 class="section-title">
+          Horizontal Top (3 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-hor-top', { 'is-animating': activeVariants.has('hor-top') }]">
+              hor-top
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-hor-t-bck', { 'is-animating': activeVariants.has('hor-t-bck') }]">
+              hor-t-bck
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-hor-t-fwd', { 'is-animating': activeVariants.has('hor-t-fwd') }]">
+              hor-t-fwd
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Vertical Right (3 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-ver-right', { 'is-animating': activeVariants.has('ver-right') }]">
+              ver-right
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-ver-r-bck', { 'is-animating': activeVariants.has('ver-r-bck') }]">
+              ver-r-bck
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-ver-r-fwd', { 'is-animating': activeVariants.has('ver-r-fwd') }]">
+              ver-r-fwd
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Horizontal Bottom (3 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-hor-bottom', { 'is-animating': activeVariants.has('hor-bottom') }]">
+              hor-bottom
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-hor-b-bck', { 'is-animating': activeVariants.has('hor-b-bck') }]">
+              hor-b-bck
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-hor-b-fwd', { 'is-animating': activeVariants.has('hor-b-fwd') }]">
+              hor-b-fwd
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Vertical Left (3 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-ver-left', { 'is-animating': activeVariants.has('ver-left') }]">
+              ver-left
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-ver-l-bck', { 'is-animating': activeVariants.has('ver-l-bck') }]">
+              ver-l-bck
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-ver-l-fwd', { 'is-animating': activeVariants.has('ver-l-fwd') }]">
+              ver-l-fwd
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const emit = defineEmits<{
+  back: []
+}>()
+
+type SlideRotateVariant
+  = 'hor-top' | 'hor-t-bck' | 'hor-t-fwd'
+    | 'ver-right' | 'ver-r-bck' | 'ver-r-fwd'
+    | 'hor-bottom' | 'hor-b-bck' | 'hor-b-fwd'
+    | 'ver-left' | 'ver-l-bck' | 'ver-l-fwd'
+
+const allVariants: SlideRotateVariant[] = [
+  'hor-top', 'hor-t-bck', 'hor-t-fwd',
+  'ver-right', 'ver-r-bck', 'ver-r-fwd',
+  'hor-bottom', 'hor-b-bck', 'hor-b-fwd',
+  'ver-left', 'ver-l-bck', 'ver-l-fwd',
+]
+
+const activeVariants = ref<Set<SlideRotateVariant>>(new Set())
+
+const replayAll = async () => {
+  activeVariants.value.clear()
+  await nextTick()
+
+  for (const [index, variant] of allVariants.entries()) {
+    setTimeout(() => {
+      activeVariants.value = new Set(activeVariants.value).add(variant)
+    }, index * 120)
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    void replayAll()
+  }, 500)
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/animations' as anim;
+
+// ============================================
+// Animation Variants
+// ============================================
+
+// Horizontal Top (3 patterns)
+.variant-hor-top.is-animating { @include anim.slide-rotate('hor-top', 0.5s); }
+.variant-hor-t-bck.is-animating { @include anim.slide-rotate('hor-t-bck', 0.5s); }
+.variant-hor-t-fwd.is-animating { @include anim.slide-rotate('hor-t-fwd', 0.5s); }
+
+// Vertical Right (3 patterns)
+.variant-ver-right.is-animating { @include anim.slide-rotate('ver-right', 0.5s); }
+.variant-ver-r-bck.is-animating { @include anim.slide-rotate('ver-r-bck', 0.5s); }
+.variant-ver-r-fwd.is-animating { @include anim.slide-rotate('ver-r-fwd', 0.5s); }
+
+// Horizontal Bottom (3 patterns)
+.variant-hor-bottom.is-animating { @include anim.slide-rotate('hor-bottom', 0.5s); }
+.variant-hor-b-bck.is-animating { @include anim.slide-rotate('hor-b-bck', 0.5s); }
+.variant-hor-b-fwd.is-animating { @include anim.slide-rotate('hor-b-fwd', 0.5s); }
+
+// Vertical Left (3 patterns)
+.variant-ver-left.is-animating { @include anim.slide-rotate('ver-left', 0.5s); }
+.variant-ver-l-bck.is-animating { @include anim.slide-rotate('ver-l-bck', 0.5s); }
+.variant-ver-l-fwd.is-animating { @include anim.slide-rotate('ver-l-fwd', 0.5s); }
+
+// ============================================
+// Page Layout Styles
+// ============================================
+
+.ho-animista-slide-rotate {
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 20px;
+
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.header-controls { margin-bottom: 24px; }
+
+.back-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #667eea;
+    background: white;
+  }
+}
+
+.demo-title {
+  margin-bottom: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.demo-description {
+  margin-bottom: 32px;
+  font-size: 16px;
+  color: rgb(255 255 255 / 90%);
+  text-align: center;
+}
+
+.demo-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.replay-button {
+  cursor: pointer;
+
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+
+  background: rgb(99 102 241);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(79 70 229);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.animation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.animation-section {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.section-title {
+  margin-bottom: 20px;
+
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.animation-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: bold;
+  color: #1f2937;
+  text-align: center;
+  overflow-wrap: break-word;
+
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
 }
 </style>
@@ -9907,6 +13257,39 @@ ja:
     shadowDrop2:
       name: Shadow Drop 2
       description: シャドウ＋Z軸移動アニメーション（11パターン）
+    shadowPop:
+      name: Shadow Pop
+      description: レイヤードシャドウアニメーション（4パターン）
+    shadowInset:
+      name: Shadow Inset
+      description: 内側シャドウアニメーション（11パターン）
+    scaleIn:
+      name: Scale In
+      description: スケール入場アニメーション（15パターン）
+    rotateIn:
+      name: Rotate In
+      description: 回転入場アニメーション（13パターン）
+    rotateIn2:
+      name: Rotate In 2
+      description: 回転＋Z軸入場アニメーション（14パターン）
+    swirlIn:
+      name: Swirl In
+      description: スワール入場アニメーション（18パターン）
+    flipIn:
+      name: Flip In
+      description: フリップ入場アニメーション（8パターン）
+    slitIn:
+      name: Slit In
+      description: スリット入場アニメーション（4パターン）
+    bounceIn:
+      name: Bounce In
+      description: バウンス入場アニメーション（6パターン）
+    fadeIn:
+      name: Fade In
+      description: フェード入場アニメーション（11パターン）
+    flickerIn:
+      name: Flicker In
+      description: フリッカー入場アニメーション（2パターン）
 en:
   title: Animista
   description: CSS animation demos from Animista
@@ -9960,6 +13343,39 @@ en:
     shadowDrop2:
       name: Shadow Drop 2
       description: Shadow drop + Z-axis animations (11 patterns)
+    shadowPop:
+      name: Shadow Pop
+      description: Layered shadow pop animations (4 patterns)
+    shadowInset:
+      name: Shadow Inset
+      description: Inset shadow animations (11 patterns)
+    scaleIn:
+      name: Scale In
+      description: Scale entrance animations (15 patterns)
+    rotateIn:
+      name: Rotate In
+      description: Rotate entrance animations (13 patterns)
+    rotateIn2:
+      name: Rotate In 2
+      description: Rotate + Z-axis entrance animations (14 patterns)
+    swirlIn:
+      name: Swirl In
+      description: Swirl entrance animations (18 patterns)
+    flipIn:
+      name: Flip In
+      description: Flip entrance animations (8 patterns)
+    slitIn:
+      name: Slit In
+      description: Slit entrance animations (4 patterns)
+    bounceIn:
+      name: Bounce In
+      description: Bounce entrance animations (6 patterns)
+    fadeIn:
+      name: Fade In
+      description: Fade entrance animations (11 patterns)
+    flickerIn:
+      name: Flicker In
+      description: Flicker entrance animations (2 patterns)
 </i18n>
 
 <template>
@@ -10063,6 +13479,50 @@ en:
       v-else-if="currentView === 'shadow-drop-2'"
       @back="handleBackToList"
     />
+    <HoAnimistaShadowPop
+      v-else-if="currentView === 'shadow-pop'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaShadowInset
+      v-else-if="currentView === 'shadow-inset'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaScaleIn
+      v-else-if="currentView === 'scale-in'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaRotateIn
+      v-else-if="currentView === 'rotate-in'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaRotateIn2
+      v-else-if="currentView === 'rotate-in-2'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSwirlIn
+      v-else-if="currentView === 'swirl-in'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaFlipIn
+      v-else-if="currentView === 'flip-in'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSlitIn
+      v-else-if="currentView === 'slit-in'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaBounceIn
+      v-else-if="currentView === 'bounce-in'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaFadeIn
+      v-else-if="currentView === 'fade-in'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaFlickerIn
+      v-else-if="currentView === 'flicker-in'"
+      @back="handleBackToList"
+    />
   </div>
 </template>
 
@@ -10073,7 +13533,7 @@ const emit = defineEmits<{
   back: []
 }>()
 
-type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2'
+type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'bounce-in' | 'fade-in' | 'flicker-in'
 
 const currentView = ref<ViewType>('scale-up')
 
@@ -10094,6 +13554,17 @@ const tabs = [
   { value: 'slide-rotate', key: 'slideRotate', icon: '🔃' },
   { value: 'shadow-drop', key: 'shadowDrop', icon: '💧' },
   { value: 'shadow-drop-2', key: 'shadowDrop2', icon: '💦' },
+  { value: 'shadow-pop', key: 'shadowPop', icon: '⭐' },
+  { value: 'shadow-inset', key: 'shadowInset', icon: '🔲' },
+  { value: 'scale-in', key: 'scaleIn', icon: '📏' },
+  { value: 'rotate-in', key: 'rotateIn', icon: '🔄' },
+  { value: 'rotate-in-2', key: 'rotateIn2', icon: '🌀' },
+  { value: 'swirl-in', key: 'swirlIn', icon: '🌪️' },
+  { value: 'flip-in', key: 'flipIn', icon: '🔃' },
+  { value: 'slit-in', key: 'slitIn', icon: '✂️' },
+  { value: 'bounce-in', key: 'bounceIn', icon: '🎾' },
+  { value: 'fade-in', key: 'fadeIn', icon: '👻' },
+  { value: 'flicker-in', key: 'flickerIn', icon: '✨' },
 ] as const
 
 const handleSelectAnimation = (animationType: string) => {
