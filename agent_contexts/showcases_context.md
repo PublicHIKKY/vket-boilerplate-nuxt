@@ -62,11 +62,16 @@ layers/
           animista/
             HoAnimista.vue
             HoAnimistaFlip.vue
+            HoAnimistaFlip2.vue
+            HoAnimistaFlipScale.vue
+            HoAnimistaFlipScale2.vue
             HoAnimistaRotate.vue
             HoAnimistaRotate90.vue
             HoAnimistaRotateScale.vue
             HoAnimistaScaleDown.vue
             HoAnimistaScaleUp.vue
+            HoAnimistaSlide.vue
+            HoAnimistaSwing.vue
           .gitkeep
           HoCssAnimations.vue
         ht/
@@ -643,6 +648,3713 @@ $zindex-loading: 400;
 ````scss
 @forward 'reset';
 @forward 'base';
+````
+
+## File: layers/showcases/app/components/ho/animista/HoAnimistaFlip2.vue
+````vue
+<template>
+  <div class="ho-animista-flip-2">
+    <div class="header-controls">
+      <button
+        class="back-button"
+        @click="emit('back')"
+      >
+        ← Back
+      </button>
+    </div>
+
+    <h1 class="demo-title">
+      Flip 2 Animations
+    </h1>
+
+    <p class="demo-description">
+      16種類のフリップ＋移動アニメーションのデモ。SCSS mixinで実装されています。
+    </p>
+
+    <div class="demo-controls">
+      <button
+        class="replay-button"
+        @click="replayAll"
+      >
+        🔄 Replay All
+      </button>
+    </div>
+
+    <div class="animation-grid">
+      <div class="animation-section">
+        <h2 class="section-title">
+          Horizontal Top (4 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-hor-top-1', { 'is-animating': activeVariants.has('hor-top-1') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-hor-top-2', { 'is-animating': activeVariants.has('hor-top-2') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-hor-top-bck', { 'is-animating': activeVariants.has('hor-top-bck') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-hor-top-fwd', { 'is-animating': activeVariants.has('hor-top-fwd') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Vertical Right (4 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-ver-right-1', { 'is-animating': activeVariants.has('ver-right-1') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-ver-right-2', { 'is-animating': activeVariants.has('ver-right-2') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-ver-right-bck', { 'is-animating': activeVariants.has('ver-right-bck') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-ver-right-fwd', { 'is-animating': activeVariants.has('ver-right-fwd') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Horizontal Bottom (4 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-hor-bottom-1', { 'is-animating': activeVariants.has('hor-bottom-1') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-hor-bottom-2', { 'is-animating': activeVariants.has('hor-bottom-2') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-hor-bottom-bck', { 'is-animating': activeVariants.has('hor-bottom-bck') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-hor-bottom-fwd', { 'is-animating': activeVariants.has('hor-bottom-fwd') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Vertical Left (4 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-ver-left-1', { 'is-animating': activeVariants.has('ver-left-1') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-ver-left-2', { 'is-animating': activeVariants.has('ver-left-2') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-ver-left-bck', { 'is-animating': activeVariants.has('ver-left-bck') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-ver-left-fwd', { 'is-animating': activeVariants.has('ver-left-fwd') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const emit = defineEmits<{
+  back: []
+}>()
+
+type Flip2Variant
+  = 'hor-top-1' | 'hor-top-2' | 'hor-top-bck' | 'hor-top-fwd'
+    | 'ver-right-1' | 'ver-right-2' | 'ver-right-bck' | 'ver-right-fwd'
+    | 'hor-bottom-1' | 'hor-bottom-2' | 'hor-bottom-bck' | 'hor-bottom-fwd'
+    | 'ver-left-1' | 'ver-left-2' | 'ver-left-bck' | 'ver-left-fwd'
+
+const allVariants: Flip2Variant[] = [
+  'hor-top-1', 'hor-top-2', 'hor-top-bck', 'hor-top-fwd',
+  'ver-right-1', 'ver-right-2', 'ver-right-bck', 'ver-right-fwd',
+  'hor-bottom-1', 'hor-bottom-2', 'hor-bottom-bck', 'hor-bottom-fwd',
+  'ver-left-1', 'ver-left-2', 'ver-left-bck', 'ver-left-fwd',
+]
+
+const activeVariants = ref<Set<Flip2Variant>>(new Set())
+
+const replayAll = async () => {
+  activeVariants.value.clear()
+  await nextTick()
+
+  for (const [index, variant] of allVariants.entries()) {
+    setTimeout(() => {
+      activeVariants.value = new Set(activeVariants.value).add(variant)
+    }, index * 100)
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    void replayAll()
+  }, 500)
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/animations' as anim;
+
+// ============================================
+// Flip Card Container
+// ============================================
+.demo-box.flip-card {
+  position: relative;
+  transform-style: preserve-3d;
+
+  display: block;
+
+  padding: 0;
+
+  background: none;
+}
+
+.front-text,
+.back-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: #1f2937;
+
+  backface-visibility: hidden;
+}
+
+// ============================================
+// Horizontal Top (4 patterns)
+// ============================================
+.variant-hor-top-1.is-animating { @include anim.flip-2('hor-top-1', 0.5s); }
+
+.variant-hor-top-1 .front-text {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-hor-top-1 .back-text {
+  transform: rotateX(180deg);
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-hor-top-2.is-animating { @include anim.flip-2('hor-top-2', 0.5s); }
+
+.variant-hor-top-2 .front-text {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-hor-top-2 .back-text {
+  transform: rotateX(180deg);
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-hor-top-bck.is-animating { @include anim.flip-2('hor-top-bck', 0.5s); }
+
+.variant-hor-top-bck .front-text {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-hor-top-bck .back-text {
+  transform: rotateX(180deg);
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-hor-top-fwd.is-animating { @include anim.flip-2('hor-top-fwd', 0.5s); }
+
+.variant-hor-top-fwd .front-text {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-hor-top-fwd .back-text {
+  transform: rotateX(180deg);
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+// ============================================
+// Vertical Right (4 patterns)
+// ============================================
+.variant-ver-right-1.is-animating { @include anim.flip-2('ver-right-1', 0.5s); }
+
+.variant-ver-right-1 .front-text {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-ver-right-1 .back-text {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-ver-right-2.is-animating { @include anim.flip-2('ver-right-2', 0.5s); }
+
+.variant-ver-right-2 .front-text {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-ver-right-2 .back-text {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-ver-right-bck.is-animating { @include anim.flip-2('ver-right-bck', 0.5s); }
+
+.variant-ver-right-bck .front-text {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-ver-right-bck .back-text {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-ver-right-fwd.is-animating { @include anim.flip-2('ver-right-fwd', 0.5s); }
+
+.variant-ver-right-fwd .front-text {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-ver-right-fwd .back-text {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+// ============================================
+// Horizontal Bottom (4 patterns)
+// ============================================
+.variant-hor-bottom-1.is-animating { @include anim.flip-2('hor-bottom-1', 0.5s); }
+
+.variant-hor-bottom-1 .front-text {
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-hor-bottom-1 .back-text {
+  transform: rotateX(180deg);
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-hor-bottom-2.is-animating { @include anim.flip-2('hor-bottom-2', 0.5s); }
+
+.variant-hor-bottom-2 .front-text {
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-hor-bottom-2 .back-text {
+  transform: rotateX(180deg);
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-hor-bottom-bck.is-animating { @include anim.flip-2('hor-bottom-bck', 0.5s); }
+
+.variant-hor-bottom-bck .front-text {
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-hor-bottom-bck .back-text {
+  transform: rotateX(180deg);
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-hor-bottom-fwd.is-animating { @include anim.flip-2('hor-bottom-fwd', 0.5s); }
+
+.variant-hor-bottom-fwd .front-text {
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-hor-bottom-fwd .back-text {
+  transform: rotateX(180deg);
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+// ============================================
+// Vertical Left (4 patterns)
+// ============================================
+.variant-ver-left-1.is-animating { @include anim.flip-2('ver-left-1', 0.5s); }
+
+.variant-ver-left-1 .front-text {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-ver-left-1 .back-text {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-ver-left-2.is-animating { @include anim.flip-2('ver-left-2', 0.5s); }
+
+.variant-ver-left-2 .front-text {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-ver-left-2 .back-text {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-ver-left-bck.is-animating { @include anim.flip-2('ver-left-bck', 0.5s); }
+
+.variant-ver-left-bck .front-text {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-ver-left-bck .back-text {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-ver-left-fwd.is-animating { @include anim.flip-2('ver-left-fwd', 0.5s); }
+
+.variant-ver-left-fwd .front-text {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-ver-left-fwd .back-text {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+// ============================================
+// Page Layout Styles
+// ============================================
+
+.ho-animista-flip-2 {
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 20px;
+
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.header-controls { margin-bottom: 24px; }
+
+.back-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #667eea;
+    background: white;
+  }
+}
+
+.demo-title {
+  margin-bottom: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.demo-description {
+  margin-bottom: 32px;
+  font-size: 16px;
+  color: rgb(255 255 255 / 90%);
+  text-align: center;
+}
+
+.demo-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.replay-button {
+  cursor: pointer;
+
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+
+  background: rgb(99 102 241);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(79 70 229);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.animation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.animation-section {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.section-title {
+  margin-bottom: 20px;
+
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.animation-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  overflow-wrap: break-word;
+
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+</style>
+````
+
+## File: layers/showcases/app/components/ho/animista/HoAnimistaFlipScale.vue
+````vue
+<template>
+  <div class="ho-animista-flip-scale">
+    <div class="header-controls">
+      <button
+        class="back-button"
+        @click="emit('back')"
+      >
+        ← Back
+      </button>
+    </div>
+
+    <h1 class="demo-title">
+      Flip Scale Animations
+    </h1>
+
+    <p class="demo-description">
+      8種類のフリップ＋スケールアニメーションのデモ。SCSS mixinで実装されています。
+    </p>
+
+    <div class="demo-controls">
+      <button
+        class="replay-button"
+        @click="replayAll"
+      >
+        🔄 Replay All
+      </button>
+    </div>
+
+    <div class="animation-grid">
+      <div class="animation-section">
+        <h2 class="section-title">
+          Horizontal (2 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-up-hor', { 'is-animating': activeVariants.has('up-hor') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-down-hor', { 'is-animating': activeVariants.has('down-hor') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Vertical (2 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-up-ver', { 'is-animating': activeVariants.has('up-ver') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-down-ver', { 'is-animating': activeVariants.has('down-ver') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Diagonal 1 (2 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-up-diag-1', { 'is-animating': activeVariants.has('up-diag-1') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-down-diag-1', { 'is-animating': activeVariants.has('down-diag-1') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Diagonal 2 (2 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-up-diag-2', { 'is-animating': activeVariants.has('up-diag-2') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-down-diag-2', { 'is-animating': activeVariants.has('down-diag-2') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const emit = defineEmits<{
+  back: []
+}>()
+
+type FlipScaleVariant
+  = 'up-hor' | 'down-hor'
+    | 'up-ver' | 'down-ver'
+    | 'up-diag-1' | 'down-diag-1'
+    | 'up-diag-2' | 'down-diag-2'
+
+const allVariants: FlipScaleVariant[] = [
+  'up-hor', 'down-hor',
+  'up-ver', 'down-ver',
+  'up-diag-1', 'down-diag-1',
+  'up-diag-2', 'down-diag-2',
+]
+
+const activeVariants = ref<Set<FlipScaleVariant>>(new Set())
+
+const replayAll = async () => {
+  activeVariants.value.clear()
+  await nextTick()
+
+  for (const [index, variant] of allVariants.entries()) {
+    setTimeout(() => {
+      activeVariants.value = new Set(activeVariants.value).add(variant)
+    }, index * 150)
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    void replayAll()
+  }, 500)
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/animations' as anim;
+
+// ============================================
+// Flip Card Container
+// ============================================
+.demo-box.flip-card {
+  position: relative;
+  transform-style: preserve-3d;
+
+  display: block;
+
+  padding: 0;
+
+  background: none;
+}
+
+.front-text,
+.back-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: #1f2937;
+
+  backface-visibility: hidden;
+}
+
+// ============================================
+// Horizontal (2 patterns)
+// ============================================
+.variant-up-hor.is-animating { @include anim.flip-scale('up-hor', 0.5s); }
+
+.variant-up-hor .front-text {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-up-hor .back-text {
+  transform: rotateX(180deg);
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-down-hor.is-animating { @include anim.flip-scale('down-hor', 0.5s); }
+
+.variant-down-hor .front-text {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-down-hor .back-text {
+  transform: rotateX(180deg);
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+// ============================================
+// Vertical (2 patterns)
+// ============================================
+.variant-up-ver.is-animating { @include anim.flip-scale('up-ver', 0.5s); }
+
+.variant-up-ver .front-text {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-up-ver .back-text {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-down-ver.is-animating { @include anim.flip-scale('down-ver', 0.5s); }
+
+.variant-down-ver .front-text {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-down-ver .back-text {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+// ============================================
+// Diagonal 1 (2 patterns)
+// ============================================
+.variant-up-diag-1.is-animating { @include anim.flip-scale('up-diag-1', 0.5s); }
+
+.variant-up-diag-1 .front-text {
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-up-diag-1 .back-text {
+  transform: rotate3d(1, 1, 0, 180deg);
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-down-diag-1.is-animating { @include anim.flip-scale('down-diag-1', 0.5s); }
+
+.variant-down-diag-1 .front-text {
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-down-diag-1 .back-text {
+  transform: rotate3d(1, 1, 0, 180deg);
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+// ============================================
+// Diagonal 2 (2 patterns)
+// ============================================
+.variant-up-diag-2.is-animating { @include anim.flip-scale('up-diag-2', 0.5s); }
+
+.variant-up-diag-2 .front-text {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-up-diag-2 .back-text {
+  transform: rotate3d(-1, 1, 0, 180deg);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-down-diag-2.is-animating { @include anim.flip-scale('down-diag-2', 0.5s); }
+
+.variant-down-diag-2 .front-text {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-down-diag-2 .back-text {
+  transform: rotate3d(-1, 1, 0, 180deg);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+// ============================================
+// Page Layout Styles
+// ============================================
+
+.ho-animista-flip-scale {
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 20px;
+
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.header-controls { margin-bottom: 24px; }
+
+.back-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #667eea;
+    background: white;
+  }
+}
+
+.demo-title {
+  margin-bottom: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.demo-description {
+  margin-bottom: 32px;
+  font-size: 16px;
+  color: rgb(255 255 255 / 90%);
+  text-align: center;
+}
+
+.demo-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.replay-button {
+  cursor: pointer;
+
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+
+  background: rgb(99 102 241);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(79 70 229);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.animation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.animation-section {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.section-title {
+  margin-bottom: 20px;
+
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.animation-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  overflow-wrap: break-word;
+
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+</style>
+````
+
+## File: layers/showcases/app/components/ho/animista/HoAnimistaFlipScale2.vue
+````vue
+<template>
+  <div class="ho-animista-flip-scale-2">
+    <div class="header-controls">
+      <button
+        class="back-button"
+        @click="emit('back')"
+      >
+        ← Back
+      </button>
+    </div>
+
+    <h1 class="demo-title">
+      Flip Scale 2 Animations
+    </h1>
+
+    <p class="demo-description">
+      4種類のフリップ＋スケール＋移動アニメーションのデモ。SCSS mixinで実装されています。
+    </p>
+
+    <div class="demo-controls">
+      <button
+        class="replay-button"
+        @click="replayAll"
+      >
+        🔄 Replay All
+      </button>
+    </div>
+
+    <div class="animation-grid">
+      <div class="animation-section">
+        <h2 class="section-title">
+          All Patterns (4 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-hor-top', { 'is-animating': activeVariants.has('hor-top') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-ver-right', { 'is-animating': activeVariants.has('ver-right') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-hor-bottom', { 'is-animating': activeVariants.has('hor-bottom') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'flip-card', 'variant-ver-left', { 'is-animating': activeVariants.has('ver-left') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const emit = defineEmits<{
+  back: []
+}>()
+
+type FlipScale2Variant = 'hor-top' | 'ver-right' | 'hor-bottom' | 'ver-left'
+
+const allVariants: FlipScale2Variant[] = [
+  'hor-top',
+  'ver-right',
+  'hor-bottom',
+  'ver-left',
+]
+
+const activeVariants = ref<Set<FlipScale2Variant>>(new Set())
+
+const replayAll = async () => {
+  activeVariants.value.clear()
+  await nextTick()
+
+  for (const [index, variant] of allVariants.entries()) {
+    setTimeout(() => {
+      activeVariants.value = new Set(activeVariants.value).add(variant)
+    }, index * 150)
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    void replayAll()
+  }, 500)
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/animations' as anim;
+
+// ============================================
+// Flip Card Container
+// ============================================
+.demo-box.flip-card {
+  position: relative;
+  transform-style: preserve-3d;
+
+  display: block;
+
+  padding: 0;
+
+  background: none;
+}
+
+.front-text,
+.back-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: #1f2937;
+
+  backface-visibility: hidden;
+}
+
+// ============================================
+// All Patterns (4 patterns)
+// ============================================
+.variant-hor-top.is-animating { @include anim.flip-scale-2('hor-top', 0.5s); }
+
+.variant-hor-top .front-text {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-hor-top .back-text {
+  transform: rotateX(180deg);
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-ver-right.is-animating { @include anim.flip-scale-2('ver-right', 0.5s); }
+
+.variant-ver-right .front-text {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-ver-right .back-text {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-hor-bottom.is-animating { @include anim.flip-scale-2('hor-bottom', 0.5s); }
+
+.variant-hor-bottom .front-text {
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-hor-bottom .back-text {
+  transform: rotateX(180deg);
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-ver-left.is-animating { @include anim.flip-scale-2('ver-left', 0.5s); }
+
+.variant-ver-left .front-text {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-ver-left .back-text {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+// ============================================
+// Page Layout Styles
+// ============================================
+
+.ho-animista-flip-scale-2 {
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 20px;
+
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.header-controls { margin-bottom: 24px; }
+
+.back-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #667eea;
+    background: white;
+  }
+}
+
+.demo-title {
+  margin-bottom: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.demo-description {
+  margin-bottom: 32px;
+  font-size: 16px;
+  color: rgb(255 255 255 / 90%);
+  text-align: center;
+}
+
+.demo-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.replay-button {
+  cursor: pointer;
+
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+
+  background: rgb(99 102 241);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(79 70 229);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.animation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.animation-section {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.section-title {
+  margin-bottom: 20px;
+
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.animation-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  overflow-wrap: break-word;
+
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+</style>
+````
+
+## File: layers/showcases/app/components/ho/animista/HoAnimistaSlide.vue
+````vue
+<template>
+  <div class="ho-animista-slide">
+    <div class="header-controls">
+      <button
+        class="back-button"
+        @click="emit('back')"
+      >
+        ← Back
+      </button>
+    </div>
+
+    <h1 class="demo-title">
+      Slide Animations
+    </h1>
+
+    <p class="demo-description">
+      9種類のスライドアニメーションのデモ。SCSS mixinで実装されています。
+    </p>
+
+    <div class="demo-controls">
+      <button
+        class="replay-button"
+        @click="replayAll"
+      >
+        🔄 Replay All
+      </button>
+    </div>
+
+    <div class="animation-grid">
+      <div class="animation-section">
+        <h2 class="section-title">
+          All Directions (9 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-top', { 'is-animating': activeVariants.has('top') }]">
+              top
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tr', { 'is-animating': activeVariants.has('tr') }]">
+              tr
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-right', { 'is-animating': activeVariants.has('right') }]">
+              right
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-br', { 'is-animating': activeVariants.has('br') }]">
+              br
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bottom', { 'is-animating': activeVariants.has('bottom') }]">
+              bottom
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-bl', { 'is-animating': activeVariants.has('bl') }]">
+              bl
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-left', { 'is-animating': activeVariants.has('left') }]">
+              left
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-tl', { 'is-animating': activeVariants.has('tl') }]">
+              tl
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'variant-center', { 'is-animating': activeVariants.has('center') }]">
+              center
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const emit = defineEmits<{
+  back: []
+}>()
+
+type SlideVariant = 'top' | 'tr' | 'right' | 'br' | 'bottom' | 'bl' | 'left' | 'tl' | 'center'
+
+const allVariants: SlideVariant[] = [
+  'top',
+  'tr',
+  'right',
+  'br',
+  'bottom',
+  'bl',
+  'left',
+  'tl',
+  'center',
+]
+
+const activeVariants = ref<Set<SlideVariant>>(new Set())
+
+const replayAll = async () => {
+  activeVariants.value.clear()
+  await nextTick()
+
+  for (const [index, variant] of allVariants.entries()) {
+    setTimeout(() => {
+      activeVariants.value = new Set(activeVariants.value).add(variant)
+    }, index * 100)
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    void replayAll()
+  }, 500)
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/animations' as anim;
+
+// ============================================
+// Animation Variants
+// ============================================
+
+.variant-top.is-animating { @include anim.slide('top', 0.5s); }
+.variant-tr.is-animating { @include anim.slide('tr', 0.5s); }
+.variant-right.is-animating { @include anim.slide('right', 0.5s); }
+.variant-br.is-animating { @include anim.slide('br', 0.5s); }
+.variant-bottom.is-animating { @include anim.slide('bottom', 0.5s); }
+.variant-bl.is-animating { @include anim.slide('bl', 0.5s); }
+.variant-left.is-animating { @include anim.slide('left', 0.5s); }
+.variant-tl.is-animating { @include anim.slide('tl', 0.5s); }
+.variant-center.is-animating { @include anim.slide('center', 0.5s); }
+
+// ============================================
+// Page Layout Styles
+// ============================================
+
+.ho-animista-slide {
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 20px;
+
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.header-controls { margin-bottom: 24px; }
+
+.back-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #667eea;
+    background: white;
+  }
+}
+
+.demo-title {
+  margin-bottom: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.demo-description {
+  margin-bottom: 32px;
+  font-size: 16px;
+  color: rgb(255 255 255 / 90%);
+  text-align: center;
+}
+
+.demo-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.replay-button {
+  cursor: pointer;
+
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+
+  background: rgb(99 102 241);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(79 70 229);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.animation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.animation-section {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.section-title {
+  margin-bottom: 20px;
+
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.animation-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: bold;
+  color: #1f2937;
+  text-align: center;
+  overflow-wrap: break-word;
+
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+</style>
+````
+
+## File: layers/showcases/app/components/ho/animista/HoAnimistaSwing.vue
+````vue
+<template>
+  <div class="ho-animista-swing">
+    <div class="header-controls">
+      <button
+        class="back-button"
+        @click="emit('back')"
+      >
+        ← Back
+      </button>
+    </div>
+
+    <h1 class="demo-title">
+      Swing Animations
+    </h1>
+
+    <p class="demo-description">
+      16種類のスイングアニメーションのデモ。SCSS mixinで実装されています。
+    </p>
+
+    <div class="demo-controls">
+      <button
+        class="replay-button"
+        @click="replayAll"
+      >
+        🔄 Replay All
+      </button>
+    </div>
+
+    <div class="animation-grid">
+      <div class="animation-section">
+        <h2 class="section-title">
+          Top & Bottom (4 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'swing-card', 'variant-top-fwd', { 'is-animating': activeVariants.has('top-fwd') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'swing-card', 'variant-top-bck', { 'is-animating': activeVariants.has('top-bck') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'swing-card', 'variant-bottom-fwd', { 'is-animating': activeVariants.has('bottom-fwd') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'swing-card', 'variant-bottom-bck', { 'is-animating': activeVariants.has('bottom-bck') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Right & Left (4 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'swing-card', 'variant-right-fwd', { 'is-animating': activeVariants.has('right-fwd') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'swing-card', 'variant-right-bck', { 'is-animating': activeVariants.has('right-bck') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'swing-card', 'variant-left-fwd', { 'is-animating': activeVariants.has('left-fwd') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'swing-card', 'variant-left-bck', { 'is-animating': activeVariants.has('left-bck') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Top-Right & Bottom-Left (4 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'swing-card', 'variant-top-right-fwd', { 'is-animating': activeVariants.has('top-right-fwd') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'swing-card', 'variant-top-right-bck', { 'is-animating': activeVariants.has('top-right-bck') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'swing-card', 'variant-bottom-left-fwd', { 'is-animating': activeVariants.has('bottom-left-fwd') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'swing-card', 'variant-bottom-left-bck', { 'is-animating': activeVariants.has('bottom-left-bck') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="animation-section">
+        <h2 class="section-title">
+          Bottom-Right & Top-Left (4 patterns)
+        </h2>
+        <div class="grid">
+          <div class="animation-item">
+            <div :class="['demo-box', 'swing-card', 'variant-bottom-right-fwd', { 'is-animating': activeVariants.has('bottom-right-fwd') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'swing-card', 'variant-bottom-right-bck', { 'is-animating': activeVariants.has('bottom-right-bck') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'swing-card', 'variant-top-left-fwd', { 'is-animating': activeVariants.has('top-left-fwd') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['demo-box', 'swing-card', 'variant-top-left-bck', { 'is-animating': activeVariants.has('top-left-bck') }]">
+              <div class="front-text">
+                A
+              </div>
+              <div class="back-text">
+                B
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const emit = defineEmits<{
+  back: []
+}>()
+
+type SwingVariant
+  = 'top-fwd' | 'top-bck' | 'top-right-fwd' | 'top-right-bck'
+    | 'right-fwd' | 'right-bck' | 'bottom-right-fwd' | 'bottom-right-bck'
+    | 'bottom-fwd' | 'bottom-bck' | 'bottom-left-fwd' | 'bottom-left-bck'
+    | 'left-fwd' | 'left-bck' | 'top-left-fwd' | 'top-left-bck'
+
+const allVariants: SwingVariant[] = [
+  'top-fwd', 'top-bck',
+  'bottom-fwd', 'bottom-bck',
+  'right-fwd', 'right-bck',
+  'left-fwd', 'left-bck',
+  'top-right-fwd', 'top-right-bck',
+  'bottom-left-fwd', 'bottom-left-bck',
+  'bottom-right-fwd', 'bottom-right-bck',
+  'top-left-fwd', 'top-left-bck',
+]
+
+const activeVariants = ref<Set<SwingVariant>>(new Set())
+
+const replayAll = async () => {
+  activeVariants.value.clear()
+  await nextTick()
+
+  for (const [index, variant] of allVariants.entries()) {
+    setTimeout(() => {
+      activeVariants.value = new Set(activeVariants.value).add(variant)
+    }, index * 100)
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    void replayAll()
+  }, 500)
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/animations' as anim;
+
+// ============================================
+// Swing Card Container
+// ============================================
+.demo-box.swing-card {
+  position: relative;
+  transform-style: preserve-3d;
+
+  display: block;
+
+  padding: 0;
+
+  background: none;
+}
+
+.front-text,
+.back-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: #1f2937;
+
+  backface-visibility: hidden;
+}
+
+// ============================================
+// Top & Bottom (4 patterns)
+// ============================================
+.variant-top-fwd.is-animating { @include anim.swing('top-fwd', 0.4s); }
+
+.variant-top-fwd .front-text {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-top-fwd .back-text {
+  transform: rotateX(180deg);
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-top-bck.is-animating { @include anim.swing('top-bck', 0.4s); }
+
+.variant-top-bck .front-text {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-top-bck .back-text {
+  transform: rotateX(180deg);
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-bottom-fwd.is-animating { @include anim.swing('bottom-fwd', 0.4s); }
+
+.variant-bottom-fwd .front-text {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-bottom-fwd .back-text {
+  transform: rotateX(180deg);
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-bottom-bck.is-animating { @include anim.swing('bottom-bck', 0.4s); }
+
+.variant-bottom-bck .front-text {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-bottom-bck .back-text {
+  transform: rotateX(180deg);
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+// ============================================
+// Right & Left (4 patterns)
+// ============================================
+.variant-right-fwd.is-animating { @include anim.swing('right-fwd', 0.4s); }
+
+.variant-right-fwd .front-text {
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-right-fwd .back-text {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-right-bck.is-animating { @include anim.swing('right-bck', 0.4s); }
+
+.variant-right-bck .front-text {
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-right-bck .back-text {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-left-fwd.is-animating { @include anim.swing('left-fwd', 0.4s); }
+
+.variant-left-fwd .front-text {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-left-fwd .back-text {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-left-bck.is-animating { @include anim.swing('left-bck', 0.4s); }
+
+.variant-left-bck .front-text {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-left-bck .back-text {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+// ============================================
+// Diagonal (8 patterns)
+// ============================================
+.variant-top-right-fwd.is-animating { @include anim.swing('top-right-fwd', 0.4s); }
+
+.variant-top-right-fwd .front-text {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-top-right-fwd .back-text {
+  transform: rotate3d(1, 1, 0, 180deg);
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-top-right-bck.is-animating { @include anim.swing('top-right-bck', 0.4s); }
+
+.variant-top-right-bck .front-text {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-top-right-bck .back-text {
+  transform: rotate3d(1, 1, 0, 180deg);
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-bottom-left-fwd.is-animating { @include anim.swing('bottom-left-fwd', 0.4s); }
+
+.variant-bottom-left-fwd .front-text {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-bottom-left-fwd .back-text {
+  transform: rotate3d(1, 1, 0, 180deg);
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-bottom-left-bck.is-animating { @include anim.swing('bottom-left-bck', 0.4s); }
+
+.variant-bottom-left-bck .front-text {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-bottom-left-bck .back-text {
+  transform: rotate3d(1, 1, 0, 180deg);
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-bottom-right-fwd.is-animating { @include anim.swing('bottom-right-fwd', 0.4s); }
+
+.variant-bottom-right-fwd .front-text {
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-bottom-right-fwd .back-text {
+  transform: rotate3d(-1, 1, 0, 180deg);
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-bottom-right-bck.is-animating { @include anim.swing('bottom-right-bck', 0.4s); }
+
+.variant-bottom-right-bck .front-text {
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-bottom-right-bck .back-text {
+  transform: rotate3d(-1, 1, 0, 180deg);
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-top-left-fwd.is-animating { @include anim.swing('top-left-fwd', 0.4s); }
+
+.variant-top-left-fwd .front-text {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-top-left-fwd .back-text {
+  transform: rotate3d(-1, 1, 0, 180deg);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-top-left-bck.is-animating { @include anim.swing('top-left-bck', 0.4s); }
+
+.variant-top-left-bck .front-text {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.variant-top-left-bck .back-text {
+  transform: rotate3d(-1, 1, 0, 180deg);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+// ============================================
+// Page Layout Styles
+// ============================================
+
+.ho-animista-swing {
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 20px;
+
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.header-controls { margin-bottom: 24px; }
+
+.back-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #667eea;
+    background: white;
+  }
+}
+
+.demo-title {
+  margin-bottom: 12px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.demo-description {
+  margin-bottom: 32px;
+  font-size: 16px;
+  color: rgb(255 255 255 / 90%);
+  text-align: center;
+}
+
+.demo-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.replay-button {
+  cursor: pointer;
+
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+
+  background: rgb(99 102 241);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(79 70 229);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.animation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.animation-section {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.section-title {
+  margin-bottom: 20px;
+
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.animation-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: bold;
+  color: #1f2937;
+  text-align: center;
+  overflow-wrap: break-word;
+
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+</style>
+````
+
+## File: layers/showcases/app/composables/useApi.ts
+````typescript
+/**
+ * Nuxt3 FWにおける API composables。
+ *
+ * @packageDocumentation
+ */
+
+import { useFetch, UseFetchOptions } from 'nuxt/app'
+import type { FetchOptions } from 'ofetch'
+import { ref } from 'vue'
+import { repositoryFactory, RepositoryKey } from '#showcases/app/utils/factory'
+
+export const fetcher = (
+  path: string,
+  options: UseFetchOptions<FetchOptions>,
+) => {
+  return useFetch(path, options)
+}
+
+const _getRepo = <K extends RepositoryKey>(endpoint: K) => {
+  return repositoryFactory.get(endpoint)
+}
+
+export default function useApi<K extends RepositoryKey>(endpoint: K) {
+  const repository = ref(_getRepo(endpoint))
+  return {
+    repository,
+  }
+}
+````
+
+## File: layers/showcases/app/layouts/default.vue
+````vue
+<template>
+  <div class="layout -default">
+    <h1 class="heading">
+      show cases App Nuxt3
+    </h1>
+    <slot />
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.layout.-default {
+  overflow-x: hidden;
+}
+</style>
+````
+
+## File: layers/showcases/app/layouts/top.vue
+````vue
+<template>
+  <div class="layout -top">
+    <HoTheHeader />
+    <slot />
+    <HoTheFooter />
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.layout.-top {
+  overflow-x: hidden;
+}
+</style>
+````
+
+## File: layers/showcases/app/pages/index.vue
+````vue
+<template>
+  <HtTop />
+</template>
+
+<script setup lang="ts">
+definePageMeta({
+  layout: 'top',
+})
+</script>
+````
+
+## File: layers/showcases/app/plugins/gtm.client.ts
+````typescript
+import { createGtm } from '@gtm-support/vue-gtm'
+import { defineNuxtPlugin } from 'nuxt/app'
+
+export default defineNuxtPlugin(() => {
+  const config = useRuntimeConfig()
+  createGtm({ id: config.public?.gtmId, enabled: true })
+})
+````
+
+## File: layers/showcases/app/plugins/runtimeConfig.ts
+````typescript
+import { defineNuxtPlugin } from 'nuxt/app'
+import type { RuntimeConfig } from 'nuxt/schema'
+
+/**
+ * 型を退化されたruntimeConfig。
+ * [[requireRuntimeConfig]]のために、退化されました。
+ */
+let runtimeConfig: RuntimeConfig | undefined
+
+export default defineNuxtPlugin(({ $config }) => {
+  if ($config === undefined) {
+    throw new TypeError('#showcases/app/plugins/runtimeConfig failed.')
+  }
+  runtimeConfig = $config
+})
+
+type Config = Record<string, string | undefined>
+type ProcessEnv = Config & {
+  public?: Config
+}
+/**
+ * useRuntimeConfig()が使えないときに使う、同等な関数。
+ */
+export const requireRuntimeConfig: () => ProcessEnv | RuntimeConfig = () => {
+  if (runtimeConfig !== undefined) {
+    return runtimeConfig
+  }
+
+  // playwrightテスト用
+  if (process?.env !== undefined) {
+    return process.env
+  }
+
+  throw new TypeError('#showcases/app/plugins/runtimeConfig: Not satisfied.')
+}
+````
+
+## File: layers/showcases/app/test/composables/useApi.spec.ts
+````typescript
+// NOTE: そもそももっといいテストあれば是非
+import { UseFetchOptions } from 'nuxt/app'
+import { FetchOptions } from 'ofetch'
+import useApi, { fetcher } from '@/composables/useApi'
+
+vi.mock('#app', () => ({
+  // NOTE:  defineNuxtPluginでエラーが出るので設置
+  defineNuxtPlugin: vi.fn(),
+  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+  useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
+    return { path, options }
+  }),
+}))
+
+test('useApi', () => {
+  // NOTE: useApiで使用できるRepositoryKeyを入れた際にオブジェクトが返ってくること。この場合useApi('hoge')など存在しない場合はテストが落ちる
+  const useApiExample = useApi('example').repository.value
+  const expectObj = { get: {} }
+  expect(useApiExample).toMatchObject(expectObj)
+})
+
+test('fetcher', () => {
+  const path = '/example'
+  const options = {}
+  // useFetchが発火することを確認。戻り値はmockの戻り値とする
+  expect(fetcher(path, options)).toStrictEqual({ path, options })
+})
+````
+
+## File: layers/showcases/app/test/utils/@types/auto-imports.d.ts
+````typescript
+/* eslint-disable */
+/* prettier-ignore */
+// @ts-nocheck
+// noinspection JSUnusedGlobalSymbols
+// Generated by unplugin-auto-import
+// biome-ignore lint: disable
+export {}
+declare global {
+  const EffectScope: typeof import('vue')['EffectScope']
+  const abortNavigation: typeof import('#app')['abortNavigation']
+  const addRouteMiddleware: typeof import('#app')['addRouteMiddleware']
+  const cancelIdleCallback: typeof import('#app')['cancelIdleCallback']
+  const clearError: typeof import('#app')['clearError']
+  const clearNuxtData: typeof import('#app')['clearNuxtData']
+  const clearNuxtState: typeof import('#app')['clearNuxtState']
+  const computed: typeof import('vue')['computed']
+  const createApp: typeof import('vue')['createApp']
+  const createError: typeof import('#app')['createError']
+  const customRef: typeof import('vue')['customRef']
+  const defineAppConfig: typeof import('#app')['defineAppConfig']
+  const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
+  const defineComponent: typeof import('vue')['defineComponent']
+  const defineI18nConfig: typeof import('#i18n')['defineI18nConfig']
+  const defineI18nLocale: typeof import('#i18n')['defineI18nLocale']
+  const defineI18nRoute: typeof import('#i18n')['defineI18nRoute']
+  const defineNuxtComponent: typeof import('#app')['defineNuxtComponent']
+  const defineNuxtLink: typeof import('#app')['defineNuxtLink']
+  const defineNuxtPlugin: typeof import('#app')['defineNuxtPlugin']
+  const defineNuxtRouteMiddleware: typeof import('#app')['defineNuxtRouteMiddleware']
+  const definePayloadPlugin: typeof import('#app')['definePayloadPlugin']
+  const definePayloadReducer: typeof import('#app')['definePayloadReducer']
+  const definePayloadReviver: typeof import('#app')['definePayloadReviver']
+  const effectScope: typeof import('vue')['effectScope']
+  const getAppManifest: typeof import('#app')['getAppManifest']
+  const getCurrentInstance: typeof import('vue')['getCurrentInstance']
+  const getCurrentScope: typeof import('vue')['getCurrentScope']
+  const getRouteRules: typeof import('#app')['getRouteRules']
+  const h: typeof import('vue')['h']
+  const inject: typeof import('vue')['inject']
+  const isNuxtError: typeof import('#app')['isNuxtError']
+  const isPrerendered: typeof import('#app')['isPrerendered']
+  const isProxy: typeof import('vue')['isProxy']
+  const isReactive: typeof import('vue')['isReactive']
+  const isReadonly: typeof import('vue')['isReadonly']
+  const isRef: typeof import('vue')['isRef']
+  const loadPayload: typeof import('#app')['loadPayload']
+  const markRaw: typeof import('vue')['markRaw']
+  const navigateTo: typeof import('#app')['navigateTo']
+  const nextTick: typeof import('vue')['nextTick']
+  const onActivated: typeof import('vue')['onActivated']
+  const onBeforeMount: typeof import('vue')['onBeforeMount']
+  const onBeforeRouteLeave: typeof import('#app')['onBeforeRouteLeave']
+  const onBeforeRouteUpdate: typeof import('#app')['onBeforeRouteUpdate']
+  const onBeforeUnmount: typeof import('vue')['onBeforeUnmount']
+  const onBeforeUpdate: typeof import('vue')['onBeforeUpdate']
+  const onDeactivated: typeof import('vue')['onDeactivated']
+  const onErrorCaptured: typeof import('vue')['onErrorCaptured']
+  const onMounted: typeof import('vue')['onMounted']
+  const onNuxtReady: typeof import('#app')['onNuxtReady']
+  const onRenderTracked: typeof import('vue')['onRenderTracked']
+  const onRenderTriggered: typeof import('vue')['onRenderTriggered']
+  const onScopeDispose: typeof import('vue')['onScopeDispose']
+  const onServerPrefetch: typeof import('vue')['onServerPrefetch']
+  const onUnmounted: typeof import('vue')['onUnmounted']
+  const onUpdated: typeof import('vue')['onUpdated']
+  const onWatcherCleanup: typeof import('vue')['onWatcherCleanup']
+  const prefetchComponents: typeof import('#app')['prefetchComponents']
+  const preloadComponents: typeof import('#app')['preloadComponents']
+  const preloadPayload: typeof import('#app')['preloadPayload']
+  const preloadRouteComponents: typeof import('#app')['preloadRouteComponents']
+  const prerenderRoutes: typeof import('#app')['prerenderRoutes']
+  const provide: typeof import('vue')['provide']
+  const reactive: typeof import('vue')['reactive']
+  const readonly: typeof import('vue')['readonly']
+  const ref: typeof import('vue')['ref']
+  const refreshNuxtData: typeof import('#app')['refreshNuxtData']
+  const reloadNuxtApp: typeof import('#app')['reloadNuxtApp']
+  const requestIdleCallback: typeof import('#app')['requestIdleCallback']
+  const resolveComponent: typeof import('vue')['resolveComponent']
+  const setPageLayout: typeof import('#app')['setPageLayout']
+  const setResponseStatus: typeof import('#app')['setResponseStatus']
+  const shallowReactive: typeof import('vue')['shallowReactive']
+  const shallowReadonly: typeof import('vue')['shallowReadonly']
+  const shallowRef: typeof import('vue')['shallowRef']
+  const showError: typeof import('#app')['showError']
+  const toRaw: typeof import('vue')['toRaw']
+  const toRef: typeof import('vue')['toRef']
+  const toRefs: typeof import('vue')['toRefs']
+  const toValue: typeof import('vue')['toValue']
+  const triggerRef: typeof import('vue')['triggerRef']
+  const unref: typeof import('vue')['unref']
+  const updateAppConfig: typeof import('#app')['updateAppConfig']
+  const useAppConfig: typeof import('#app')['useAppConfig']
+  const useAsyncData: typeof import('#app')['useAsyncData']
+  const useAttrs: typeof import('vue')['useAttrs']
+  const useBrowserLocale: typeof import('#i18n')['useBrowserLocale']
+  const useCookie: typeof import('#app')['useCookie']
+  const useCookieLocale: typeof import('#i18n')['useCookieLocale']
+  const useCssModule: typeof import('vue')['useCssModule']
+  const useCssVars: typeof import('vue')['useCssVars']
+  const useError: typeof import('#app')['useError']
+  const useFetch: typeof import('#app')['useFetch']
+  const useI18n: typeof import('vue-i18n')['useI18n']
+  const useId: typeof import('vue')['useId']
+  const useLazyAsyncData: typeof import('#app')['useLazyAsyncData']
+  const useLazyFetch: typeof import('#app')['useLazyFetch']
+  const useLocaleHead: typeof import('#i18n')['useLocaleHead']
+  const useLocalePath: typeof import('#i18n')['useLocalePath']
+  const useLocaleRoute: typeof import('#i18n')['useLocaleRoute']
+  const useModel: typeof import('vue')['useModel']
+  const useNuxtApp: typeof import('#app')['useNuxtApp']
+  const useNuxtData: typeof import('#app')['useNuxtData']
+  const useRequestEvent: typeof import('#app')['useRequestEvent']
+  const useRequestFetch: typeof import('#app')['useRequestFetch']
+  const useRequestHeaders: typeof import('#app')['useRequestHeaders']
+  const useRequestURL: typeof import('#app')['useRequestURL']
+  const useRoute: typeof import('#app')['useRoute']
+  const useRouteBaseName: typeof import('#i18n')['useRouteBaseName']
+  const useRouter: typeof import('#app')['useRouter']
+  const useRuntimeConfig: typeof import('#app')['useRuntimeConfig']
+  const useSlots: typeof import('vue')['useSlots']
+  const useState: typeof import('#app')['useState']
+  const useSwitchLocalePath: typeof import('#i18n')['useSwitchLocalePath']
+  const useTemplateRef: typeof import('vue')['useTemplateRef']
+  const watch: typeof import('vue')['watch']
+  const watchEffect: typeof import('vue')['watchEffect']
+  const watchPostEffect: typeof import('vue')['watchPostEffect']
+  const watchSyncEffect: typeof import('vue')['watchSyncEffect']
+}
+// for type re-export
+declare global {
+  // @ts-ignore
+  export type { Component, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
+  import('vue')
+}
+````
+
+## File: layers/showcases/app/test/utils/@types/components.d.ts
+````typescript
+/* eslint-disable */
+// @ts-nocheck
+// Generated by unplugin-vue-components
+// Read more: https://github.com/vuejs/core/pull/3399
+export {}
+
+/* prettier-ignore */
+declare module 'vue' {
+  export interface GlobalComponents {
+    RouterLink: typeof import('vue-router')['RouterLink']
+    RouterView: typeof import('vue-router')['RouterView']
+  }
+}
+````
+
+## File: layers/showcases/app/test/utils/api.spec.ts
+````typescript
+import type { NitroFetchRequest } from 'nitropack'
+import api from '#showcases/app/utils/api'
+
+// NOTE: mockを使う際に必要な記述
+vi.mock('#app', () => ({
+  // NOTE:  defineNuxtPluginでエラーが出るので設置
+  defineNuxtPlugin: vi.fn(),
+}))
+
+// NOTE: src/utils/api.tsのテストとして当該ファイルがimportしているファイルからの変数「requireRuntimeConfig」をモックする。
+vi.mock('#base/app/plugins/runtimeConfig', () => {
+  return {
+    requireRuntimeConfig: vi.fn(() => {
+      // NOTE: api.tsのテストとしてrequireRuntimeConfigが{public.baseUrl}としてダミーURLを返すだけの処理を行うようにモックする
+      return {
+        public: {
+          baseUrl: '/test-api',
+        },
+      }
+    }),
+  }
+})
+
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+vi.mock('#base/app/plugins/fetch', () => {
+  return {
+    pluginFetchApi: vi.fn((path: string, options: NitroFetchRequest) => {
+      return { path, options }
+    }),
+  }
+})
+
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+vi.mock('ofetch', () => {
+  return {
+    $fetch: vi.fn((path: string, options: NitroFetchRequest) => {
+      return { path, options }
+    }),
+  }
+})
+
+describe('api', () => {
+  // NOTE: api.getの返却値のテストとして、引数のpathやfetchOptionを入力して、返却値として期待するexpectObjと同等かテストする。その際、onRequestとonResponseは複雑化するので、空オブジェクトで省略としてtoMatchObjectで合格するか検査する。
+  it('get', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'GET',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('get', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('post', async () => {
+    // NOET: 以下getと同様にテストする。methodはgetではなく、相送信methodに準じた値に変化するので注意
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'POST',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('post', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('put', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'PUT',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('put', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('patch', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'PATCH',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('patch', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+  it('delete', async () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'DELETE',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    const result = await api('delete', path, fetchOptions)
+    expect(result).toMatchObject(expectObj)
+  })
+})
+````
+
+## File: layers/showcases/app/test/utils/factory.spec.ts
+````typescript
+import { describe, expect, it } from 'vitest'
+import exampleRepository from '#base/app/repositories/exampleRepository'
+import {
+  defaultRepositories,
+  defaultRepositoryFactory,
+} from '#base/app/utils/default-factory'
+
+// NOTE: mockを使う際に必要な記述
+vi.mock('#app', () => ({
+  // NOTE:  defineNuxtPluginでエラーが出るので設置
+  defineNuxtPlugin: vi.fn(),
+}))
+
+describe('defaultRepositoryFactory', () => {
+  it('should return the correct repository when a valid key is provided', () => {
+    const repository = defaultRepositoryFactory.get('example')
+    expect(repository).toBe(exampleRepository)
+  })
+})
+
+describe('defaultRepositories', () => {
+  it('should contain the example repository', () => {
+    expect(defaultRepositories.example).toBe(exampleRepository)
+  })
+})
+````
+
+## File: layers/showcases/app/test/utils/i18n.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { createI18n } from 'vue-i18n'
+
+test('getI18nArray takes a list from vue-i18n dict', () => {
+  const i18n = createI18n({
+    locale: 'ja',
+    messages: {
+      ja: { list: ['a', 'b', 'c'] },
+      en: { list: ['a', 'b', 'c'] },
+    },
+  })
+
+  // useI18nがコンポーネントのsetup内でのみしか動かないので、コンポーネントを介してテストをする
+  mount(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (defineComponent as any)({
+      template: '<p>Nuxt ha iizo</p>',
+      setup: () => {
+        const i18n = useI18n()
+        expect(getI18nArray(i18n, 'list')).toEqual(['a', 'b', 'c'])
+      },
+    }),
+    {
+      global: {
+        plugins: [i18n],
+      },
+    },
+  )
+})
+````
+
+## File: layers/showcases/app/test/example.spec.ts
+````typescript
+/**
+ * Showcases layer test example
+ * This is a basic test to ensure the test environment is working
+ */
+
+describe('Showcases Layer Tests', () => {
+  it('should have working test environment', () => {
+    expect(true).toBe(true)
+  })
+
+  it('should be able to test basic JavaScript functionality', () => {
+    const add = (a: number, b: number) => a + b
+    expect(add(2, 3)).toBe(5)
+  })
+})
+````
+
+## File: layers/showcases/app/utils/api.ts
+````typescript
+import { FetchOptions } from 'ofetch'
+import type { Method } from '#base/app/utils/default-api'
+import { defaultApi } from '#base/app/utils/default-api'
+
+export type { Method }
+
+export default (
+  method: Method,
+  path: string,
+  fetchOptions: FetchOptions = {},
+) => {
+  switch (method) {
+    case 'GET':
+    case 'get':
+      return defaultApi.get(path, fetchOptions)
+    case 'POST':
+    case 'post':
+      return defaultApi.post(path, fetchOptions)
+    case 'PUT':
+    case 'put':
+      return defaultApi.put(path, fetchOptions)
+    case 'PATCH':
+    case 'patch':
+      return defaultApi.patch(path, fetchOptions)
+    case 'DELETE':
+    case 'delete':
+      return defaultApi.delete(path, fetchOptions)
+    default:
+      return defaultApi.get(path, fetchOptions)
+  }
+}
+````
+
+## File: layers/showcases/app/utils/factory.ts
+````typescript
+import { type MakeRepository, defaultRepositories } from '#base/app/utils/default-factory'
+import { Method } from '#showcases/app/utils/api'
+
+export type Repository = MakeRepository<Method>
+export type Repositories = Record<string, Repository>
+
+export const repositories = {
+  ...defaultRepositories,
+  // Add non-default repositories here
+} as const satisfies Repositories
+
+export type RepositoryKey = keyof typeof repositories
+
+export const repositoryFactory = {
+  get: <K extends keyof typeof repositories>(name: K) => repositories[name],
+}
+````
+
+## File: layers/showcases/app/error.vue
+````vue
+<i18n lang="yaml">
+ja:
+  title: "エラーが発生しました"
+  back_home: "ホームに戻る"
+  back_previous: "前のページに戻る"
+  error_404: "ページが見つかりません"
+  error_500: "サーバーエラー"
+  error_other: "予期しないエラー"
+  description_404: "お探しのページは見つかりませんでした。URLをご確認いただくか、ホームページに戻ってもう一度お試しください。"
+  description_500: "サーバーに問題が発生しています。しばらく時間をおいてから再度お試しください。"
+  description_other: "申し訳ございませんが、予期しないエラーが発生しました。"
+  details: "エラー内容"
+en:
+  title: "An error occurred"
+  back_home: "Back to Home"
+  back_previous: "Go Back"
+  error_404: "Page Not Found"
+  error_500: "Server Error"
+  error_other: "Unexpected Error"
+  description_404: "The page you are looking for could not be found. Please check the URL or return to the home page and try again."
+  description_500: "There is a problem with the server. Please try again after some time."
+  description_other: "We apologize, but an unexpected error has occurred."
+  details: "Error Details"
+</i18n>
+
+<template>
+  <div class="error-page">
+    <div class="error-container">
+      <div class="error-icon">
+        <div class="error-code">
+          {{ error.statusCode }}
+        </div>
+      </div>
+
+      <h1 class="error-title">
+        {{ getErrorTitle() }}
+      </h1>
+
+      <p class="error-description">
+        {{ getErrorDescription() }}
+      </p>
+
+      <div class="error-actions">
+        <button
+          class="error-button -primary"
+          @click="handleClearError"
+        >
+          {{ t('back_home') }}
+        </button>
+
+        <button
+          class="error-button -secondary"
+          @click="goBack"
+        >
+          {{ t('back_previous') }}
+        </button>
+      </div>
+
+      <div class="error-details">
+        <details v-if="error.message">
+          <summary>{{ t('details') }}</summary>
+          <pre class="error-message">{{ error.message }}</pre>
+        </details>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { NuxtError } from '#app'
+
+const props = defineProps<{
+  error: NuxtError
+}>()
+
+const { t } = useI18n()
+
+const getErrorTitle = (): string => {
+  if (props.error.statusCode === 404) {
+    return t('error_404')
+  }
+  if (props.error.statusCode === 500) {
+    return t('error_500')
+  }
+  return t('error_other')
+}
+
+const getErrorDescription = (): string => {
+  if (props.error.statusCode === 404) {
+    return t('description_404')
+  }
+  if (props.error.statusCode === 500) {
+    return t('description_500')
+  }
+  return t('description_other')
+}
+
+const handleClearError = async (): Promise<void> => {
+  await clearError({ redirect: '/' })
+}
+
+const goBack = async (): Promise<void> => {
+  if (window.history.length > 1) {
+    window.history.back()
+  } else {
+    await navigateTo('/')
+  }
+}
+</script>
+
+<style scoped lang="scss">
+@use '#showcases/app/assets/styles/variables' as v;
+@use '#showcases/app/assets/styles/mixins' as m;
+
+.error-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 100vh;
+  padding: v.space(4);
+
+  color: #333;
+
+  background-color: #f8f9fa;
+}
+
+.error-container {
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+}
+
+.error-icon {
+  margin-bottom: v.space(6);
+}
+
+.error-code {
+  display: inline-block;
+
+  width: 120px;
+  height: 120px;
+  margin: 0 auto v.space(4);
+  border: 4px solid #dc3545;
+  border-radius: 50%;
+
+  font-size: 48px;
+  font-weight: bold;
+  line-height: 112px;
+  color: #dc3545;
+
+  background-color: rgba(#dc3545, 0.1);
+
+  @include m.sp {
+    width: 80px;
+    height: 80px;
+    font-size: 32px;
+    line-height: 72px;
+  }
+}
+
+.error-title {
+  margin-bottom: v.space(4);
+  font-size: 32px;
+  font-weight: bold;
+  color: #212529;
+
+  @include m.sp {
+    font-size: 24px;
+  }
+}
+
+.error-description {
+  margin-bottom: v.space(8);
+  font-size: 16px;
+  line-height: 1.6;
+  color: #6c757d;
+
+  @include m.sp {
+    margin-bottom: v.space(6);
+    font-size: 14px;
+  }
+}
+
+.error-actions {
+  display: flex;
+  gap: v.space(4);
+  justify-content: center;
+  margin-bottom: v.space(8);
+
+  @include m.sp {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+.error-button {
+  cursor: pointer;
+
+  padding: v.space(3) v.space(6);
+  border: 2px solid transparent;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+
+  transition: all 0.3s ease;
+
+  @include m.sp {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  &.-primary {
+    border-color: #007bff;
+    color: #fff;
+    background-color: #007bff;
+
+    @include m.hover {
+      border-color: #0056b3;
+      background-color: #0056b3;
+    }
+  }
+
+  &.-secondary {
+    border-color: #6c757d;
+    color: #6c757d;
+    background-color: transparent;
+
+    @include m.hover {
+      color: #fff;
+      background-color: #6c757d;
+    }
+  }
+}
+
+.error-details {
+  margin-top: v.space(6);
+  text-align: left;
+
+  details {
+    padding: v.space(2);
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background-color: #fff;
+
+    summary {
+      cursor: pointer;
+      margin-bottom: v.space(2);
+      font-weight: 500;
+      color: #007bff;
+
+      @include m.hover {
+        color: #0056b3;
+      }
+    }
+  }
+}
+
+.error-message {
+  overflow-x: auto;
+
+  padding: v.space(3);
+  border-radius: 4px;
+
+  font-family: monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #495057;
+
+  background-color: #f8f9fa;
+
+  @include m.sp {
+    font-size: 11px;
+  }
+}
+</style>
+````
+
+## File: layers/showcases/config/models/EnvType.ts
+````typescript
+/**
+ * nuxt.config.tsのためのモジュール。
+ *
+ * @packageDocumentation
+ */
+
+export type EnvType = 'local' | 'development' | 'staging' | 'production'
+
+export const allEnvTypes = [
+  'local',
+  'development',
+  'staging',
+  'production',
+] as const
+
+export function isEnvType(x: unknown): x is EnvType {
+  const envTypes: readonly unknown[] = allEnvTypes
+  return envTypes.includes(x)
+}
+
+export function ensureEnvType(x: unknown): asserts x is EnvType {
+  if (!isEnvType(x)) {
+    throw new TypeError('Not an EnvType.')
+  }
+}
+
+export type Env = Record<string, string | undefined>
+
+/**
+ * baseEnv.VITE_OUTPUT_ENVを読みだします。
+ * これが未指定の場合は'local'にフォールバックします。
+ * これが不明な値（EnvTypeでない）場合は例外を送出します。
+ *
+ * ```typescript
+ * const envType = readEnvType(process.env)
+ * ```
+ */
+export function readEnvType(baseEnv: Env): EnvType {
+  if (baseEnv.VITE_OUTPUT_ENV === undefined) {
+    console.error('No VITE_OUTPUT_ENV is set.')
+    return 'local'
+  }
+
+  ensureEnvType(baseEnv.VITE_OUTPUT_ENV)
+  return baseEnv.VITE_OUTPUT_ENV
+}
+````
+
+## File: layers/showcases/config/appConfig.ts
+````typescript
+/**
+ * app.config.tsのためのモジュール。
+ *
+ * @packageDocumentation
+ */
+
+import { EnvType, Env } from './models/EnvType'
+
+/**
+ * ```typescript
+ * const appConfig = getAppConfigOfEnvType('local', process.env)
+ * ```
+ */
+export function getAppConfigOfEnvType(envType: EnvType, baseEnv: Env) {
+  switch (envType) {
+    case 'local':
+      return getLocal(envType, baseEnv)
+    case 'development':
+      return getDevelopment(envType, baseEnv)
+    case 'staging':
+      return getStaging(envType, baseEnv)
+    case 'production':
+      return getProduction(envType, baseEnv)
+  }
+}
+
+function getLocal(_envType: EnvType, _baseEnv: Env) {
+  return {}
+}
+
+function getDevelopment(_envType: EnvType, _baseEnv: Env) {
+  return {}
+}
+
+function getStaging(_envType: EnvType, _baseEnv: Env) {
+  return {}
+}
+
+function getProduction(_envType: EnvType, _baseEnv: Env) {
+  return {}
+}
+````
+
+## File: layers/showcases/config/runtimeConfig.ts
+````typescript
+/**
+ * nuxt.config.tsのためのモジュール。
+ *
+ * @packageDocumentation
+ */
+
+import { Env, EnvType } from './models/EnvType'
+
+export function getRuntimeConfigOfEnvType(envType: EnvType, baseEnv: Env) {
+  switch (envType) {
+    case 'local':
+      return getLocal(envType, baseEnv)
+    case 'development':
+      return getDevelopment(envType, baseEnv)
+    case 'staging':
+      return getStaging(envType, baseEnv)
+    case 'production':
+      return getProduction(envType, baseEnv)
+  }
+}
+
+const commonPrivate = {} as const
+
+const commonPublic = {
+  gtmId: 'GTM-XXXXXXX',
+  apiPrefix: process.env.NUXT_API_PREFIX ?? '/api/v1',
+} as const
+
+function getLocal(envType: EnvType, _baseEnv: Env) {
+  return {
+    ...commonPrivate,
+
+    public: {
+      ...commonPublic,
+      outputEnv: envType,
+      url: 'http://localhost:3000',
+      baseUrl: 'http://localhost:3000',
+      httpBinUrl: 'http://localhost:3003',
+    },
+  } as const
+}
+
+function getDevelopment(envType: EnvType, _baseEnv: Env) {
+  return {
+    ...commonPrivate,
+
+    public: {
+      ...commonPublic,
+      outputEnv: envType,
+      url: 'http://localhost:3000',
+      baseUrl: 'http://localhost:3000',
+    },
+  } as const
+}
+
+function getStaging(envType: EnvType, _baseEnv: Env) {
+  return {
+    ...commonPrivate,
+
+    public: {
+      ...commonPublic,
+      outputEnv: envType,
+      url: '',
+      baseUrl: '',
+    },
+  } as const
+}
+
+function getProduction(envType: EnvType, _baseEnv: Env) {
+  return {
+    ...commonPrivate,
+
+    public: {
+      ...commonPublic,
+      gtmId: 'GTM-XXXXXXX',
+      outputEnv: envType,
+      url: '',
+      baseUrl: '',
+    },
+  } as const
+}
+````
+
+## File: layers/showcases/i18n/locales/en.json
+````json
+{
+  "hello": "Hello!",
+  "language": "language"
+}
+````
+
+## File: layers/showcases/i18n/locales/ja.json
+````json
+{
+  "hello": "こんにちは！",
+  "language": "言語"
+}
+````
+
+## File: layers/showcases/public/_robots.txt
+````
+User-agent: *
+Disallow:
+````
+
+## File: layers/showcases/server/tsconfig.json
+````json
+{
+  "extends": "../.nuxt/tsconfig.server.json"
+}
+````
+
+## File: layers/showcases/.stylelintrc.mjs
+````
+export default {
+  extends: ["../../.stylelintrc.shared.mjs"],
+};
+````
+
+## File: layers/showcases/app.config.ts
+````typescript
+// ref: https://v3.nuxtjs.org/guide/directory-structure/app.config
+// note: Do not put any secret values inside app.config file. It is exposed to the user client bundle.
+
+import { readEnvType } from './config/models/EnvType'
+import { getAppConfigOfEnvType } from './config/appConfig'
+
+// eslint-disable-next-line no-undef
+export default defineAppConfig(
+  getAppConfigOfEnvType(readEnvType(process.env), process.env)
+)
+````
+
+## File: layers/showcases/tsconfig.json
+````json
+{
+  // https://nuxt.com/docs/guide/concepts/typescript
+  "extends": [
+    "./.nuxt/tsconfig.server.json",
+    "./.nuxt/tsconfig.json",
+    "../base/tsconfig.shared.json"
+  ],
+  "exclude": ["../base/**/*", "../main/**/*"]
+}
+````
+
+## File: layers/showcases/@types/auto-imports.d.ts
+````typescript
+/* eslint-disable */
+/* prettier-ignore */
+// @ts-nocheck
+// noinspection JSUnusedGlobalSymbols
+// Generated by unplugin-auto-import
+// biome-ignore lint: disable
+export {}
+declare global {
+  const EffectScope: typeof import('vue')['EffectScope']
+  const abortNavigation: typeof import('#app')['abortNavigation']
+  const addRouteMiddleware: typeof import('#app')['addRouteMiddleware']
+  const api: typeof import('../app/utils/api')['default']
+  const cancelIdleCallback: typeof import('#app')['cancelIdleCallback']
+  const clearError: typeof import('#app')['clearError']
+  const clearNuxtData: typeof import('#app')['clearNuxtData']
+  const clearNuxtState: typeof import('#app')['clearNuxtState']
+  const computed: typeof import('vue')['computed']
+  const createApp: typeof import('vue')['createApp']
+  const createError: typeof import('#app')['createError']
+  const customRef: typeof import('vue')['customRef']
+  const defineAppConfig: typeof import('#app')['defineAppConfig']
+  const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
+  const defineComponent: typeof import('vue')['defineComponent']
+  const defineI18nConfig: typeof import('#i18n')['defineI18nConfig']
+  const defineI18nLocale: typeof import('#i18n')['defineI18nLocale']
+  const defineI18nRoute: typeof import('#i18n')['defineI18nRoute']
+  const defineNuxtComponent: typeof import('#app')['defineNuxtComponent']
+  const defineNuxtLink: typeof import('#app')['defineNuxtLink']
+  const defineNuxtPlugin: typeof import('#app')['defineNuxtPlugin']
+  const defineNuxtRouteMiddleware: typeof import('#app')['defineNuxtRouteMiddleware']
+  const definePayloadPlugin: typeof import('#app')['definePayloadPlugin']
+  const definePayloadReducer: typeof import('#app')['definePayloadReducer']
+  const definePayloadReviver: typeof import('#app')['definePayloadReviver']
+  const effectScope: typeof import('vue')['effectScope']
+  const fetcher: typeof import('../app/composables/useApi')['fetcher']
+  const getAppManifest: typeof import('#app')['getAppManifest']
+  const getCurrentInstance: typeof import('vue')['getCurrentInstance']
+  const getCurrentScope: typeof import('vue')['getCurrentScope']
+  const getCurrentWatcher: typeof import('vue')['getCurrentWatcher']
+  const getI18nArray: typeof import('../app/utils/i18n')['getI18nArray']
+  const getRouteRules: typeof import('#app')['getRouteRules']
+  const h: typeof import('vue')['h']
+  const inject: typeof import('vue')['inject']
+  const isNuxtError: typeof import('#app')['isNuxtError']
+  const isPrerendered: typeof import('#app')['isPrerendered']
+  const isProxy: typeof import('vue')['isProxy']
+  const isReactive: typeof import('vue')['isReactive']
+  const isReadonly: typeof import('vue')['isReadonly']
+  const isRef: typeof import('vue')['isRef']
+  const isShallow: typeof import('vue')['isShallow']
+  const loadPayload: typeof import('#app')['loadPayload']
+  const markRaw: typeof import('vue')['markRaw']
+  const navigateTo: typeof import('#app')['navigateTo']
+  const nextTick: typeof import('vue')['nextTick']
+  const onActivated: typeof import('vue')['onActivated']
+  const onBeforeMount: typeof import('vue')['onBeforeMount']
+  const onBeforeRouteLeave: typeof import('#app')['onBeforeRouteLeave']
+  const onBeforeRouteUpdate: typeof import('#app')['onBeforeRouteUpdate']
+  const onBeforeUnmount: typeof import('vue')['onBeforeUnmount']
+  const onBeforeUpdate: typeof import('vue')['onBeforeUpdate']
+  const onDeactivated: typeof import('vue')['onDeactivated']
+  const onErrorCaptured: typeof import('vue')['onErrorCaptured']
+  const onMounted: typeof import('vue')['onMounted']
+  const onNuxtReady: typeof import('#app')['onNuxtReady']
+  const onRenderTracked: typeof import('vue')['onRenderTracked']
+  const onRenderTriggered: typeof import('vue')['onRenderTriggered']
+  const onScopeDispose: typeof import('vue')['onScopeDispose']
+  const onServerPrefetch: typeof import('vue')['onServerPrefetch']
+  const onUnmounted: typeof import('vue')['onUnmounted']
+  const onUpdated: typeof import('vue')['onUpdated']
+  const onWatcherCleanup: typeof import('vue')['onWatcherCleanup']
+  const prefetchComponents: typeof import('#app')['prefetchComponents']
+  const preloadComponents: typeof import('#app')['preloadComponents']
+  const preloadPayload: typeof import('#app')['preloadPayload']
+  const preloadRouteComponents: typeof import('#app')['preloadRouteComponents']
+  const prerenderRoutes: typeof import('#app')['prerenderRoutes']
+  const provide: typeof import('vue')['provide']
+  const reactive: typeof import('vue')['reactive']
+  const readonly: typeof import('vue')['readonly']
+  const ref: typeof import('vue')['ref']
+  const refreshNuxtData: typeof import('#app')['refreshNuxtData']
+  const reloadNuxtApp: typeof import('#app')['reloadNuxtApp']
+  const repositories: typeof import('../app/utils/factory')['repositories']
+  const repositoryFactory: typeof import('../app/utils/factory')['repositoryFactory']
+  const requestIdleCallback: typeof import('#app')['requestIdleCallback']
+  const resolveComponent: typeof import('vue')['resolveComponent']
+  const setPageLayout: typeof import('#app')['setPageLayout']
+  const setResponseStatus: typeof import('#app')['setResponseStatus']
+  const shallowReactive: typeof import('vue')['shallowReactive']
+  const shallowReadonly: typeof import('vue')['shallowReadonly']
+  const shallowRef: typeof import('vue')['shallowRef']
+  const showError: typeof import('#app')['showError']
+  const toRaw: typeof import('vue')['toRaw']
+  const toRef: typeof import('vue')['toRef']
+  const toRefs: typeof import('vue')['toRefs']
+  const toValue: typeof import('vue')['toValue']
+  const triggerRef: typeof import('vue')['triggerRef']
+  const unref: typeof import('vue')['unref']
+  const updateAppConfig: typeof import('#app')['updateAppConfig']
+  const useApi: typeof import('../app/composables/useApi')['default']
+  const useAppConfig: typeof import('#app')['useAppConfig']
+  const useAsyncData: typeof import('#app')['useAsyncData']
+  const useAttrs: typeof import('vue')['useAttrs']
+  const useBrowserLocale: typeof import('#i18n')['useBrowserLocale']
+  const useCookie: typeof import('#app')['useCookie']
+  const useCookieLocale: typeof import('#i18n')['useCookieLocale']
+  const useCssModule: typeof import('vue')['useCssModule']
+  const useCssVars: typeof import('vue')['useCssVars']
+  const useError: typeof import('#app')['useError']
+  const useFetch: typeof import('#app')['useFetch']
+  const useI18n: typeof import('vue-i18n')['useI18n']
+  const useId: typeof import('vue')['useId']
+  const useLazyAsyncData: typeof import('#app')['useLazyAsyncData']
+  const useLazyFetch: typeof import('#app')['useLazyFetch']
+  const useLocaleHead: typeof import('#i18n')['useLocaleHead']
+  const useLocalePath: typeof import('#i18n')['useLocalePath']
+  const useLocaleRoute: typeof import('#i18n')['useLocaleRoute']
+  const useModel: typeof import('vue')['useModel']
+  const useNuxtApp: typeof import('#app')['useNuxtApp']
+  const useNuxtData: typeof import('#app')['useNuxtData']
+  const useRequestEvent: typeof import('#app')['useRequestEvent']
+  const useRequestFetch: typeof import('#app')['useRequestFetch']
+  const useRequestHeaders: typeof import('#app')['useRequestHeaders']
+  const useRequestURL: typeof import('#app')['useRequestURL']
+  const useRoute: typeof import('#app')['useRoute']
+  const useRouteBaseName: typeof import('#i18n')['useRouteBaseName']
+  const useRouter: typeof import('#app')['useRouter']
+  const useRuntimeConfig: typeof import('#app')['useRuntimeConfig']
+  const useSlots: typeof import('vue')['useSlots']
+  const useState: typeof import('#app')['useState']
+  const useSwitchLocalePath: typeof import('#i18n')['useSwitchLocalePath']
+  const useTemplateRef: typeof import('vue')['useTemplateRef']
+  const watch: typeof import('vue')['watch']
+  const watchEffect: typeof import('vue')['watchEffect']
+  const watchPostEffect: typeof import('vue')['watchPostEffect']
+  const watchSyncEffect: typeof import('vue')['watchSyncEffect']
+}
+// for type re-export
+declare global {
+  // @ts-ignore
+  export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, ShallowRef, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
+  import('vue')
+  // @ts-ignore
+  export type { Method } from '../app/utils/api'
+  import('../app/utils/api')
+  // @ts-ignore
+  export type { Repository, Repositories, RepositoryKey } from '../app/utils/factory'
+  import('../app/utils/factory')
+  // @ts-ignore
+  export type { UseI18nReturnType } from '../app/utils/i18n'
+  import('../app/utils/i18n')
+}
 ````
 
 ## File: layers/showcases/app/components/ho/animista/HoAnimistaFlip.vue
@@ -3036,1600 +6748,6 @@ onMounted(() => {
 </style>
 ````
 
-## File: layers/showcases/app/composables/useApi.ts
-````typescript
-/**
- * Nuxt3 FWにおける API composables。
- *
- * @packageDocumentation
- */
-
-import { useFetch, UseFetchOptions } from 'nuxt/app'
-import type { FetchOptions } from 'ofetch'
-import { ref } from 'vue'
-import { repositoryFactory, RepositoryKey } from '#showcases/app/utils/factory'
-
-export const fetcher = (
-  path: string,
-  options: UseFetchOptions<FetchOptions>,
-) => {
-  return useFetch(path, options)
-}
-
-const _getRepo = <K extends RepositoryKey>(endpoint: K) => {
-  return repositoryFactory.get(endpoint)
-}
-
-export default function useApi<K extends RepositoryKey>(endpoint: K) {
-  const repository = ref(_getRepo(endpoint))
-  return {
-    repository,
-  }
-}
-````
-
-## File: layers/showcases/app/layouts/default.vue
-````vue
-<template>
-  <div class="layout -default">
-    <h1 class="heading">
-      show cases App Nuxt3
-    </h1>
-    <slot />
-  </div>
-</template>
-
-<style lang="scss" scoped>
-.layout.-default {
-  overflow-x: hidden;
-}
-</style>
-````
-
-## File: layers/showcases/app/layouts/top.vue
-````vue
-<template>
-  <div class="layout -top">
-    <HoTheHeader />
-    <slot />
-    <HoTheFooter />
-  </div>
-</template>
-
-<style lang="scss" scoped>
-.layout.-top {
-  overflow-x: hidden;
-}
-</style>
-````
-
-## File: layers/showcases/app/pages/index.vue
-````vue
-<template>
-  <HtTop />
-</template>
-
-<script setup lang="ts">
-definePageMeta({
-  layout: 'top',
-})
-</script>
-````
-
-## File: layers/showcases/app/plugins/gtm.client.ts
-````typescript
-import { createGtm } from '@gtm-support/vue-gtm'
-import { defineNuxtPlugin } from 'nuxt/app'
-
-export default defineNuxtPlugin(() => {
-  const config = useRuntimeConfig()
-  createGtm({ id: config.public?.gtmId, enabled: true })
-})
-````
-
-## File: layers/showcases/app/plugins/runtimeConfig.ts
-````typescript
-import { defineNuxtPlugin } from 'nuxt/app'
-import type { RuntimeConfig } from 'nuxt/schema'
-
-/**
- * 型を退化されたruntimeConfig。
- * [[requireRuntimeConfig]]のために、退化されました。
- */
-let runtimeConfig: RuntimeConfig | undefined
-
-export default defineNuxtPlugin(({ $config }) => {
-  if ($config === undefined) {
-    throw new TypeError('#showcases/app/plugins/runtimeConfig failed.')
-  }
-  runtimeConfig = $config
-})
-
-type Config = Record<string, string | undefined>
-type ProcessEnv = Config & {
-  public?: Config
-}
-/**
- * useRuntimeConfig()が使えないときに使う、同等な関数。
- */
-export const requireRuntimeConfig: () => ProcessEnv | RuntimeConfig = () => {
-  if (runtimeConfig !== undefined) {
-    return runtimeConfig
-  }
-
-  // playwrightテスト用
-  if (process?.env !== undefined) {
-    return process.env
-  }
-
-  throw new TypeError('#showcases/app/plugins/runtimeConfig: Not satisfied.')
-}
-````
-
-## File: layers/showcases/app/test/composables/useApi.spec.ts
-````typescript
-// NOTE: そもそももっといいテストあれば是非
-import { UseFetchOptions } from 'nuxt/app'
-import { FetchOptions } from 'ofetch'
-import useApi, { fetcher } from '@/composables/useApi'
-
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-  useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
-    return { path, options }
-  }),
-}))
-
-test('useApi', () => {
-  // NOTE: useApiで使用できるRepositoryKeyを入れた際にオブジェクトが返ってくること。この場合useApi('hoge')など存在しない場合はテストが落ちる
-  const useApiExample = useApi('example').repository.value
-  const expectObj = { get: {} }
-  expect(useApiExample).toMatchObject(expectObj)
-})
-
-test('fetcher', () => {
-  const path = '/example'
-  const options = {}
-  // useFetchが発火することを確認。戻り値はmockの戻り値とする
-  expect(fetcher(path, options)).toStrictEqual({ path, options })
-})
-````
-
-## File: layers/showcases/app/test/utils/@types/auto-imports.d.ts
-````typescript
-/* eslint-disable */
-/* prettier-ignore */
-// @ts-nocheck
-// noinspection JSUnusedGlobalSymbols
-// Generated by unplugin-auto-import
-// biome-ignore lint: disable
-export {}
-declare global {
-  const EffectScope: typeof import('vue')['EffectScope']
-  const abortNavigation: typeof import('#app')['abortNavigation']
-  const addRouteMiddleware: typeof import('#app')['addRouteMiddleware']
-  const cancelIdleCallback: typeof import('#app')['cancelIdleCallback']
-  const clearError: typeof import('#app')['clearError']
-  const clearNuxtData: typeof import('#app')['clearNuxtData']
-  const clearNuxtState: typeof import('#app')['clearNuxtState']
-  const computed: typeof import('vue')['computed']
-  const createApp: typeof import('vue')['createApp']
-  const createError: typeof import('#app')['createError']
-  const customRef: typeof import('vue')['customRef']
-  const defineAppConfig: typeof import('#app')['defineAppConfig']
-  const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
-  const defineComponent: typeof import('vue')['defineComponent']
-  const defineI18nConfig: typeof import('#i18n')['defineI18nConfig']
-  const defineI18nLocale: typeof import('#i18n')['defineI18nLocale']
-  const defineI18nRoute: typeof import('#i18n')['defineI18nRoute']
-  const defineNuxtComponent: typeof import('#app')['defineNuxtComponent']
-  const defineNuxtLink: typeof import('#app')['defineNuxtLink']
-  const defineNuxtPlugin: typeof import('#app')['defineNuxtPlugin']
-  const defineNuxtRouteMiddleware: typeof import('#app')['defineNuxtRouteMiddleware']
-  const definePayloadPlugin: typeof import('#app')['definePayloadPlugin']
-  const definePayloadReducer: typeof import('#app')['definePayloadReducer']
-  const definePayloadReviver: typeof import('#app')['definePayloadReviver']
-  const effectScope: typeof import('vue')['effectScope']
-  const getAppManifest: typeof import('#app')['getAppManifest']
-  const getCurrentInstance: typeof import('vue')['getCurrentInstance']
-  const getCurrentScope: typeof import('vue')['getCurrentScope']
-  const getRouteRules: typeof import('#app')['getRouteRules']
-  const h: typeof import('vue')['h']
-  const inject: typeof import('vue')['inject']
-  const isNuxtError: typeof import('#app')['isNuxtError']
-  const isPrerendered: typeof import('#app')['isPrerendered']
-  const isProxy: typeof import('vue')['isProxy']
-  const isReactive: typeof import('vue')['isReactive']
-  const isReadonly: typeof import('vue')['isReadonly']
-  const isRef: typeof import('vue')['isRef']
-  const loadPayload: typeof import('#app')['loadPayload']
-  const markRaw: typeof import('vue')['markRaw']
-  const navigateTo: typeof import('#app')['navigateTo']
-  const nextTick: typeof import('vue')['nextTick']
-  const onActivated: typeof import('vue')['onActivated']
-  const onBeforeMount: typeof import('vue')['onBeforeMount']
-  const onBeforeRouteLeave: typeof import('#app')['onBeforeRouteLeave']
-  const onBeforeRouteUpdate: typeof import('#app')['onBeforeRouteUpdate']
-  const onBeforeUnmount: typeof import('vue')['onBeforeUnmount']
-  const onBeforeUpdate: typeof import('vue')['onBeforeUpdate']
-  const onDeactivated: typeof import('vue')['onDeactivated']
-  const onErrorCaptured: typeof import('vue')['onErrorCaptured']
-  const onMounted: typeof import('vue')['onMounted']
-  const onNuxtReady: typeof import('#app')['onNuxtReady']
-  const onRenderTracked: typeof import('vue')['onRenderTracked']
-  const onRenderTriggered: typeof import('vue')['onRenderTriggered']
-  const onScopeDispose: typeof import('vue')['onScopeDispose']
-  const onServerPrefetch: typeof import('vue')['onServerPrefetch']
-  const onUnmounted: typeof import('vue')['onUnmounted']
-  const onUpdated: typeof import('vue')['onUpdated']
-  const onWatcherCleanup: typeof import('vue')['onWatcherCleanup']
-  const prefetchComponents: typeof import('#app')['prefetchComponents']
-  const preloadComponents: typeof import('#app')['preloadComponents']
-  const preloadPayload: typeof import('#app')['preloadPayload']
-  const preloadRouteComponents: typeof import('#app')['preloadRouteComponents']
-  const prerenderRoutes: typeof import('#app')['prerenderRoutes']
-  const provide: typeof import('vue')['provide']
-  const reactive: typeof import('vue')['reactive']
-  const readonly: typeof import('vue')['readonly']
-  const ref: typeof import('vue')['ref']
-  const refreshNuxtData: typeof import('#app')['refreshNuxtData']
-  const reloadNuxtApp: typeof import('#app')['reloadNuxtApp']
-  const requestIdleCallback: typeof import('#app')['requestIdleCallback']
-  const resolveComponent: typeof import('vue')['resolveComponent']
-  const setPageLayout: typeof import('#app')['setPageLayout']
-  const setResponseStatus: typeof import('#app')['setResponseStatus']
-  const shallowReactive: typeof import('vue')['shallowReactive']
-  const shallowReadonly: typeof import('vue')['shallowReadonly']
-  const shallowRef: typeof import('vue')['shallowRef']
-  const showError: typeof import('#app')['showError']
-  const toRaw: typeof import('vue')['toRaw']
-  const toRef: typeof import('vue')['toRef']
-  const toRefs: typeof import('vue')['toRefs']
-  const toValue: typeof import('vue')['toValue']
-  const triggerRef: typeof import('vue')['triggerRef']
-  const unref: typeof import('vue')['unref']
-  const updateAppConfig: typeof import('#app')['updateAppConfig']
-  const useAppConfig: typeof import('#app')['useAppConfig']
-  const useAsyncData: typeof import('#app')['useAsyncData']
-  const useAttrs: typeof import('vue')['useAttrs']
-  const useBrowserLocale: typeof import('#i18n')['useBrowserLocale']
-  const useCookie: typeof import('#app')['useCookie']
-  const useCookieLocale: typeof import('#i18n')['useCookieLocale']
-  const useCssModule: typeof import('vue')['useCssModule']
-  const useCssVars: typeof import('vue')['useCssVars']
-  const useError: typeof import('#app')['useError']
-  const useFetch: typeof import('#app')['useFetch']
-  const useI18n: typeof import('vue-i18n')['useI18n']
-  const useId: typeof import('vue')['useId']
-  const useLazyAsyncData: typeof import('#app')['useLazyAsyncData']
-  const useLazyFetch: typeof import('#app')['useLazyFetch']
-  const useLocaleHead: typeof import('#i18n')['useLocaleHead']
-  const useLocalePath: typeof import('#i18n')['useLocalePath']
-  const useLocaleRoute: typeof import('#i18n')['useLocaleRoute']
-  const useModel: typeof import('vue')['useModel']
-  const useNuxtApp: typeof import('#app')['useNuxtApp']
-  const useNuxtData: typeof import('#app')['useNuxtData']
-  const useRequestEvent: typeof import('#app')['useRequestEvent']
-  const useRequestFetch: typeof import('#app')['useRequestFetch']
-  const useRequestHeaders: typeof import('#app')['useRequestHeaders']
-  const useRequestURL: typeof import('#app')['useRequestURL']
-  const useRoute: typeof import('#app')['useRoute']
-  const useRouteBaseName: typeof import('#i18n')['useRouteBaseName']
-  const useRouter: typeof import('#app')['useRouter']
-  const useRuntimeConfig: typeof import('#app')['useRuntimeConfig']
-  const useSlots: typeof import('vue')['useSlots']
-  const useState: typeof import('#app')['useState']
-  const useSwitchLocalePath: typeof import('#i18n')['useSwitchLocalePath']
-  const useTemplateRef: typeof import('vue')['useTemplateRef']
-  const watch: typeof import('vue')['watch']
-  const watchEffect: typeof import('vue')['watchEffect']
-  const watchPostEffect: typeof import('vue')['watchPostEffect']
-  const watchSyncEffect: typeof import('vue')['watchSyncEffect']
-}
-// for type re-export
-declare global {
-  // @ts-ignore
-  export type { Component, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
-  import('vue')
-}
-````
-
-## File: layers/showcases/app/test/utils/@types/components.d.ts
-````typescript
-/* eslint-disable */
-// @ts-nocheck
-// Generated by unplugin-vue-components
-// Read more: https://github.com/vuejs/core/pull/3399
-export {}
-
-/* prettier-ignore */
-declare module 'vue' {
-  export interface GlobalComponents {
-    RouterLink: typeof import('vue-router')['RouterLink']
-    RouterView: typeof import('vue-router')['RouterView']
-  }
-}
-````
-
-## File: layers/showcases/app/test/utils/api.spec.ts
-````typescript
-import type { NitroFetchRequest } from 'nitropack'
-import api from '#showcases/app/utils/api'
-
-// NOTE: mockを使う際に必要な記述
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-}))
-
-// NOTE: src/utils/api.tsのテストとして当該ファイルがimportしているファイルからの変数「requireRuntimeConfig」をモックする。
-vi.mock('#base/app/plugins/runtimeConfig', () => {
-  return {
-    requireRuntimeConfig: vi.fn(() => {
-      // NOTE: api.tsのテストとしてrequireRuntimeConfigが{public.baseUrl}としてダミーURLを返すだけの処理を行うようにモックする
-      return {
-        public: {
-          baseUrl: '/test-api',
-        },
-      }
-    }),
-  }
-})
-
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-vi.mock('#base/app/plugins/fetch', () => {
-  return {
-    pluginFetchApi: vi.fn((path: string, options: NitroFetchRequest) => {
-      return { path, options }
-    }),
-  }
-})
-
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-vi.mock('ofetch', () => {
-  return {
-    $fetch: vi.fn((path: string, options: NitroFetchRequest) => {
-      return { path, options }
-    }),
-  }
-})
-
-describe('api', () => {
-  // NOTE: api.getの返却値のテストとして、引数のpathやfetchOptionを入力して、返却値として期待するexpectObjと同等かテストする。その際、onRequestとonResponseは複雑化するので、空オブジェクトで省略としてtoMatchObjectで合格するか検査する。
-  it('get', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'GET',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('get', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('post', async () => {
-    // NOET: 以下getと同様にテストする。methodはgetではなく、相送信methodに準じた値に変化するので注意
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'POST',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('post', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('put', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'PUT',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('put', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('patch', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'PATCH',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('patch', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-  it('delete', async () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'DELETE',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    const result = await api('delete', path, fetchOptions)
-    expect(result).toMatchObject(expectObj)
-  })
-})
-````
-
-## File: layers/showcases/app/test/utils/factory.spec.ts
-````typescript
-import { describe, expect, it } from 'vitest'
-import exampleRepository from '#base/app/repositories/exampleRepository'
-import {
-  defaultRepositories,
-  defaultRepositoryFactory,
-} from '#base/app/utils/default-factory'
-
-// NOTE: mockを使う際に必要な記述
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-}))
-
-describe('defaultRepositoryFactory', () => {
-  it('should return the correct repository when a valid key is provided', () => {
-    const repository = defaultRepositoryFactory.get('example')
-    expect(repository).toBe(exampleRepository)
-  })
-})
-
-describe('defaultRepositories', () => {
-  it('should contain the example repository', () => {
-    expect(defaultRepositories.example).toBe(exampleRepository)
-  })
-})
-````
-
-## File: layers/showcases/app/test/utils/i18n.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { createI18n } from 'vue-i18n'
-
-test('getI18nArray takes a list from vue-i18n dict', () => {
-  const i18n = createI18n({
-    locale: 'ja',
-    messages: {
-      ja: { list: ['a', 'b', 'c'] },
-      en: { list: ['a', 'b', 'c'] },
-    },
-  })
-
-  // useI18nがコンポーネントのsetup内でのみしか動かないので、コンポーネントを介してテストをする
-  mount(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (defineComponent as any)({
-      template: '<p>Nuxt ha iizo</p>',
-      setup: () => {
-        const i18n = useI18n()
-        expect(getI18nArray(i18n, 'list')).toEqual(['a', 'b', 'c'])
-      },
-    }),
-    {
-      global: {
-        plugins: [i18n],
-      },
-    },
-  )
-})
-````
-
-## File: layers/showcases/app/test/example.spec.ts
-````typescript
-/**
- * Showcases layer test example
- * This is a basic test to ensure the test environment is working
- */
-
-describe('Showcases Layer Tests', () => {
-  it('should have working test environment', () => {
-    expect(true).toBe(true)
-  })
-
-  it('should be able to test basic JavaScript functionality', () => {
-    const add = (a: number, b: number) => a + b
-    expect(add(2, 3)).toBe(5)
-  })
-})
-````
-
-## File: layers/showcases/app/utils/api.ts
-````typescript
-import { FetchOptions } from 'ofetch'
-import type { Method } from '#base/app/utils/default-api'
-import { defaultApi } from '#base/app/utils/default-api'
-
-export type { Method }
-
-export default (
-  method: Method,
-  path: string,
-  fetchOptions: FetchOptions = {},
-) => {
-  switch (method) {
-    case 'GET':
-    case 'get':
-      return defaultApi.get(path, fetchOptions)
-    case 'POST':
-    case 'post':
-      return defaultApi.post(path, fetchOptions)
-    case 'PUT':
-    case 'put':
-      return defaultApi.put(path, fetchOptions)
-    case 'PATCH':
-    case 'patch':
-      return defaultApi.patch(path, fetchOptions)
-    case 'DELETE':
-    case 'delete':
-      return defaultApi.delete(path, fetchOptions)
-    default:
-      return defaultApi.get(path, fetchOptions)
-  }
-}
-````
-
-## File: layers/showcases/app/utils/factory.ts
-````typescript
-import { type MakeRepository, defaultRepositories } from '#base/app/utils/default-factory'
-import { Method } from '#showcases/app/utils/api'
-
-export type Repository = MakeRepository<Method>
-export type Repositories = Record<string, Repository>
-
-export const repositories = {
-  ...defaultRepositories,
-  // Add non-default repositories here
-} as const satisfies Repositories
-
-export type RepositoryKey = keyof typeof repositories
-
-export const repositoryFactory = {
-  get: <K extends keyof typeof repositories>(name: K) => repositories[name],
-}
-````
-
-## File: layers/showcases/app/error.vue
-````vue
-<i18n lang="yaml">
-ja:
-  title: "エラーが発生しました"
-  back_home: "ホームに戻る"
-  back_previous: "前のページに戻る"
-  error_404: "ページが見つかりません"
-  error_500: "サーバーエラー"
-  error_other: "予期しないエラー"
-  description_404: "お探しのページは見つかりませんでした。URLをご確認いただくか、ホームページに戻ってもう一度お試しください。"
-  description_500: "サーバーに問題が発生しています。しばらく時間をおいてから再度お試しください。"
-  description_other: "申し訳ございませんが、予期しないエラーが発生しました。"
-  details: "エラー内容"
-en:
-  title: "An error occurred"
-  back_home: "Back to Home"
-  back_previous: "Go Back"
-  error_404: "Page Not Found"
-  error_500: "Server Error"
-  error_other: "Unexpected Error"
-  description_404: "The page you are looking for could not be found. Please check the URL or return to the home page and try again."
-  description_500: "There is a problem with the server. Please try again after some time."
-  description_other: "We apologize, but an unexpected error has occurred."
-  details: "Error Details"
-</i18n>
-
-<template>
-  <div class="error-page">
-    <div class="error-container">
-      <div class="error-icon">
-        <div class="error-code">
-          {{ error.statusCode }}
-        </div>
-      </div>
-
-      <h1 class="error-title">
-        {{ getErrorTitle() }}
-      </h1>
-
-      <p class="error-description">
-        {{ getErrorDescription() }}
-      </p>
-
-      <div class="error-actions">
-        <button
-          class="error-button -primary"
-          @click="handleClearError"
-        >
-          {{ t('back_home') }}
-        </button>
-
-        <button
-          class="error-button -secondary"
-          @click="goBack"
-        >
-          {{ t('back_previous') }}
-        </button>
-      </div>
-
-      <div class="error-details">
-        <details v-if="error.message">
-          <summary>{{ t('details') }}</summary>
-          <pre class="error-message">{{ error.message }}</pre>
-        </details>
-      </div>
-    </div>
-  </div>
-</template>
-
-<script setup lang="ts">
-import type { NuxtError } from '#app'
-
-const props = defineProps<{
-  error: NuxtError
-}>()
-
-const { t } = useI18n()
-
-const getErrorTitle = (): string => {
-  if (props.error.statusCode === 404) {
-    return t('error_404')
-  }
-  if (props.error.statusCode === 500) {
-    return t('error_500')
-  }
-  return t('error_other')
-}
-
-const getErrorDescription = (): string => {
-  if (props.error.statusCode === 404) {
-    return t('description_404')
-  }
-  if (props.error.statusCode === 500) {
-    return t('description_500')
-  }
-  return t('description_other')
-}
-
-const handleClearError = async (): Promise<void> => {
-  await clearError({ redirect: '/' })
-}
-
-const goBack = async (): Promise<void> => {
-  if (window.history.length > 1) {
-    window.history.back()
-  } else {
-    await navigateTo('/')
-  }
-}
-</script>
-
-<style scoped lang="scss">
-@use '#showcases/app/assets/styles/variables' as v;
-@use '#showcases/app/assets/styles/mixins' as m;
-
-.error-page {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  min-height: 100vh;
-  padding: v.space(4);
-
-  color: #333;
-
-  background-color: #f8f9fa;
-}
-
-.error-container {
-  width: 100%;
-  max-width: 600px;
-  text-align: center;
-}
-
-.error-icon {
-  margin-bottom: v.space(6);
-}
-
-.error-code {
-  display: inline-block;
-
-  width: 120px;
-  height: 120px;
-  margin: 0 auto v.space(4);
-  border: 4px solid #dc3545;
-  border-radius: 50%;
-
-  font-size: 48px;
-  font-weight: bold;
-  line-height: 112px;
-  color: #dc3545;
-
-  background-color: rgba(#dc3545, 0.1);
-
-  @include m.sp {
-    width: 80px;
-    height: 80px;
-    font-size: 32px;
-    line-height: 72px;
-  }
-}
-
-.error-title {
-  margin-bottom: v.space(4);
-  font-size: 32px;
-  font-weight: bold;
-  color: #212529;
-
-  @include m.sp {
-    font-size: 24px;
-  }
-}
-
-.error-description {
-  margin-bottom: v.space(8);
-  font-size: 16px;
-  line-height: 1.6;
-  color: #6c757d;
-
-  @include m.sp {
-    margin-bottom: v.space(6);
-    font-size: 14px;
-  }
-}
-
-.error-actions {
-  display: flex;
-  gap: v.space(4);
-  justify-content: center;
-  margin-bottom: v.space(8);
-
-  @include m.sp {
-    flex-direction: column;
-    align-items: center;
-  }
-}
-
-.error-button {
-  cursor: pointer;
-
-  padding: v.space(3) v.space(6);
-  border: 2px solid transparent;
-  border-radius: 8px;
-
-  font-size: 16px;
-  font-weight: 500;
-  text-decoration: none;
-
-  transition: all 0.3s ease;
-
-  @include m.sp {
-    width: 100%;
-    max-width: 280px;
-  }
-
-  &.-primary {
-    border-color: #007bff;
-    color: #fff;
-    background-color: #007bff;
-
-    @include m.hover {
-      border-color: #0056b3;
-      background-color: #0056b3;
-    }
-  }
-
-  &.-secondary {
-    border-color: #6c757d;
-    color: #6c757d;
-    background-color: transparent;
-
-    @include m.hover {
-      color: #fff;
-      background-color: #6c757d;
-    }
-  }
-}
-
-.error-details {
-  margin-top: v.space(6);
-  text-align: left;
-
-  details {
-    padding: v.space(2);
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    background-color: #fff;
-
-    summary {
-      cursor: pointer;
-      margin-bottom: v.space(2);
-      font-weight: 500;
-      color: #007bff;
-
-      @include m.hover {
-        color: #0056b3;
-      }
-    }
-  }
-}
-
-.error-message {
-  overflow-x: auto;
-
-  padding: v.space(3);
-  border-radius: 4px;
-
-  font-family: monospace;
-  font-size: 12px;
-  line-height: 1.4;
-  color: #495057;
-
-  background-color: #f8f9fa;
-
-  @include m.sp {
-    font-size: 11px;
-  }
-}
-</style>
-````
-
-## File: layers/showcases/config/models/EnvType.ts
-````typescript
-/**
- * nuxt.config.tsのためのモジュール。
- *
- * @packageDocumentation
- */
-
-export type EnvType = 'local' | 'development' | 'staging' | 'production'
-
-export const allEnvTypes = [
-  'local',
-  'development',
-  'staging',
-  'production',
-] as const
-
-export function isEnvType(x: unknown): x is EnvType {
-  const envTypes: readonly unknown[] = allEnvTypes
-  return envTypes.includes(x)
-}
-
-export function ensureEnvType(x: unknown): asserts x is EnvType {
-  if (!isEnvType(x)) {
-    throw new TypeError('Not an EnvType.')
-  }
-}
-
-export type Env = Record<string, string | undefined>
-
-/**
- * baseEnv.VITE_OUTPUT_ENVを読みだします。
- * これが未指定の場合は'local'にフォールバックします。
- * これが不明な値（EnvTypeでない）場合は例外を送出します。
- *
- * ```typescript
- * const envType = readEnvType(process.env)
- * ```
- */
-export function readEnvType(baseEnv: Env): EnvType {
-  if (baseEnv.VITE_OUTPUT_ENV === undefined) {
-    console.error('No VITE_OUTPUT_ENV is set.')
-    return 'local'
-  }
-
-  ensureEnvType(baseEnv.VITE_OUTPUT_ENV)
-  return baseEnv.VITE_OUTPUT_ENV
-}
-````
-
-## File: layers/showcases/config/appConfig.ts
-````typescript
-/**
- * app.config.tsのためのモジュール。
- *
- * @packageDocumentation
- */
-
-import { EnvType, Env } from './models/EnvType'
-
-/**
- * ```typescript
- * const appConfig = getAppConfigOfEnvType('local', process.env)
- * ```
- */
-export function getAppConfigOfEnvType(envType: EnvType, baseEnv: Env) {
-  switch (envType) {
-    case 'local':
-      return getLocal(envType, baseEnv)
-    case 'development':
-      return getDevelopment(envType, baseEnv)
-    case 'staging':
-      return getStaging(envType, baseEnv)
-    case 'production':
-      return getProduction(envType, baseEnv)
-  }
-}
-
-function getLocal(_envType: EnvType, _baseEnv: Env) {
-  return {}
-}
-
-function getDevelopment(_envType: EnvType, _baseEnv: Env) {
-  return {}
-}
-
-function getStaging(_envType: EnvType, _baseEnv: Env) {
-  return {}
-}
-
-function getProduction(_envType: EnvType, _baseEnv: Env) {
-  return {}
-}
-````
-
-## File: layers/showcases/config/runtimeConfig.ts
-````typescript
-/**
- * nuxt.config.tsのためのモジュール。
- *
- * @packageDocumentation
- */
-
-import { Env, EnvType } from './models/EnvType'
-
-export function getRuntimeConfigOfEnvType(envType: EnvType, baseEnv: Env) {
-  switch (envType) {
-    case 'local':
-      return getLocal(envType, baseEnv)
-    case 'development':
-      return getDevelopment(envType, baseEnv)
-    case 'staging':
-      return getStaging(envType, baseEnv)
-    case 'production':
-      return getProduction(envType, baseEnv)
-  }
-}
-
-const commonPrivate = {} as const
-
-const commonPublic = {
-  gtmId: 'GTM-XXXXXXX',
-  apiPrefix: process.env.NUXT_API_PREFIX ?? '/api/v1',
-} as const
-
-function getLocal(envType: EnvType, _baseEnv: Env) {
-  return {
-    ...commonPrivate,
-
-    public: {
-      ...commonPublic,
-      outputEnv: envType,
-      url: 'http://localhost:3000',
-      baseUrl: 'http://localhost:3000',
-      httpBinUrl: 'http://localhost:3003',
-    },
-  } as const
-}
-
-function getDevelopment(envType: EnvType, _baseEnv: Env) {
-  return {
-    ...commonPrivate,
-
-    public: {
-      ...commonPublic,
-      outputEnv: envType,
-      url: 'http://localhost:3000',
-      baseUrl: 'http://localhost:3000',
-    },
-  } as const
-}
-
-function getStaging(envType: EnvType, _baseEnv: Env) {
-  return {
-    ...commonPrivate,
-
-    public: {
-      ...commonPublic,
-      outputEnv: envType,
-      url: '',
-      baseUrl: '',
-    },
-  } as const
-}
-
-function getProduction(envType: EnvType, _baseEnv: Env) {
-  return {
-    ...commonPrivate,
-
-    public: {
-      ...commonPublic,
-      gtmId: 'GTM-XXXXXXX',
-      outputEnv: envType,
-      url: '',
-      baseUrl: '',
-    },
-  } as const
-}
-````
-
-## File: layers/showcases/i18n/locales/en.json
-````json
-{
-  "hello": "Hello!",
-  "language": "language"
-}
-````
-
-## File: layers/showcases/i18n/locales/ja.json
-````json
-{
-  "hello": "こんにちは！",
-  "language": "言語"
-}
-````
-
-## File: layers/showcases/public/_robots.txt
-````
-User-agent: *
-Disallow:
-````
-
-## File: layers/showcases/server/tsconfig.json
-````json
-{
-  "extends": "../.nuxt/tsconfig.server.json"
-}
-````
-
-## File: layers/showcases/.stylelintrc.mjs
-````
-export default {
-  extends: ["../../.stylelintrc.shared.mjs"],
-};
-````
-
-## File: layers/showcases/app.config.ts
-````typescript
-// ref: https://v3.nuxtjs.org/guide/directory-structure/app.config
-// note: Do not put any secret values inside app.config file. It is exposed to the user client bundle.
-
-import { readEnvType } from './config/models/EnvType'
-import { getAppConfigOfEnvType } from './config/appConfig'
-
-// eslint-disable-next-line no-undef
-export default defineAppConfig(
-  getAppConfigOfEnvType(readEnvType(process.env), process.env)
-)
-````
-
-## File: layers/showcases/tsconfig.json
-````json
-{
-  // https://nuxt.com/docs/guide/concepts/typescript
-  "extends": [
-    "./.nuxt/tsconfig.server.json",
-    "./.nuxt/tsconfig.json",
-    "../base/tsconfig.shared.json"
-  ],
-  "exclude": ["../base/**/*", "../main/**/*"]
-}
-````
-
-## File: layers/showcases/@types/auto-imports.d.ts
-````typescript
-/* eslint-disable */
-/* prettier-ignore */
-// @ts-nocheck
-// noinspection JSUnusedGlobalSymbols
-// Generated by unplugin-auto-import
-// biome-ignore lint: disable
-export {}
-declare global {
-  const EffectScope: typeof import('vue')['EffectScope']
-  const abortNavigation: typeof import('#app')['abortNavigation']
-  const addRouteMiddleware: typeof import('#app')['addRouteMiddleware']
-  const api: typeof import('../app/utils/api')['default']
-  const cancelIdleCallback: typeof import('#app')['cancelIdleCallback']
-  const clearError: typeof import('#app')['clearError']
-  const clearNuxtData: typeof import('#app')['clearNuxtData']
-  const clearNuxtState: typeof import('#app')['clearNuxtState']
-  const computed: typeof import('vue')['computed']
-  const createApp: typeof import('vue')['createApp']
-  const createError: typeof import('#app')['createError']
-  const customRef: typeof import('vue')['customRef']
-  const defineAppConfig: typeof import('#app')['defineAppConfig']
-  const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
-  const defineComponent: typeof import('vue')['defineComponent']
-  const defineI18nConfig: typeof import('#i18n')['defineI18nConfig']
-  const defineI18nLocale: typeof import('#i18n')['defineI18nLocale']
-  const defineI18nRoute: typeof import('#i18n')['defineI18nRoute']
-  const defineNuxtComponent: typeof import('#app')['defineNuxtComponent']
-  const defineNuxtLink: typeof import('#app')['defineNuxtLink']
-  const defineNuxtPlugin: typeof import('#app')['defineNuxtPlugin']
-  const defineNuxtRouteMiddleware: typeof import('#app')['defineNuxtRouteMiddleware']
-  const definePayloadPlugin: typeof import('#app')['definePayloadPlugin']
-  const definePayloadReducer: typeof import('#app')['definePayloadReducer']
-  const definePayloadReviver: typeof import('#app')['definePayloadReviver']
-  const effectScope: typeof import('vue')['effectScope']
-  const fetcher: typeof import('../app/composables/useApi')['fetcher']
-  const getAppManifest: typeof import('#app')['getAppManifest']
-  const getCurrentInstance: typeof import('vue')['getCurrentInstance']
-  const getCurrentScope: typeof import('vue')['getCurrentScope']
-  const getCurrentWatcher: typeof import('vue')['getCurrentWatcher']
-  const getI18nArray: typeof import('../app/utils/i18n')['getI18nArray']
-  const getRouteRules: typeof import('#app')['getRouteRules']
-  const h: typeof import('vue')['h']
-  const inject: typeof import('vue')['inject']
-  const isNuxtError: typeof import('#app')['isNuxtError']
-  const isPrerendered: typeof import('#app')['isPrerendered']
-  const isProxy: typeof import('vue')['isProxy']
-  const isReactive: typeof import('vue')['isReactive']
-  const isReadonly: typeof import('vue')['isReadonly']
-  const isRef: typeof import('vue')['isRef']
-  const isShallow: typeof import('vue')['isShallow']
-  const loadPayload: typeof import('#app')['loadPayload']
-  const markRaw: typeof import('vue')['markRaw']
-  const navigateTo: typeof import('#app')['navigateTo']
-  const nextTick: typeof import('vue')['nextTick']
-  const onActivated: typeof import('vue')['onActivated']
-  const onBeforeMount: typeof import('vue')['onBeforeMount']
-  const onBeforeRouteLeave: typeof import('#app')['onBeforeRouteLeave']
-  const onBeforeRouteUpdate: typeof import('#app')['onBeforeRouteUpdate']
-  const onBeforeUnmount: typeof import('vue')['onBeforeUnmount']
-  const onBeforeUpdate: typeof import('vue')['onBeforeUpdate']
-  const onDeactivated: typeof import('vue')['onDeactivated']
-  const onErrorCaptured: typeof import('vue')['onErrorCaptured']
-  const onMounted: typeof import('vue')['onMounted']
-  const onNuxtReady: typeof import('#app')['onNuxtReady']
-  const onRenderTracked: typeof import('vue')['onRenderTracked']
-  const onRenderTriggered: typeof import('vue')['onRenderTriggered']
-  const onScopeDispose: typeof import('vue')['onScopeDispose']
-  const onServerPrefetch: typeof import('vue')['onServerPrefetch']
-  const onUnmounted: typeof import('vue')['onUnmounted']
-  const onUpdated: typeof import('vue')['onUpdated']
-  const onWatcherCleanup: typeof import('vue')['onWatcherCleanup']
-  const prefetchComponents: typeof import('#app')['prefetchComponents']
-  const preloadComponents: typeof import('#app')['preloadComponents']
-  const preloadPayload: typeof import('#app')['preloadPayload']
-  const preloadRouteComponents: typeof import('#app')['preloadRouteComponents']
-  const prerenderRoutes: typeof import('#app')['prerenderRoutes']
-  const provide: typeof import('vue')['provide']
-  const reactive: typeof import('vue')['reactive']
-  const readonly: typeof import('vue')['readonly']
-  const ref: typeof import('vue')['ref']
-  const refreshNuxtData: typeof import('#app')['refreshNuxtData']
-  const reloadNuxtApp: typeof import('#app')['reloadNuxtApp']
-  const repositories: typeof import('../app/utils/factory')['repositories']
-  const repositoryFactory: typeof import('../app/utils/factory')['repositoryFactory']
-  const requestIdleCallback: typeof import('#app')['requestIdleCallback']
-  const resolveComponent: typeof import('vue')['resolveComponent']
-  const setPageLayout: typeof import('#app')['setPageLayout']
-  const setResponseStatus: typeof import('#app')['setResponseStatus']
-  const shallowReactive: typeof import('vue')['shallowReactive']
-  const shallowReadonly: typeof import('vue')['shallowReadonly']
-  const shallowRef: typeof import('vue')['shallowRef']
-  const showError: typeof import('#app')['showError']
-  const toRaw: typeof import('vue')['toRaw']
-  const toRef: typeof import('vue')['toRef']
-  const toRefs: typeof import('vue')['toRefs']
-  const toValue: typeof import('vue')['toValue']
-  const triggerRef: typeof import('vue')['triggerRef']
-  const unref: typeof import('vue')['unref']
-  const updateAppConfig: typeof import('#app')['updateAppConfig']
-  const useApi: typeof import('../app/composables/useApi')['default']
-  const useAppConfig: typeof import('#app')['useAppConfig']
-  const useAsyncData: typeof import('#app')['useAsyncData']
-  const useAttrs: typeof import('vue')['useAttrs']
-  const useBrowserLocale: typeof import('#i18n')['useBrowserLocale']
-  const useCookie: typeof import('#app')['useCookie']
-  const useCookieLocale: typeof import('#i18n')['useCookieLocale']
-  const useCssModule: typeof import('vue')['useCssModule']
-  const useCssVars: typeof import('vue')['useCssVars']
-  const useError: typeof import('#app')['useError']
-  const useFetch: typeof import('#app')['useFetch']
-  const useI18n: typeof import('vue-i18n')['useI18n']
-  const useId: typeof import('vue')['useId']
-  const useLazyAsyncData: typeof import('#app')['useLazyAsyncData']
-  const useLazyFetch: typeof import('#app')['useLazyFetch']
-  const useLocaleHead: typeof import('#i18n')['useLocaleHead']
-  const useLocalePath: typeof import('#i18n')['useLocalePath']
-  const useLocaleRoute: typeof import('#i18n')['useLocaleRoute']
-  const useModel: typeof import('vue')['useModel']
-  const useNuxtApp: typeof import('#app')['useNuxtApp']
-  const useNuxtData: typeof import('#app')['useNuxtData']
-  const useRequestEvent: typeof import('#app')['useRequestEvent']
-  const useRequestFetch: typeof import('#app')['useRequestFetch']
-  const useRequestHeaders: typeof import('#app')['useRequestHeaders']
-  const useRequestURL: typeof import('#app')['useRequestURL']
-  const useRoute: typeof import('#app')['useRoute']
-  const useRouteBaseName: typeof import('#i18n')['useRouteBaseName']
-  const useRouter: typeof import('#app')['useRouter']
-  const useRuntimeConfig: typeof import('#app')['useRuntimeConfig']
-  const useSlots: typeof import('vue')['useSlots']
-  const useState: typeof import('#app')['useState']
-  const useSwitchLocalePath: typeof import('#i18n')['useSwitchLocalePath']
-  const useTemplateRef: typeof import('vue')['useTemplateRef']
-  const watch: typeof import('vue')['watch']
-  const watchEffect: typeof import('vue')['watchEffect']
-  const watchPostEffect: typeof import('vue')['watchPostEffect']
-  const watchSyncEffect: typeof import('vue')['watchSyncEffect']
-}
-// for type re-export
-declare global {
-  // @ts-ignore
-  export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, ShallowRef, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
-  import('vue')
-  // @ts-ignore
-  export type { Method } from '../app/utils/api'
-  import('../app/utils/api')
-  // @ts-ignore
-  export type { Repository, Repositories, RepositoryKey } from '../app/utils/factory'
-  import('../app/utils/factory')
-  // @ts-ignore
-  export type { UseI18nReturnType } from '../app/utils/i18n'
-  import('../app/utils/i18n')
-}
-````
-
-## File: layers/showcases/app/components/ho/animista/HoAnimista.vue
-````vue
-<i18n lang="yaml">
-ja:
-  title: Animista
-  description: Animista由来のCSSアニメーションデモ集
-  animations:
-    title: アニメーション一覧
-    scaleUp:
-      name: Scale Up
-      description: スケールアップアニメーション（15パターン）
-    scaleDown:
-      name: Scale Down
-      description: スケールダウンアニメーション（15パターン）
-    rotate:
-      name: Rotate
-      description: 回転アニメーション（4パターン）
-    rotateScale:
-      name: Rotate Scale
-      description: 回転＋スケールアニメーション（6パターン）
-    rotate90:
-      name: Rotate 90°
-      description: 90度回転アニメーション（8パターン）
-    flip:
-      name: Flip
-      description: フリップアニメーション（4パターン）
-en:
-  title: Animista
-  description: CSS animation demos from Animista
-  animations:
-    title: Animation List
-    scaleUp:
-      name: Scale Up
-      description: Scale up animations (15 patterns)
-    scaleDown:
-      name: Scale Down
-      description: Scale down animations (15 patterns)
-    rotate:
-      name: Rotate
-      description: Rotate animations (4 patterns)
-    rotateScale:
-      name: Rotate Scale
-      description: Rotate scale animations (6 patterns)
-    rotate90:
-      name: Rotate 90°
-      description: 90° rotation animations (8 patterns)
-    flip:
-      name: Flip
-      description: Flip animations (4 patterns)
-</i18n>
-
-<template>
-  <div class="ho-animista">
-    <div class="container">
-      <!-- ヘッダー -->
-      <div class="header-controls">
-        <button
-          class="back-button"
-          @click="emit('back')"
-        >
-          ← Back
-        </button>
-      </div>
-
-      <header class="header">
-        <h1 class="title">
-          {{ t('title') }}
-        </h1>
-        <p class="description">
-          {{ t('description') }}
-        </p>
-      </header>
-
-      <!-- タブナビゲーション -->
-      <nav class="tab-navigation">
-        <button
-          v-for="tab in tabs"
-          :key="tab.value"
-          :class="['tab-button', { active: currentView === tab.value }]"
-          @click="handleSelectAnimation(tab.value)"
-        >
-          <span class="tab-icon">{{ tab.icon }}</span>
-          <span class="tab-label">{{ t(`animations.${tab.key}.name`) }}</span>
-        </button>
-      </nav>
-    </div>
-
-    <!-- アニメーション詳細 -->
-    <HoAnimistaScaleUp
-      v-if="currentView === 'scale-up'"
-      @back="handleBackToList"
-    />
-    <HoAnimistaScaleDown
-      v-else-if="currentView === 'scale-down'"
-      @back="handleBackToList"
-    />
-    <HoAnimistaRotate
-      v-else-if="currentView === 'rotate'"
-      @back="handleBackToList"
-    />
-    <HoAnimistaRotateScale
-      v-else-if="currentView === 'rotate-scale'"
-      @back="handleBackToList"
-    />
-    <HoAnimistaRotate90
-      v-else-if="currentView === 'rotate-90'"
-      @back="handleBackToList"
-    />
-    <HoAnimistaFlip
-      v-else-if="currentView === 'flip'"
-      @back="handleBackToList"
-    />
-  </div>
-</template>
-
-<script setup lang="ts">
-const { t } = useI18n()
-
-const emit = defineEmits<{
-  back: []
-}>()
-
-type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip'
-
-const currentView = ref<ViewType>('scale-up')
-
-const tabs = [
-  { value: 'scale-up', key: 'scaleUp', icon: '📐' },
-  { value: 'scale-down', key: 'scaleDown', icon: '🔽' },
-  { value: 'rotate', key: 'rotate', icon: '🔄' },
-  { value: 'rotate-scale', key: 'rotateScale', icon: '↩️' },
-  { value: 'rotate-90', key: 'rotate90', icon: '⤴️' },
-  { value: 'flip', key: 'flip', icon: '🔃' },
-] as const
-
-const handleSelectAnimation = (animationType: string) => {
-  currentView.value = animationType as ViewType
-}
-
-const handleBackToList = () => {
-  currentView.value = 'scale-up'
-}
-</script>
-
-<style lang="scss" scoped>
-.ho-animista {
-  width: 100%;
-  min-height: 100vh;
-  padding: 40px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.header-controls {
-  margin-bottom: 24px;
-}
-
-.back-button {
-  cursor: pointer;
-
-  padding: 8px 20px;
-  border: 2px solid white;
-  border-radius: 8px;
-
-  font-size: 16px;
-  font-weight: bold;
-  color: white;
-
-  background: transparent;
-
-  transition: all 0.3s ease;
-
-  &:hover {
-    color: #667eea;
-    background: white;
-  }
-}
-
-.header {
-  margin-bottom: 60px;
-  text-align: center;
-}
-
-.title {
-  margin-bottom: 16px;
-
-  font-size: 48px;
-  font-weight: bold;
-  color: white;
-  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
-}
-
-.description {
-  font-size: 20px;
-  color: rgb(255 255 255 / 90%);
-}
-
-.section {
-  margin-bottom: 60px;
-}
-
-.section-title {
-  margin-bottom: 32px;
-
-  font-size: 32px;
-  font-weight: bold;
-  color: white;
-  text-align: center;
-}
-
-.animation-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
-}
-
-.animation-card {
-  cursor: pointer;
-
-  display: flex;
-  gap: 20px;
-  align-items: center;
-
-  width: 100%;
-  padding: 24px;
-  border: none;
-  border-radius: 16px;
-
-  font-family: inherit;
-  color: inherit;
-  text-align: left;
-  text-decoration: none;
-
-  background: white;
-  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
-
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgb(0 0 0 / 25%);
-  }
-}
-
-.card-icon {
-  flex-shrink: 0;
-  font-size: 40px;
-}
-
-.card-content {
-  flex: 1;
-}
-
-.card-title {
-  margin-bottom: 8px;
-  font-size: 20px;
-  font-weight: bold;
-  color: #374151;
-}
-
-.card-description {
-  font-size: 14px;
-  color: #6b7280;
-}
-
-.card-arrow {
-  flex-shrink: 0;
-  font-size: 24px;
-  color: #9ca3af;
-  transition: transform 0.3s ease;
-
-  .animation-card:hover & {
-    transform: translateX(4px);
-  }
-}
-
-.tab-navigation {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-
-  margin-bottom: 40px;
-}
-
-.tab-button {
-  cursor: pointer;
-
-  display: flex;
-  gap: 8px;
-  align-items: center;
-
-  padding: 12px 24px;
-  border: 2px solid white;
-  border-radius: 8px;
-
-  font-size: 16px;
-  font-weight: 600;
-  color: white;
-
-  background: transparent;
-
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    background: rgb(255 255 255 / 10%);
-    box-shadow: 0 4px 12px rgb(0 0 0 / 20%);
-  }
-
-  &.active {
-    color: #667eea;
-    background: white;
-    box-shadow: 0 4px 12px rgb(0 0 0 / 20%);
-  }
-}
-
-.tab-icon {
-  font-size: 20px;
-}
-
-.tab-label {
-  font-weight: inherit;
-}
-</style>
-````
-
 ## File: layers/showcases/app/components/ho/animista/HoAnimistaScaleUp.vue
 ````vue
 <template>
@@ -6190,4 +8308,390 @@ export default defineVitestConfig({
     setupFiles: ['test/setup.ts'],
   },
 })
+````
+
+## File: layers/showcases/app/components/ho/animista/HoAnimista.vue
+````vue
+<i18n lang="yaml">
+ja:
+  title: Animista
+  description: Animista由来のCSSアニメーションデモ集
+  animations:
+    title: アニメーション一覧
+    scaleUp:
+      name: Scale Up
+      description: スケールアップアニメーション（15パターン）
+    scaleDown:
+      name: Scale Down
+      description: スケールダウンアニメーション（15パターン）
+    rotate:
+      name: Rotate
+      description: 回転アニメーション（4パターン）
+    rotateScale:
+      name: Rotate Scale
+      description: 回転＋スケールアニメーション（6パターン）
+    rotate90:
+      name: Rotate 90°
+      description: 90度回転アニメーション（8パターン）
+    flip:
+      name: Flip
+      description: フリップアニメーション（16パターン）
+    flip2:
+      name: Flip 2
+      description: フリップ＋移動アニメーション（16パターン）
+    flipScale:
+      name: Flip Scale
+      description: フリップ＋スケールアニメーション（8パターン）
+    flipScale2:
+      name: Flip Scale 2
+      description: フリップ＋スケール＋移動アニメーション（4パターン）
+    swing:
+      name: Swing
+      description: スイングアニメーション（16パターン）
+    slide:
+      name: Slide
+      description: スライドアニメーション（9パターン）
+en:
+  title: Animista
+  description: CSS animation demos from Animista
+  animations:
+    title: Animation List
+    scaleUp:
+      name: Scale Up
+      description: Scale up animations (15 patterns)
+    scaleDown:
+      name: Scale Down
+      description: Scale down animations (15 patterns)
+    rotate:
+      name: Rotate
+      description: Rotate animations (21 patterns)
+    rotateScale:
+      name: Rotate Scale
+      description: Rotate scale animations (10 patterns)
+    rotate90:
+      name: Rotate 90°
+      description: 90° rotation animations (8 patterns)
+    flip:
+      name: Flip
+      description: Flip animations (16 patterns)
+    flip2:
+      name: Flip 2
+      description: Flip + translation animations (16 patterns)
+    flipScale:
+      name: Flip Scale
+      description: Flip + scale animations (8 patterns)
+    flipScale2:
+      name: Flip Scale 2
+      description: Flip + scale + translation animations (4 patterns)
+    swing:
+      name: Swing
+      description: Swing animations (16 patterns)
+    slide:
+      name: Slide
+      description: Slide animations (9 patterns)
+</i18n>
+
+<template>
+  <div class="ho-animista">
+    <div class="container">
+      <!-- ヘッダー -->
+      <div class="header-controls">
+        <button
+          class="back-button"
+          @click="emit('back')"
+        >
+          ← Back
+        </button>
+      </div>
+
+      <header class="header">
+        <h1 class="title">
+          {{ t('title') }}
+        </h1>
+        <p class="description">
+          {{ t('description') }}
+        </p>
+      </header>
+
+      <!-- タブナビゲーション -->
+      <nav class="tab-navigation">
+        <button
+          v-for="tab in tabs"
+          :key="tab.value"
+          :class="['tab-button', { active: currentView === tab.value }]"
+          @click="handleSelectAnimation(tab.value)"
+        >
+          <span class="tab-icon">{{ tab.icon }}</span>
+          <span class="tab-label">{{ t(`animations.${tab.key}.name`) }}</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- アニメーション詳細 -->
+    <HoAnimistaScaleUp
+      v-if="currentView === 'scale-up'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaScaleDown
+      v-else-if="currentView === 'scale-down'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaRotate
+      v-else-if="currentView === 'rotate'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaRotateScale
+      v-else-if="currentView === 'rotate-scale'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaRotate90
+      v-else-if="currentView === 'rotate-90'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaFlip
+      v-else-if="currentView === 'flip'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaFlip2
+      v-else-if="currentView === 'flip-2'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaFlipScale
+      v-else-if="currentView === 'flip-scale'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaFlipScale2
+      v-else-if="currentView === 'flip-scale-2'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSwing
+      v-else-if="currentView === 'swing'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSlide
+      v-else-if="currentView === 'slide'"
+      @back="handleBackToList"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+const { t } = useI18n()
+
+const emit = defineEmits<{
+  back: []
+}>()
+
+type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide'
+
+const currentView = ref<ViewType>('scale-up')
+
+const tabs = [
+  { value: 'scale-up', key: 'scaleUp', icon: '📐' },
+  { value: 'scale-down', key: 'scaleDown', icon: '🔽' },
+  { value: 'rotate', key: 'rotate', icon: '🔄' },
+  { value: 'rotate-scale', key: 'rotateScale', icon: '↩️' },
+  { value: 'rotate-90', key: 'rotate90', icon: '⤴️' },
+  { value: 'flip', key: 'flip', icon: '🔃' },
+  { value: 'flip-2', key: 'flip2', icon: '🔂' },
+  { value: 'flip-scale', key: 'flipScale', icon: '🔀' },
+  { value: 'flip-scale-2', key: 'flipScale2', icon: '🔁' },
+  { value: 'swing', key: 'swing', icon: '⚖️' },
+  { value: 'slide', key: 'slide', icon: '➡️' },
+] as const
+
+const handleSelectAnimation = (animationType: string) => {
+  currentView.value = animationType as ViewType
+}
+
+const handleBackToList = () => {
+  currentView.value = 'scale-up'
+}
+</script>
+
+<style lang="scss" scoped>
+.ho-animista {
+  width: 100%;
+  min-height: 100vh;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header-controls {
+  margin-bottom: 24px;
+}
+
+.back-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #667eea;
+    background: white;
+  }
+}
+
+.header {
+  margin-bottom: 60px;
+  text-align: center;
+}
+
+.title {
+  margin-bottom: 16px;
+
+  font-size: 48px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.description {
+  font-size: 20px;
+  color: rgb(255 255 255 / 90%);
+}
+
+.section {
+  margin-bottom: 60px;
+}
+
+.section-title {
+  margin-bottom: 32px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+}
+
+.animation-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.animation-card {
+  cursor: pointer;
+
+  display: flex;
+  gap: 20px;
+  align-items: center;
+
+  width: 100%;
+  padding: 24px;
+  border: none;
+  border-radius: 16px;
+
+  font-family: inherit;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+
+  background: white;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 25%);
+  }
+}
+
+.card-icon {
+  flex-shrink: 0;
+  font-size: 40px;
+}
+
+.card-content {
+  flex: 1;
+}
+
+.card-title {
+  margin-bottom: 8px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+}
+
+.card-description {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.card-arrow {
+  flex-shrink: 0;
+  font-size: 24px;
+  color: #9ca3af;
+  transition: transform 0.3s ease;
+
+  .animation-card:hover & {
+    transform: translateX(4px);
+  }
+}
+
+.tab-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+
+  margin-bottom: 40px;
+}
+
+.tab-button {
+  cursor: pointer;
+
+  display: flex;
+  gap: 8px;
+  align-items: center;
+
+  padding: 12px 24px;
+  border: 2px solid white;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgb(255 255 255 / 10%);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 20%);
+  }
+
+  &.active {
+    color: #667eea;
+    background: white;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 20%);
+  }
+}
+
+.tab-icon {
+  font-size: 20px;
+}
+
+.tab-label {
+  font-weight: inherit;
+}
+</style>
 ````

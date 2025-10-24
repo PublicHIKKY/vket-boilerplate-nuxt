@@ -3136,6 +3136,157 @@ function onChange(e: Event): void {
 </style>
 ```
 
+## File: layers/base/app/components/hm/input/HmInputRadioChangeable.vue
+```vue
+<template>
+  <div class="hm-input-radio-changeable">
+    <div
+      v-for="(option, index) in props.options"
+      :key="option.value"
+      ref="radiobuttons"
+      class="radio"
+    >
+      <HaBaseInput
+        :id="option.value"
+        class="input"
+        type="radio"
+        :name="props.name"
+        :value="option.value"
+        :modelValue="option.value"
+        :checked="option.checked"
+        :disabled="option.disabled"
+        required
+        @change="onChange($event)"
+      />
+      <label
+        :for="option.value"
+        class="label"
+        :class="`option-${index}`"
+      >
+        <template v-if="option.before">
+          <ClientOnly>
+            <component
+              :is="option.before"
+              class="before"
+            />
+          </ClientOnly>
+        </template>
+        {{ option.label }}
+        <template v-if="option.after">
+          <ClientOnly>
+            <component
+              :is="option.after"
+              class="after"
+            />
+          </ClientOnly>
+        </template>
+      </label>
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { z } from 'zod/v3'
+
+type Radio = {
+  label: string
+  value: string
+  checked?: boolean
+  disabled?: boolean
+  before?: Component
+  after?: Component
+}
+
+type Props = {
+  name: string
+  options: Radio[]
+}
+const props = defineProps<Props>()
+
+const radiobuttons = ref<HTMLDivElement[]>()
+
+/** props.optionsを監視し、親コンポーネントでの変更をラジオボタンに反映する */
+watch(toRef(props.options), (_next, _prev) => {
+  // チェックされているオブジェクトを探す
+  const checkedOptions
+    = props.options.find(element => element.checked)
+      ?? raiseError('HmInputRadioChangeable: watch: checkedOptions')
+
+  // チェック対象を探す
+  const buttons
+    = radiobuttons.value
+      ?? raiseError('HmInputRadioChangeable: watch: radiobuttons')
+  const checkTarget
+    = buttons.find(
+      // チェックされているオブジェクトとidが同じものがチェック対象
+      element => element.children[0]?.id === checkedOptions?.value,
+    ) ?? raiseError('HmInputRadioChangeable: watch: checkTarget')
+
+  // 探したチェック対象をチェック済にする
+  const checkbox = z
+    .object({ checked: z.boolean() })
+    .parse(checkTarget.children[0])
+  checkbox.checked = true
+})
+
+type Emits = {
+  (e: 'change', value: string): void
+}
+const emit = defineEmits<Emits>()
+const onChange = (e: Event) => {
+  if (e.target instanceof HTMLInputElement) {
+    emit('change', e.target.value)
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+
+.hm-input-radio-changeable {
+  display: flex;
+  width: 100%;
+
+  .radio {
+    flex: 1;
+
+    > .label {
+      cursor: pointer;
+      user-select: none;
+
+      display: block;
+
+      height: 100%;
+      padding: v.space(2) 0;
+      border: solid 1px v.$navy-2;
+
+      text-align: center;
+      white-space: pre-wrap;
+
+      background-color: v.$navy-1;
+
+      &:hover {
+        background-color: v.$green-4;
+      }
+    }
+  }
+}
+
+.input {
+  display: none;
+
+  &:checked,
+  &:hover,
+  &:focus {
+    + .label {
+      border-color: v.$blue;
+      background-color: v.$green-4;
+    }
+  }
+}
+</style>
+```
+
 ## File: layers/base/app/components/hm/HmDialogElement.vue
 ```vue
 <!--
@@ -4216,157 +4367,6 @@ defineExpose({
 
   to {
     opacity: 1;
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/input/HmInputRadioChangeable.vue
-```vue
-<template>
-  <div class="hm-input-radio-changeable">
-    <div
-      v-for="(option, index) in props.options"
-      :key="option.value"
-      ref="radiobuttons"
-      class="radio"
-    >
-      <HaBaseInput
-        :id="option.value"
-        class="input"
-        type="radio"
-        :name="props.name"
-        :value="option.value"
-        :modelValue="option.value"
-        :checked="option.checked"
-        :disabled="option.disabled"
-        required
-        @change="onChange($event)"
-      />
-      <label
-        :for="option.value"
-        class="label"
-        :class="`option-${index}`"
-      >
-        <template v-if="option.before">
-          <ClientOnly>
-            <component
-              :is="option.before"
-              class="before"
-            />
-          </ClientOnly>
-        </template>
-        {{ option.label }}
-        <template v-if="option.after">
-          <ClientOnly>
-            <component
-              :is="option.after"
-              class="after"
-            />
-          </ClientOnly>
-        </template>
-      </label>
-    </div>
-  </div>
-</template>
-
-<script lang="ts" setup>
-import { z } from 'zod/v3'
-
-type Radio = {
-  label: string
-  value: string
-  checked?: boolean
-  disabled?: boolean
-  before?: Component
-  after?: Component
-}
-
-type Props = {
-  name: string
-  options: Radio[]
-}
-const props = defineProps<Props>()
-
-const radiobuttons = ref<HTMLDivElement[]>()
-
-/** props.optionsを監視し、親コンポーネントでの変更をラジオボタンに反映する */
-watch(toRef(props.options), (_next, _prev) => {
-  // チェックされているオブジェクトを探す
-  const checkedOptions
-    = props.options.find(element => element.checked)
-      ?? raiseError('HmInputRadioChangeable: watch: checkedOptions')
-
-  // チェック対象を探す
-  const buttons
-    = radiobuttons.value
-      ?? raiseError('HmInputRadioChangeable: watch: radiobuttons')
-  const checkTarget
-    = buttons.find(
-      // チェックされているオブジェクトとidが同じものがチェック対象
-      element => element.children[0]?.id === checkedOptions?.value,
-    ) ?? raiseError('HmInputRadioChangeable: watch: checkTarget')
-
-  // 探したチェック対象をチェック済にする
-  const checkbox = z
-    .object({ checked: z.boolean() })
-    .parse(checkTarget.children[0])
-  checkbox.checked = true
-})
-
-type Emits = {
-  (e: 'change', value: string): void
-}
-const emit = defineEmits<Emits>()
-const onChange = (e: Event) => {
-  if (e.target instanceof HTMLInputElement) {
-    emit('change', e.target.value)
-  }
-}
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-
-.hm-input-radio-changeable {
-  display: flex;
-  width: 100%;
-
-  .radio {
-    flex: 1;
-
-    > .label {
-      cursor: pointer;
-      user-select: none;
-
-      display: block;
-
-      height: 100%;
-      padding: v.space(2) 0;
-      border: solid 1px v.$navy-2;
-
-      text-align: center;
-      white-space: pre-wrap;
-
-      background-color: v.$navy-1;
-
-      &:hover {
-        background-color: v.$green-4;
-      }
-    }
-  }
-}
-
-.input {
-  display: none;
-
-  &:checked,
-  &:hover,
-  &:focus {
-    + .label {
-      border-color: v.$blue;
-      background-color: v.$green-4;
-    }
   }
 }
 </style>

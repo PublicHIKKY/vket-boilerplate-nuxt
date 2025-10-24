@@ -21,7 +21,22 @@ ja:
       description: 90度回転アニメーション（8パターン）
     flip:
       name: Flip
-      description: フリップアニメーション（4パターン）
+      description: フリップアニメーション（16パターン）
+    flip2:
+      name: Flip 2
+      description: フリップ＋移動アニメーション（16パターン）
+    flipScale:
+      name: Flip Scale
+      description: フリップ＋スケールアニメーション（8パターン）
+    flipScale2:
+      name: Flip Scale 2
+      description: フリップ＋スケール＋移動アニメーション（4パターン）
+    swing:
+      name: Swing
+      description: スイングアニメーション（16パターン）
+    slide:
+      name: Slide
+      description: スライドアニメーション（9パターン）
 en:
   title: Animista
   description: CSS animation demos from Animista
@@ -35,16 +50,31 @@ en:
       description: Scale down animations (15 patterns)
     rotate:
       name: Rotate
-      description: Rotate animations (4 patterns)
+      description: Rotate animations (21 patterns)
     rotateScale:
       name: Rotate Scale
-      description: Rotate scale animations (6 patterns)
+      description: Rotate scale animations (10 patterns)
     rotate90:
       name: Rotate 90°
       description: 90° rotation animations (8 patterns)
     flip:
       name: Flip
-      description: Flip animations (4 patterns)
+      description: Flip animations (16 patterns)
+    flip2:
+      name: Flip 2
+      description: Flip + translation animations (16 patterns)
+    flipScale:
+      name: Flip Scale
+      description: Flip + scale animations (8 patterns)
+    flipScale2:
+      name: Flip Scale 2
+      description: Flip + scale + translation animations (4 patterns)
+    swing:
+      name: Swing
+      description: Swing animations (16 patterns)
+    slide:
+      name: Slide
+      description: Slide animations (9 patterns)
 </i18n>
 
 <template>
@@ -108,6 +138,26 @@ en:
       v-else-if="currentView === 'flip'"
       @back="handleBackToList"
     />
+    <HoAnimistaFlip2
+      v-else-if="currentView === 'flip-2'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaFlipScale
+      v-else-if="currentView === 'flip-scale'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaFlipScale2
+      v-else-if="currentView === 'flip-scale-2'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSwing
+      v-else-if="currentView === 'swing'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSlide
+      v-else-if="currentView === 'slide'"
+      @back="handleBackToList"
+    />
   </div>
 </template>
 
@@ -118,7 +168,7 @@ const emit = defineEmits<{
   back: []
 }>()
 
-type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip'
+type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide'
 
 const currentView = ref<ViewType>('scale-up')
 
@@ -129,6 +179,11 @@ const tabs = [
   { value: 'rotate-scale', key: 'rotateScale', icon: '↩️' },
   { value: 'rotate-90', key: 'rotate90', icon: '⤴️' },
   { value: 'flip', key: 'flip', icon: '🔃' },
+  { value: 'flip-2', key: 'flip2', icon: '🔂' },
+  { value: 'flip-scale', key: 'flipScale', icon: '🔀' },
+  { value: 'flip-scale-2', key: 'flipScale2', icon: '🔁' },
+  { value: 'swing', key: 'swing', icon: '⚖️' },
+  { value: 'slide', key: 'slide', icon: '➡️' },
 ] as const
 
 const handleSelectAnimation = (animationType: string) => {
