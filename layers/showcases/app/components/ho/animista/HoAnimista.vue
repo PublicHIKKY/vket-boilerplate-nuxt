@@ -91,15 +91,42 @@ ja:
     slideInElliptic:
       name: Slide In Elliptic
       description: 楕円軌道スライド入場アニメーション（8パターン）
+    rollIn:
+      name: Roll In
+      description: ロール入場アニメーション（4パターン）
+    rollInBlurred:
+      name: Roll In Blurred
+      description: ブラーロール入場アニメーション（4パターン）
+    tiltIn:
+      name: Tilt In
+      description: ティルト入場アニメーション（12パターン）
+    tiltInFwd:
+      name: Tilt In Forward
+      description: 前方ティルト入場アニメーション（4パターン）
+    swingIn:
+      name: Swing In
+      description: スイング入場アニメーション（8パターン）
     bounceIn:
       name: Bounce In
       description: バウンス入場アニメーション（6パターン）
     fadeIn:
       name: Fade In
       description: フェード入場アニメーション（11パターン）
+    puffIn:
+      name: Puff In
+      description: パフ入場アニメーション（11パターン）
     flickerIn:
       name: Flicker In
       description: フリッカー入場アニメーション（2パターン）
+    bounceOut:
+      name: Bounce Out
+      description: バウンス退場アニメーション（6パターン）
+    fadeOut:
+      name: Fade Out
+      description: フェード退場アニメーション（11パターン）
+    flickerOut:
+      name: Flicker Out
+      description: フリッカー退場アニメーション（2パターン）
 en:
   title: Animista
   description: CSS animation demos from Animista
@@ -192,15 +219,42 @@ en:
     slideInElliptic:
       name: Slide In Elliptic
       description: Elliptic slide entrance animations (8 patterns)
+    rollIn:
+      name: Roll In
+      description: Roll entrance animations (4 patterns)
+    rollInBlurred:
+      name: Roll In Blurred
+      description: Blurred roll entrance animations (4 patterns)
+    tiltIn:
+      name: Tilt In
+      description: Tilt entrance animations (12 patterns)
+    tiltInFwd:
+      name: Tilt In Forward
+      description: Forward tilt entrance animations (4 patterns)
+    swingIn:
+      name: Swing In
+      description: Swing entrance animations (8 patterns)
     bounceIn:
       name: Bounce In
       description: Bounce entrance animations (6 patterns)
     fadeIn:
       name: Fade In
       description: Fade entrance animations (11 patterns)
+    puffIn:
+      name: Puff In
+      description: Puff entrance animations (11 patterns)
     flickerIn:
       name: Flicker In
       description: Flicker entrance animations (2 patterns)
+    bounceOut:
+      name: Bounce Out
+      description: Bounce exit animations (6 patterns)
+    fadeOut:
+      name: Fade Out
+      description: Fade exit animations (11 patterns)
+    flickerOut:
+      name: Flicker Out
+      description: Flicker exit animations (2 patterns)
 </i18n>
 
 <template>
@@ -356,6 +410,26 @@ en:
       v-else-if="currentView === 'slide-in-elliptic'"
       @back="handleBackToList"
     />
+    <HoAnimistaRollIn
+      v-else-if="currentView === 'roll-in'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaRollInBlurred
+      v-else-if="currentView === 'roll-in-blurred'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaTiltIn
+      v-else-if="currentView === 'tilt-in'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaTiltInFwd
+      v-else-if="currentView === 'tilt-in-fwd'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSwingIn
+      v-else-if="currentView === 'swing-in'"
+      @back="handleBackToList"
+    />
     <HoAnimistaBounceIn
       v-else-if="currentView === 'bounce-in'"
       @back="handleBackToList"
@@ -364,8 +438,24 @@ en:
       v-else-if="currentView === 'fade-in'"
       @back="handleBackToList"
     />
+    <HoAnimistaPuffIn
+      v-else-if="currentView === 'puff-in'"
+      @back="handleBackToList"
+    />
     <HoAnimistaFlickerIn
       v-else-if="currentView === 'flicker-in'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaBounceOut
+      v-else-if="currentView === 'bounce-out'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaFadeOut
+      v-else-if="currentView === 'fade-out'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaFlickerOut
+      v-else-if="currentView === 'flicker-out'"
       @back="handleBackToList"
     />
   </div>
@@ -378,7 +468,7 @@ const emit = defineEmits<{
   back: []
 }>()
 
-type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'slide-in' | 'slide-in-fwd' | 'slide-in-bck' | 'slide-in-blurred' | 'slide-in-elliptic' | 'bounce-in' | 'fade-in' | 'flicker-in'
+type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'slide-in' | 'slide-in-fwd' | 'slide-in-bck' | 'slide-in-blurred' | 'slide-in-elliptic' | 'roll-in' | 'roll-in-blurred' | 'tilt-in' | 'tilt-in-fwd' | 'swing-in' | 'bounce-in' | 'fade-in' | 'puff-in' | 'flicker-in' | 'bounce-out' | 'fade-out' | 'flicker-out'
 
 const currentView = ref<ViewType>('scale-up')
 
@@ -412,9 +502,18 @@ const tabs = [
   { value: 'slide-in-bck', key: 'slideInBck', icon: '⤴️' },
   { value: 'slide-in-blurred', key: 'slideInBlurred', icon: '💨' },
   { value: 'slide-in-elliptic', key: 'slideInElliptic', icon: '🌊' },
+  { value: 'roll-in', key: 'rollIn', icon: '🎲' },
+  { value: 'roll-in-blurred', key: 'rollInBlurred', icon: '🎰' },
+  { value: 'tilt-in', key: 'tiltIn', icon: '🎭' },
+  { value: 'tilt-in-fwd', key: 'tiltInFwd', icon: '🎪' },
+  { value: 'swing-in', key: 'swingIn', icon: '🎢' },
   { value: 'bounce-in', key: 'bounceIn', icon: '🎾' },
   { value: 'fade-in', key: 'fadeIn', icon: '👻' },
+  { value: 'puff-in', key: 'puffIn', icon: '💨' },
   { value: 'flicker-in', key: 'flickerIn', icon: '✨' },
+  { value: 'bounce-out', key: 'bounceOut', icon: '🚀' },
+  { value: 'fade-out', key: 'fadeOut', icon: '💭' },
+  { value: 'flicker-out', key: 'flickerOut', icon: '🌟' },
 ] as const
 
 const handleSelectAnimation = (animationType: string) => {
