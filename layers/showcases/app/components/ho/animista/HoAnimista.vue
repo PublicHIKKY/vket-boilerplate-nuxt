@@ -127,6 +127,21 @@ ja:
     flickerOut:
       name: Flicker Out
       description: フリッカー退場アニメーション（2パターン）
+    scaleOut:
+      name: Scale Out
+      description: スケール退場アニメーション（15パターン）
+    rotateOut:
+      name: Rotate Out
+      description: 回転退場アニメーション（13パターン）
+    rotateOut2:
+      name: Rotate Out 2
+      description: 45度回転退場アニメーション（12パターン）
+    swirlOut:
+      name: Swirl Out
+      description: スワール退場アニメーション（18パターン）
+    flipOut:
+      name: Flip Out
+      description: フリップ退場アニメーション（8パターン）
 en:
   title: Animista
   description: CSS animation demos from Animista
@@ -255,6 +270,21 @@ en:
     flickerOut:
       name: Flicker Out
       description: Flicker exit animations (2 patterns)
+    scaleOut:
+      name: Scale Out
+      description: Scale exit animations (15 patterns)
+    rotateOut:
+      name: Rotate Out
+      description: Rotate exit animations (13 patterns)
+    rotateOut2:
+      name: Rotate Out 2
+      description: 45° rotate exit animations (12 patterns)
+    swirlOut:
+      name: Swirl Out
+      description: Swirl exit animations (18 patterns)
+    flipOut:
+      name: Flip Out
+      description: Flip exit animations (8 patterns)
 </i18n>
 
 <template>
@@ -458,6 +488,26 @@ en:
       v-else-if="currentView === 'flicker-out'"
       @back="handleBackToList"
     />
+    <HoAnimistaScaleOut
+      v-else-if="currentView === 'scale-out'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaRotateOut
+      v-else-if="currentView === 'rotate-out'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaRotateOut2
+      v-else-if="currentView === 'rotate-out-2'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSwirlOut
+      v-else-if="currentView === 'swirl-out'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaFlipOut
+      v-else-if="currentView === 'flip-out'"
+      @back="handleBackToList"
+    />
   </div>
 </template>
 
@@ -468,7 +518,7 @@ const emit = defineEmits<{
   back: []
 }>()
 
-type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'slide-in' | 'slide-in-fwd' | 'slide-in-bck' | 'slide-in-blurred' | 'slide-in-elliptic' | 'roll-in' | 'roll-in-blurred' | 'tilt-in' | 'tilt-in-fwd' | 'swing-in' | 'bounce-in' | 'fade-in' | 'puff-in' | 'flicker-in' | 'bounce-out' | 'fade-out' | 'flicker-out'
+type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'slide-in' | 'slide-in-fwd' | 'slide-in-bck' | 'slide-in-blurred' | 'slide-in-elliptic' | 'roll-in' | 'roll-in-blurred' | 'tilt-in' | 'tilt-in-fwd' | 'swing-in' | 'bounce-in' | 'fade-in' | 'puff-in' | 'flicker-in' | 'bounce-out' | 'fade-out' | 'flicker-out' | 'scale-out' | 'rotate-out' | 'rotate-out-2' | 'swirl-out' | 'flip-out'
 
 const currentView = ref<ViewType>('scale-up')
 
@@ -514,6 +564,11 @@ const tabs = [
   { value: 'bounce-out', key: 'bounceOut', icon: '🚀' },
   { value: 'fade-out', key: 'fadeOut', icon: '💭' },
   { value: 'flicker-out', key: 'flickerOut', icon: '🌟' },
+  { value: 'scale-out', key: 'scaleOut', icon: '📉' },
+  { value: 'rotate-out', key: 'rotateOut', icon: '🔄' },
+  { value: 'rotate-out-2', key: 'rotateOut2', icon: '🌀' },
+  { value: 'swirl-out', key: 'swirlOut', icon: '🌪️' },
+  { value: 'flip-out', key: 'flipOut', icon: '🔃' },
 ] as const
 
 const handleSelectAnimation = (animationType: string) => {
