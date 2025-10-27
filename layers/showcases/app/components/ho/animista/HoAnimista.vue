@@ -142,6 +142,21 @@ ja:
     flipOut:
       name: Flip Out
       description: フリップ退場アニメーション（8パターン）
+    slitOut:
+      name: Slit Out
+      description: スリット退場アニメーション（4パターン）
+    slideOut:
+      name: Slide Out
+      description: スライド退場アニメーション（8パターン）
+    slideOutBck:
+      name: Slide Out Backward
+      description: 後方スライド退場アニメーション（9パターン）
+    slideOutFwd:
+      name: Slide Out Forward
+      description: 前方スライド退場アニメーション（9パターン）
+    slideOutBlurred:
+      name: Slide Out Blurred
+      description: ブラースライド退場アニメーション（8パターン）
 en:
   title: Animista
   description: CSS animation demos from Animista
@@ -285,6 +300,21 @@ en:
     flipOut:
       name: Flip Out
       description: Flip exit animations (8 patterns)
+    slitOut:
+      name: Slit Out
+      description: Slit exit animations (4 patterns)
+    slideOut:
+      name: Slide Out
+      description: Slide exit animations (8 patterns)
+    slideOutBck:
+      name: Slide Out Backward
+      description: Backward slide exit animations (9 patterns)
+    slideOutFwd:
+      name: Slide Out Forward
+      description: Forward slide exit animations (9 patterns)
+    slideOutBlurred:
+      name: Slide Out Blurred
+      description: Blurred slide exit animations (8 patterns)
 </i18n>
 
 <template>
@@ -508,6 +538,26 @@ en:
       v-else-if="currentView === 'flip-out'"
       @back="handleBackToList"
     />
+    <HoAnimistaSlitOut
+      v-else-if="currentView === 'slit-out'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSlideOut
+      v-else-if="currentView === 'slide-out'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSlideOutBck
+      v-else-if="currentView === 'slide-out-bck'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSlideOutFwd
+      v-else-if="currentView === 'slide-out-fwd'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSlideOutBlurred
+      v-else-if="currentView === 'slide-out-blurred'"
+      @back="handleBackToList"
+    />
   </div>
 </template>
 
@@ -518,7 +568,7 @@ const emit = defineEmits<{
   back: []
 }>()
 
-type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'slide-in' | 'slide-in-fwd' | 'slide-in-bck' | 'slide-in-blurred' | 'slide-in-elliptic' | 'roll-in' | 'roll-in-blurred' | 'tilt-in' | 'tilt-in-fwd' | 'swing-in' | 'bounce-in' | 'fade-in' | 'puff-in' | 'flicker-in' | 'bounce-out' | 'fade-out' | 'flicker-out' | 'scale-out' | 'rotate-out' | 'rotate-out-2' | 'swirl-out' | 'flip-out'
+type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'slide-in' | 'slide-in-fwd' | 'slide-in-bck' | 'slide-in-blurred' | 'slide-in-elliptic' | 'roll-in' | 'roll-in-blurred' | 'tilt-in' | 'tilt-in-fwd' | 'swing-in' | 'bounce-in' | 'fade-in' | 'puff-in' | 'flicker-in' | 'bounce-out' | 'fade-out' | 'flicker-out' | 'scale-out' | 'rotate-out' | 'rotate-out-2' | 'swirl-out' | 'flip-out' | 'slit-out' | 'slide-out' | 'slide-out-bck' | 'slide-out-fwd' | 'slide-out-blurred'
 
 const currentView = ref<ViewType>('scale-up')
 
@@ -569,6 +619,11 @@ const tabs = [
   { value: 'rotate-out-2', key: 'rotateOut2', icon: '🌀' },
   { value: 'swirl-out', key: 'swirlOut', icon: '🌪️' },
   { value: 'flip-out', key: 'flipOut', icon: '🔃' },
+  { value: 'slit-out', key: 'slitOut', icon: '✂️' },
+  { value: 'slide-out', key: 'slideOut', icon: '📤' },
+  { value: 'slide-out-bck', key: 'slideOutBck', icon: '⬅️' },
+  { value: 'slide-out-fwd', key: 'slideOutFwd', icon: '➡️' },
+  { value: 'slide-out-blurred', key: 'slideOutBlurred', icon: '💨' },
 ] as const
 
 const handleSelectAnimation = (animationType: string) => {
