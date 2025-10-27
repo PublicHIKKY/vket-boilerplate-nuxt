@@ -169,6 +169,9 @@ ja:
     swingOut:
       name: Swing Out
       description: スイング退場アニメーション（8パターン）
+    puffOut:
+      name: Puff Out
+      description: パフ退場アニメーション（11パターン）
 en:
   title: Animista
   description: CSS animation demos from Animista
@@ -339,6 +342,9 @@ en:
     swingOut:
       name: Swing Out
       description: Swing exit animations (8 patterns)
+    puffOut:
+      name: Puff Out
+      description: Puff exit animations (11 patterns)
 </i18n>
 
 <template>
@@ -598,6 +604,10 @@ en:
       v-else-if="currentView === 'swing-out'"
       @back="handleBackToList"
     />
+    <HoAnimistaPuffOut
+      v-else-if="currentView === 'puff-out'"
+      @back="handleBackToList"
+    />
   </div>
 </template>
 
@@ -608,7 +618,7 @@ const emit = defineEmits<{
   back: []
 }>()
 
-type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'slide-in' | 'slide-in-fwd' | 'slide-in-bck' | 'slide-in-blurred' | 'slide-in-elliptic' | 'roll-in' | 'roll-in-blurred' | 'tilt-in' | 'tilt-in-fwd' | 'swing-in' | 'bounce-in' | 'fade-in' | 'puff-in' | 'flicker-in' | 'fade-out' | 'flicker-out' | 'scale-out' | 'rotate-out' | 'rotate-out-2' | 'swirl-out' | 'flip-out' | 'slit-out' | 'slide-out' | 'slide-out-bck' | 'slide-out-fwd' | 'slide-out-blurred' | 'slide-out-elliptic' | 'bounce-out' | 'roll-out' | 'roll-out-blurred' | 'swing-out'
+type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'slide-in' | 'slide-in-fwd' | 'slide-in-bck' | 'slide-in-blurred' | 'slide-in-elliptic' | 'roll-in' | 'roll-in-blurred' | 'tilt-in' | 'tilt-in-fwd' | 'swing-in' | 'bounce-in' | 'fade-in' | 'puff-in' | 'flicker-in' | 'fade-out' | 'flicker-out' | 'scale-out' | 'rotate-out' | 'rotate-out-2' | 'swirl-out' | 'flip-out' | 'slit-out' | 'slide-out' | 'slide-out-bck' | 'slide-out-fwd' | 'slide-out-blurred' | 'slide-out-elliptic' | 'bounce-out' | 'roll-out' | 'roll-out-blurred' | 'swing-out' | 'puff-out'
 
 const currentView = ref<ViewType>('scale-up')
 
@@ -651,8 +661,6 @@ const tabs = [
   { value: 'fade-in', key: 'fadeIn', icon: '👻' },
   { value: 'puff-in', key: 'puffIn', icon: '💨' },
   { value: 'flicker-in', key: 'flickerIn', icon: '✨' },
-  { value: 'fade-out', key: 'fadeOut', icon: '💭' },
-  { value: 'flicker-out', key: 'flickerOut', icon: '🌟' },
   { value: 'scale-out', key: 'scaleOut', icon: '📉' },
   { value: 'rotate-out', key: 'rotateOut', icon: '🔄' },
   { value: 'rotate-out-2', key: 'rotateOut2', icon: '🌀' },
@@ -668,6 +676,9 @@ const tabs = [
   { value: 'roll-out', key: 'rollOut', icon: '🎲' },
   { value: 'roll-out-blurred', key: 'rollOutBlurred', icon: '🎰' },
   { value: 'swing-out', key: 'swingOut', icon: '⚖️' },
+  { value: 'fade-out', key: 'fadeOut', icon: '💭' },
+  { value: 'puff-out', key: 'puffOut', icon: '💨' },
+  { value: 'flicker-out', key: 'flickerOut', icon: '🌟' },
 ] as const
 
 const handleSelectAnimation = (animationType: string) => {

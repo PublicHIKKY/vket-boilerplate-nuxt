@@ -215,9 +215,11 @@
   $iterations: 1,
   $fill: both
 ) {
-  $animation-name: if($variant == '', 'fade-out', 'fade-out-#{$variant}');
-
-  animation: $animation-name $duration $easing $delay $iterations normal $fill;
+  @if $variant == '' {
+    animation: fade-out $duration $easing $delay $iterations normal $fill;
+  } @else {
+    animation: fade-out-#{$variant} $duration $easing $delay $iterations normal $fill;
+  }
 }
 
 /// Fade-Outアニメーションをホバー時に適用するmixin
@@ -241,9 +243,11 @@
   // ホバー機能があるデバイスのみでアニメーションを有効化
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      $animation-name: if($variant == '', 'fade-out', 'fade-out-#{$variant}');
-
-      animation: $animation-name $duration $easing both;
+      @if $variant == '' {
+        animation: fade-out $duration $easing both;
+      } @else {
+        animation: fade-out-#{$variant} $duration $easing both;
+      }
     }
   }
 }
