@@ -157,6 +157,18 @@ ja:
     slideOutBlurred:
       name: Slide Out Blurred
       description: ブラースライド退場アニメーション（8パターン）
+    slideOutElliptic:
+      name: Slide Out Elliptic
+      description: 楕円軌道スライド退場アニメーション（8パターン）
+    rollOut:
+      name: Roll Out
+      description: ロール退場アニメーション（4パターン）
+    rollOutBlurred:
+      name: Roll Out Blurred
+      description: ブラーロール退場アニメーション（4パターン）
+    swingOut:
+      name: Swing Out
+      description: スイング退場アニメーション（8パターン）
 en:
   title: Animista
   description: CSS animation demos from Animista
@@ -315,6 +327,18 @@ en:
     slideOutBlurred:
       name: Slide Out Blurred
       description: Blurred slide exit animations (8 patterns)
+    slideOutElliptic:
+      name: Slide Out Elliptic
+      description: Elliptic slide exit animations (8 patterns)
+    rollOut:
+      name: Roll Out
+      description: Roll exit animations (4 patterns)
+    rollOutBlurred:
+      name: Roll Out Blurred
+      description: Blurred roll exit animations (4 patterns)
+    swingOut:
+      name: Swing Out
+      description: Swing exit animations (8 patterns)
 </i18n>
 
 <template>
@@ -558,6 +582,22 @@ en:
       v-else-if="currentView === 'slide-out-blurred'"
       @back="handleBackToList"
     />
+    <HoAnimistaSlideOutElliptic
+      v-else-if="currentView === 'slide-out-elliptic'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaRollOut
+      v-else-if="currentView === 'roll-out'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaRollOutBlurred
+      v-else-if="currentView === 'roll-out-blurred'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaSwingOut
+      v-else-if="currentView === 'swing-out'"
+      @back="handleBackToList"
+    />
   </div>
 </template>
 
@@ -568,7 +608,7 @@ const emit = defineEmits<{
   back: []
 }>()
 
-type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'slide-in' | 'slide-in-fwd' | 'slide-in-bck' | 'slide-in-blurred' | 'slide-in-elliptic' | 'roll-in' | 'roll-in-blurred' | 'tilt-in' | 'tilt-in-fwd' | 'swing-in' | 'bounce-in' | 'fade-in' | 'puff-in' | 'flicker-in' | 'bounce-out' | 'fade-out' | 'flicker-out' | 'scale-out' | 'rotate-out' | 'rotate-out-2' | 'swirl-out' | 'flip-out' | 'slit-out' | 'slide-out' | 'slide-out-bck' | 'slide-out-fwd' | 'slide-out-blurred'
+type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'slide-in' | 'slide-in-fwd' | 'slide-in-bck' | 'slide-in-blurred' | 'slide-in-elliptic' | 'roll-in' | 'roll-in-blurred' | 'tilt-in' | 'tilt-in-fwd' | 'swing-in' | 'bounce-in' | 'fade-in' | 'puff-in' | 'flicker-in' | 'fade-out' | 'flicker-out' | 'scale-out' | 'rotate-out' | 'rotate-out-2' | 'swirl-out' | 'flip-out' | 'slit-out' | 'slide-out' | 'slide-out-bck' | 'slide-out-fwd' | 'slide-out-blurred' | 'slide-out-elliptic' | 'bounce-out' | 'roll-out' | 'roll-out-blurred' | 'swing-out'
 
 const currentView = ref<ViewType>('scale-up')
 
@@ -611,7 +651,6 @@ const tabs = [
   { value: 'fade-in', key: 'fadeIn', icon: '👻' },
   { value: 'puff-in', key: 'puffIn', icon: '💨' },
   { value: 'flicker-in', key: 'flickerIn', icon: '✨' },
-  { value: 'bounce-out', key: 'bounceOut', icon: '🚀' },
   { value: 'fade-out', key: 'fadeOut', icon: '💭' },
   { value: 'flicker-out', key: 'flickerOut', icon: '🌟' },
   { value: 'scale-out', key: 'scaleOut', icon: '📉' },
@@ -624,6 +663,11 @@ const tabs = [
   { value: 'slide-out-bck', key: 'slideOutBck', icon: '⬅️' },
   { value: 'slide-out-fwd', key: 'slideOutFwd', icon: '➡️' },
   { value: 'slide-out-blurred', key: 'slideOutBlurred', icon: '💨' },
+  { value: 'slide-out-elliptic', key: 'slideOutElliptic', icon: '🌊' },
+  { value: 'bounce-out', key: 'bounceOut', icon: '🚀' },
+  { value: 'roll-out', key: 'rollOut', icon: '🎲' },
+  { value: 'roll-out-blurred', key: 'rollOutBlurred', icon: '🎰' },
+  { value: 'swing-out', key: 'swingOut', icon: '⚖️' },
 ] as const
 
 const handleSelectAnimation = (animationType: string) => {
