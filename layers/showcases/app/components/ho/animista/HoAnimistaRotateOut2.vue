@@ -161,7 +161,7 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@use '#base/app/assets/styles/animations' as anim;
+@use '#base/app/assets/styles/animations/animista' as anim;
 
 // ============================================
 // Animation Variants

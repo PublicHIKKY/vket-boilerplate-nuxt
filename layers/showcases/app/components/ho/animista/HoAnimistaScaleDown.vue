@@ -181,7 +181,7 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@use '#base/app/assets/styles/animations' as anim;
+@use '#base/app/assets/styles/animations/animista' as anim;
 
 .variant-center.is-animating { @include anim.scale-down('center', 0.5s); }
 .variant-top.is-animating { @include anim.scale-down('top', 0.5s); }
