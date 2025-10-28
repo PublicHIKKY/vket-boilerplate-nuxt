@@ -481,19 +481,48 @@ en:
         <p class="description">
           {{ t('description') }}
         </p>
+        <p class="reference">
+          Reference: <a
+            href="https://animista.net/play/basic"
+            target="_blank"
+            rel="noopener noreferrer"
+          >animista.net</a>
+        </p>
       </header>
 
-      <!-- タブナビゲーション -->
-      <nav class="tab-navigation">
-        <button
-          v-for="tab in tabs"
-          :key="tab.value"
-          :class="['tab-button', { active: currentView === tab.value }]"
-          @click="handleSelectAnimation(tab.value)"
+      <!-- カテゴリナビゲーション -->
+      <nav class="category-navigation">
+        <div
+          v-for="category in categories"
+          :key="category.key"
+          class="category-section"
         >
-          <span class="tab-icon">{{ tab.icon }}</span>
-          <span class="tab-label">{{ t(`animations.${tab.key}.name`) }}</span>
-        </button>
+          <button
+            class="category-title"
+            @click="toggleCategory(category.key)"
+          >
+            <span class="category-icon">{{ category.icon }}</span>
+            <span class="category-name">{{ category.name }}</span>
+            <span class="category-count">({{ category.items.length }})</span>
+            <span :class="['category-arrow', { expanded: expandedCategory === category.key }]">▼</span>
+          </button>
+          <Transition name="accordion">
+            <div
+              v-show="expandedCategory === category.key"
+              class="category-items"
+            >
+              <button
+                v-for="item in category.items"
+                :key="item.value"
+                :class="['animation-button', { active: currentView === item.value }]"
+                @click="handleSelectAnimation(item.value)"
+              >
+                <span class="animation-icon">{{ item.icon }}</span>
+                <span class="animation-label">{{ t(`animations.${item.key}.name`) }}</span>
+              </button>
+            </div>
+          </Transition>
+        </div>
       </nav>
     </div>
 
@@ -811,83 +840,131 @@ const emit = defineEmits<{
 type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'slide-in' | 'slide-in-fwd' | 'slide-in-bck' | 'slide-in-blurred' | 'slide-in-elliptic' | 'roll-in' | 'roll-in-blurred' | 'tilt-in' | 'tilt-in-fwd' | 'swing-in' | 'bounce-in' | 'fade-in' | 'puff-in' | 'flicker-in' | 'fade-out' | 'flicker-out' | 'scale-out' | 'rotate-out' | 'rotate-out-2' | 'swirl-out' | 'flip-out' | 'slit-out' | 'slide-out' | 'slide-out-bck' | 'slide-out-fwd' | 'slide-out-blurred' | 'slide-out-elliptic' | 'bounce-out' | 'roll-out' | 'roll-out-blurred' | 'swing-out' | 'puff-out' | 'tracking-in' | 'tracking-out' | 'blur-out' | 'flicker' | 'focus-in' | 'text-shadow-drop' | 'text-shadow-pop' | 'text-pop-up' | 'vibrate' | 'attn-flicker' | 'shake' | 'jello' | 'wobble' | 'attn-bounce' | 'pulsate' | 'blink' | 'ken-burns' | 'bg-pan' | 'color-change'
 
 const currentView = ref<ViewType>('scale-up')
+const expandedCategory = ref<string>('basic')
 
-const tabs = [
-  { value: 'scale-up', key: 'scaleUp', icon: '📐' },
-  { value: 'scale-down', key: 'scaleDown', icon: '🔽' },
-  { value: 'rotate', key: 'rotate', icon: '🔄' },
-  { value: 'rotate-scale', key: 'rotateScale', icon: '↩️' },
-  { value: 'rotate-90', key: 'rotate90', icon: '⤴️' },
-  { value: 'flip', key: 'flip', icon: '🔃' },
-  { value: 'flip-2', key: 'flip2', icon: '🔂' },
-  { value: 'flip-scale', key: 'flipScale', icon: '🔀' },
-  { value: 'flip-scale-2', key: 'flipScale2', icon: '🔁' },
-  { value: 'swing', key: 'swing', icon: '⚖️' },
-  { value: 'slide', key: 'slide', icon: '➡️' },
-  { value: 'slide-bck', key: 'slideBck', icon: '⬅️' },
-  { value: 'slide-fwd', key: 'slideFwd', icon: '⤴️' },
-  { value: 'slide-rotate', key: 'slideRotate', icon: '🔃' },
-  { value: 'shadow-drop', key: 'shadowDrop', icon: '💧' },
-  { value: 'shadow-drop-2', key: 'shadowDrop2', icon: '💦' },
-  { value: 'shadow-pop', key: 'shadowPop', icon: '⭐' },
-  { value: 'shadow-inset', key: 'shadowInset', icon: '🔲' },
-  { value: 'scale-in', key: 'scaleIn', icon: '📏' },
-  { value: 'rotate-in', key: 'rotateIn', icon: '🔄' },
-  { value: 'rotate-in-2', key: 'rotateIn2', icon: '🌀' },
-  { value: 'swirl-in', key: 'swirlIn', icon: '🌪️' },
-  { value: 'flip-in', key: 'flipIn', icon: '🔃' },
-  { value: 'slit-in', key: 'slitIn', icon: '✂️' },
-  { value: 'slide-in', key: 'slideIn', icon: '🔽' },
-  { value: 'slide-in-fwd', key: 'slideInFwd', icon: '⤵️' },
-  { value: 'slide-in-bck', key: 'slideInBck', icon: '⤴️' },
-  { value: 'slide-in-blurred', key: 'slideInBlurred', icon: '💨' },
-  { value: 'slide-in-elliptic', key: 'slideInElliptic', icon: '🌊' },
-  { value: 'roll-in', key: 'rollIn', icon: '🎲' },
-  { value: 'roll-in-blurred', key: 'rollInBlurred', icon: '🎰' },
-  { value: 'tilt-in', key: 'tiltIn', icon: '🎭' },
-  { value: 'tilt-in-fwd', key: 'tiltInFwd', icon: '🎪' },
-  { value: 'swing-in', key: 'swingIn', icon: '🎢' },
-  { value: 'bounce-in', key: 'bounceIn', icon: '🎾' },
-  { value: 'fade-in', key: 'fadeIn', icon: '👻' },
-  { value: 'puff-in', key: 'puffIn', icon: '💨' },
-  { value: 'flicker-in', key: 'flickerIn', icon: '✨' },
-  { value: 'scale-out', key: 'scaleOut', icon: '📉' },
-  { value: 'rotate-out', key: 'rotateOut', icon: '🔄' },
-  { value: 'rotate-out-2', key: 'rotateOut2', icon: '🌀' },
-  { value: 'swirl-out', key: 'swirlOut', icon: '🌪️' },
-  { value: 'flip-out', key: 'flipOut', icon: '🔃' },
-  { value: 'slit-out', key: 'slitOut', icon: '✂️' },
-  { value: 'slide-out', key: 'slideOut', icon: '📤' },
-  { value: 'slide-out-bck', key: 'slideOutBck', icon: '⬅️' },
-  { value: 'slide-out-fwd', key: 'slideOutFwd', icon: '➡️' },
-  { value: 'slide-out-blurred', key: 'slideOutBlurred', icon: '💨' },
-  { value: 'slide-out-elliptic', key: 'slideOutElliptic', icon: '🌊' },
-  { value: 'bounce-out', key: 'bounceOut', icon: '🚀' },
-  { value: 'roll-out', key: 'rollOut', icon: '🎲' },
-  { value: 'roll-out-blurred', key: 'rollOutBlurred', icon: '🎰' },
-  { value: 'swing-out', key: 'swingOut', icon: '⚖️' },
-  { value: 'fade-out', key: 'fadeOut', icon: '💭' },
-  { value: 'puff-out', key: 'puffOut', icon: '💨' },
-  { value: 'flicker-out', key: 'flickerOut', icon: '🌟' },
-  { value: 'tracking-in', key: 'trackingIn', icon: '🔤' },
-  { value: 'tracking-out', key: 'trackingOut', icon: '🔡' },
-  { value: 'focus-in', key: 'focusIn', icon: '🔍' },
-  { value: 'blur-out', key: 'blurOut', icon: '🌫️' },
-  { value: 'text-shadow-drop', key: 'textShadowDrop', icon: '💧' },
-  { value: 'text-shadow-pop', key: 'textShadowPop', icon: '⭐' },
-  { value: 'text-pop-up', key: 'textPopUp', icon: '🎈' },
-  { value: 'vibrate', key: 'vibrate', icon: '📳' },
-  { value: 'attn-flicker', key: 'attnFlicker', icon: '💡' },
-  { value: 'shake', key: 'shake', icon: '🔔' },
-  { value: 'jello', key: 'jello', icon: '🍮' },
-  { value: 'wobble', key: 'wobble', icon: '🌊' },
-  { value: 'attn-bounce', key: 'attnBounce', icon: '🏀' },
-  { value: 'pulsate', key: 'pulsate', icon: '💓' },
-  { value: 'blink', key: 'blink', icon: '👁️' },
-  { value: 'ken-burns', key: 'kenBurns', icon: '🎬' },
-  { value: 'bg-pan', key: 'bgPan', icon: '🖼️' },
-  { value: 'color-change', key: 'colorChange', icon: '🌈' },
+const categories = [
+  {
+    name: 'Basic',
+    key: 'basic',
+    icon: '⚡',
+    items: [
+      { value: 'scale-up', key: 'scaleUp', icon: '📐' },
+      { value: 'scale-down', key: 'scaleDown', icon: '🔽' },
+      { value: 'rotate', key: 'rotate', icon: '🔄' },
+      { value: 'rotate-scale', key: 'rotateScale', icon: '↩️' },
+      { value: 'rotate-90', key: 'rotate90', icon: '⤴️' },
+      { value: 'flip', key: 'flip', icon: '🔃' },
+      { value: 'flip-2', key: 'flip2', icon: '🔂' },
+      { value: 'flip-scale', key: 'flipScale', icon: '🔀' },
+      { value: 'flip-scale-2', key: 'flipScale2', icon: '🔁' },
+      { value: 'swing', key: 'swing', icon: '⚖️' },
+      { value: 'slide', key: 'slide', icon: '➡️' },
+      { value: 'slide-bck', key: 'slideBck', icon: '⬅️' },
+      { value: 'slide-fwd', key: 'slideFwd', icon: '⤴️' },
+      { value: 'slide-rotate', key: 'slideRotate', icon: '🔃' },
+      { value: 'shadow-drop', key: 'shadowDrop', icon: '💧' },
+      { value: 'shadow-drop-2', key: 'shadowDrop2', icon: '💦' },
+      { value: 'shadow-pop', key: 'shadowPop', icon: '⭐' },
+      { value: 'shadow-inset', key: 'shadowInset', icon: '🔲' },
+    ],
+  },
+  {
+    name: 'Entrance',
+    key: 'entrance',
+    icon: '👋',
+    items: [
+      { value: 'scale-in', key: 'scaleIn', icon: '📏' },
+      { value: 'rotate-in', key: 'rotateIn', icon: '🔄' },
+      { value: 'rotate-in-2', key: 'rotateIn2', icon: '🌀' },
+      { value: 'swirl-in', key: 'swirlIn', icon: '🌪️' },
+      { value: 'flip-in', key: 'flipIn', icon: '🔃' },
+      { value: 'slit-in', key: 'slitIn', icon: '✂️' },
+      { value: 'slide-in', key: 'slideIn', icon: '🔽' },
+      { value: 'slide-in-fwd', key: 'slideInFwd', icon: '⤵️' },
+      { value: 'slide-in-bck', key: 'slideInBck', icon: '⤴️' },
+      { value: 'slide-in-blurred', key: 'slideInBlurred', icon: '💨' },
+      { value: 'slide-in-elliptic', key: 'slideInElliptic', icon: '🌊' },
+      { value: 'roll-in', key: 'rollIn', icon: '🎲' },
+      { value: 'roll-in-blurred', key: 'rollInBlurred', icon: '🎰' },
+      { value: 'tilt-in', key: 'tiltIn', icon: '🎭' },
+      { value: 'tilt-in-fwd', key: 'tiltInFwd', icon: '🎪' },
+      { value: 'swing-in', key: 'swingIn', icon: '🎢' },
+      { value: 'bounce-in', key: 'bounceIn', icon: '🎾' },
+      { value: 'fade-in', key: 'fadeIn', icon: '👻' },
+      { value: 'puff-in', key: 'puffIn', icon: '💨' },
+      { value: 'flicker-in', key: 'flickerIn', icon: '✨' },
+    ],
+  },
+  {
+    name: 'Exit',
+    key: 'exit',
+    icon: '👋',
+    items: [
+      { value: 'scale-out', key: 'scaleOut', icon: '📉' },
+      { value: 'rotate-out', key: 'rotateOut', icon: '🔄' },
+      { value: 'rotate-out-2', key: 'rotateOut2', icon: '🌀' },
+      { value: 'swirl-out', key: 'swirlOut', icon: '🌪️' },
+      { value: 'flip-out', key: 'flipOut', icon: '🔃' },
+      { value: 'slit-out', key: 'slitOut', icon: '✂️' },
+      { value: 'slide-out', key: 'slideOut', icon: '📤' },
+      { value: 'slide-out-bck', key: 'slideOutBck', icon: '⬅️' },
+      { value: 'slide-out-fwd', key: 'slideOutFwd', icon: '➡️' },
+      { value: 'slide-out-blurred', key: 'slideOutBlurred', icon: '💨' },
+      { value: 'slide-out-elliptic', key: 'slideOutElliptic', icon: '🌊' },
+      { value: 'bounce-out', key: 'bounceOut', icon: '🚀' },
+      { value: 'roll-out', key: 'rollOut', icon: '🎲' },
+      { value: 'roll-out-blurred', key: 'rollOutBlurred', icon: '🎰' },
+      { value: 'swing-out', key: 'swingOut', icon: '⚖️' },
+      { value: 'fade-out', key: 'fadeOut', icon: '💭' },
+      { value: 'puff-out', key: 'puffOut', icon: '💨' },
+      { value: 'flicker-out', key: 'flickerOut', icon: '🌟' },
+    ],
+  },
+  {
+    name: 'Text',
+    key: 'text',
+    icon: '📝',
+    items: [
+      { value: 'tracking-in', key: 'trackingIn', icon: '🔤' },
+      { value: 'tracking-out', key: 'trackingOut', icon: '🔡' },
+      { value: 'focus-in', key: 'focusIn', icon: '🔍' },
+      { value: 'blur-out', key: 'blurOut', icon: '🌫️' },
+      { value: 'flicker', key: 'flicker', icon: '✨' },
+      { value: 'text-shadow-drop', key: 'textShadowDrop', icon: '💧' },
+      { value: 'text-shadow-pop', key: 'textShadowPop', icon: '⭐' },
+      { value: 'text-pop-up', key: 'textPopUp', icon: '🎈' },
+    ],
+  },
+  {
+    name: 'Attention',
+    key: 'attention',
+    icon: '🎯',
+    items: [
+      { value: 'vibrate', key: 'vibrate', icon: '📳' },
+      { value: 'shake', key: 'shake', icon: '🔔' },
+      { value: 'jello', key: 'jello', icon: '🍮' },
+      { value: 'wobble', key: 'wobble', icon: '🌊' },
+      { value: 'attn-bounce', key: 'attnBounce', icon: '🏀' },
+      { value: 'pulsate', key: 'pulsate', icon: '💓' },
+      { value: 'blink', key: 'blink', icon: '👁️' },
+      { value: 'attn-flicker', key: 'attnFlicker', icon: '💡' },
+    ],
+  },
+  {
+    name: 'Background',
+    key: 'background',
+    icon: '🎨',
+    items: [
+      { value: 'ken-burns', key: 'kenBurns', icon: '🎬' },
+      { value: 'bg-pan', key: 'bgPan', icon: '🖼️' },
+      { value: 'color-change', key: 'colorChange', icon: '🌈' },
+    ],
+  },
 ] as const
+
+const toggleCategory = (categoryKey: string) => {
+  expandedCategory.value = expandedCategory.value === categoryKey ? '' : categoryKey
+}
 
 const handleSelectAnimation = (animationType: string) => {
   currentView.value = animationType as ViewType
@@ -953,6 +1030,22 @@ const handleBackToList = () => {
 .description {
   font-size: 20px;
   color: rgb(255 255 255 / 90%);
+}
+
+.reference {
+  margin-top: 12px;
+  font-size: 16px;
+  color: rgb(255 255 255 / 80%);
+
+  a {
+    color: white;
+    text-decoration: underline;
+    transition: opacity 0.3s ease;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
 }
 
 .section {
@@ -1034,52 +1127,137 @@ const handleBackToList = () => {
   }
 }
 
-.tab-navigation {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-
+.category-navigation {
   margin-bottom: 40px;
 }
 
-.tab-button {
+.category-section {
+  margin-bottom: 16px;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 5%);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.category-title {
+  cursor: pointer;
+
+  display: flex;
+  gap: 12px;
+  align-items: center;
+
+  width: 100%;
+  padding: 16px 20px;
+  border: 2px solid rgb(255 255 255 / 20%);
+  border-radius: 12px;
+
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  text-align: left;
+
+  background: rgb(255 255 255 / 8%);
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: rgb(255 255 255 / 40%);
+    background: rgb(255 255 255 / 12%);
+  }
+}
+
+.category-icon {
+  font-size: 24px;
+}
+
+.category-name {
+  flex: 1;
+  font-weight: inherit;
+}
+
+.category-count {
+  font-size: 14px;
+  color: rgb(255 255 255 / 70%);
+}
+
+.category-arrow {
+  font-size: 14px;
+  color: rgb(255 255 255 / 70%);
+  transition: transform 0.3s ease;
+
+  &.expanded {
+    transform: rotate(180deg);
+  }
+}
+
+.category-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 20px;
+}
+
+// アコーディオンアニメーション
+.accordion-enter-active,
+.accordion-leave-active {
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.accordion-enter-from,
+.accordion-leave-to {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  opacity: 0;
+}
+
+.accordion-enter-to,
+.accordion-leave-from {
+  max-height: 1000px;
+  opacity: 1;
+}
+
+.animation-button {
   cursor: pointer;
 
   display: flex;
   gap: 8px;
   align-items: center;
 
-  padding: 12px 24px;
-  border: 2px solid white;
+  padding: 10px 18px;
+  border: 2px solid rgb(255 255 255 / 30%);
   border-radius: 8px;
 
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: white;
 
-  background: transparent;
+  background: rgb(255 255 255 / 5%);
 
   transition: all 0.3s ease;
 
   &:hover {
-    transform: translateY(-2px);
+    border-color: rgb(255 255 255 / 60%);
     background: rgb(255 255 255 / 10%);
     box-shadow: 0 4px 12px rgb(0 0 0 / 20%);
   }
 
   &.active {
+    border-color: white;
     color: #667eea;
     background: white;
     box-shadow: 0 4px 12px rgb(0 0 0 / 20%);
   }
 }
 
-.tab-icon {
-  font-size: 20px;
+.animation-icon {
+  font-size: 18px;
 }
 
-.tab-label {
+.animation-label {
   font-weight: inherit;
 }
 </style>
