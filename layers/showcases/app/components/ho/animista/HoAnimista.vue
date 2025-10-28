@@ -196,6 +196,24 @@ ja:
     textPopUp:
       name: Text Pop Up
       description: テキストポップアップアニメーション（8パターン）
+    vibrate:
+      name: Vibrate
+      description: バイブレーションアニメーション（3パターン）
+    attnFlicker:
+      name: Attention Flicker
+      description: アテンションフリッカーアニメーション（5パターン）
+    shake:
+      name: Shake
+      description: シェイクアニメーション（11パターン）
+    jello:
+      name: Jello
+      description: ゼリー状アニメーション（4パターン）
+    attnBounce:
+      name: Attention Bounce
+      description: バウンスアテンションアニメーション（4パターン）
+    pulsate:
+      name: Pulsate
+      description: パルスアニメーション（4パターン）
 en:
   title: Animista
   description: CSS animation demos from Animista
@@ -393,6 +411,24 @@ en:
     textPopUp:
       name: Text Pop Up
       description: Text pop-up animations (8 patterns)
+    vibrate:
+      name: Vibrate
+      description: Vibration attention animations (3 patterns)
+    attnFlicker:
+      name: Attention Flicker
+      description: Attention flicker animations (5 patterns)
+    shake:
+      name: Shake
+      description: Shake attention animations (11 patterns)
+    jello:
+      name: Jello
+      description: Jello attention animations (4 patterns)
+    attnBounce:
+      name: Attention Bounce
+      description: Bounce attention animations (4 patterns)
+    pulsate:
+      name: Pulsate
+      description: Pulsate attention animations (4 patterns)
 </i18n>
 
 <template>
@@ -688,6 +724,30 @@ en:
       v-else-if="currentView === 'text-pop-up'"
       @back="handleBackToList"
     />
+    <HoAnimistaVibrate
+      v-else-if="currentView === 'vibrate'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaAttnFlicker
+      v-else-if="currentView === 'attn-flicker'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaShake
+      v-else-if="currentView === 'shake'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaJello
+      v-else-if="currentView === 'jello'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaAttnBounce
+      v-else-if="currentView === 'attn-bounce'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaPulsate
+      v-else-if="currentView === 'pulsate'"
+      @back="handleBackToList"
+    />
   </div>
 </template>
 
@@ -698,7 +758,7 @@ const emit = defineEmits<{
   back: []
 }>()
 
-type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'slide-in' | 'slide-in-fwd' | 'slide-in-bck' | 'slide-in-blurred' | 'slide-in-elliptic' | 'roll-in' | 'roll-in-blurred' | 'tilt-in' | 'tilt-in-fwd' | 'swing-in' | 'bounce-in' | 'fade-in' | 'puff-in' | 'flicker-in' | 'fade-out' | 'flicker-out' | 'scale-out' | 'rotate-out' | 'rotate-out-2' | 'swirl-out' | 'flip-out' | 'slit-out' | 'slide-out' | 'slide-out-bck' | 'slide-out-fwd' | 'slide-out-blurred' | 'slide-out-elliptic' | 'bounce-out' | 'roll-out' | 'roll-out-blurred' | 'swing-out' | 'puff-out' | 'tracking-in' | 'tracking-out' | 'blur-out' | 'flicker' | 'focus-in' | 'text-shadow-drop' | 'text-shadow-pop' | 'text-pop-up'
+type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'slide-in' | 'slide-in-fwd' | 'slide-in-bck' | 'slide-in-blurred' | 'slide-in-elliptic' | 'roll-in' | 'roll-in-blurred' | 'tilt-in' | 'tilt-in-fwd' | 'swing-in' | 'bounce-in' | 'fade-in' | 'puff-in' | 'flicker-in' | 'fade-out' | 'flicker-out' | 'scale-out' | 'rotate-out' | 'rotate-out-2' | 'swirl-out' | 'flip-out' | 'slit-out' | 'slide-out' | 'slide-out-bck' | 'slide-out-fwd' | 'slide-out-blurred' | 'slide-out-elliptic' | 'bounce-out' | 'roll-out' | 'roll-out-blurred' | 'swing-out' | 'puff-out' | 'tracking-in' | 'tracking-out' | 'blur-out' | 'flicker' | 'focus-in' | 'text-shadow-drop' | 'text-shadow-pop' | 'text-pop-up' | 'vibrate' | 'attn-flicker' | 'shake' | 'jello' | 'attn-bounce' | 'pulsate'
 
 const currentView = ref<ViewType>('scale-up')
 
@@ -763,10 +823,15 @@ const tabs = [
   { value: 'tracking-out', key: 'trackingOut', icon: '🔡' },
   { value: 'focus-in', key: 'focusIn', icon: '🔍' },
   { value: 'blur-out', key: 'blurOut', icon: '🌫️' },
-  { value: 'flicker', key: 'flicker', icon: '✨' },
   { value: 'text-shadow-drop', key: 'textShadowDrop', icon: '💧' },
   { value: 'text-shadow-pop', key: 'textShadowPop', icon: '⭐' },
   { value: 'text-pop-up', key: 'textPopUp', icon: '🎈' },
+  { value: 'vibrate', key: 'vibrate', icon: '📳' },
+  { value: 'attn-flicker', key: 'attnFlicker', icon: '💡' },
+  { value: 'shake', key: 'shake', icon: '🔔' },
+  { value: 'jello', key: 'jello', icon: '🍮' },
+  { value: 'attn-bounce', key: 'attnBounce', icon: '🏀' },
+  { value: 'pulsate', key: 'pulsate', icon: '💓' },
 ] as const
 
 const handleSelectAnimation = (animationType: string) => {
