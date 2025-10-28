@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "version": "1.0.1",
+  "packageManager": "bun@1.2.23",
   "scripts": {
     "postinstall": "nuxt prepare",
     "dev": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt dev -o",
@@ -28,7 +29,9 @@
     "test:e2e:ui": "playwright test --ui",
     "exec-test": "baseDir='./app/test' ext='\\.spec\\.ts' bun exec-if-file-exists",
     "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true",
-    "package-update": "bunx npm-check-updates -i"
+    "package-update": "bunx npm-check-updates -i",
+    "clean-install": "node ../../scripts/clean_install.js",
+    "allclean-install": "node ../../scripts/clean_install.js all"
   },
   "dependencies": {
     "@gtm-support/vue-gtm": "^3.1.0",
