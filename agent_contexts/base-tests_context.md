@@ -3044,6 +3044,17 @@ exports[`mount component 1`] = `
 `;
 ````
 
+## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadio.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<label data-v-3deb71fa="" class="hm-input-radio"><input data-v-fc3f65b2="" data-v-3deb71fa="" class="ha-base-input button" type="radio" name="test name" value="1">
+  <div data-v-3deb71fa="" class="content"></div>
+</label>"
+`;
+````
+
 ## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputSingleImage.spec.ts.snap
 ````
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
@@ -8661,17 +8672,6 @@ exports[`mount component 1`] = `
   </div>
   <!--v-if-->
 </div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadio.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<label data-v-3deb71fa="" class="hm-input-radio"><input data-v-fc3f65b2="" data-v-3deb71fa="" class="ha-base-input button" type="radio" name="test name" value="1">
-  <div data-v-3deb71fa="" class="content"></div>
-</label>"
 `;
 ````
 
