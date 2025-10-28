@@ -208,12 +208,18 @@ ja:
     jello:
       name: Jello
       description: ゼリー状アニメーション（4パターン）
+    wobble:
+      name: Wobble
+      description: ウォブルアニメーション（4パターン）
     attnBounce:
       name: Attention Bounce
       description: バウンスアテンションアニメーション（4パターン）
     pulsate:
       name: Pulsate
       description: パルスアニメーション（4パターン）
+    blink:
+      name: Blink
+      description: ブリンクアニメーション（2パターン）
 en:
   title: Animista
   description: CSS animation demos from Animista
@@ -423,12 +429,18 @@ en:
     jello:
       name: Jello
       description: Jello attention animations (4 patterns)
+    wobble:
+      name: Wobble
+      description: Wobble attention animations (4 patterns)
     attnBounce:
       name: Attention Bounce
       description: Bounce attention animations (4 patterns)
     pulsate:
       name: Pulsate
       description: Pulsate attention animations (4 patterns)
+    blink:
+      name: Blink
+      description: Blink attention animations (2 patterns)
 </i18n>
 
 <template>
@@ -740,12 +752,20 @@ en:
       v-else-if="currentView === 'jello'"
       @back="handleBackToList"
     />
+    <HoAnimistaWobble
+      v-else-if="currentView === 'wobble'"
+      @back="handleBackToList"
+    />
     <HoAnimistaAttnBounce
       v-else-if="currentView === 'attn-bounce'"
       @back="handleBackToList"
     />
     <HoAnimistaPulsate
       v-else-if="currentView === 'pulsate'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaBlink
+      v-else-if="currentView === 'blink'"
       @back="handleBackToList"
     />
   </div>
@@ -758,7 +778,7 @@ const emit = defineEmits<{
   back: []
 }>()
 
-type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'slide-in' | 'slide-in-fwd' | 'slide-in-bck' | 'slide-in-blurred' | 'slide-in-elliptic' | 'roll-in' | 'roll-in-blurred' | 'tilt-in' | 'tilt-in-fwd' | 'swing-in' | 'bounce-in' | 'fade-in' | 'puff-in' | 'flicker-in' | 'fade-out' | 'flicker-out' | 'scale-out' | 'rotate-out' | 'rotate-out-2' | 'swirl-out' | 'flip-out' | 'slit-out' | 'slide-out' | 'slide-out-bck' | 'slide-out-fwd' | 'slide-out-blurred' | 'slide-out-elliptic' | 'bounce-out' | 'roll-out' | 'roll-out-blurred' | 'swing-out' | 'puff-out' | 'tracking-in' | 'tracking-out' | 'blur-out' | 'flicker' | 'focus-in' | 'text-shadow-drop' | 'text-shadow-pop' | 'text-pop-up' | 'vibrate' | 'attn-flicker' | 'shake' | 'jello' | 'attn-bounce' | 'pulsate'
+type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'slide-in' | 'slide-in-fwd' | 'slide-in-bck' | 'slide-in-blurred' | 'slide-in-elliptic' | 'roll-in' | 'roll-in-blurred' | 'tilt-in' | 'tilt-in-fwd' | 'swing-in' | 'bounce-in' | 'fade-in' | 'puff-in' | 'flicker-in' | 'fade-out' | 'flicker-out' | 'scale-out' | 'rotate-out' | 'rotate-out-2' | 'swirl-out' | 'flip-out' | 'slit-out' | 'slide-out' | 'slide-out-bck' | 'slide-out-fwd' | 'slide-out-blurred' | 'slide-out-elliptic' | 'bounce-out' | 'roll-out' | 'roll-out-blurred' | 'swing-out' | 'puff-out' | 'tracking-in' | 'tracking-out' | 'blur-out' | 'flicker' | 'focus-in' | 'text-shadow-drop' | 'text-shadow-pop' | 'text-pop-up' | 'vibrate' | 'attn-flicker' | 'shake' | 'jello' | 'wobble' | 'attn-bounce' | 'pulsate' | 'blink'
 
 const currentView = ref<ViewType>('scale-up')
 
@@ -830,8 +850,10 @@ const tabs = [
   { value: 'attn-flicker', key: 'attnFlicker', icon: '💡' },
   { value: 'shake', key: 'shake', icon: '🔔' },
   { value: 'jello', key: 'jello', icon: '🍮' },
+  { value: 'wobble', key: 'wobble', icon: '🌊' },
   { value: 'attn-bounce', key: 'attnBounce', icon: '🏀' },
   { value: 'pulsate', key: 'pulsate', icon: '💓' },
+  { value: 'blink', key: 'blink', icon: '👁️' },
 ] as const
 
 const handleSelectAnimation = (animationType: string) => {
