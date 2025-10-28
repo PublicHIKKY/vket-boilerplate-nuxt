@@ -220,6 +220,15 @@ ja:
     blink:
       name: Blink
       description: ブリンクアニメーション（2パターン）
+    kenBurns:
+      name: Ken Burns
+      description: ケン・バーンズエフェクトアニメーション（8パターン）
+    bgPan:
+      name: Background Pan
+      description: 背景パンアニメーション（8パターン）
+    colorChange:
+      name: Color Change
+      description: 背景色変化アニメーション（4パターン）
 en:
   title: Animista
   description: CSS animation demos from Animista
@@ -441,6 +450,15 @@ en:
     blink:
       name: Blink
       description: Blink attention animations (2 patterns)
+    kenBurns:
+      name: Ken Burns
+      description: Ken Burns effect animations (8 patterns)
+    bgPan:
+      name: Background Pan
+      description: Background pan animations (8 patterns)
+    colorChange:
+      name: Color Change
+      description: Background color change animations (4 patterns)
 </i18n>
 
 <template>
@@ -768,6 +786,18 @@ en:
       v-else-if="currentView === 'blink'"
       @back="handleBackToList"
     />
+    <HoAnimistaKenBurns
+      v-else-if="currentView === 'ken-burns'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaBgPan
+      v-else-if="currentView === 'bg-pan'"
+      @back="handleBackToList"
+    />
+    <HoAnimistaColorChange
+      v-else-if="currentView === 'color-change'"
+      @back="handleBackToList"
+    />
   </div>
 </template>
 
@@ -778,7 +808,7 @@ const emit = defineEmits<{
   back: []
 }>()
 
-type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'slide-in' | 'slide-in-fwd' | 'slide-in-bck' | 'slide-in-blurred' | 'slide-in-elliptic' | 'roll-in' | 'roll-in-blurred' | 'tilt-in' | 'tilt-in-fwd' | 'swing-in' | 'bounce-in' | 'fade-in' | 'puff-in' | 'flicker-in' | 'fade-out' | 'flicker-out' | 'scale-out' | 'rotate-out' | 'rotate-out-2' | 'swirl-out' | 'flip-out' | 'slit-out' | 'slide-out' | 'slide-out-bck' | 'slide-out-fwd' | 'slide-out-blurred' | 'slide-out-elliptic' | 'bounce-out' | 'roll-out' | 'roll-out-blurred' | 'swing-out' | 'puff-out' | 'tracking-in' | 'tracking-out' | 'blur-out' | 'flicker' | 'focus-in' | 'text-shadow-drop' | 'text-shadow-pop' | 'text-pop-up' | 'vibrate' | 'attn-flicker' | 'shake' | 'jello' | 'wobble' | 'attn-bounce' | 'pulsate' | 'blink'
+type ViewType = 'scale-up' | 'scale-down' | 'rotate' | 'rotate-scale' | 'rotate-90' | 'flip' | 'flip-2' | 'flip-scale' | 'flip-scale-2' | 'swing' | 'slide' | 'slide-bck' | 'slide-fwd' | 'slide-rotate' | 'shadow-drop' | 'shadow-drop-2' | 'shadow-pop' | 'shadow-inset' | 'scale-in' | 'rotate-in' | 'rotate-in-2' | 'swirl-in' | 'flip-in' | 'slit-in' | 'slide-in' | 'slide-in-fwd' | 'slide-in-bck' | 'slide-in-blurred' | 'slide-in-elliptic' | 'roll-in' | 'roll-in-blurred' | 'tilt-in' | 'tilt-in-fwd' | 'swing-in' | 'bounce-in' | 'fade-in' | 'puff-in' | 'flicker-in' | 'fade-out' | 'flicker-out' | 'scale-out' | 'rotate-out' | 'rotate-out-2' | 'swirl-out' | 'flip-out' | 'slit-out' | 'slide-out' | 'slide-out-bck' | 'slide-out-fwd' | 'slide-out-blurred' | 'slide-out-elliptic' | 'bounce-out' | 'roll-out' | 'roll-out-blurred' | 'swing-out' | 'puff-out' | 'tracking-in' | 'tracking-out' | 'blur-out' | 'flicker' | 'focus-in' | 'text-shadow-drop' | 'text-shadow-pop' | 'text-pop-up' | 'vibrate' | 'attn-flicker' | 'shake' | 'jello' | 'wobble' | 'attn-bounce' | 'pulsate' | 'blink' | 'ken-burns' | 'bg-pan' | 'color-change'
 
 const currentView = ref<ViewType>('scale-up')
 
@@ -854,6 +884,9 @@ const tabs = [
   { value: 'attn-bounce', key: 'attnBounce', icon: '🏀' },
   { value: 'pulsate', key: 'pulsate', icon: '💓' },
   { value: 'blink', key: 'blink', icon: '👁️' },
+  { value: 'ken-burns', key: 'kenBurns', icon: '🎬' },
+  { value: 'bg-pan', key: 'bgPan', icon: '🖼️' },
+  { value: 'color-change', key: 'colorChange', icon: '🌈' },
 ] as const
 
 const handleSelectAnimation = (animationType: string) => {
