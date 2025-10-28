@@ -140,9 +140,11 @@
   $iterations: 1,
   $fill: both
 ) {
-  $animation-name: if($variant == '', 'text-focus-in', 'focus-in-#{$variant}');
-
-  animation: $animation-name $duration $easing $delay $iterations normal $fill;
+  @if $variant == '' {
+    animation: text-focus-in $duration $easing $delay $iterations normal $fill;
+  } @else {
+    animation: focus-in-#{$variant} $duration $easing $delay $iterations normal $fill;
+  }
 }
 
 /// Focus-Inアニメーションをホバー時に適用するmixin
@@ -166,9 +168,11 @@
   // ホバー機能があるデバイスのみでアニメーションを有効化
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      $animation-name: if($variant == '', 'text-focus-in', 'focus-in-#{$variant}');
-
-      animation: $animation-name $duration $easing both;
+      @if $variant == '' {
+        animation: text-focus-in $duration $easing both;
+      } @else {
+        animation: focus-in-#{$variant} $duration $easing both;
+      }
     }
   }
 }

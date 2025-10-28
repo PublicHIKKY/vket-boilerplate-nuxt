@@ -128,9 +128,11 @@
   $iterations: 1,
   $fill: both
 ) {
-  $animation-name: if($variant == '', 'text-blur-out', 'blur-out-#{$variant}');
-
-  animation: $animation-name $duration $easing $delay $iterations normal $fill;
+  @if $variant == '' {
+    animation: text-blur-out $duration $easing $delay $iterations normal $fill;
+  } @else {
+    animation: blur-out-#{$variant} $duration $easing $delay $iterations normal $fill;
+  }
 }
 
 /// Blur-Outアニメーションをホバー時に適用するmixin
@@ -154,9 +156,11 @@
   // ホバー機能があるデバイスのみでアニメーションを有効化
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      $animation-name: if($variant == '', 'text-blur-out', 'blur-out-#{$variant}');
-
-      animation: $animation-name $duration $easing both;
+      @if $variant == '' {
+        animation: text-blur-out $duration $easing both;
+      } @else {
+        animation: blur-out-#{$variant} $duration $easing both;
+      }
     }
   }
 }
