@@ -28,7 +28,7 @@
     "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true",
     "clean-install": "node ../../scripts/clean_install.js",
     "allclean-install": "node ../../scripts/clean_install.js all",
-    "package-update": "node ../../scripts/package_update.js"
+    "package-update": "bunx npm-check-updates -i"
   },
   "dependencies": {
     "vket-boilerplate-nuxt-base": "workspace:*"
