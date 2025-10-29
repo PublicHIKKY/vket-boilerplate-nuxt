@@ -18,7 +18,25 @@
     </p>
 
     <div class="demo-controls">
+      <div class="control-group">
+        <label class="control-label">Animation Trigger:</label>
+        <div class="toggle-buttons">
+          <button
+            :class="['toggle-button', { active: !isHoverMode }]"
+            @click="isHoverMode = false"
+          >
+            Auto Play
+          </button>
+          <button
+            :class="['toggle-button', { active: isHoverMode }]"
+            @click="isHoverMode = true"
+          >
+            On Hover
+          </button>
+        </div>
+      </div>
       <button
+        v-if="!isHoverMode"
         class="replay-button"
         @click="replayAll"
       >
@@ -33,23 +51,31 @@
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-hor-top', { 'is-animating': activeVariants.has('hor-top') }]">
-              hor-top
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-hor-top', { 'is-animating': activeVariants.has('hor-top') }]">
+                hor-top
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-hor-bottom', { 'is-animating': activeVariants.has('hor-bottom') }]">
-              hor-bottom
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-hor-bottom', { 'is-animating': activeVariants.has('hor-bottom') }]">
+                hor-bottom
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-ver-left', { 'is-animating': activeVariants.has('ver-left') }]">
-              ver-left
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-ver-left', { 'is-animating': activeVariants.has('ver-left') }]">
+                ver-left
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-ver-right', { 'is-animating': activeVariants.has('ver-right') }]">
-              ver-right
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-ver-right', { 'is-animating': activeVariants.has('ver-right') }]">
+                ver-right
+              </div>
             </div>
           </div>
         </div>
@@ -61,23 +87,31 @@
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-diag-1-tr', { 'is-animating': activeVariants.has('diag-1-tr') }]">
-              diag-1-tr
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-diag-1-tr', { 'is-animating': activeVariants.has('diag-1-tr') }]">
+                diag-1-tr
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-diag-1-bl', { 'is-animating': activeVariants.has('diag-1-bl') }]">
-              diag-1-bl
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-diag-1-bl', { 'is-animating': activeVariants.has('diag-1-bl') }]">
+                diag-1-bl
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-diag-2-tl', { 'is-animating': activeVariants.has('diag-2-tl') }]">
-              diag-2-tl
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-diag-2-tl', { 'is-animating': activeVariants.has('diag-2-tl') }]">
+                diag-2-tl
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-diag-2-br', { 'is-animating': activeVariants.has('diag-2-br') }]">
-              diag-2-br
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-diag-2-br', { 'is-animating': activeVariants.has('diag-2-br') }]">
+                diag-2-br
+              </div>
             </div>
           </div>
         </div>
@@ -112,6 +146,7 @@ const allVariants: FlipOutVariant[] = [
   'diag-2-br',
 ]
 
+const isHoverMode = ref(false)
 const activeVariants = ref<Set<FlipOutVariant>>(new Set())
 
 const replayAll = async () => {
@@ -124,6 +159,12 @@ const replayAll = async () => {
     }, index * 100)
   }
 }
+
+watch(isHoverMode, (newValue) => {
+  if (newValue) {
+    activeVariants.value.clear()
+  }
+})
 
 onMounted(() => {
   setTimeout(() => {
@@ -138,6 +179,17 @@ onMounted(() => {
 // ============================================
 // Animation Variants
 // ============================================
+
+.hover-wrapper.hover-mode:hover {
+  .demo-box.variant-hor-top { @include anim.flip-out('hor-top', 0.45s); }
+  .demo-box.variant-hor-bottom { @include anim.flip-out('hor-bottom', 0.45s); }
+  .demo-box.variant-ver-left { @include anim.flip-out('ver-left', 0.45s); }
+  .demo-box.variant-ver-right { @include anim.flip-out('ver-right', 0.45s); }
+  .demo-box.variant-diag-1-tr { @include anim.flip-out('diag-1-tr', 0.45s); }
+  .demo-box.variant-diag-1-bl { @include anim.flip-out('diag-1-bl', 0.45s); }
+  .demo-box.variant-diag-2-tl { @include anim.flip-out('diag-2-tl', 0.45s); }
+  .demo-box.variant-diag-2-br { @include anim.flip-out('diag-2-br', 0.45s); }
+}
 
 // Horizontal & Vertical (4 patterns)
 .variant-hor-top.is-animating { @include anim.flip-out('hor-top', 0.45s); }
@@ -206,8 +258,61 @@ onMounted(() => {
 
 .demo-controls {
   display: flex;
+  gap: 24px;
+  align-items: center;
   justify-content: center;
+
   margin-bottom: 40px;
+}
+
+.control-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.control-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.toggle-buttons {
+  display: flex;
+  gap: 8px;
+
+  padding: 4px;
+  border-radius: 8px;
+
+  background: rgb(255 255 255 / 10%);
+}
+
+.toggle-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 70%);
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: white;
+    background: rgb(255 255 255 / 10%);
+  }
+
+  &.active {
+    border-color: white;
+    color: #ef4444;
+    background: white;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+  }
 }
 
 .replay-button {
@@ -268,6 +373,15 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   min-height: 120px;
+}
+
+.hover-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
 }
 
 .demo-box {

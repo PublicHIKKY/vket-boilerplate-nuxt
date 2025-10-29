@@ -18,7 +18,25 @@
     </p>
 
     <div class="demo-controls">
+      <div class="control-group">
+        <label class="control-label">Animation Trigger:</label>
+        <div class="toggle-buttons">
+          <button
+            :class="['toggle-button', { active: !isHoverMode }]"
+            @click="isHoverMode = false"
+          >
+            Auto Play
+          </button>
+          <button
+            :class="['toggle-button', { active: isHoverMode }]"
+            @click="isHoverMode = true"
+          >
+            On Hover
+          </button>
+        </div>
+      </div>
       <button
+        v-if="!isHoverMode"
         class="replay-button"
         @click="replayAll"
       >
@@ -33,23 +51,31 @@
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-hor-bottom', { 'is-animating': activeVariants.has('hor-bottom') }]">
-              HOR BOTTOM
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-hor-bottom', { 'is-animating': activeVariants.has('hor-bottom') }]">
+                HOR BOTTOM
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-hor-top', { 'is-animating': activeVariants.has('hor-top') }]">
-              HOR TOP
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-hor-top', { 'is-animating': activeVariants.has('hor-top') }]">
+                HOR TOP
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-ver-left', { 'is-animating': activeVariants.has('ver-left') }]">
-              VER LEFT
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-ver-left', { 'is-animating': activeVariants.has('ver-left') }]">
+                VER LEFT
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-ver-right', { 'is-animating': activeVariants.has('ver-right') }]">
-              VER RIGHT
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-ver-right', { 'is-animating': activeVariants.has('ver-right') }]">
+                VER RIGHT
+              </div>
             </div>
           </div>
         </div>
@@ -67,6 +93,7 @@ type WobbleVariant = 'hor-bottom' | 'hor-top' | 'ver-left' | 'ver-right'
 
 const allVariants: WobbleVariant[] = ['hor-bottom', 'hor-top', 'ver-left', 'ver-right']
 
+const isHoverMode = ref(false)
 const activeVariants = ref<Set<WobbleVariant>>(new Set())
 
 const replayAll = async () => {
@@ -79,6 +106,12 @@ const replayAll = async () => {
     }, index * 100)
   }
 }
+
+watch(isHoverMode, (newValue) => {
+  if (newValue) {
+    activeVariants.value.clear()
+  }
+})
 
 onMounted(() => {
   setTimeout(() => {
@@ -93,6 +126,13 @@ onMounted(() => {
 // ============================================
 // Animation Variants
 // ============================================
+
+.hover-wrapper.hover-mode:hover {
+  .demo-box.variant-hor-bottom { @include anim.wobble('hor-bottom', 0.8s); }
+  .demo-box.variant-hor-top { @include anim.wobble('hor-top', 0.8s); }
+  .demo-box.variant-ver-left { @include anim.wobble('ver-left', 0.8s); }
+  .demo-box.variant-ver-right { @include anim.wobble('ver-right', 0.8s); }
+}
 
 // Wobble Variations (4 patterns)
 .variant-hor-bottom.is-animating { @include anim.wobble('hor-bottom', 0.8s); }
@@ -155,8 +195,61 @@ onMounted(() => {
 
 .demo-controls {
   display: flex;
+  gap: 24px;
+  align-items: center;
   justify-content: center;
+
   margin-bottom: 40px;
+}
+
+.control-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.control-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.toggle-buttons {
+  display: flex;
+  gap: 8px;
+
+  padding: 4px;
+  border-radius: 8px;
+
+  background: rgb(255 255 255 / 10%);
+}
+
+.toggle-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 70%);
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: white;
+    background: rgb(255 255 255 / 10%);
+  }
+
+  &.active {
+    border-color: white;
+    color: #1f2937;
+    background: white;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+  }
 }
 
 .replay-button {
@@ -217,6 +310,15 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   min-height: 150px;
+}
+
+.hover-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 150px;
+  height: 150px;
 }
 
 .demo-box {

@@ -18,7 +18,25 @@
     </p>
 
     <div class="demo-controls">
+      <div class="control-group">
+        <label class="control-label">Animation Trigger:</label>
+        <div class="toggle-buttons">
+          <button
+            :class="['toggle-button', { active: !isHoverMode }]"
+            @click="isHoverMode = false"
+          >
+            Auto Play
+          </button>
+          <button
+            :class="['toggle-button', { active: isHoverMode }]"
+            @click="isHoverMode = true"
+          >
+            On Hover
+          </button>
+        </div>
+      </div>
       <button
+        v-if="!isHoverMode"
         class="replay-button"
         @click="replayAll"
       >
@@ -33,56 +51,56 @@
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div class="demo-wrapper">
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
               <div :class="['demo-box', 'variant-top', { 'is-animating': activeVariants.has('top') }]">
                 <span class="variant-label">TOP</span>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div class="demo-wrapper">
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
               <div :class="['demo-box', 'variant-top-right', { 'is-animating': activeVariants.has('top-right') }]">
                 <span class="variant-label">TOP RIGHT</span>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div class="demo-wrapper">
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
               <div :class="['demo-box', 'variant-right', { 'is-animating': activeVariants.has('right') }]">
                 <span class="variant-label">RIGHT</span>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div class="demo-wrapper">
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
               <div :class="['demo-box', 'variant-bottom-right', { 'is-animating': activeVariants.has('bottom-right') }]">
                 <span class="variant-label">BOTTOM RIGHT</span>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div class="demo-wrapper">
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
               <div :class="['demo-box', 'variant-bottom', { 'is-animating': activeVariants.has('bottom') }]">
                 <span class="variant-label">BOTTOM</span>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div class="demo-wrapper">
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
               <div :class="['demo-box', 'variant-bottom-left', { 'is-animating': activeVariants.has('bottom-left') }]">
                 <span class="variant-label">BOTTOM LEFT</span>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div class="demo-wrapper">
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
               <div :class="['demo-box', 'variant-left', { 'is-animating': activeVariants.has('left') }]">
                 <span class="variant-label">LEFT</span>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div class="demo-wrapper">
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
               <div :class="['demo-box', 'variant-top-left', { 'is-animating': activeVariants.has('top-left') }]">
                 <span class="variant-label">TOP LEFT</span>
               </div>
@@ -103,6 +121,7 @@ type KenBurnsVariant = 'top' | 'top-right' | 'right' | 'bottom-right' | 'bottom'
 
 const allVariants: KenBurnsVariant[] = ['top', 'top-right', 'right', 'bottom-right', 'bottom', 'bottom-left', 'left', 'top-left']
 
+const isHoverMode = ref(false)
 const activeVariants = ref<Set<KenBurnsVariant>>(new Set())
 
 const replayAll = async () => {
@@ -115,6 +134,12 @@ const replayAll = async () => {
     }, index * 100)
   }
 }
+
+watch(isHoverMode, (newValue) => {
+  if (newValue) {
+    activeVariants.value.clear()
+  }
+})
 
 onMounted(() => {
   setTimeout(() => {
@@ -129,6 +154,17 @@ onMounted(() => {
 // ============================================
 // Animation Variants
 // ============================================
+
+.hover-wrapper.hover-mode:hover {
+  .demo-box.variant-top { @include anim.ken-burns('top', 5s); }
+  .demo-box.variant-top-right { @include anim.ken-burns('top-right', 5s); }
+  .demo-box.variant-right { @include anim.ken-burns('right', 5s); }
+  .demo-box.variant-bottom-right { @include anim.ken-burns('bottom-right', 5s); }
+  .demo-box.variant-bottom { @include anim.ken-burns('bottom', 5s); }
+  .demo-box.variant-bottom-left { @include anim.ken-burns('bottom-left', 5s); }
+  .demo-box.variant-left { @include anim.ken-burns('left', 5s); }
+  .demo-box.variant-top-left { @include anim.ken-burns('top-left', 5s); }
+}
 
 // Ken Burns Variations (8 patterns)
 .variant-top.is-animating { @include anim.ken-burns('top', 5s); }
@@ -195,8 +231,61 @@ onMounted(() => {
 
 .demo-controls {
   display: flex;
+  gap: 24px;
+  align-items: center;
   justify-content: center;
+
   margin-bottom: 40px;
+}
+
+.control-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.control-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.toggle-buttons {
+  display: flex;
+  gap: 8px;
+
+  padding: 4px;
+  border-radius: 8px;
+
+  background: rgb(255 255 255 / 10%);
+}
+
+.toggle-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 70%);
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: white;
+    background: rgb(255 255 255 / 10%);
+  }
+
+  &.active {
+    border-color: white;
+    color: #1f2937;
+    background: white;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+  }
 }
 
 .replay-button {
@@ -259,7 +348,7 @@ onMounted(() => {
   min-height: 200px;
 }
 
-.demo-wrapper {
+.hover-wrapper {
   overflow: hidden;
 
   width: 240px;

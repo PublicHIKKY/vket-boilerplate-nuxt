@@ -18,7 +18,25 @@
     </p>
 
     <div class="demo-controls">
+      <div class="control-group">
+        <label class="control-label">Animation Trigger:</label>
+        <div class="toggle-buttons">
+          <button
+            :class="['toggle-button', { active: !isHoverMode }]"
+            @click="isHoverMode = false"
+          >
+            Auto Play
+          </button>
+          <button
+            :class="['toggle-button', { active: isHoverMode }]"
+            @click="isHoverMode = true"
+          >
+            On Hover
+          </button>
+        </div>
+      </div>
       <button
+        v-if="!isHoverMode"
         class="replay-button"
         @click="replayAll"
       >
@@ -33,13 +51,17 @@
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-cw', { 'is-animating': activeVariants.has('cw') }]">
-              cw
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-cw', { 'is-animating': activeVariants.has('cw') }]">
+                cw
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-ccw', { 'is-animating': activeVariants.has('ccw') }]">
-              ccw
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-ccw', { 'is-animating': activeVariants.has('ccw') }]">
+                ccw
+              </div>
             </div>
           </div>
         </div>
@@ -51,43 +73,59 @@
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-tr-cw', { 'is-animating': activeVariants.has('tr-cw') }]">
-              tr-cw
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-tr-cw', { 'is-animating': activeVariants.has('tr-cw') }]">
+                tr-cw
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-tr-ccw', { 'is-animating': activeVariants.has('tr-ccw') }]">
-              tr-ccw
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-tr-ccw', { 'is-animating': activeVariants.has('tr-ccw') }]">
+                tr-ccw
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-br-cw', { 'is-animating': activeVariants.has('br-cw') }]">
-              br-cw
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-br-cw', { 'is-animating': activeVariants.has('br-cw') }]">
+                br-cw
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-br-ccw', { 'is-animating': activeVariants.has('br-ccw') }]">
-              br-ccw
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-br-ccw', { 'is-animating': activeVariants.has('br-ccw') }]">
+                br-ccw
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-bl-cw', { 'is-animating': activeVariants.has('bl-cw') }]">
-              bl-cw
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-bl-cw', { 'is-animating': activeVariants.has('bl-cw') }]">
+                bl-cw
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-bl-ccw', { 'is-animating': activeVariants.has('bl-ccw') }]">
-              bl-ccw
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-bl-ccw', { 'is-animating': activeVariants.has('bl-ccw') }]">
+                bl-ccw
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-tl-cw', { 'is-animating': activeVariants.has('tl-cw') }]">
-              tl-cw
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-tl-cw', { 'is-animating': activeVariants.has('tl-cw') }]">
+                tl-cw
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-tl-ccw', { 'is-animating': activeVariants.has('tl-ccw') }]">
-              tl-ccw
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-tl-ccw', { 'is-animating': activeVariants.has('tl-ccw') }]">
+                tl-ccw
+              </div>
             </div>
           </div>
         </div>
@@ -99,43 +137,59 @@
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-top-cw', { 'is-animating': activeVariants.has('top-cw') }]">
-              top-cw
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-top-cw', { 'is-animating': activeVariants.has('top-cw') }]">
+                top-cw
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-top-ccw', { 'is-animating': activeVariants.has('top-ccw') }]">
-              top-ccw
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-top-ccw', { 'is-animating': activeVariants.has('top-ccw') }]">
+                top-ccw
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-right-cw', { 'is-animating': activeVariants.has('right-cw') }]">
-              right-cw
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-right-cw', { 'is-animating': activeVariants.has('right-cw') }]">
+                right-cw
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-right-ccw', { 'is-animating': activeVariants.has('right-ccw') }]">
-              right-ccw
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-right-ccw', { 'is-animating': activeVariants.has('right-ccw') }]">
+                right-ccw
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-bottom-cw', { 'is-animating': activeVariants.has('bottom-cw') }]">
-              bottom-cw
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-bottom-cw', { 'is-animating': activeVariants.has('bottom-cw') }]">
+                bottom-cw
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-bottom-ccw', { 'is-animating': activeVariants.has('bottom-ccw') }]">
-              bottom-ccw
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-bottom-ccw', { 'is-animating': activeVariants.has('bottom-ccw') }]">
+                bottom-ccw
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-left-cw', { 'is-animating': activeVariants.has('left-cw') }]">
-              left-cw
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-left-cw', { 'is-animating': activeVariants.has('left-cw') }]">
+                left-cw
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-left-ccw', { 'is-animating': activeVariants.has('left-ccw') }]">
-              left-ccw
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-left-ccw', { 'is-animating': activeVariants.has('left-ccw') }]">
+                left-ccw
+              </div>
             </div>
           </div>
         </div>
@@ -147,90 +201,98 @@
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-box', 'cube-3d', 'variant-horizontal-fwd', { 'is-animating': activeVariants.has('horizontal-fwd') }]">
-              <div class="cube-face cube-front">
-                hor-fwd
-              </div>
-              <div class="cube-face cube-back">
-                hor-fwd
-              </div>
-              <div class="cube-face cube-right">
-                hor-fwd
-              </div>
-              <div class="cube-face cube-left">
-                hor-fwd
-              </div>
-              <div class="cube-face cube-top">
-                hor-fwd
-              </div>
-              <div class="cube-face cube-bottom">
-                hor-fwd
-              </div>
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'cube-3d', 'variant-horizontal-bck', { 'is-animating': activeVariants.has('horizontal-bck') }]">
-              <div class="cube-face cube-front">
-                hor-bck
-              </div>
-              <div class="cube-face cube-back">
-                hor-bck
-              </div>
-              <div class="cube-face cube-right">
-                hor-bck
-              </div>
-              <div class="cube-face cube-left">
-                hor-bck
-              </div>
-              <div class="cube-face cube-top">
-                hor-bck
-              </div>
-              <div class="cube-face cube-bottom">
-                hor-bck
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'cube-3d', 'variant-horizontal-fwd', { 'is-animating': activeVariants.has('horizontal-fwd') }]">
+                <div class="cube-face cube-front">
+                  hor-fwd
+                </div>
+                <div class="cube-face cube-back">
+                  hor-fwd
+                </div>
+                <div class="cube-face cube-right">
+                  hor-fwd
+                </div>
+                <div class="cube-face cube-left">
+                  hor-fwd
+                </div>
+                <div class="cube-face cube-top">
+                  hor-fwd
+                </div>
+                <div class="cube-face cube-bottom">
+                  hor-fwd
+                </div>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'cube-3d', 'variant-vertical-fwd', { 'is-animating': activeVariants.has('vertical-fwd') }]">
-              <div class="cube-face cube-front">
-                ver-fwd
-              </div>
-              <div class="cube-face cube-back">
-                ver-fwd
-              </div>
-              <div class="cube-face cube-right">
-                ver-fwd
-              </div>
-              <div class="cube-face cube-left">
-                ver-fwd
-              </div>
-              <div class="cube-face cube-top">
-                ver-fwd
-              </div>
-              <div class="cube-face cube-bottom">
-                ver-fwd
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'cube-3d', 'variant-horizontal-bck', { 'is-animating': activeVariants.has('horizontal-bck') }]">
+                <div class="cube-face cube-front">
+                  hor-bck
+                </div>
+                <div class="cube-face cube-back">
+                  hor-bck
+                </div>
+                <div class="cube-face cube-right">
+                  hor-bck
+                </div>
+                <div class="cube-face cube-left">
+                  hor-bck
+                </div>
+                <div class="cube-face cube-top">
+                  hor-bck
+                </div>
+                <div class="cube-face cube-bottom">
+                  hor-bck
+                </div>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'cube-3d', 'variant-vertical-bck', { 'is-animating': activeVariants.has('vertical-bck') }]">
-              <div class="cube-face cube-front">
-                ver-bck
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'cube-3d', 'variant-vertical-fwd', { 'is-animating': activeVariants.has('vertical-fwd') }]">
+                <div class="cube-face cube-front">
+                  ver-fwd
+                </div>
+                <div class="cube-face cube-back">
+                  ver-fwd
+                </div>
+                <div class="cube-face cube-right">
+                  ver-fwd
+                </div>
+                <div class="cube-face cube-left">
+                  ver-fwd
+                </div>
+                <div class="cube-face cube-top">
+                  ver-fwd
+                </div>
+                <div class="cube-face cube-bottom">
+                  ver-fwd
+                </div>
               </div>
-              <div class="cube-face cube-back">
-                ver-bck
-              </div>
-              <div class="cube-face cube-right">
-                ver-bck
-              </div>
-              <div class="cube-face cube-left">
-                ver-bck
-              </div>
-              <div class="cube-face cube-top">
-                ver-bck
-              </div>
-              <div class="cube-face cube-bottom">
-                ver-bck
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'cube-3d', 'variant-vertical-bck', { 'is-animating': activeVariants.has('vertical-bck') }]">
+                <div class="cube-face cube-front">
+                  ver-bck
+                </div>
+                <div class="cube-face cube-back">
+                  ver-bck
+                </div>
+                <div class="cube-face cube-right">
+                  ver-bck
+                </div>
+                <div class="cube-face cube-left">
+                  ver-bck
+                </div>
+                <div class="cube-face cube-top">
+                  ver-bck
+                </div>
+                <div class="cube-face cube-bottom">
+                  ver-bck
+                </div>
               </div>
             </div>
           </div>
@@ -258,6 +320,7 @@ const allVariants: Rotate90Variant[] = [
   'horizontal-fwd', 'horizontal-bck', 'vertical-fwd', 'vertical-bck',
 ]
 
+const isHoverMode = ref(false)
 const activeVariants = ref<Set<Rotate90Variant>>(new Set())
 
 const replayAll = async () => {
@@ -270,6 +333,12 @@ const replayAll = async () => {
     }, index * 100)
   }
 }
+
+watch(isHoverMode, (newValue) => {
+  if (newValue) {
+    activeVariants.value.clear()
+  }
+})
 
 onMounted(() => {
   setTimeout(() => {
@@ -285,6 +354,33 @@ onMounted(() => {
 // Animation Variants
 // ============================================
 
+// ホバーモード用のスタイル - ラッパーでホバーを検知、子要素にアニメーション適用
+.hover-wrapper.hover-mode:hover {
+  .demo-box.variant-cw { @include anim.rotate-90('cw', 0.4s); }
+  .demo-box.variant-ccw { @include anim.rotate-90('ccw', 0.4s); }
+  .demo-box.variant-tr-cw { @include anim.rotate-90('tr-cw', 0.4s); }
+  .demo-box.variant-tr-ccw { @include anim.rotate-90('tr-ccw', 0.4s); }
+  .demo-box.variant-br-cw { @include anim.rotate-90('br-cw', 0.4s); }
+  .demo-box.variant-br-ccw { @include anim.rotate-90('br-ccw', 0.4s); }
+  .demo-box.variant-bl-cw { @include anim.rotate-90('bl-cw', 0.4s); }
+  .demo-box.variant-bl-ccw { @include anim.rotate-90('bl-ccw', 0.4s); }
+  .demo-box.variant-tl-cw { @include anim.rotate-90('tl-cw', 0.4s); }
+  .demo-box.variant-tl-ccw { @include anim.rotate-90('tl-ccw', 0.4s); }
+  .demo-box.variant-top-cw { @include anim.rotate-90('top-cw', 0.4s); }
+  .demo-box.variant-top-ccw { @include anim.rotate-90('top-ccw', 0.4s); }
+  .demo-box.variant-right-cw { @include anim.rotate-90('right-cw', 0.4s); }
+  .demo-box.variant-right-ccw { @include anim.rotate-90('right-ccw', 0.4s); }
+  .demo-box.variant-bottom-cw { @include anim.rotate-90('bottom-cw', 0.4s); }
+  .demo-box.variant-bottom-ccw { @include anim.rotate-90('bottom-ccw', 0.4s); }
+  .demo-box.variant-left-cw { @include anim.rotate-90('left-cw', 0.4s); }
+  .demo-box.variant-left-ccw { @include anim.rotate-90('left-ccw', 0.4s); }
+  .demo-box.cube-3d.variant-horizontal-fwd { @include anim.rotate-90('horizontal-fwd', 0.4s); }
+  .demo-box.cube-3d.variant-horizontal-bck { @include anim.rotate-90('horizontal-bck', 0.4s); }
+  .demo-box.cube-3d.variant-vertical-fwd { @include anim.rotate-90('vertical-fwd', 0.4s); }
+  .demo-box.cube-3d.variant-vertical-bck { @include anim.rotate-90('vertical-bck', 0.4s); }
+}
+
+// 通常モード（Auto Play）時のアニメーション
 // Center Rotation (2 patterns)
 .variant-cw.is-animating { @include anim.rotate-90('cw', 0.4s); }
 .variant-ccw.is-animating { @include anim.rotate-90('ccw', 0.4s); }
@@ -439,8 +535,61 @@ onMounted(() => {
 
 .demo-controls {
   display: flex;
+  gap: 24px;
+  align-items: center;
   justify-content: center;
+
   margin-bottom: 40px;
+}
+
+.control-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.control-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.toggle-buttons {
+  display: flex;
+  gap: 8px;
+
+  padding: 4px;
+  border-radius: 8px;
+
+  background: rgb(255 255 255 / 10%);
+}
+
+.toggle-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 70%);
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: white;
+    background: rgb(255 255 255 / 10%);
+  }
+
+  &.active {
+    border-color: white;
+    color: #667eea;
+    background: white;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+  }
 }
 
 .replay-button {
@@ -501,6 +650,15 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   min-height: 120px;
+}
+
+.hover-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
 }
 
 .demo-box {

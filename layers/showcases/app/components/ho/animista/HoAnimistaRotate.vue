@@ -18,7 +18,25 @@
     </p>
 
     <div class="demo-controls">
+      <div class="control-group">
+        <label class="control-label">Animation Trigger:</label>
+        <div class="toggle-buttons">
+          <button
+            :class="['toggle-button', { active: !isHoverMode }]"
+            @click="isHoverMode = false"
+          >
+            Auto Play
+          </button>
+          <button
+            :class="['toggle-button', { active: isHoverMode }]"
+            @click="isHoverMode = true"
+          >
+            On Hover
+          </button>
+        </div>
+      </div>
       <button
+        v-if="!isHoverMode"
         class="replay-button"
         @click="replayAll"
       >
@@ -33,48 +51,66 @@
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-center', { 'is-animating': activeVariants.has('center') }]">
-              center
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-center', { 'is-animating': activeVariants.has('center') }]">
+                center
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-top', { 'is-animating': activeVariants.has('top') }]">
-              top
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-top', { 'is-animating': activeVariants.has('top') }]">
+                top
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-tr', { 'is-animating': activeVariants.has('tr') }]">
-              tr
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-tr', { 'is-animating': activeVariants.has('tr') }]">
+                tr
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-right', { 'is-animating': activeVariants.has('right') }]">
-              right
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-right', { 'is-animating': activeVariants.has('right') }]">
+                right
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-br', { 'is-animating': activeVariants.has('br') }]">
-              br
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-br', { 'is-animating': activeVariants.has('br') }]">
+                br
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-bottom', { 'is-animating': activeVariants.has('bottom') }]">
-              bottom
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-bottom', { 'is-animating': activeVariants.has('bottom') }]">
+                bottom
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-bl', { 'is-animating': activeVariants.has('bl') }]">
-              bl
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-bl', { 'is-animating': activeVariants.has('bl') }]">
+                bl
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-left', { 'is-animating': activeVariants.has('left') }]">
-              left
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-left', { 'is-animating': activeVariants.has('left') }]">
+                left
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-tl', { 'is-animating': activeVariants.has('tl') }]">
-              tl
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-tl', { 'is-animating': activeVariants.has('tl') }]">
+                tl
+              </div>
             </div>
           </div>
         </div>
@@ -86,18 +122,24 @@
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-hor-center', { 'is-animating': activeVariants.has('hor-center') }]">
-              hor-center
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-hor-center', { 'is-animating': activeVariants.has('hor-center') }]">
+                hor-center
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-hor-top', { 'is-animating': activeVariants.has('hor-top') }]">
-              hor-top
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-hor-top', { 'is-animating': activeVariants.has('hor-top') }]">
+                hor-top
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-hor-bottom', { 'is-animating': activeVariants.has('hor-bottom') }]">
-              hor-bottom
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-hor-bottom', { 'is-animating': activeVariants.has('hor-bottom') }]">
+                hor-bottom
+              </div>
             </div>
           </div>
         </div>
@@ -109,18 +151,24 @@
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-vert-center', { 'is-animating': activeVariants.has('vert-center') }]">
-              vert-center
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-vert-center', { 'is-animating': activeVariants.has('vert-center') }]">
+                vert-center
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-vert-left', { 'is-animating': activeVariants.has('vert-left') }]">
-              vert-left
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-vert-left', { 'is-animating': activeVariants.has('vert-left') }]">
+                vert-left
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-vert-right', { 'is-animating': activeVariants.has('vert-right') }]">
-              vert-right
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-vert-right', { 'is-animating': activeVariants.has('vert-right') }]">
+                vert-right
+              </div>
             </div>
           </div>
         </div>
@@ -132,62 +180,74 @@
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-box', 'flip-card', 'variant-diagonal-1', { 'is-animating': activeVariants.has('diagonal-1') }]">
-              <div class="flip-face flip-front">
-                A
-              </div>
-              <div class="flip-face flip-back">
-                B
-              </div>
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'flip-card', 'variant-diagonal-2', { 'is-animating': activeVariants.has('diagonal-2') }]">
-              <div class="flip-face flip-front">
-                A
-              </div>
-              <div class="flip-face flip-back">
-                B
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'flip-card', 'variant-diagonal-1', { 'is-animating': activeVariants.has('diagonal-1') }]">
+                <div class="flip-face flip-front">
+                  A
+                </div>
+                <div class="flip-face flip-back">
+                  B
+                </div>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'flip-card', 'variant-diagonal-tr', { 'is-animating': activeVariants.has('diagonal-tr') }]">
-              <div class="flip-face flip-front">
-                A
-              </div>
-              <div class="flip-face flip-back">
-                B
-              </div>
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'flip-card', 'variant-diagonal-br', { 'is-animating': activeVariants.has('diagonal-br') }]">
-              <div class="flip-face flip-front">
-                A
-              </div>
-              <div class="flip-face flip-back">
-                B
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'flip-card', 'variant-diagonal-2', { 'is-animating': activeVariants.has('diagonal-2') }]">
+                <div class="flip-face flip-front">
+                  A
+                </div>
+                <div class="flip-face flip-back">
+                  B
+                </div>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'flip-card', 'variant-diagonal-bl', { 'is-animating': activeVariants.has('diagonal-bl') }]">
-              <div class="flip-face flip-front">
-                A
-              </div>
-              <div class="flip-face flip-back">
-                B
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'flip-card', 'variant-diagonal-tr', { 'is-animating': activeVariants.has('diagonal-tr') }]">
+                <div class="flip-face flip-front">
+                  A
+                </div>
+                <div class="flip-face flip-back">
+                  B
+                </div>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'flip-card', 'variant-diagonal-tl', { 'is-animating': activeVariants.has('diagonal-tl') }]">
-              <div class="flip-face flip-front">
-                A
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'flip-card', 'variant-diagonal-br', { 'is-animating': activeVariants.has('diagonal-br') }]">
+                <div class="flip-face flip-front">
+                  A
+                </div>
+                <div class="flip-face flip-back">
+                  B
+                </div>
               </div>
-              <div class="flip-face flip-back">
-                B
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'flip-card', 'variant-diagonal-bl', { 'is-animating': activeVariants.has('diagonal-bl') }]">
+                <div class="flip-face flip-front">
+                  A
+                </div>
+                <div class="flip-face flip-back">
+                  B
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'flip-card', 'variant-diagonal-tl', { 'is-animating': activeVariants.has('diagonal-tl') }]">
+                <div class="flip-face flip-front">
+                  A
+                </div>
+                <div class="flip-face flip-back">
+                  B
+                </div>
               </div>
             </div>
           </div>
@@ -215,6 +275,7 @@ const allVariants: RotateVariant[] = [
   'diagonal-1', 'diagonal-2', 'diagonal-tr', 'diagonal-br', 'diagonal-bl', 'diagonal-tl',
 ]
 
+const isHoverMode = ref(false)
 const activeVariants = ref<Set<RotateVariant>>(new Set())
 
 const replayAll = async () => {
@@ -227,6 +288,12 @@ const replayAll = async () => {
     }, index * 100)
   }
 }
+
+watch(isHoverMode, (newValue) => {
+  if (newValue) {
+    activeVariants.value.clear()
+  }
+})
 
 onMounted(() => {
   setTimeout(() => {
@@ -242,6 +309,32 @@ onMounted(() => {
 // Animation Variants
 // ============================================
 
+// ホバーモード用のスタイル - ラッパーでホバーを検知、子要素にアニメーション適用
+.hover-wrapper.hover-mode:hover {
+  .demo-box.variant-center { @include anim.rotate('center', 0.4s); }
+  .demo-box.variant-top { @include anim.rotate('top', 0.4s); }
+  .demo-box.variant-tr { @include anim.rotate('tr', 0.4s); }
+  .demo-box.variant-right { @include anim.rotate('right', 0.4s); }
+  .demo-box.variant-br { @include anim.rotate('br', 0.4s); }
+  .demo-box.variant-bottom { @include anim.rotate('bottom', 0.4s); }
+  .demo-box.variant-bl { @include anim.rotate('bl', 0.4s); }
+  .demo-box.variant-left { @include anim.rotate('left', 0.4s); }
+  .demo-box.variant-tl { @include anim.rotate('tl', 0.4s); }
+  .demo-box.variant-hor-center { @include anim.rotate('hor-center', 0.4s); }
+  .demo-box.variant-hor-top { @include anim.rotate('hor-top', 0.4s); }
+  .demo-box.variant-hor-bottom { @include anim.rotate('hor-bottom', 0.4s); }
+  .demo-box.variant-vert-center { @include anim.rotate('vert-center', 0.4s); }
+  .demo-box.variant-vert-left { @include anim.rotate('vert-left', 0.4s); }
+  .demo-box.variant-vert-right { @include anim.rotate('vert-right', 0.4s); }
+  .demo-box.flip-card.variant-diagonal-1 { @include anim.rotate('diagonal-1', 0.4s); }
+  .demo-box.flip-card.variant-diagonal-2 { @include anim.rotate('diagonal-2', 0.4s); }
+  .demo-box.flip-card.variant-diagonal-tr { @include anim.rotate('diagonal-tr', 0.4s); }
+  .demo-box.flip-card.variant-diagonal-br { @include anim.rotate('diagonal-br', 0.4s); }
+  .demo-box.flip-card.variant-diagonal-bl { @include anim.rotate('diagonal-bl', 0.4s); }
+  .demo-box.flip-card.variant-diagonal-tl { @include anim.rotate('diagonal-tl', 0.4s); }
+}
+
+// 通常モード（Auto Play）時のアニメーション
 // Basic Directions (9 patterns)
 .variant-center.is-animating { @include anim.rotate('center', 0.6s); }
 .variant-top.is-animating { @include anim.rotate('top', 0.6s); }
@@ -378,8 +471,61 @@ onMounted(() => {
 
 .demo-controls {
   display: flex;
+  gap: 24px;
+  align-items: center;
   justify-content: center;
+
   margin-bottom: 40px;
+}
+
+.control-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.control-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.toggle-buttons {
+  display: flex;
+  gap: 8px;
+
+  padding: 4px;
+  border-radius: 8px;
+
+  background: rgb(255 255 255 / 10%);
+}
+
+.toggle-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 70%);
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: white;
+    background: rgb(255 255 255 / 10%);
+  }
+
+  &.active {
+    border-color: white;
+    color: #667eea;
+    background: white;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+  }
 }
 
 .replay-button {
@@ -440,6 +586,15 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   min-height: 120px;
+}
+
+.hover-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
 }
 
 // ============================================

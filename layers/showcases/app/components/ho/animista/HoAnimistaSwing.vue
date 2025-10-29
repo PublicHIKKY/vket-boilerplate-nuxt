@@ -18,7 +18,25 @@
     </p>
 
     <div class="demo-controls">
+      <div class="control-group">
+        <label class="control-label">Animation Trigger:</label>
+        <div class="toggle-buttons">
+          <button
+            :class="['toggle-button', { active: !isHoverMode }]"
+            @click="isHoverMode = false"
+          >
+            Auto Play
+          </button>
+          <button
+            :class="['toggle-button', { active: isHoverMode }]"
+            @click="isHoverMode = true"
+          >
+            On Hover
+          </button>
+        </div>
+      </div>
       <button
+        v-if="!isHoverMode"
         class="replay-button"
         @click="replayAll"
       >
@@ -33,42 +51,50 @@
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-box', 'swing-card', 'variant-top-fwd', { 'is-animating': activeVariants.has('top-fwd') }]">
-              <div class="front-text">
-                A
-              </div>
-              <div class="back-text">
-                B
-              </div>
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'swing-card', 'variant-top-bck', { 'is-animating': activeVariants.has('top-bck') }]">
-              <div class="front-text">
-                A
-              </div>
-              <div class="back-text">
-                B
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'swing-card', 'variant-top-fwd', { 'is-animating': activeVariants.has('top-fwd') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'swing-card', 'variant-bottom-fwd', { 'is-animating': activeVariants.has('bottom-fwd') }]">
-              <div class="front-text">
-                A
-              </div>
-              <div class="back-text">
-                B
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'swing-card', 'variant-top-bck', { 'is-animating': activeVariants.has('top-bck') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'swing-card', 'variant-bottom-bck', { 'is-animating': activeVariants.has('bottom-bck') }]">
-              <div class="front-text">
-                A
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'swing-card', 'variant-bottom-fwd', { 'is-animating': activeVariants.has('bottom-fwd') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
-              <div class="back-text">
-                B
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'swing-card', 'variant-bottom-bck', { 'is-animating': activeVariants.has('bottom-bck') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
             </div>
           </div>
@@ -81,42 +107,50 @@
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-box', 'swing-card', 'variant-right-fwd', { 'is-animating': activeVariants.has('right-fwd') }]">
-              <div class="front-text">
-                A
-              </div>
-              <div class="back-text">
-                B
-              </div>
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'swing-card', 'variant-right-bck', { 'is-animating': activeVariants.has('right-bck') }]">
-              <div class="front-text">
-                A
-              </div>
-              <div class="back-text">
-                B
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'swing-card', 'variant-right-fwd', { 'is-animating': activeVariants.has('right-fwd') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'swing-card', 'variant-left-fwd', { 'is-animating': activeVariants.has('left-fwd') }]">
-              <div class="front-text">
-                A
-              </div>
-              <div class="back-text">
-                B
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'swing-card', 'variant-right-bck', { 'is-animating': activeVariants.has('right-bck') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'swing-card', 'variant-left-bck', { 'is-animating': activeVariants.has('left-bck') }]">
-              <div class="front-text">
-                A
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'swing-card', 'variant-left-fwd', { 'is-animating': activeVariants.has('left-fwd') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
-              <div class="back-text">
-                B
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'swing-card', 'variant-left-bck', { 'is-animating': activeVariants.has('left-bck') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
             </div>
           </div>
@@ -129,42 +163,50 @@
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-box', 'swing-card', 'variant-top-right-fwd', { 'is-animating': activeVariants.has('top-right-fwd') }]">
-              <div class="front-text">
-                A
-              </div>
-              <div class="back-text">
-                B
-              </div>
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'swing-card', 'variant-top-right-bck', { 'is-animating': activeVariants.has('top-right-bck') }]">
-              <div class="front-text">
-                A
-              </div>
-              <div class="back-text">
-                B
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'swing-card', 'variant-top-right-fwd', { 'is-animating': activeVariants.has('top-right-fwd') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'swing-card', 'variant-bottom-left-fwd', { 'is-animating': activeVariants.has('bottom-left-fwd') }]">
-              <div class="front-text">
-                A
-              </div>
-              <div class="back-text">
-                B
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'swing-card', 'variant-top-right-bck', { 'is-animating': activeVariants.has('top-right-bck') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'swing-card', 'variant-bottom-left-bck', { 'is-animating': activeVariants.has('bottom-left-bck') }]">
-              <div class="front-text">
-                A
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'swing-card', 'variant-bottom-left-fwd', { 'is-animating': activeVariants.has('bottom-left-fwd') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
-              <div class="back-text">
-                B
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'swing-card', 'variant-bottom-left-bck', { 'is-animating': activeVariants.has('bottom-left-bck') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
             </div>
           </div>
@@ -177,42 +219,50 @@
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-box', 'swing-card', 'variant-bottom-right-fwd', { 'is-animating': activeVariants.has('bottom-right-fwd') }]">
-              <div class="front-text">
-                A
-              </div>
-              <div class="back-text">
-                B
-              </div>
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'swing-card', 'variant-bottom-right-bck', { 'is-animating': activeVariants.has('bottom-right-bck') }]">
-              <div class="front-text">
-                A
-              </div>
-              <div class="back-text">
-                B
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'swing-card', 'variant-bottom-right-fwd', { 'is-animating': activeVariants.has('bottom-right-fwd') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'swing-card', 'variant-top-left-fwd', { 'is-animating': activeVariants.has('top-left-fwd') }]">
-              <div class="front-text">
-                A
-              </div>
-              <div class="back-text">
-                B
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'swing-card', 'variant-bottom-right-bck', { 'is-animating': activeVariants.has('bottom-right-bck') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'swing-card', 'variant-top-left-bck', { 'is-animating': activeVariants.has('top-left-bck') }]">
-              <div class="front-text">
-                A
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'swing-card', 'variant-top-left-fwd', { 'is-animating': activeVariants.has('top-left-fwd') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
-              <div class="back-text">
-                B
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'swing-card', 'variant-top-left-bck', { 'is-animating': activeVariants.has('top-left-bck') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
             </div>
           </div>
@@ -244,6 +294,7 @@ const allVariants: SwingVariant[] = [
   'top-left-fwd', 'top-left-bck',
 ]
 
+const isHoverMode = ref(false)
 const activeVariants = ref<Set<SwingVariant>>(new Set())
 
 const replayAll = async () => {
@@ -256,6 +307,12 @@ const replayAll = async () => {
     }, index * 100)
   }
 }
+
+watch(isHoverMode, (newValue) => {
+  if (newValue) {
+    activeVariants.value.clear()
+  }
+})
 
 onMounted(() => {
   setTimeout(() => {
@@ -306,6 +363,26 @@ onMounted(() => {
 // ============================================
 // Top & Bottom (4 patterns)
 // ============================================
+
+.hover-wrapper.hover-mode:hover {
+  .demo-box.swing-card.variant-top-fwd { @include anim.swing('top-fwd', 0.4s); }
+  .demo-box.swing-card.variant-top-bck { @include anim.swing('top-bck', 0.4s); }
+  .demo-box.swing-card.variant-bottom-fwd { @include anim.swing('bottom-fwd', 0.4s); }
+  .demo-box.swing-card.variant-bottom-bck { @include anim.swing('bottom-bck', 0.4s); }
+  .demo-box.swing-card.variant-right-fwd { @include anim.swing('right-fwd', 0.4s); }
+  .demo-box.swing-card.variant-right-bck { @include anim.swing('right-bck', 0.4s); }
+  .demo-box.swing-card.variant-left-fwd { @include anim.swing('left-fwd', 0.4s); }
+  .demo-box.swing-card.variant-left-bck { @include anim.swing('left-bck', 0.4s); }
+  .demo-box.swing-card.variant-top-right-fwd { @include anim.swing('top-right-fwd', 0.4s); }
+  .demo-box.swing-card.variant-top-right-bck { @include anim.swing('top-right-bck', 0.4s); }
+  .demo-box.swing-card.variant-bottom-left-fwd { @include anim.swing('bottom-left-fwd', 0.4s); }
+  .demo-box.swing-card.variant-bottom-left-bck { @include anim.swing('bottom-left-bck', 0.4s); }
+  .demo-box.swing-card.variant-bottom-right-fwd { @include anim.swing('bottom-right-fwd', 0.4s); }
+  .demo-box.swing-card.variant-bottom-right-bck { @include anim.swing('bottom-right-bck', 0.4s); }
+  .demo-box.swing-card.variant-top-left-fwd { @include anim.swing('top-left-fwd', 0.4s); }
+  .demo-box.swing-card.variant-top-left-bck { @include anim.swing('top-left-bck', 0.4s); }
+}
+
 .variant-top-fwd.is-animating { @include anim.swing('top-fwd', 0.4s); }
 
 .variant-top-fwd .front-text {
@@ -575,8 +652,61 @@ onMounted(() => {
 
 .demo-controls {
   display: flex;
+  gap: 24px;
+  align-items: center;
   justify-content: center;
+
   margin-bottom: 40px;
+}
+
+.control-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.control-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.toggle-buttons {
+  display: flex;
+  gap: 8px;
+
+  padding: 4px;
+  border-radius: 8px;
+
+  background: rgb(255 255 255 / 10%);
+}
+
+.toggle-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 70%);
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: white;
+    background: rgb(255 255 255 / 10%);
+  }
+
+  &.active {
+    border-color: white;
+    color: #667eea;
+    background: white;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+  }
 }
 
 .replay-button {
@@ -630,6 +760,15 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 20px;
+}
+
+.hover-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
 }
 
 .animation-item {

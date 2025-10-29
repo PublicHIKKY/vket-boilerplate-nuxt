@@ -18,7 +18,25 @@
     </p>
 
     <div class="demo-controls">
+      <div class="control-group">
+        <label class="control-label">Animation Trigger:</label>
+        <div class="toggle-buttons">
+          <button
+            :class="['toggle-button', { active: !isHoverMode }]"
+            @click="isHoverMode = false"
+          >
+            Auto Play
+          </button>
+          <button
+            :class="['toggle-button', { active: isHoverMode }]"
+            @click="isHoverMode = true"
+          >
+            On Hover
+          </button>
+        </div>
+      </div>
       <button
+        v-if="!isHoverMode"
         class="replay-button"
         @click="replayAll"
       >
@@ -33,42 +51,50 @@
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-box', 'flip-card', 'variant-hor-top', { 'is-animating': activeVariants.has('hor-top') }]">
-              <div class="front-text">
-                A
-              </div>
-              <div class="back-text">
-                B
-              </div>
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'flip-card', 'variant-ver-right', { 'is-animating': activeVariants.has('ver-right') }]">
-              <div class="front-text">
-                A
-              </div>
-              <div class="back-text">
-                B
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'flip-card', 'variant-hor-top', { 'is-animating': activeVariants.has('hor-top') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'flip-card', 'variant-hor-bottom', { 'is-animating': activeVariants.has('hor-bottom') }]">
-              <div class="front-text">
-                A
-              </div>
-              <div class="back-text">
-                B
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'flip-card', 'variant-ver-right', { 'is-animating': activeVariants.has('ver-right') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'flip-card', 'variant-ver-left', { 'is-animating': activeVariants.has('ver-left') }]">
-              <div class="front-text">
-                A
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'flip-card', 'variant-hor-bottom', { 'is-animating': activeVariants.has('hor-bottom') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
-              <div class="back-text">
-                B
+            </div>
+          </div>
+          <div class="animation-item">
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'flip-card', 'variant-ver-left', { 'is-animating': activeVariants.has('ver-left') }]">
+                <div class="front-text">
+                  A
+                </div>
+                <div class="back-text">
+                  B
+                </div>
               </div>
             </div>
           </div>
@@ -92,6 +118,7 @@ const allVariants: FlipScale2Variant[] = [
   'ver-left',
 ]
 
+const isHoverMode = ref(false)
 const activeVariants = ref<Set<FlipScale2Variant>>(new Set())
 
 const replayAll = async () => {
@@ -104,6 +131,12 @@ const replayAll = async () => {
     }, index * 150)
   }
 }
+
+watch(isHoverMode, (newValue) => {
+  if (newValue) {
+    activeVariants.value.clear()
+  }
+})
 
 onMounted(() => {
   setTimeout(() => {
@@ -154,6 +187,14 @@ onMounted(() => {
 // ============================================
 // All Patterns (4 patterns)
 // ============================================
+
+.hover-wrapper.hover-mode:hover {
+  .demo-box.flip-card.variant-hor-top { @include anim.flip-scale-2('hor-top', 0.4s); }
+  .demo-box.flip-card.variant-ver-right { @include anim.flip-scale-2('ver-right', 0.4s); }
+  .demo-box.flip-card.variant-hor-bottom { @include anim.flip-scale-2('hor-bottom', 0.4s); }
+  .demo-box.flip-card.variant-ver-left { @include anim.flip-scale-2('ver-left', 0.4s); }
+}
+
 .variant-hor-top.is-animating { @include anim.flip-scale-2('hor-top', 0.5s); }
 
 .variant-hor-top .front-text {
@@ -261,8 +302,61 @@ onMounted(() => {
 
 .demo-controls {
   display: flex;
+  gap: 24px;
+  align-items: center;
   justify-content: center;
+
   margin-bottom: 40px;
+}
+
+.control-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.control-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.toggle-buttons {
+  display: flex;
+  gap: 8px;
+
+  padding: 4px;
+  border-radius: 8px;
+
+  background: rgb(255 255 255 / 10%);
+}
+
+.toggle-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 70%);
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: white;
+    background: rgb(255 255 255 / 10%);
+  }
+
+  &.active {
+    border-color: white;
+    color: #667eea;
+    background: white;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+  }
 }
 
 .replay-button {
@@ -316,6 +410,15 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 20px;
+}
+
+.hover-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
 }
 
 .animation-item {

@@ -18,7 +18,25 @@
     </p>
 
     <div class="demo-controls">
+      <div class="control-group">
+        <label class="control-label">Animation Trigger:</label>
+        <div class="toggle-buttons">
+          <button
+            :class="['toggle-button', { active: !isHoverMode }]"
+            @click="isHoverMode = false"
+          >
+            Auto Play
+          </button>
+          <button
+            :class="['toggle-button', { active: isHoverMode }]"
+            @click="isHoverMode = true"
+          >
+            On Hover
+          </button>
+        </div>
+      </div>
       <button
+        v-if="!isHoverMode"
         class="replay-button"
         @click="replayAll"
       >
@@ -33,23 +51,31 @@
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-vertical', { 'is-animating': activeVariants.has('vertical') }]">
-              vertical
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-vertical', { 'is-animating': activeVariants.has('vertical') }]">
+                vertical
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-horizontal', { 'is-animating': activeVariants.has('horizontal') }]">
-              horizontal
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-horizontal', { 'is-animating': activeVariants.has('horizontal') }]">
+                horizontal
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-diagonal-1', { 'is-animating': activeVariants.has('diagonal-1') }]">
-              diagonal-1
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-diagonal-1', { 'is-animating': activeVariants.has('diagonal-1') }]">
+                diagonal-1
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-box', 'variant-diagonal-2', { 'is-animating': activeVariants.has('diagonal-2') }]">
-              diagonal-2
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-box', 'variant-diagonal-2', { 'is-animating': activeVariants.has('diagonal-2') }]">
+                diagonal-2
+              </div>
             </div>
           </div>
         </div>
@@ -76,6 +102,7 @@ const allVariants: SlitOutVariant[] = [
   'diagonal-2',
 ]
 
+const isHoverMode = ref(false)
 const activeVariants = ref<Set<SlitOutVariant>>(new Set())
 
 const replayAll = async () => {
@@ -88,6 +115,12 @@ const replayAll = async () => {
     }, index * 100)
   }
 }
+
+watch(isHoverMode, (newValue) => {
+  if (newValue) {
+    activeVariants.value.clear()
+  }
+})
 
 onMounted(() => {
   setTimeout(() => {
@@ -102,6 +135,13 @@ onMounted(() => {
 // ============================================
 // Animation Variants
 // ============================================
+
+.hover-wrapper.hover-mode:hover {
+  .demo-box.variant-vertical { @include anim.slit-out('vertical', 0.5s); }
+  .demo-box.variant-horizontal { @include anim.slit-out('horizontal', 0.5s); }
+  .demo-box.variant-diagonal-1 { @include anim.slit-out('diagonal-1', 0.5s); }
+  .demo-box.variant-diagonal-2 { @include anim.slit-out('diagonal-2', 0.5s); }
+}
 
 // Slit Directions (4 patterns)
 .variant-vertical.is-animating { @include anim.slit-out('vertical', 0.5s); }
@@ -164,8 +204,61 @@ onMounted(() => {
 
 .demo-controls {
   display: flex;
+  gap: 24px;
+  align-items: center;
   justify-content: center;
+
   margin-bottom: 40px;
+}
+
+.control-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.control-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.toggle-buttons {
+  display: flex;
+  gap: 8px;
+
+  padding: 4px;
+  border-radius: 8px;
+
+  background: rgb(255 255 255 / 10%);
+}
+
+.toggle-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 70%);
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: white;
+    background: rgb(255 255 255 / 10%);
+  }
+
+  &.active {
+    border-color: white;
+    color: #8b5cf6;
+    background: white;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+  }
 }
 
 .replay-button {
@@ -226,6 +319,15 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   min-height: 120px;
+}
+
+.hover-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  height: 100px;
 }
 
 .demo-box {

@@ -18,7 +18,25 @@
     </p>
 
     <div class="demo-controls">
+      <div class="control-group">
+        <label class="control-label">Animation Trigger:</label>
+        <div class="toggle-buttons">
+          <button
+            :class="['toggle-button', { active: !isHoverMode }]"
+            @click="isHoverMode = false"
+          >
+            Auto Play
+          </button>
+          <button
+            :class="['toggle-button', { active: isHoverMode }]"
+            @click="isHoverMode = true"
+          >
+            On Hover
+          </button>
+        </div>
+      </div>
       <button
+        v-if="!isHoverMode"
         class="replay-button"
         @click="replayAll"
       >
@@ -33,28 +51,38 @@
         </h2>
         <div class="grid">
           <div class="animation-item">
-            <div :class="['demo-text', 'variant-blur-out', { 'is-animating': activeVariants.has('blur-out') }]">
-              BLUR OUT
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-text', 'variant-blur-out', { 'is-animating': activeVariants.has('blur-out') }]">
+                BLUR OUT
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-text', 'variant-contract', { 'is-animating': activeVariants.has('contract') }]">
-              CONTRACT
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-text', 'variant-contract', { 'is-animating': activeVariants.has('contract') }]">
+                CONTRACT
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-text', 'variant-contract-bck', { 'is-animating': activeVariants.has('contract-bck') }]">
-              CONTRACT BCK
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-text', 'variant-contract-bck', { 'is-animating': activeVariants.has('contract-bck') }]">
+                CONTRACT BCK
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-text', 'variant-expand', { 'is-animating': activeVariants.has('expand') }]">
-              EXPAND
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-text', 'variant-expand', { 'is-animating': activeVariants.has('expand') }]">
+                EXPAND
+              </div>
             </div>
           </div>
           <div class="animation-item">
-            <div :class="['demo-text', 'variant-expand-fwd', { 'is-animating': activeVariants.has('expand-fwd') }]">
-              EXPAND FWD
+            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
+              <div :class="['demo-text', 'variant-expand-fwd', { 'is-animating': activeVariants.has('expand-fwd') }]">
+                EXPAND FWD
+              </div>
             </div>
           </div>
         </div>
@@ -83,6 +111,7 @@ const allVariants: BlurOutVariant[] = [
   'expand-fwd',
 ]
 
+const isHoverMode = ref(false)
 const activeVariants = ref<Set<BlurOutVariant>>(new Set())
 
 const replayAll = async () => {
@@ -95,6 +124,12 @@ const replayAll = async () => {
     }, index * 200)
   }
 }
+
+watch(isHoverMode, (newValue) => {
+  if (newValue) {
+    activeVariants.value.clear()
+  }
+})
 
 onMounted(() => {
   setTimeout(() => {
@@ -109,6 +144,14 @@ onMounted(() => {
 // ============================================
 // Animation Variants
 // ============================================
+
+.hover-wrapper.hover-mode:hover {
+  .demo-text.variant-blur-out { @include anim.blur-out('', 1.2s); }
+  .demo-text.variant-contract { @include anim.blur-out('contract', 1.2s); }
+  .demo-text.variant-contract-bck { @include anim.blur-out('contract-bck', 1.2s); }
+  .demo-text.variant-expand { @include anim.blur-out('expand', 1.2s); }
+  .demo-text.variant-expand-fwd { @include anim.blur-out('expand-fwd', 1.2s); }
+}
 
 // Text Blur Out Variations (5 patterns)
 .variant-blur-out.is-animating { @include anim.blur-out('', 1.2s); }
@@ -172,8 +215,61 @@ onMounted(() => {
 
 .demo-controls {
   display: flex;
+  gap: 24px;
+  align-items: center;
   justify-content: center;
+
   margin-bottom: 40px;
+}
+
+.control-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.control-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.toggle-buttons {
+  display: flex;
+  gap: 8px;
+
+  padding: 4px;
+  border-radius: 8px;
+
+  background: rgb(255 255 255 / 10%);
+}
+
+.toggle-button {
+  cursor: pointer;
+
+  padding: 8px 20px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 70%);
+
+  background: transparent;
+
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: white;
+    background: rgb(255 255 255 / 10%);
+  }
+
+  &.active {
+    border-color: white;
+    color: #1f2937;
+    background: white;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+  }
 }
 
 .replay-button {
@@ -234,6 +330,15 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   min-height: 120px;
+}
+
+.hover-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  min-height: 80px;
 }
 
 .demo-text {
