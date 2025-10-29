@@ -1,16 +1,139 @@
 <i18n lang="yaml">
 ja:
-  hoge: ほげ
+  title: Showcase
+  description: コンポーネント・ユーティリティのデモ集
+  categories:
+    title: カテゴリ
+    cssAnimations:
+      name: CSSアニメーション
+      description: CSSアニメーションのデモ集
+    components:
+      name: Components
+      description: UIコンポーネントのデモ集（準備中）
+    utils:
+      name: Utils
+      description: ユーティリティ関数のデモ集（準備中）
 en:
-  hoge: hoge
+  title: Showcase
+  description: Collection of component and utility demos
+  categories:
+    title: Categories
+    cssAnimations:
+      name: CSS Animations
+      description: CSS animation demos
+    components:
+      name: Components
+      description: UI component demos (Coming soon)
+    utils:
+      name: Utils
+      description: Utility function demos (Coming soon)
 </i18n>
 
 <template>
-  <div class="ht-top" />
+  <div class="ht-top">
+    <!-- カテゴリ一覧 -->
+    <div
+      v-if="currentView === 'top'"
+      class="container"
+    >
+      <header class="header">
+        <h1 class="title">
+          {{ t('title') }}
+        </h1>
+        <p class="description">
+          {{ t('description') }}
+        </p>
+      </header>
+
+      <section class="section">
+        <h2 class="section-title">
+          {{ t('categories.title') }}
+        </h2>
+
+        <div class="category-list">
+          <button
+            class="category-card"
+            @click="handleSelectCategory('css-animations')"
+          >
+            <div class="card-icon">
+              ✨
+            </div>
+            <div class="card-content">
+              <h3 class="card-title">
+                {{ t('categories.cssAnimations.name') }}
+              </h3>
+              <p class="card-description">
+                {{ t('categories.cssAnimations.description') }}
+              </p>
+            </div>
+            <div class="card-arrow">
+              →
+            </div>
+          </button>
+
+          <button
+            class="category-card"
+            disabled
+          >
+            <div class="card-icon">
+              🧩
+            </div>
+            <div class="card-content">
+              <h3 class="card-title">
+                {{ t('categories.components.name') }}
+              </h3>
+              <p class="card-description">
+                {{ t('categories.components.description') }}
+              </p>
+            </div>
+          </button>
+
+          <button
+            class="category-card"
+            disabled
+          >
+            <div class="card-icon">
+              🛠️
+            </div>
+            <div class="card-content">
+              <h3 class="card-title">
+                {{ t('categories.utils.name') }}
+              </h3>
+              <p class="card-description">
+                {{ t('categories.utils.description') }}
+              </p>
+            </div>
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- CSSアニメーション -->
+    <HoCssAnimations
+      v-else-if="currentView === 'css-animations'"
+      @back="handleBack"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
-//
+import HoCssAnimations from '../ho/HoCssAnimations.vue'
+
+const { t } = useI18n()
+
+type ViewType = 'top' | 'css-animations'
+
+const currentView = ref<ViewType>('top')
+
+const handleSelectCategory = (category: string) => {
+  if (category === 'css-animations') {
+    currentView.value = 'css-animations'
+  }
+}
+
+const handleBack = () => {
+  currentView.value = 'top'
+}
 </script>
 
 <style lang="scss" scoped>
@@ -19,6 +142,116 @@ en:
 
 .ht-top {
   width: 100%;
-  height: 100%;
+  min-height: 100vh;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 60px;
+  text-align: center;
+}
+
+.title {
+  margin-bottom: 16px;
+
+  font-size: 48px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+.description {
+  font-size: 20px;
+  color: rgb(255 255 255 / 90%);
+}
+
+.section {
+  margin-bottom: 60px;
+}
+
+.section-title {
+  margin-bottom: 32px;
+
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+}
+
+.category-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.category-card {
+  cursor: pointer;
+
+  display: flex;
+  gap: 20px;
+  align-items: center;
+
+  width: 100%;
+  padding: 24px;
+  border: none;
+  border-radius: 16px;
+
+  font-family: inherit;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+
+  background: white;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+
+  transition: all 0.3s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 25%);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+.card-icon {
+  flex-shrink: 0;
+  font-size: 40px;
+}
+
+.card-content {
+  flex: 1;
+}
+
+.card-title {
+  margin-bottom: 8px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #374151;
+}
+
+.card-description {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.card-arrow {
+  flex-shrink: 0;
+  font-size: 24px;
+  color: #9ca3af;
+  transition: transform 0.3s ease;
+
+  .category-card:hover:not(:disabled) & {
+    transform: translateX(4px);
+  }
 }
 </style>

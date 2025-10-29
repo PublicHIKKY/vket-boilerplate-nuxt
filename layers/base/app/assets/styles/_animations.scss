@@ -1,0 +1,19 @@
+/**
+ * Animation mixins and utilities
+ *
+ * Usage:
+ * @use '#base/app/assets/styles/animations' as anim;
+ * .box { @include anim.scale-up('center', 0.5s); }
+ */
+
+// ============================================
+// Animation Libraries
+// ============================================
+
+// Animista (http://animista.net) - FreeBSD License
+@forward 'animations/animista/index';
+
+// 他のアニメーションライブラリを追加する場合はここに記述
+// 例:
+// @forward 'animations/animate-css/index';
+// @forward 'animations/magic-animations/index';
