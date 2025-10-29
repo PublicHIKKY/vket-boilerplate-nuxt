@@ -1,0 +1,30 @@
+name: <Showcases> Check by lint, type-check, and test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, review_requested, ready_for_review]
+    branches: ['develop']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Check
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.23
+
+      - name: Setup
+        run: |
+          bun install
+          cd layers/showcases && bun install
+
+      - name: Lint
+        run: cd layers/showcases && bun lint
+
+      - name: TypeCheck
+        run: cd layers/showcases && bun typecheck
+
+      - name: Test
+        run: cd layers/showcases && bun test:ut

@@ -42,8 +42,6 @@ layers/
       components.d.ts
     app/
       assets/
-        images/
-          .gitkeep
         styles/
           _base.scss
           _functions.scss
@@ -54,16 +52,6 @@ layers/
           _variables.scss
           style.scss
       components/
-        ha/
-          .gitkeep
-        hm/
-          .gitkeep
-        ho/
-          animista/
-            HoAnimista.vue
-            HoAnimistaScaleUp.vue
-          .gitkeep
-          HoCssAnimations.vue
         ht/
           HtTop.vue
       composables/
@@ -71,8 +59,6 @@ layers/
       layouts/
         default.vue
         top.vue
-      middleware/
-        .gitkeep
       models/
         json.ts
         todo.ts
@@ -81,8 +67,6 @@ layers/
       plugins/
         gtm.client.ts
         runtimeConfig.ts
-      repositories/
-        .gitkeep
       test/
         composables/
           useApi.spec.ts
@@ -113,7 +97,6 @@ layers/
       i18n.config.ts
     public/
       _robots.txt
-      favicon.ico
     server/
       tsconfig.json
     .stylelintrc.mjs
@@ -196,174 +179,6 @@ a {
   $value: (strip-unit($px) / strip-unit($base)) * 1rem;
 
   @return $value;
-}
-````
-
-## File: layers/showcases/app/assets/styles/_markdown.scss
-````scss
-// markdown 用スタイリング
-@use 'variables' as v;
-
-.hm-markdowon {
-  h1,
-  h2,
-  h3,
-  h4,
-  h5 {
-    line-height: 1.3;
-  }
-
-  h1 {
-    margin-bottom: 32px;
-  }
-
-  h2 {
-    margin-bottom: 24px;
-    font-size: 28px;
-  }
-
-  h3 {
-    font-size: 24px;
-  }
-
-  h4 {
-    font-size: 20px;
-  }
-
-  h5 {
-    font-size: 16px;
-  }
-
-  h3,
-  h4,
-  h5 {
-    margin-bottom: 16px;
-    font-weight: 400;
-  }
-
-  ul,
-  ol {
-    margin-bottom: 24px;
-
-    > li {
-      padding-left: 1em;
-      text-indent: -1em;
-
-      &:not(:last-child) {
-        margin-bottom: 16px;
-      }
-    }
-  }
-
-  li {
-    line-height: 1.3;
-    list-style-position: inside;
-
-    > ul {
-      margin: 16px 0;
-      padding-left: 48px;
-    }
-
-    ol {
-      counter-reset: ol-item;
-      margin: 16px 0;
-      padding-left: 28px;
-      list-style: none;
-
-      > li {
-        position: relative;
-        padding-left: 1.5em;
-        text-indent: 0;
-
-        // list-style: none だけで消えないので
-        &::marker {
-          content: '';
-        }
-
-        &::before {
-          // インデントした数値は 「1)」の表示にする
-          content: counter(ol-item) ')  ';
-          counter-increment: ol-item 1;
-
-          position: absolute; // 数値の桁数が違う場合の見た目に対応
-          top: 0;
-          left: 0;
-
-          display: block;
-
-          width: 100px;
-        }
-      }
-    }
-  }
-  /* stylelint-disable selector-max-compound-selectors */
-  ul > li {
-    list-style: none;
-
-    &::before {
-      content: '・';
-    }
-
-    ul > li {
-      list-style: circle;
-
-      ul > li {
-        list-style: disc;
-      }
-    }
-  }
-
-  /* stylelint-ensable selector-max-compound-selectors */
-  ol > li {
-    list-style: decimal;
-    list-style-position: inside;
-  }
-
-  ol[type='a'] > li {
-    list-style: lower-latin;
-    list-style-position: inside;
-  }
-
-  p {
-    margin-bottom: 24px;
-    line-height: 1.6;
-  }
-
-  img {
-    display: block;
-    width: fit-content;
-    max-width: 100%;
-    margin: 24px auto;
-  }
-
-  table {
-    border-spacing: 0;
-    border-collapse: collapse;
-
-    width: fit-content;
-    min-width: 50%;
-    max-width: 100%;
-    margin: 24px auto;
-  }
-
-  code {
-    padding: 2px 5px;
-    background-color: v.$violet;
-  }
-
-  table th,
-  table td {
-    padding: 8px 12px;
-    text-align: center;
-  }
-
-  table tr:nth-child(odd) {
-    background-color: v.$blue;
-  }
-
-  thead tr:first-child {
-    background-color: v.$blue;
-  }
 }
 ````
 
@@ -638,6 +453,34 @@ $zindex-loading: 400;
 ````scss
 @forward 'reset';
 @forward 'base';
+````
+
+## File: layers/showcases/app/components/ht/HtTop.vue
+````vue
+<i18n lang="yaml">
+ja:
+  hoge: ほげ
+en:
+  hoge: hoge
+</i18n>
+
+<template>
+  <div class="ht-top" />
+</template>
+
+<script setup lang="ts">
+//
+</script>
+
+<style lang="scss" scoped>
+@use '#showcases/app/assets/styles/variables' as v;
+@use '#showcases/app/assets/styles/mixins' as m;
+
+.ht-top {
+  width: 100%;
+  height: 100%;
+}
+</style>
 ````
 
 ## File: layers/showcases/app/composables/useApi.ts
@@ -1220,6 +1063,114 @@ export type RepositoryKey = keyof typeof repositories
 export const repositoryFactory = {
   get: <K extends keyof typeof repositories>(name: K) => repositories[name],
 }
+````
+
+## File: layers/showcases/app/app.vue
+````vue
+<i18n lang="yaml">
+  ja:
+    site:
+      title: Vket Boilerplate Nuxt
+      title_template: "{title} - HIKKY Web Frontend"
+      description: Vketのサイト開発で活用しているボイラープレート
+  en:
+    site:
+      title: Vket Boilerplate Nuxt
+      title_template: "{title} - HIKKY Web Frontend"
+      description: A boilerplate used for Vket site development
+</i18n>
+
+<template>
+  <Head>
+    <Link
+      rel="alternate"
+      hreflang="ja"
+      :href="currentJaFullPath"
+    />
+    <Link
+      rel="alternate"
+      hreflang="en"
+      :href="currentEnFullPath"
+    />
+    <Link
+      rel="alternate"
+      hreflang="x-default"
+      :href="currentJaFullPath"
+    />
+    <template v-if="currentLang === 'ja'">
+      <Link
+        rel="canonical"
+        :href="currentJaFullPath"
+      />
+    </template>
+    <template v-if="currentLang === 'en'">
+      <Link
+        rel="canonical"
+        :href="currentEnFullPath"
+      />
+    </template>
+  </Head>
+  <div class="app">
+    <NuxtLayout>
+      <NuxtRouteAnnouncer />
+      <NuxtWelcome />
+      <NuxtPage />
+    </NuxtLayout>
+  </div>
+</template>
+
+<script lang="ts" setup>
+const route = useRoute()
+const i18n = useI18n()
+const currentFullPath = ref(`${useRuntimeConfig().public.url}${route.fullPath}`)
+const currentLang = ref(i18n.locale.value)
+
+const currentJaFullPath = computed(() => {
+  if (currentLang.value === 'ja') {
+    return currentFullPath.value
+  } else {
+    return currentFullPath.value
+      .replace(/\/en(\/|$)/, '/')
+      .replace(/\/{2,}/, '/')
+  }
+})
+
+const currentEnFullPath = computed(() => {
+  if (currentLang.value === 'en') {
+    return currentFullPath.value
+  } else {
+    const path = route.fullPath.endsWith('/')
+      ? route.fullPath
+      : `${route.fullPath}/`
+    return `${useRuntimeConfig().public.url}/en${path}`
+  }
+})
+
+useHeadSafe({
+  htmlAttrs: {
+    lang: currentLang.value,
+  },
+  titleTemplate: (titleChunk) => {
+    return titleChunk
+      ? i18n.t('site.title_template', { title: titleChunk })
+      : i18n.t('site.title')
+  },
+  meta: [
+    {
+      name: 'description',
+      content: i18n.t('site.description'),
+    },
+    {
+      property: 'og:description',
+      content: i18n.t('site.description'),
+    },
+    {
+      property: 'og:site_name',
+      content: i18n.t('site.title'),
+    },
+  ],
+})
+</script>
 ````
 
 ## File: layers/showcases/app/error.vue
@@ -1903,1186 +1854,172 @@ declare global {
 }
 ````
 
-## File: layers/showcases/app/components/ho/animista/HoAnimista.vue
-````vue
-<i18n lang="yaml">
-ja:
-  title: Animista
-  description: Animista由来のCSSアニメーションデモ集
-  animations:
-    title: アニメーション一覧
-    scaleUp:
-      name: Scale Up
-      description: スケールアップアニメーション（15パターン）
-en:
-  title: Animista
-  description: CSS animation demos from Animista
-  animations:
-    title: Animation List
-    scaleUp:
-      name: Scale Up
-      description: Scale up animations (15 patterns)
-</i18n>
-
-<template>
-  <div class="ho-animista">
-    <!-- アニメーション一覧 -->
-    <div
-      v-if="currentView === 'list'"
-      class="container"
-    >
-      <div class="header-controls">
-        <button
-          class="back-button"
-          @click="emit('back')"
-        >
-          ← Back
-        </button>
-      </div>
-
-      <header class="header">
-        <h1 class="title">
-          {{ t('title') }}
-        </h1>
-        <p class="description">
-          {{ t('description') }}
-        </p>
-      </header>
-
-      <section class="section">
-        <h2 class="section-title">
-          {{ t('animations.title') }}
-        </h2>
-
-        <div class="animation-list">
-          <button
-            class="animation-card"
-            @click="handleSelectAnimation('scale-up')"
-          >
-            <div class="card-icon">
-              📐
-            </div>
-            <div class="card-content">
-              <h3 class="card-title">
-                {{ t('animations.scaleUp.name') }}
-              </h3>
-              <p class="card-description">
-                {{ t('animations.scaleUp.description') }}
-              </p>
-            </div>
-            <div class="card-arrow">
-              →
-            </div>
-          </button>
-
-          <!-- 今後、他のアニメーションを追加 -->
-        </div>
-      </section>
-    </div>
-
-    <!-- アニメーション詳細 -->
-    <HoAnimistaScaleUp
-      v-else-if="currentView === 'scale-up'"
-      @back="handleBackToList"
-    />
-  </div>
-</template>
-
-<script setup lang="ts">
-import HoAnimistaScaleUp from './HoAnimistaScaleUp.vue'
-
-const { t } = useI18n()
-
-const emit = defineEmits<{
-  back: []
-}>()
-
-type ViewType = 'list' | 'scale-up'
-
-const currentView = ref<ViewType>('list')
-
-const handleSelectAnimation = (animationType: string) => {
-  if (animationType === 'scale-up') {
-    currentView.value = 'scale-up'
-  }
-}
-
-const handleBackToList = () => {
-  currentView.value = 'list'
-}
-</script>
-
-<style lang="scss" scoped>
-.ho-animista {
-  width: 100%;
-  min-height: 100vh;
-  padding: 40px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.header-controls {
-  margin-bottom: 24px;
-}
-
-.back-button {
-  cursor: pointer;
-
-  padding: 8px 20px;
-  border: 2px solid white;
-  border-radius: 8px;
-
-  font-size: 16px;
-  font-weight: bold;
-  color: white;
-
-  background: transparent;
-
-  transition: all 0.3s ease;
-
-  &:hover {
-    color: #667eea;
-    background: white;
-  }
-}
-
-.header {
-  margin-bottom: 60px;
-  text-align: center;
-}
-
-.title {
-  margin-bottom: 16px;
-
-  font-size: 48px;
-  font-weight: bold;
-  color: white;
-  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
-}
-
-.description {
-  font-size: 20px;
-  color: rgb(255 255 255 / 90%);
-}
-
-.section {
-  margin-bottom: 60px;
-}
-
-.section-title {
-  margin-bottom: 32px;
-
-  font-size: 32px;
-  font-weight: bold;
-  color: white;
-  text-align: center;
-}
-
-.animation-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
-}
-
-.animation-card {
-  cursor: pointer;
-
-  display: flex;
-  gap: 20px;
-  align-items: center;
-
-  width: 100%;
-  padding: 24px;
-  border: none;
-  border-radius: 16px;
-
-  font-family: inherit;
-  color: inherit;
-  text-align: left;
-  text-decoration: none;
-
-  background: white;
-  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
-
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgb(0 0 0 / 25%);
-  }
-}
-
-.card-icon {
-  flex-shrink: 0;
-  font-size: 40px;
-}
-
-.card-content {
-  flex: 1;
-}
-
-.card-title {
-  margin-bottom: 8px;
-  font-size: 20px;
-  font-weight: bold;
-  color: #374151;
-}
-
-.card-description {
-  font-size: 14px;
-  color: #6b7280;
-}
-
-.card-arrow {
-  flex-shrink: 0;
-  font-size: 24px;
-  color: #9ca3af;
-  transition: transform 0.3s ease;
-
-  .animation-card:hover & {
-    transform: translateX(4px);
-  }
-}
-</style>
-````
-
-## File: layers/showcases/app/components/ho/animista/HoAnimistaScaleUp.vue
-````vue
-<template>
-  <div class="ho-animista-scale-up">
-    <div class="header-controls">
-      <button
-        class="back-button"
-        @click="emit('back')"
-      >
-        ← Back
-      </button>
-    </div>
-
-    <h1 class="demo-title">
-      Scale Up Animations
-    </h1>
-
-    <p class="demo-description">
-      15種類のスケールアップアニメーションのデモ。SCSS mixinで実装されています。
-    </p>
-
-    <div class="demo-controls">
-      <button
-        class="replay-button"
-        @click="replayAll"
-      >
-        🔄 Replay All
-      </button>
-    </div>
-
-    <div class="animation-grid">
-      <!-- Basic Directions -->
-      <div class="animation-section">
-        <h2 class="section-title">
-          Basic Directions (9 patterns)
-        </h2>
-        <div class="grid">
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-center', { 'is-animating': activeVariants.has('center') }]">
-              center
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-top', { 'is-animating': activeVariants.has('top') }]">
-              top
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-tr', { 'is-animating': activeVariants.has('tr') }]">
-              tr
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-right', { 'is-animating': activeVariants.has('right') }]">
-              right
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-br', { 'is-animating': activeVariants.has('br') }]">
-              br
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-bottom', { 'is-animating': activeVariants.has('bottom') }]">
-              bottom
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-bl', { 'is-animating': activeVariants.has('bl') }]">
-              bl
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-left', { 'is-animating': activeVariants.has('left') }]">
-              left
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-tl', { 'is-animating': activeVariants.has('tl') }]">
-              tl
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Horizontal Scaling -->
-      <div class="animation-section">
-        <h2 class="section-title">
-          Horizontal Scaling (3 patterns)
-        </h2>
-        <div class="grid">
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-hor-center', { 'is-animating': activeVariants.has('hor-center') }]">
-              hor-center
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-hor-left', { 'is-animating': activeVariants.has('hor-left') }]">
-              hor-left
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-hor-right', { 'is-animating': activeVariants.has('hor-right') }]">
-              hor-right
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Vertical Scaling -->
-      <div class="animation-section">
-        <h2 class="section-title">
-          Vertical Scaling (3 patterns)
-        </h2>
-        <div class="grid">
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-ver-center', { 'is-animating': activeVariants.has('ver-center') }]">
-              ver-center
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-ver-top', { 'is-animating': activeVariants.has('ver-top') }]">
-              ver-top
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['demo-box', 'variant-ver-bottom', { 'is-animating': activeVariants.has('ver-bottom') }]">
-              ver-bottom
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<script setup lang="ts">
-const emit = defineEmits<{
-  back: []
-}>()
-
-type ScaleUpVariant
-  = | 'center'
-    | 'top'
-    | 'tr'
-    | 'right'
-    | 'br'
-    | 'bottom'
-    | 'bl'
-    | 'left'
-    | 'tl'
-    | 'hor-center'
-    | 'hor-left'
-    | 'hor-right'
-    | 'ver-center'
-    | 'ver-top'
-    | 'ver-bottom'
-
-const basicVariants: ScaleUpVariant[] = [
-  'center',
-  'top',
-  'tr',
-  'right',
-  'br',
-  'bottom',
-  'bl',
-  'left',
-  'tl',
-]
-
-const horizontalVariants: ScaleUpVariant[] = [
-  'hor-center',
-  'hor-left',
-  'hor-right',
-]
-
-const verticalVariants: ScaleUpVariant[] = [
-  'ver-center',
-  'ver-top',
-  'ver-bottom',
-]
-
-// アニメーション中のバリアントを管理
-const activeVariants = ref<Set<ScaleUpVariant>>(new Set())
-
-const replayAll = async () => {
-  // 一旦全てクリア
-  activeVariants.value.clear()
-
-  await nextTick()
-
-  const allVariants: ScaleUpVariant[] = [
-    ...basicVariants,
-    ...horizontalVariants,
-    ...verticalVariants,
-  ]
-
-  // 各要素を順番にアニメーション
-  for (const [index, variant] of allVariants.entries()) {
-    setTimeout(() => {
-      activeVariants.value = new Set(activeVariants.value).add(variant)
-    }, index * 100)
-  }
-}
-
-// 初回表示時に全てアニメーション
-onMounted(() => {
-  setTimeout(() => {
-    void replayAll()
-  }, 500)
-})
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/animations' as anim;
-
-// ============================================
-// アニメーションクラス
-// 使い方：
-// 1. DOMに variant-center などのクラスを付与
-// 2. アニメーション開始時に is-animating クラスを追加
-// 3. SCSS側で各バリアントごとにアニメーションを定義
-// ============================================
-
-// Basic Directions (9種類)
-.variant-center.is-animating {
-  @include anim.scale-up('center', 0.5s);
-}
-
-.variant-top.is-animating {
-  @include anim.scale-up('top', 0.5s);
-}
-
-.variant-tr.is-animating {
-  @include anim.scale-up('tr', 0.5s);
-}
-
-.variant-right.is-animating {
-  @include anim.scale-up('right', 0.5s);
-}
-
-.variant-br.is-animating {
-  @include anim.scale-up('br', 0.5s);
-}
-
-.variant-bottom.is-animating {
-  @include anim.scale-up('bottom', 0.5s);
-}
-
-.variant-bl.is-animating {
-  @include anim.scale-up('bl', 0.5s);
-}
-
-.variant-left.is-animating {
-  @include anim.scale-up('left', 0.5s);
-}
-
-.variant-tl.is-animating {
-  @include anim.scale-up('tl', 0.5s);
-}
-
-// Horizontal (3種類)
-.variant-hor-center.is-animating {
-  @include anim.scale-up('hor-center', 0.5s);
-}
-
-.variant-hor-left.is-animating {
-  @include anim.scale-up('hor-left', 0.5s);
-}
-
-.variant-hor-right.is-animating {
-  @include anim.scale-up('hor-right', 0.5s);
-}
-
-// Vertical (3種類)
-.variant-ver-center.is-animating {
-  @include anim.scale-up('ver-center', 0.5s);
-}
-
-.variant-ver-top.is-animating {
-  @include anim.scale-up('ver-top', 0.5s);
-}
-
-.variant-ver-bottom.is-animating {
-  @include anim.scale-up('ver-bottom', 0.5s);
-}
-
-// =====================ページ用のスタイル=======================
-.ho-animista-scale-up {
-  max-width: 1200px;
-  min-height: 100vh;
-  margin: 0 auto;
-  padding: 40px 20px;
-
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.header-controls {
-  margin-bottom: 24px;
-}
-
-.back-button {
-  cursor: pointer;
-
-  padding: 8px 20px;
-  border: 2px solid white;
-  border-radius: 8px;
-
-  font-size: 16px;
-  font-weight: bold;
-  color: white;
-
-  background: transparent;
-
-  transition: all 0.3s ease;
-
-  &:hover {
-    color: #667eea;
-    background: white;
-  }
-}
-
-.demo-title {
-  margin-bottom: 12px;
-
-  font-size: 32px;
-  font-weight: bold;
-  color: white;
-  text-align: center;
-  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
-}
-
-.demo-description {
-  margin-bottom: 32px;
-  font-size: 16px;
-  color: rgb(255 255 255 / 90%);
-  text-align: center;
-}
-
-.demo-controls {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 40px;
-}
-
-.replay-button {
-  cursor: pointer;
-
-  padding: 12px 32px;
-  border: none;
-  border-radius: 8px;
-
-  font-size: 18px;
-  font-weight: bold;
-  color: white;
-
-  background: rgb(99 102 241);
-  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
-
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    background: rgb(79 70 229);
-    box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
+## File: layers/showcases/app/assets/styles/_markdown.scss
+````scss
+// markdown 用スタイリング
+@use 'variables' as v;
+
+.hm-markdown {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    line-height: 1.3;
   }
 
-  &:active {
-    transform: translateY(0);
-  }
-}
-
-.animation-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-}
-
-.animation-section {
-  padding: 24px;
-  border-radius: 16px;
-  background: white;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
-}
-
-.section-title {
-  margin-bottom: 20px;
-
-  font-size: 20px;
-  font-weight: bold;
-  color: #374151;
-  text-align: center;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 20px;
-}
-
-.animation-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 120px;
-}
-
-.demo-box {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 140px;
-  height: 100px;
-  padding: 16px;
-  border-radius: 12px;
-
-  font-size: 14px;
-  font-weight: bold;
-  color: white;
-  text-align: center;
-  overflow-wrap: break-word;
-
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
-}
-</style>
-````
-
-## File: layers/showcases/app/components/ho/HoCssAnimations.vue
-````vue
-<i18n lang="yaml">
-ja:
-  title: CSSアニメーション
-  description: 各種ソースのCSSアニメーション集
-  sources:
-    title: アニメーションソース
-    animista:
-      name: Animations
-      description: Animista由来のアニメーション（15パターン）
-en:
-  title: CSS Animations
-  description: CSS animations from various sources
-  sources:
-    title: Animation Sources
-    animista:
-      name: Animations
-      description: Animations from Animista (15 patterns)
-</i18n>
-
-<template>
-  <div class="ho-css-animations">
-    <!-- アニメーションソース一覧 -->
-    <div
-      v-if="currentView === 'list'"
-      class="container"
-    >
-      <div class="header-controls">
-        <button
-          class="back-button"
-          @click="emit('back')"
-        >
-          ← Back
-        </button>
-      </div>
-
-      <header class="header">
-        <h1 class="title">
-          {{ t('title') }}
-        </h1>
-        <p class="description">
-          {{ t('description') }}
-        </p>
-      </header>
-
-      <section class="section">
-        <h2 class="section-title">
-          {{ t('sources.title') }}
-        </h2>
-
-        <div class="source-list">
-          <button
-            class="source-card"
-            @click="handleSelectSource('animations')"
-          >
-            <div class="card-icon">
-              🎬
-            </div>
-            <div class="card-content">
-              <h3 class="card-title">
-                {{ t('sources.animista.name') }}
-              </h3>
-              <p class="card-description">
-                {{ t('sources.animista.description') }}
-              </p>
-            </div>
-            <div class="card-arrow">
-              →
-            </div>
-          </button>
-
-          <!-- 今後、他のソースを追加可能 -->
-        </div>
-      </section>
-    </div>
-
-    <!-- Animista Animations -->
-    <HoAnimista
-      v-else-if="currentView === 'animations'"
-      @back="handleBackToList"
-    />
-  </div>
-</template>
-
-<script setup lang="ts">
-const { t } = useI18n()
-
-const emit = defineEmits<{
-  back: []
-}>()
-
-type ViewType = 'list' | 'animations'
-
-const currentView = ref<ViewType>('list')
-
-const handleSelectSource = (source: string) => {
-  if (source === 'animations') {
-    currentView.value = 'animations'
-  }
-}
-
-const handleBackToList = () => {
-  currentView.value = 'list'
-}
-</script>
-
-<style lang="scss" scoped>
-.ho-css-animations {
-  width: 100%;
-  min-height: 100vh;
-  padding: 40px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.header-controls {
-  margin-bottom: 24px;
-}
-
-.back-button {
-  cursor: pointer;
-
-  padding: 8px 20px;
-  border: 2px solid white;
-  border-radius: 8px;
-
-  font-size: 16px;
-  font-weight: bold;
-  color: white;
-
-  background: transparent;
-
-  transition: all 0.3s ease;
-
-  &:hover {
-    color: #667eea;
-    background: white;
-  }
-}
-
-.header {
-  margin-bottom: 60px;
-  text-align: center;
-}
-
-.title {
-  margin-bottom: 16px;
-
-  font-size: 48px;
-  font-weight: bold;
-  color: white;
-  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
-}
-
-.description {
-  font-size: 20px;
-  color: rgb(255 255 255 / 90%);
-}
-
-.section {
-  margin-bottom: 60px;
-}
-
-.section-title {
-  margin-bottom: 32px;
-
-  font-size: 32px;
-  font-weight: bold;
-  color: white;
-  text-align: center;
-}
-
-.source-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
-}
-
-.source-card {
-  cursor: pointer;
-
-  display: flex;
-  gap: 20px;
-  align-items: center;
-
-  width: 100%;
-  padding: 24px;
-  border: none;
-  border-radius: 16px;
-
-  font-family: inherit;
-  color: inherit;
-  text-align: left;
-  text-decoration: none;
-
-  background: white;
-  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
-
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgb(0 0 0 / 25%);
-  }
-}
-
-.card-icon {
-  flex-shrink: 0;
-  font-size: 40px;
-}
-
-.card-content {
-  flex: 1;
-}
-
-.card-title {
-  margin-bottom: 8px;
-  font-size: 20px;
-  font-weight: bold;
-  color: #374151;
-}
-
-.card-description {
-  font-size: 14px;
-  color: #6b7280;
-}
-
-.card-arrow {
-  flex-shrink: 0;
-  font-size: 24px;
-  color: #9ca3af;
-  transition: transform 0.3s ease;
-
-  .source-card:hover & {
-    transform: translateX(4px);
-  }
-}
-</style>
-````
-
-## File: layers/showcases/app/components/ht/HtTop.vue
-````vue
-<i18n lang="yaml">
-ja:
-  title: Showcase
-  description: コンポーネント・ユーティリティのデモ集
-  categories:
-    title: カテゴリ
-    cssAnimations:
-      name: CSSアニメーション
-      description: CSSアニメーションのデモ集
-    components:
-      name: Components
-      description: UIコンポーネントのデモ集（準備中）
-    utils:
-      name: Utils
-      description: ユーティリティ関数のデモ集（準備中）
-en:
-  title: Showcase
-  description: Collection of component and utility demos
-  categories:
-    title: Categories
-    cssAnimations:
-      name: CSS Animations
-      description: CSS animation demos
-    components:
-      name: Components
-      description: UI component demos (Coming soon)
-    utils:
-      name: Utils
-      description: Utility function demos (Coming soon)
-</i18n>
-
-<template>
-  <div class="ht-top">
-    <!-- カテゴリ一覧 -->
-    <div
-      v-if="currentView === 'top'"
-      class="container"
-    >
-      <header class="header">
-        <h1 class="title">
-          {{ t('title') }}
-        </h1>
-        <p class="description">
-          {{ t('description') }}
-        </p>
-      </header>
-
-      <section class="section">
-        <h2 class="section-title">
-          {{ t('categories.title') }}
-        </h2>
-
-        <div class="category-list">
-          <button
-            class="category-card"
-            @click="handleSelectCategory('css-animations')"
-          >
-            <div class="card-icon">
-              ✨
-            </div>
-            <div class="card-content">
-              <h3 class="card-title">
-                {{ t('categories.cssAnimations.name') }}
-              </h3>
-              <p class="card-description">
-                {{ t('categories.cssAnimations.description') }}
-              </p>
-            </div>
-            <div class="card-arrow">
-              →
-            </div>
-          </button>
-
-          <button
-            class="category-card"
-            disabled
-          >
-            <div class="card-icon">
-              🧩
-            </div>
-            <div class="card-content">
-              <h3 class="card-title">
-                {{ t('categories.components.name') }}
-              </h3>
-              <p class="card-description">
-                {{ t('categories.components.description') }}
-              </p>
-            </div>
-          </button>
-
-          <button
-            class="category-card"
-            disabled
-          >
-            <div class="card-icon">
-              🛠️
-            </div>
-            <div class="card-content">
-              <h3 class="card-title">
-                {{ t('categories.utils.name') }}
-              </h3>
-              <p class="card-description">
-                {{ t('categories.utils.description') }}
-              </p>
-            </div>
-          </button>
-        </div>
-      </section>
-    </div>
-
-    <!-- CSSアニメーション -->
-    <HoCssAnimations
-      v-else-if="currentView === 'css-animations'"
-      @back="handleBack"
-    />
-  </div>
-</template>
-
-<script setup lang="ts">
-import HoCssAnimations from '../ho/HoCssAnimations.vue'
-
-const { t } = useI18n()
-
-type ViewType = 'top' | 'css-animations'
-
-const currentView = ref<ViewType>('top')
-
-const handleSelectCategory = (category: string) => {
-  if (category === 'css-animations') {
-    currentView.value = 'css-animations'
-  }
-}
-
-const handleBack = () => {
-  currentView.value = 'top'
-}
-</script>
-
-<style lang="scss" scoped>
-@use '#showcases/app/assets/styles/variables' as v;
-@use '#showcases/app/assets/styles/mixins' as m;
-
-.ht-top {
-  width: 100%;
-  min-height: 100vh;
-  padding: 40px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.header {
-  margin-bottom: 60px;
-  text-align: center;
-}
-
-.title {
-  margin-bottom: 16px;
-
-  font-size: 48px;
-  font-weight: bold;
-  color: white;
-  text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
-}
-
-.description {
-  font-size: 20px;
-  color: rgb(255 255 255 / 90%);
-}
-
-.section {
-  margin-bottom: 60px;
-}
-
-.section-title {
-  margin-bottom: 32px;
-
-  font-size: 32px;
-  font-weight: bold;
-  color: white;
-  text-align: center;
-}
-
-.category-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
-}
-
-.category-card {
-  cursor: pointer;
-
-  display: flex;
-  gap: 20px;
-  align-items: center;
-
-  width: 100%;
-  padding: 24px;
-  border: none;
-  border-radius: 16px;
-
-  font-family: inherit;
-  color: inherit;
-  text-align: left;
-  text-decoration: none;
-
-  background: white;
-  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
-
-  transition: all 0.3s ease;
-
-  &:hover:not(:disabled) {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgb(0 0 0 / 25%);
+  h1 {
+    margin-bottom: 32px;
   }
 
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
+  h2 {
+    margin-bottom: 24px;
+    font-size: 28px;
+  }
+
+  h3 {
+    font-size: 24px;
+  }
+
+  h4 {
+    font-size: 20px;
+  }
+
+  h5 {
+    font-size: 16px;
+  }
+
+  h3,
+  h4,
+  h5 {
+    margin-bottom: 16px;
+    font-weight: 400;
+  }
+
+  ul,
+  ol {
+    margin-bottom: 24px;
+
+    > li {
+      padding-left: 1em;
+      text-indent: -1em;
+
+      &:not(:last-child) {
+        margin-bottom: 16px;
+      }
+    }
+  }
+
+  li {
+    line-height: 1.3;
+    list-style-position: inside;
+
+    > ul {
+      margin: 16px 0;
+      padding-left: 48px;
+    }
+
+    ol {
+      counter-reset: ol-item;
+      margin: 16px 0;
+      padding-left: 28px;
+      list-style: none;
+
+      > li {
+        position: relative;
+        padding-left: 1.5em;
+        text-indent: 0;
+
+        // list-style: none だけで消えないので
+        &::marker {
+          content: '';
+        }
+
+        &::before {
+          // インデントした数値は 「1)」の表示にする
+          content: counter(ol-item) ')  ';
+          counter-increment: ol-item 1;
+
+          position: absolute; // 数値の桁数が違う場合の見た目に対応
+          top: 0;
+          left: 0;
+
+          display: block;
+
+          width: 100px;
+        }
+      }
+    }
+  }
+  /* stylelint-disable selector-max-compound-selectors */
+  ul > li {
+    list-style: none;
+
+    &::before {
+      content: '・';
+    }
+
+    ul > li {
+      list-style: circle;
+
+      ul > li {
+        list-style: disc;
+      }
+    }
+  }
+
+  /* stylelint-ensable selector-max-compound-selectors */
+  ol > li {
+    list-style: decimal;
+    list-style-position: inside;
+  }
+
+  ol[type='a'] > li {
+    list-style: lower-latin;
+    list-style-position: inside;
+  }
+
+  p {
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+
+  img {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    margin: 24px auto;
+  }
+
+  table {
+    border-spacing: 0;
+    border-collapse: collapse;
+
+    width: fit-content;
+    min-width: 50%;
+    max-width: 100%;
+    margin: 24px auto;
+  }
+
+  code {
+    padding: 2px 5px;
+    background-color: v.$violet;
+  }
+
+  table th,
+  table td {
+    padding: 8px 12px;
+    text-align: center;
+  }
+
+  table tr:nth-child(odd) {
+    background-color: v.$blue;
+  }
+
+  thead tr:first-child {
+    background-color: v.$blue;
   }
 }
-
-.card-icon {
-  flex-shrink: 0;
-  font-size: 40px;
-}
-
-.card-content {
-  flex: 1;
-}
-
-.card-title {
-  margin-bottom: 8px;
-  font-size: 20px;
-  font-weight: bold;
-  color: #374151;
-}
-
-.card-description {
-  font-size: 14px;
-  color: #6b7280;
-}
-
-.card-arrow {
-  flex-shrink: 0;
-  font-size: 24px;
-  color: #9ca3af;
-  transition: transform 0.3s ease;
-
-  .category-card:hover:not(:disabled) & {
-    transform: translateX(4px);
-  }
-}
-</style>
 ````
 
 ## File: layers/showcases/app/models/json.ts
@@ -3223,112 +2160,6 @@ export type UseI18nReturnType<Options extends UseI18nOptions = UseI18nOptions>
  */
 export const getI18nArray = (i18n: UseI18nReturnType, key: string): string[] =>
   Object.entries<VueMessageType>(i18n.tm(key)).map(([_, term]) => i18n.rt(term))
-````
-
-## File: layers/showcases/app/app.vue
-````vue
-<i18n lang="yaml">
-  ja:
-    site:
-      title: Vket Boilerplate Nuxt
-      title_template: "{title} - HIKKY Web Frontend"
-      description: Vketのサイト開発で活用しているボイラープレート
-  en:
-    site:
-      title: Vket Boilerplate Nuxt
-      title_template: "{title} - HIKKY Web Frontend"
-      description: A boilerplate used for Vket site development
-</i18n>
-
-<template>
-  <Head>
-    <Link
-      rel="alternate"
-      hreflang="ja"
-      :href="currentJaFullPath"
-    />
-    <Link
-      rel="alternate"
-      hreflang="en"
-      :href="currentEnFullPath"
-    />
-    <Link
-      rel="alternate"
-      hreflang="x-default"
-      :href="currentJaFullPath"
-    />
-    <template v-if="currentLang === 'ja'">
-      <Link
-        rel="canonical"
-        :href="currentJaFullPath"
-      />
-    </template>
-    <template v-if="currentLang === 'en'">
-      <Link
-        rel="canonical"
-        :href="currentEnFullPath"
-      />
-    </template>
-  </Head>
-  <div class="app">
-    <NuxtLayout>
-      <NuxtPage />
-    </NuxtLayout>
-  </div>
-</template>
-
-<script lang="ts" setup>
-const route = useRoute()
-const i18n = useI18n()
-const currentFullPath = ref(`${useRuntimeConfig().public.url}${route.fullPath}`)
-const currentLang = ref(i18n.locale.value)
-
-const currentJaFullPath = computed(() => {
-  if (currentLang.value === 'ja') {
-    return currentFullPath.value
-  } else {
-    return currentFullPath.value
-      .replace(/\/en(\/|$)/, '/')
-      .replace(/\/{2,}/, '/')
-  }
-})
-
-const currentEnFullPath = computed(() => {
-  if (currentLang.value === 'en') {
-    return currentFullPath.value
-  } else {
-    const path = route.fullPath.endsWith('/')
-      ? route.fullPath
-      : `${route.fullPath}/`
-    return `${useRuntimeConfig().public.url}/en${path}`
-  }
-})
-
-useHeadSafe({
-  htmlAttrs: {
-    lang: currentLang.value,
-  },
-  titleTemplate: (titleChunk) => {
-    return titleChunk
-      ? i18n.t('site.title_template', { title: titleChunk })
-      : i18n.t('site.title')
-  },
-  meta: [
-    {
-      name: 'description',
-      content: i18n.t('site.description'),
-    },
-    {
-      property: 'og:description',
-      content: i18n.t('site.description'),
-    },
-    {
-      property: 'og:site_name',
-      content: i18n.t('site.title'),
-    },
-  ],
-})
-</script>
 ````
 
 ## File: layers/showcases/i18n/i18n.config.ts

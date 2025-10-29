@@ -6,7 +6,9 @@
   "scripts": {
     "generate": "bun run scripts/make-zod.ts",
     "clean": "rm -rf app/models/openapi/*",
-    "package-update": "bunx npm-check-updates -i"
+    "package-update": "bunx npm-check-updates -i",
+    "clean-install": "node ../../scripts/clean_install.js",
+    "allclean-install": "node ../../scripts/clean_install.js all"
   },
   "dependencies": {
     "zod": "^4.1.5"
