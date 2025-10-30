@@ -1,7 +1,12 @@
 # Vket Boilerplate Nuxt（日本語版）
 [![English README](https://badgen.net/badge/README/in%20English/blue?icon=github)](./README.md)
 
-これはHIKKY株式会社が公開するNuxt3本格運用向けボイラープレートで、スケーラブルなVR/メタバース関連Webアプリケーション構築用に設計されています。
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+[![Nuxt](https://img.shields.io/badge/Nuxt-4.0+-00DC82?logo=nuxt.js)](https://nuxt.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9+-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+[![Bun](https://img.shields.io/badge/Bun-1.0+-000000?logo=bun)](https://bun.sh/)
+
+これはHIKKY株式会社が公開するNuxt4本格運用向けボイラープレートで、スケーラブルなVR/メタバース関連Webアプリケーション構築用に設計されています。
 
 ## 🤖 AI エージェント向け
 
