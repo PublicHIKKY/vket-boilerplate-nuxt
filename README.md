@@ -3,7 +3,7 @@
 [![japanese](https://badgen.net/badge/README/in%20日本語/red?icon=github)](./README.ja.md)
 
 
-This is a production-ready Nuxt3 boilerplate published by HIKKY Ltd., designed for building scalable VR/metaverse web applications.
+This is a production-ready Nuxt4 boilerplate published by HIKKY Ltd., designed for building scalable VR/metaverse web applications.
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 [![Nuxt](https://img.shields.io/badge/Nuxt-4.0+-00DC82?logo=nuxt.js)](https://nuxt.com/)
