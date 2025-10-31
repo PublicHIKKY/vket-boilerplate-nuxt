@@ -215,7 +215,7 @@ Examples:
 
 - [`AGENTS.md`](./AGENTS.md) - Complete development guide for AI agents
 - [`repomix-output.md`](./repomix-output.md) - Full codebase structure
-- [Nuxt 3 Docs](https://nuxt.com/docs) - Framework documentation
+- [Nuxt Docs](https://nuxt.com/docs) - Framework documentation
 - [Zod Docs](https://zod.dev) - Schema validation
 - [RSCSS](https://rscss.io) - CSS naming convention
 

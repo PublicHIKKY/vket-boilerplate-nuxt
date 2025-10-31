@@ -155,7 +155,7 @@ en:
 
 * [`AGENTS.md`](./AGENTS.md) - AIエージェント開発の完全ガイド
 * [`repomix-output.md`](./repomix-output.md) - コードベース全体の構造
-* [Nuxt 3 Docs](https://nuxt.com/docs) - フレームワークの公式ドキュメント
+* [Nuxt Docs](https://nuxt.com/docs) - フレームワークの公式ドキュメント
 * [Zod Docs](https://zod.dev) - スキーマバリデーションのドキュメント
 * [RSCSS](https://rscss.io) - CSS命名規則
 
