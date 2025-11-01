@@ -83,7 +83,7 @@
     "happy-dom": "^19.0.2",
     "humps": "^2.0.1",
     "jsdom": "^27.0.0",
-    "ofetch": "^1.4.1",
+    "ofetch": "^1.5.1",
     "postcss-html": "^1.8.0",
     "postcss-import": "^16.1.1",
     "postcss-url": "^10.1.3",
