@@ -9,8 +9,8 @@
   ],
   "scripts": {
     "update-project": "bun update && bun clean-install",
-    "clean-install": "node ./scripts/clean_install.js",
-    "allclean-install": "node ./scripts/clean_install.js all",
+    "clean-install": "bun run ./scripts/clean_install.js",
+    "allclean-install": "bun run ./scripts/clean_install.js all",
     "prepare": "bun husky",
     "package-update": "bunx npm-check-updates -i",
     "repomix": "./scripts/generate_context.sh",
