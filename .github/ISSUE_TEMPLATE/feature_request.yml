@@ -1,0 +1,45 @@
+name: ✨ Feature Request
+description: 新機能の提案はこちら
+title: "[Feature] "
+labels:
+  - enhancement
+
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: ✨ 提案内容
+      description: 追加したい機能の概要を記述してください。
+      placeholder: 例）検索結果にタグフィルターを追加したい
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: 🎯 背景・目的
+      description: なぜ必要なのか、どんな問題を解決するのかを記述してください。
+      placeholder: 例）条件絞り込みがなく、目的の情報に辿り着きにくいため
+    validations:
+      required: true
+
+  - type: textarea
+    id: requirements
+    attributes:
+      label: ✅ 詳細要件
+      placeholder: |
+        ・タグによる絞り込みができる
+        ・複数タグの選択が可能
+        ・他フィルターと併用できる
+
+  - type: textarea
+    id: ui
+    attributes:
+      label: 🎨 UIイメージ（任意）
+      description: スクリーンショットや参考URLがあれば記載してください。
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: 📝 補足
+      description: その他共有したい情報や関連Issueなど。
