@@ -1,4 +1,12 @@
 {
   "hello": "Hello!",
-  "language": "language"
+  "language": "language",
+  "schedule": {
+    "pageTitle": "Schedule Manager",
+    "addNew": "Add New",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel"
+  }
 }

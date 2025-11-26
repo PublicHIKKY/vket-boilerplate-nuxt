@@ -1,4 +1,12 @@
 {
   "hello": "こんにちは！",
-  "language": "言語"
+  "language": "言語",
+  "schedule": {
+    "pageTitle": "スケジュール管理",
+    "addNew": "新規追加",
+    "edit": "編集",
+    "delete": "削除",
+    "save": "保存",
+    "cancel": "キャンセル"
+  }
 }

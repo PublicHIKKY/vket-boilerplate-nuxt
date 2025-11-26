@@ -43,8 +43,6 @@
   </Head>
   <div class="app">
     <NuxtLayout>
-      <NuxtRouteAnnouncer />
-      <NuxtWelcome />
       <NuxtPage />
     </NuxtLayout>
   </div>
