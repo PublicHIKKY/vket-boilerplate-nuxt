@@ -133,6 +133,8 @@ layers/
           useSocialShareLink.spec.ts
           useToast.spec.ts
           useValidationRules.spec.ts
+        e2e/
+          sample.spec.ts
         mock-icons/
           ri/
             close-line.js
@@ -3038,6 +3040,17 @@ exports[`mount component 1`] = `
   <div data-v-f233eea7="" class="image-box">
     <div data-v-f233eea7="" class="inner"><span data-v-f233eea7="" class="text"> Select file or drag it! </span></div>
   </div>
+</label>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadio.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<label data-v-3deb71fa="" class="hm-input-radio"><input data-v-fc3f65b2="" data-v-3deb71fa="" class="ha-base-input button" type="radio" name="test name" value="1">
+  <div data-v-3deb71fa="" class="content"></div>
 </label>"
 `;
 ````
@@ -8662,17 +8675,6 @@ exports[`mount component 1`] = `
 `;
 ````
 
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadio.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<label data-v-3deb71fa="" class="hm-input-radio"><input data-v-fc3f65b2="" data-v-3deb71fa="" class="ha-base-input button" type="radio" name="test name" value="1">
-  <div data-v-3deb71fa="" class="content"></div>
-</label>"
-`;
-````
-
 ## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadioChangeable.spec.ts.snap
 ````
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
@@ -9908,6 +9910,36 @@ test.prop([fc.nat(), fc.string()])('fails to validate max', (n, s) => {
   fc.pre(n < s.length)
   const rules = useValidationRules()
   expect(() => rules.max(n).parse(s)).toThrowError()
+})
+````
+
+## File: layers/base/app/test/e2e/sample.spec.ts
+````typescript
+import { test, expect } from '@playwright/test'
+
+test.describe('Top Page', () => {
+  test('should display top page successfully', async ({ page }) => {
+    // トップページにアクセス
+    const response = await page.goto('/')
+
+    // ページが正常にロードされることを確認
+    await expect(page).toHaveTitle(/.*/)
+
+    // ページのステータスが200であることを確認（正常にレスポンスが返ってくる）
+    expect(response?.status()).toBe(200)
+  })
+
+  test('should have accessible content', async ({ page }) => {
+    await page.goto('/')
+
+    // ページのbody要素が存在することを確認
+    const body = page.locator('body')
+    await expect(body).toBeVisible()
+
+    // HTMLドキュメントが適切にレンダリングされていることを確認
+    const htmlContent = await page.content()
+    expect(htmlContent).toContain('<!DOCTYPE html>')
+  })
 })
 ````
 

@@ -3,10 +3,14 @@
   "private": true,
   "version": "1.0.1",
   "license": "MIT",
+  "packageManager": "bun@1.2.23",
   "workspaces": [
     "layers/*"
   ],
   "scripts": {
+    "update-project": "bun update && bun clean-install",
+    "clean-install": "bun run ./scripts/clean_install.js",
+    "allclean-install": "bun run ./scripts/clean_install.js all",
     "prepare": "bun husky",
     "package-update": "bunx npm-check-updates -i",
     "repomix": "./scripts/generate_context.sh",
