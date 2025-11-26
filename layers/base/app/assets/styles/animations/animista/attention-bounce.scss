@@ -1,0 +1,271 @@
+/**
+ * Bounce Animation (Attention with Bounce Effect)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Bounce Top
+@keyframes bounce-top {
+  0% {
+    transform: translateY(-45px);
+    opacity: 1;
+    animation-timing-function: ease-in;
+  }
+
+  24% {
+    opacity: 1;
+  }
+
+  40% {
+    transform: translateY(-24px);
+    animation-timing-function: ease-in;
+  }
+
+  65% {
+    transform: translateY(-12px);
+    animation-timing-function: ease-in;
+  }
+
+  82% {
+    transform: translateY(-6px);
+    animation-timing-function: ease-in;
+  }
+
+  93% {
+    transform: translateY(-4px);
+    animation-timing-function: ease-in;
+  }
+
+  25%, 55%, 75%, 87% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+    animation-timing-function: ease-out;
+  }
+}
+
+// Bounce Bottom
+@keyframes bounce-bottom {
+  0% {
+    transform: translateY(45px);
+    opacity: 1;
+    animation-timing-function: ease-in;
+  }
+
+  24% {
+    opacity: 1;
+  }
+
+  40% {
+    transform: translateY(24px);
+    animation-timing-function: ease-in;
+  }
+
+  65% {
+    transform: translateY(12px);
+    animation-timing-function: ease-in;
+  }
+
+  82% {
+    transform: translateY(6px);
+    animation-timing-function: ease-in;
+  }
+
+  93% {
+    transform: translateY(4px);
+    animation-timing-function: ease-in;
+  }
+
+  25%, 55%, 75%, 87% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+    animation-timing-function: ease-out;
+  }
+}
+
+// Bounce Left
+@keyframes bounce-left {
+  0% {
+    transform: translateX(-48px);
+    opacity: 1;
+    animation-timing-function: ease-in;
+  }
+
+  24% {
+    opacity: 1;
+  }
+
+  40% {
+    transform: translateX(-26px);
+    animation-timing-function: ease-in;
+  }
+
+  65% {
+    transform: translateX(-13px);
+    animation-timing-function: ease-in;
+  }
+
+  82% {
+    transform: translateX(-6.5px);
+    animation-timing-function: ease-in;
+  }
+
+  93% {
+    transform: translateX(-4px);
+    animation-timing-function: ease-in;
+  }
+
+  25%, 55%, 75%, 87%, 98% {
+    transform: translateX(0);
+    animation-timing-function: ease-out;
+  }
+
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+    animation-timing-function: ease-out;
+  }
+}
+
+// Bounce Right
+@keyframes bounce-right {
+  0% {
+    transform: translateX(48px);
+    opacity: 1;
+    animation-timing-function: ease-in;
+  }
+
+  24% {
+    opacity: 1;
+  }
+
+  40% {
+    transform: translateX(26px);
+    animation-timing-function: ease-in;
+  }
+
+  65% {
+    transform: translateX(13px);
+    animation-timing-function: ease-in;
+  }
+
+  82% {
+    transform: translateX(6.5px);
+    animation-timing-function: ease-in;
+  }
+
+  93% {
+    transform: translateX(4px);
+    animation-timing-function: ease-in;
+  }
+
+  25%, 55%, 75%, 87%, 98% {
+    transform: translateX(0);
+    animation-timing-function: ease-out;
+  }
+
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+    animation-timing-function: ease-out;
+  }
+}
+
+// ============================================
+// Mixin: Bounce
+// ============================================
+
+/// Bounceアニメーション（バウンスによる注目エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['top'] - アニメーションのバリエーション
+///   4方向のバウンスパターン:
+///     'top'    - 上からバウンス（translateY 負→0）
+///     'bottom' - 下からバウンス（translateY 正→0）
+///     'left'   - 左からバウンス（translateX 負→0）
+///     'right'  - 右からバウンス（translateX 正→0）
+///
+/// @param {Number} $duration [0.9s] - アニメーションの実行時間
+///   例: 0.9s, 1s, 1.2s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [ease] - イージング関数（内部でease-in/ease-outを使用）
+///   例: ease, ease-out, linear
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .notification {
+///     @include bounce('top');
+///   }
+///
+/// @example scss - カスタム設定
+///   .alert {
+///     @include bounce('left', 1s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .warning {
+///     @include bounce(
+///       $variant: 'bottom',
+///       $duration: 1.2s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 2,
+///       $fill: both
+///     );
+///   }
+@mixin bounce(
+  $variant: 'top',
+  $duration: 0.9s,
+  $delay: 0s,
+  $easing: ease,
+  $iterations: 1,
+  $fill: both
+) {
+  animation: bounce-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Bounceアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['top'] - アニメーションのバリエーション（bounceと同じ4種類）
+/// @param {Number} $duration [0.9s] - アニメーションの実行時間
+/// @param {String} $easing [ease] - イージング関数
+///
+/// @example scss - ボタンのホバーエフェクト
+///   .button {
+///     @include bounce-hover('top', 0.9s);
+///   }
+@mixin bounce-hover(
+  $variant: 'top',
+  $duration: 0.9s,
+  $easing: ease
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: bounce-#{$variant} $duration $easing both;
+    }
+  }
+}
+

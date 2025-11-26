@@ -1,0 +1,375 @@
+/**
+ * Swirl-Out Animation (Exit with Rotation + Scale + Opacity Fade)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Forward
+@keyframes swirl-out-fwd {
+  0% {
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: rotate(540deg) scale(0);
+    opacity: 0;
+  }
+}
+
+// Backward
+@keyframes swirl-out-bck {
+  0% {
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: rotate(-540deg) scale(5);
+    opacity: 0;
+  }
+}
+
+// Top Forward
+@keyframes swirl-out-top-fwd {
+  0% {
+    transform-origin: 50% 0;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 50% 0;
+    transform: rotate(540deg) scale(0);
+    opacity: 0;
+  }
+}
+
+// Top Backward
+@keyframes swirl-out-top-bck {
+  0% {
+    transform-origin: 50% 0;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 50% 0;
+    transform: rotate(-540deg) scale(5);
+    opacity: 0;
+  }
+}
+
+// Top Right Forward
+@keyframes swirl-out-tr-fwd {
+  0% {
+    transform-origin: 100% 0;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 100% 0;
+    transform: rotate(540deg) scale(0);
+    opacity: 0;
+  }
+}
+
+// Top Right Backward
+@keyframes swirl-out-tr-bck {
+  0% {
+    transform-origin: 100% 0;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 100% 0;
+    transform: rotate(-540deg) scale(5);
+    opacity: 0;
+  }
+}
+
+// Right Forward
+@keyframes swirl-out-right-fwd {
+  0% {
+    transform-origin: 100% 50%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: rotate(540deg) scale(0);
+    opacity: 0;
+  }
+}
+
+// Right Backward
+@keyframes swirl-out-right-bck {
+  0% {
+    transform-origin: 100% 50%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: rotate(-540deg) scale(5);
+    opacity: 0;
+  }
+}
+
+// Bottom Right Forward
+@keyframes swirl-out-br-fwd {
+  0% {
+    transform-origin: 100% 100%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: rotate(540deg) scale(0);
+    opacity: 0;
+  }
+}
+
+// Bottom Right Backward
+@keyframes swirl-out-br-bck {
+  0% {
+    transform-origin: 100% 100%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: rotate(-540deg) scale(5);
+    opacity: 0;
+  }
+}
+
+// Bottom Forward
+@keyframes swirl-out-bottom-fwd {
+  0% {
+    transform-origin: 50% 100%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: rotate(540deg) scale(0);
+    opacity: 0;
+  }
+}
+
+// Bottom Backward
+@keyframes swirl-out-bottom-bck {
+  0% {
+    transform-origin: 50% 100%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: rotate(-540deg) scale(5);
+    opacity: 0;
+  }
+}
+
+// Bottom Left Forward
+@keyframes swirl-out-bl-fwd {
+  0% {
+    transform-origin: 0 100%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 0 100%;
+    transform: rotate(540deg) scale(0);
+    opacity: 0;
+  }
+}
+
+// Bottom Left Backward
+@keyframes swirl-out-bl-bck {
+  0% {
+    transform-origin: 0 100%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 0 100%;
+    transform: rotate(-540deg) scale(5);
+    opacity: 0;
+  }
+}
+
+// Left Forward
+@keyframes swirl-out-left-fwd {
+  0% {
+    transform-origin: 0 50%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 0 50%;
+    transform: rotate(540deg) scale(0);
+    opacity: 0;
+  }
+}
+
+// Left Backward
+@keyframes swirl-out-left-bck {
+  0% {
+    transform-origin: 0 50%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 0 50%;
+    transform: rotate(-540deg) scale(5);
+    opacity: 0;
+  }
+}
+
+// Top Left Forward
+@keyframes swirl-out-tl-fwd {
+  0% {
+    transform-origin: 0 0;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 0 0;
+    transform: rotate(540deg) scale(0);
+    opacity: 0;
+  }
+}
+
+// Top Left Backward
+@keyframes swirl-out-tl-bck {
+  0% {
+    transform-origin: 0 0;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 0 0;
+    transform: rotate(-540deg) scale(5);
+    opacity: 0;
+  }
+}
+
+// ============================================
+// Mixin: Swirl Out
+// ============================================
+
+/// Swirl-Outアニメーション（回転とスケールによる退場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['fwd'] - アニメーションのバリエーション
+///   Forward/Backward (18種類) - 回転とスケールによる退場:
+///     'fwd'         - 前方へ（rotate 0→540deg + scale 1→0 + opacity 1→0）
+///     'bck'         - 後方へ（rotate 0→-540deg + scale 1→5 + opacity 1→0）
+///     'top-fwd'     - 上から前方へ（rotate 0→540deg + scale 1→0、transform-origin: 50% 0）
+///     'top-bck'     - 上から後方へ（rotate 0→-540deg + scale 1→5、transform-origin: 50% 0）
+///     'tr-fwd'      - 右上から前方へ（rotate 0→540deg + scale 1→0、transform-origin: 100% 0）
+///     'tr-bck'      - 右上から後方へ（rotate 0→-540deg + scale 1→5、transform-origin: 100% 0）
+///     'right-fwd'   - 右から前方へ（rotate 0→540deg + scale 1→0、transform-origin: 100% 50%）
+///     'right-bck'   - 右から後方へ（rotate 0→-540deg + scale 1→5、transform-origin: 100% 50%）
+///     'br-fwd'      - 右下から前方へ（rotate 0→540deg + scale 1→0、transform-origin: 100% 100%）
+///     'br-bck'      - 右下から後方へ（rotate 0→-540deg + scale 1→5、transform-origin: 100% 100%）
+///     'bottom-fwd'  - 下から前方へ（rotate 0→540deg + scale 1→0、transform-origin: 50% 100%）
+///     'bottom-bck'  - 下から後方へ（rotate 0→-540deg + scale 1→5、transform-origin: 50% 100%）
+///     'bl-fwd'      - 左下から前方へ（rotate 0→540deg + scale 1→0、transform-origin: 0 100%）
+///     'bl-bck'      - 左下から後方へ（rotate 0→-540deg + scale 1→5、transform-origin: 0 100%）
+///     'left-fwd'    - 左から前方へ（rotate 0→540deg + scale 1→0、transform-origin: 0 50%）
+///     'left-bck'    - 左から後方へ（rotate 0→-540deg + scale 1→5、transform-origin: 0 50%）
+///     'tl-fwd'      - 左上から前方へ（rotate 0→540deg + scale 1→0、transform-origin: 0 0）
+///     'tl-bck'      - 左上から後方へ（rotate 0→-540deg + scale 1→5、transform-origin: 0 0）
+///
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+///   例: 0.5s, 0.6s, 0.7s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.600, -0.280, 0.735, 0.045)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include swirl-out('fwd');
+///   }
+///
+/// @example scss - カスタム設定
+///   .modal {
+///     @include swirl-out('top-fwd', 0.5s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include swirl-out(
+///       $variant: 'right-bck',
+///       $duration: 0.7s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin swirl-out(
+  $variant: 'fwd',
+  $duration: 0.6s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.600, -0.280, 0.735, 0.045),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: swirl-out-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Swirl-Outアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['fwd'] - アニメーションのバリエーション（swirl-outと同じ18種類）
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.600, -0.280, 0.735, 0.045)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include swirl-out-hover('fwd', 0.5s);
+///   }
+@mixin swirl-out-hover(
+  $variant: 'fwd',
+  $duration: 0.6s,
+  $easing: cubic-bezier(0.600, -0.280, 0.735, 0.045)
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: swirl-out-#{$variant} $duration $easing both;
+    }
+  }
+}
+

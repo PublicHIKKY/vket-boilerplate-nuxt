@@ -1,0 +1,291 @@
+/**
+ * Rotate-In Animation (Entrance with Rotation + Opacity)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Center
+@keyframes rotate-in-center {
+  0% {
+    transform: rotate(-360deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotate(0);
+    opacity: 1;
+  }
+}
+
+// Top
+@keyframes rotate-in-top {
+  0% {
+    transform-origin: top;
+    transform: rotate(-360deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: top;
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+}
+
+// Top Right
+@keyframes rotate-in-tr {
+  0% {
+    transform-origin: top right;
+    transform: rotate(-360deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: top right;
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+}
+
+// Right
+@keyframes rotate-in-right {
+  0% {
+    transform-origin: right;
+    transform: rotate(-360deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: right;
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+}
+
+// Bottom Right
+@keyframes rotate-in-br {
+  0% {
+    transform-origin: bottom right;
+    transform: rotate(-360deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: bottom right;
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+}
+
+// Bottom
+@keyframes rotate-in-bottom {
+  0% {
+    transform-origin: bottom;
+    transform: rotate(-360deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: bottom;
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+}
+
+// Bottom Left
+@keyframes rotate-in-bl {
+  0% {
+    transform-origin: bottom left;
+    transform: rotate(-360deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: bottom left;
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+}
+
+// Left
+@keyframes rotate-in-left {
+  0% {
+    transform-origin: left;
+    transform: rotate(-360deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: left;
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+}
+
+// Top Left
+@keyframes rotate-in-tl {
+  0% {
+    transform-origin: top left;
+    transform: rotate(-360deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: top left;
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+}
+
+// Horizontal
+@keyframes rotate-in-hor {
+  0% {
+    transform: rotateX(360deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotateX(0deg);
+    opacity: 1;
+  }
+}
+
+// Vertical
+@keyframes rotate-in-ver {
+  0% {
+    transform: rotateY(360deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+// Diagonal 1
+@keyframes rotate-in-diag-1 {
+  0% {
+    transform: rotate3d(1, 1, 0, -360deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotate3d(1, 1, 0, 0deg);
+    opacity: 1;
+  }
+}
+
+// Diagonal 2
+@keyframes rotate-in-diag-2 {
+  0% {
+    transform: rotate3d(-1, 1, 0, -360deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotate3d(-1, 1, 0, 0deg);
+    opacity: 1;
+  }
+}
+
+// ============================================
+// Mixin: Rotate In
+// ============================================
+
+/// Rotate-Inアニメーション（回転と透明度を使った入場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション
+///   Origin-based (9種類) - 起点を指定して回転:
+///     'center' - 中心を軸に回転
+///     'top'    - 上端を軸に回転
+///     'tr'     - 右上を軸に回転
+///     'right'  - 右端を軸に回転
+///     'br'     - 右下を軸に回転
+///     'bottom' - 下端を軸に回転
+///     'bl'     - 左下を軸に回転
+///     'left'   - 左端を軸に回転
+///     'tl'     - 左上を軸に回転
+///   Axis-based (2種類) - 軸を指定して回転:
+///     'hor' - X軸回転（水平軸）
+///     'ver' - Y軸回転（垂直軸）
+///   3D Diagonal (2種類) - 3D対角線回転:
+///     'diag-1' - 対角線1（右下がり）
+///     'diag-2' - 対角線2（左下がり）
+///
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+///   例: 0.5s, 0.8s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .modal {
+///     @include rotate-in('center');
+///   }
+///
+/// @example scss - カスタム設定
+///   .card {
+///     @include rotate-in('top', 0.8s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include rotate-in(
+///       $variant: 'diag-1',
+///       $duration: 1s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin rotate-in(
+  $variant: 'center',
+  $duration: 0.6s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: rotate-in-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Rotate-Inアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション（rotate-inと同じ13種類）
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include rotate-in-hover('center', 0.5s);
+///   }
+@mixin rotate-in-hover(
+  $variant: 'center',
+  $duration: 0.6s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940)
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: rotate-in-#{$variant} $duration $easing both;
+    }
+  }
+}
+

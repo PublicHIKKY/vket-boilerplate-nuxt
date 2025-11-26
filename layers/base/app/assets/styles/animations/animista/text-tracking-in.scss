@@ -1,0 +1,240 @@
+/**
+ * Tracking-In Animation (Text with Letter Spacing + Entrance Effect)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Tracking In Expand
+@keyframes tracking-in-expand {
+  0% {
+    letter-spacing: -0.5em;
+    opacity: 0;
+  }
+
+  40% {
+    opacity: 0.6;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+// Tracking In Expand Forward
+@keyframes tracking-in-expand-fwd {
+  0% {
+    transform: translateZ(-700px);
+    letter-spacing: -0.5em;
+    opacity: 0;
+  }
+
+  40% {
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: translateZ(0);
+    opacity: 1;
+  }
+}
+
+// Tracking In Expand Forward Top
+@keyframes tracking-in-expand-fwd-top {
+  0% {
+    transform: translateZ(-700px) translateY(-500px);
+    letter-spacing: -0.5em;
+    opacity: 0;
+  }
+
+  40% {
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: translateZ(0) translateY(0);
+    opacity: 1;
+  }
+}
+
+// Tracking In Expand Forward Bottom
+@keyframes tracking-in-expand-fwd-bottom {
+  0% {
+    transform: translateZ(-700px) translateY(500px);
+    letter-spacing: -0.5em;
+    opacity: 0;
+  }
+
+  40% {
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: translateZ(0) translateY(0);
+    opacity: 1;
+  }
+}
+
+// Tracking In Contract
+@keyframes tracking-in-contract {
+  0% {
+    letter-spacing: 1em;
+    opacity: 0;
+  }
+
+  40% {
+    opacity: 0.6;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+// Tracking In Contract Backward
+@keyframes tracking-in-contract-bck {
+  0% {
+    transform: translateZ(400px);
+    letter-spacing: 1em;
+    opacity: 0;
+  }
+
+  40% {
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: translateZ(0);
+    opacity: 1;
+  }
+}
+
+// Tracking In Contract Backward Top
+@keyframes tracking-in-contract-bck-top {
+  0% {
+    transform: translateZ(400px) translateY(-300px);
+    letter-spacing: 1em;
+    opacity: 0;
+  }
+
+  40% {
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: translateZ(0) translateY(0);
+    opacity: 1;
+  }
+}
+
+// Tracking In Contract Backward Bottom
+@keyframes tracking-in-contract-bck-bottom {
+  0% {
+    transform: translateZ(400px) translateY(300px);
+    letter-spacing: 1em;
+    opacity: 0;
+  }
+
+  40% {
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: translateZ(0) translateY(0);
+    opacity: 1;
+  }
+}
+
+// ============================================
+// Mixin: Tracking In
+// ============================================
+
+/// Tracking-Inアニメーション（文字間隔の変化による登場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['expand'] - アニメーションのバリエーション
+///   Expand (4種類) - 文字間隔を狭めながら登場:
+///     'expand'             - 基本的な拡大（letter-spacing -0.5em→0 + opacity 0→1）
+///     'expand-fwd'         - 前方から（letter-spacing -0.5em→0 + translateZ -700px→0 + opacity 0→1）
+///     'expand-fwd-top'     - 前方上から（letter-spacing -0.5em→0 + translateZ -700px→0 + translateY -500px→0 + opacity 0→1）
+///     'expand-fwd-bottom'  - 前方下から（letter-spacing -0.5em→0 + translateZ -700px→0 + translateY 500px→0 + opacity 0→1）
+///   Contract (4種類) - 文字間隔を広げながら登場:
+///     'contract'           - 基本的な縮小（letter-spacing 1em→0 + opacity 0→1）
+///     'contract-bck'       - 後方から（letter-spacing 1em→0 + translateZ 400px→0 + opacity 0→1）
+///     'contract-bck-top'   - 後方上から（letter-spacing 1em→0 + translateZ 400px→0 + translateY -300px→0 + opacity 0→1）
+///     'contract-bck-bottom'- 後方下から（letter-spacing 1em→0 + translateZ 400px→0 + translateY 300px→0 + opacity 0→1）
+///
+/// @param {Number} $duration [0.7s] - アニメーションの実行時間
+///   例: 0.7s, 0.8s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.215, 0.610, 0.355, 1.000)] - イージング関数
+///   例: ease-out, cubic-bezier(0.215, 0.610, 0.355, 1.000)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .title {
+///     @include tracking-in('expand');
+///   }
+///
+/// @example scss - カスタム設定
+///   .heading {
+///     @include tracking-in('expand-fwd', 0.8s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .text {
+///     @include tracking-in(
+///       $variant: 'contract-bck-top',
+///       $duration: 1s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin tracking-in(
+  $variant: 'expand',
+  $duration: 0.7s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.215, 0.610, 0.355, 1.000),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: tracking-in-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Tracking-Inアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['expand'] - アニメーションのバリエーション（tracking-inと同じ8種類）
+/// @param {Number} $duration [0.7s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.215, 0.610, 0.355, 1.000)] - イージング関数
+///
+/// @example scss - タイトルのホバーエフェクト
+///   .title {
+///     @include tracking-in-hover('expand', 0.8s);
+///   }
+@mixin tracking-in-hover(
+  $variant: 'expand',
+  $duration: 0.7s,
+  $easing: cubic-bezier(0.215, 0.610, 0.355, 1.000)
+) {
+  transition: letter-spacing $duration $easing, transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: tracking-in-#{$variant} $duration $easing both;
+    }
+  }
+}
+

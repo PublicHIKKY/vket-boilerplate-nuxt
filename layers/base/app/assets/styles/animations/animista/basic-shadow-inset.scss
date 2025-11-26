@@ -1,0 +1,227 @@
+/**
+ * Shadow-Inset Animation (Inset Box Shadow Appearance)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Center
+@keyframes shadow-inset-center {
+  0% {
+    box-shadow: inset 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: inset 0 0 14px 0 rgb(0 0 0 / 50%);
+  }
+}
+
+// Top
+@keyframes shadow-inset-top {
+  0% {
+    box-shadow: inset 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: inset 0 -12px 14px -12px rgb(0 0 0 / 50%);
+  }
+}
+
+// Right
+@keyframes shadow-inset-right {
+  0% {
+    box-shadow: inset 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: inset 12px 0 14px -12px rgb(0 0 0 / 50%);
+  }
+}
+
+// Bottom
+@keyframes shadow-inset-bottom {
+  0% {
+    box-shadow: inset 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: inset 0 12px 14px -12px rgb(0 0 0 / 50%);
+  }
+}
+
+// Left
+@keyframes shadow-inset-left {
+  0% {
+    box-shadow: inset 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: inset -12px 0 14px -12px rgb(0 0 0 / 50%);
+  }
+}
+
+// Left-Right
+@keyframes shadow-inset-lr {
+  0% {
+    box-shadow: inset 0 0 0 0 rgb(0 0 0 / 0%), inset 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: inset -12px 0 14px -12px rgb(0 0 0 / 50%),
+      inset 12px 0 14px -12px rgb(0 0 0 / 50%);
+  }
+}
+
+// Top-Bottom
+@keyframes shadow-inset-tb {
+  0% {
+    box-shadow: inset 0 0 0 0 rgb(0 0 0 / 0%), inset 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: inset 0 -12px 14px -12px rgb(0 0 0 / 50%),
+      inset 0 12px 14px -12px rgb(0 0 0 / 50%);
+  }
+}
+
+// Top Right
+@keyframes shadow-inset-tr {
+  0% {
+    box-shadow: inset 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: inset 12px -12px 14px -12px rgb(0 0 0 / 50%);
+  }
+}
+
+// Bottom Right
+@keyframes shadow-inset-br {
+  0% {
+    box-shadow: inset 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: inset 12px 12px 14px -12px rgb(0 0 0 / 50%);
+  }
+}
+
+// Bottom Left
+@keyframes shadow-inset-bl {
+  0% {
+    box-shadow: inset 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: inset -12px 12px 14px -12px rgb(0 0 0 / 50%);
+  }
+}
+
+// Top Left
+@keyframes shadow-inset-tl {
+  0% {
+    box-shadow: inset 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: inset -12px -12px 14px -12px rgb(0 0 0 / 50%);
+  }
+}
+
+// ============================================
+// Mixin: Shadow Inset
+// ============================================
+
+/// Shadow-Insetアニメーション（内側のボックスシャドウの出現）を適用するmixin
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション
+///   Basic (5種類) - 単一方向の内側シャドウ:
+///     'center' - 中心から全方向へ内側シャドウ
+///     'top'    - 上方向へ内側シャドウ
+///     'right'  - 右方向へ内側シャドウ
+///     'bottom' - 下方向へ内側シャドウ
+///     'left'   - 左方向へ内側シャドウ
+///   Combined (2種類) - 2方向同時の内側シャドウ:
+///     'lr' - 左右方向へ内側シャドウ
+///     'tb' - 上下方向へ内側シャドウ
+///   Diagonal (4種類) - 対角線方向の内側シャドウ:
+///     'tr' - 右上方向へ内側シャドウ
+///     'br' - 右下方向へ内側シャドウ
+///     'bl' - 左下方向へ内側シャドウ
+///     'tl' - 左上方向へ内側シャドウ
+///
+/// @param {Number} $duration [0.4s] - アニメーションの実行時間
+///   例: 0.3s, 0.5s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include shadow-inset('center');
+///   }
+///
+/// @example scss - カスタム設定
+///   .card {
+///     @include shadow-inset('bottom', 0.5s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .card {
+///     @include shadow-inset(
+///       $variant: 'lr',
+///       $duration: 0.6s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 2,
+///       $fill: forwards
+///     );
+///   }
+@mixin shadow-inset(
+  $variant: 'center',
+  $duration: 0.4s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: shadow-inset-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Shadow-Insetアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション（shadow-insetと同じ11種類）
+/// @param {Number} $duration [0.4s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include shadow-inset-hover('bottom', 0.5s);
+///   }
+@mixin shadow-inset-hover(
+  $variant: 'center',
+  $duration: 0.4s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940)
+) {
+  transition: box-shadow $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: shadow-inset-#{$variant} $duration $easing both;
+    }
+  }
+}
+

@@ -1,0 +1,383 @@
+/**
+ * Rotate Animation
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Center
+@keyframes rotate-center {
+  0% {
+    transform: rotate(0);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// Top
+@keyframes rotate-top {
+  0% {
+    transform-origin: 50% 0%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 50% 0%;
+    transform: rotate(360deg);
+  }
+}
+
+// Top Right
+@keyframes rotate-tr {
+  0% {
+    transform-origin: 100% 0%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 100% 0%;
+    transform: rotate(360deg);
+  }
+}
+
+// Right
+@keyframes rotate-right {
+  0% {
+    transform-origin: 100% 50%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: rotate(360deg);
+  }
+}
+
+// Bottom Right
+@keyframes rotate-br {
+  0% {
+    transform-origin: 100% 100%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: rotate(360deg);
+  }
+}
+
+// Bottom
+@keyframes rotate-bottom {
+  0% {
+    transform-origin: 50% 100%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: rotate(360deg);
+  }
+}
+
+// Bottom Left
+@keyframes rotate-bl {
+  0% {
+    transform-origin: 0% 100%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 0% 100%;
+    transform: rotate(360deg);
+  }
+}
+
+// Left
+@keyframes rotate-left {
+  0% {
+    transform-origin: 0% 50%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 0% 50%;
+    transform: rotate(360deg);
+  }
+}
+
+// Top Left
+@keyframes rotate-tl {
+  0% {
+    transform-origin: 0% 0%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: rotate(360deg);
+  }
+}
+
+// Horizontal Center (rotateX)
+@keyframes rotate-hor-center {
+  0% {
+    transform: rotateX(0);
+  }
+
+  100% {
+    transform: rotateX(-360deg);
+  }
+}
+
+// Horizontal Top (rotateX)
+@keyframes rotate-hor-top {
+  0% {
+    transform-origin: 50% 0%;
+    transform: rotateX(0);
+  }
+
+  100% {
+    transform-origin: 50% 0%;
+    transform: rotateX(-360deg);
+  }
+}
+
+// Horizontal Bottom (rotateX)
+@keyframes rotate-hor-bottom {
+  0% {
+    transform-origin: 50% 100%;
+    transform: rotateX(0);
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: rotateX(-360deg);
+  }
+}
+
+// Vertical Center (rotateY)
+@keyframes rotate-vert-center {
+  0% {
+    transform: rotateY(0);
+  }
+
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+
+// Vertical Left (rotateY)
+@keyframes rotate-vert-left {
+  0% {
+    transform-origin: 0% 50%;
+    transform: rotateY(0);
+  }
+
+  100% {
+    transform-origin: 0% 50%;
+    transform: rotateY(360deg);
+  }
+}
+
+// Vertical Right (rotateY)
+@keyframes rotate-vert-right {
+  0% {
+    transform-origin: 100% 50%;
+    transform: rotateY(0);
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: rotateY(360deg);
+  }
+}
+
+// Diagonal 1 (rotate3d)
+@keyframes rotate-diagonal-1 {
+  0% {
+    transform: rotate3d(1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform: rotate3d(1, 1, 0, 360deg);
+  }
+}
+
+// Diagonal 2 (rotate3d)
+@keyframes rotate-diagonal-2 {
+  0% {
+    transform: rotate3d(-1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform: rotate3d(-1, 1, 0, 360deg);
+  }
+}
+
+// Diagonal Top Right (rotate3d)
+@keyframes rotate-diagonal-tr {
+  0% {
+    transform-origin: 100% 0%;
+    transform: rotate3d(1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform-origin: 100% 0%;
+    transform: rotate3d(1, 1, 0, 360deg);
+  }
+}
+
+// Diagonal Bottom Right (rotate3d)
+@keyframes rotate-diagonal-br {
+  0% {
+    transform-origin: 100% 100%;
+    transform: rotate3d(-1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: rotate3d(-1, 1, 0, 360deg);
+  }
+}
+
+// Diagonal Bottom Left (rotate3d)
+@keyframes rotate-diagonal-bl {
+  0% {
+    transform-origin: 0% 100%;
+    transform: rotate3d(1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform-origin: 0% 100%;
+    transform: rotate3d(1, 1, 0, 360deg);
+  }
+}
+
+// Diagonal Top Left (rotate3d)
+@keyframes rotate-diagonal-tl {
+  0% {
+    transform-origin: 0% 0%;
+    transform: rotate3d(-1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: rotate3d(-1, 1, 0, 360deg);
+  }
+}
+
+// ============================================
+// Mixin: Rotate
+// ============================================
+
+/// Rotateアニメーションを適用するmixin
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション
+///   Basic Directions (9種類):
+///     'center'  - 中心を軸に回転
+///     'top'     - 上を軸に回転
+///     'tr'      - 右上を軸に回転
+///     'right'   - 右を軸に回転
+///     'br'      - 右下を軸に回転
+///     'bottom'  - 下を軸に回転
+///     'bl'      - 左下を軸に回転
+///     'left'    - 左を軸に回転
+///     'tl'      - 左上を軸に回転
+///   Horizontal (3種類) - X軸回転:
+///     'hor-center' - 水平方向に中心から
+///     'hor-top'    - 水平方向に上から
+///     'hor-bottom' - 水平方向に下から
+///   Vertical (3種類) - Y軸回転:
+///     'vert-center' - 垂直方向に中心から
+///     'vert-left'   - 垂直方向に左から
+///     'vert-right'  - 垂直方向に右から
+///   Diagonal (6種類) - 3D回転:
+///     'diagonal-1'  - 対角線1方向に回転
+///     'diagonal-2'  - 対角線2方向に回転
+///     'diagonal-tr' - 右上を軸に対角線回転
+///     'diagonal-br' - 右下を軸に対角線回転
+///     'diagonal-bl' - 左下を軸に対角線回転
+///     'diagonal-tl' - 左上を軸に対角線回転
+///
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+///   例: 0.3s, 0.5s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [ease-in-out] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .box {
+///     @include rotate('center');
+///   }
+///
+/// @example scss - カスタム設定
+///   .box {
+///     @include rotate('bottom', 0.8s, 0.2s);
+///   }
+///
+/// @example scss - 無限回転
+///   .box {
+///     @include rotate('center', 2s, 0s, linear, infinite);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .box {
+///     @include rotate(
+///       $variant: 'center',
+///       $duration: 1s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 2,
+///       $fill: forwards
+///     );
+///   }
+@mixin rotate(
+  $variant: 'center',
+  $duration: 0.6s,
+  $delay: 0s,
+  $easing: ease-in-out,
+  $iterations: 1,
+  $fill: both
+) {
+  animation: rotate-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Rotateアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション（rotateと同じ21種類）
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+/// @param {String} $easing [ease-in-out] - イージング関数
+///
+/// @example scss - ボタンのホバーエフェクト
+///   .button {
+///     @include rotate-hover('center', 0.3s);
+///   }
+@mixin rotate-hover(
+  $variant: 'center',
+  $duration: 0.6s,
+  $easing: ease-in-out
+) {
+  transition: transform $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: rotate-#{$variant} $duration $easing both;
+    }
+  }
+}
+

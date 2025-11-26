@@ -1,0 +1,142 @@
+/**
+ * Color Change Animation (Background Color Change Effect)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Color Change 2x (2 colors)
+@keyframes color-change-2x {
+  0% {
+    background: #19dcea;
+  }
+
+  100% {
+    background: #b22cff;
+  }
+}
+
+// Color Change 3x (3 colors)
+@keyframes color-change-3x {
+  0% {
+    background: #19dcea;
+  }
+
+  50% {
+    background: #b22cff;
+  }
+
+  100% {
+    background: #ea2222;
+  }
+}
+
+// Color Change 4x (4 colors)
+@keyframes color-change-4x {
+  0% {
+    background: #19dcea;
+  }
+
+  33% {
+    background: #b22cff;
+  }
+
+  66% {
+    background: #ea2222;
+  }
+
+  100% {
+    background: #f5be10;
+  }
+}
+
+// Color Change 5x (5 colors)
+@keyframes color-change-5x {
+  0% {
+    background: #19dcea;
+  }
+
+  25% {
+    background: #b22cff;
+  }
+
+  50% {
+    background: #ea2222;
+  }
+
+  75% {
+    background: #f5be10;
+  }
+
+  100% {
+    background: #3bd80d;
+  }
+}
+
+// ============================================
+// Mixin: Color Change
+// ============================================
+
+/// Color Changeアニメーション（背景色の変化エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['2x'] - アニメーションのバリエーション
+///   4種類の色変化パターン:
+///     '2x' - 2色変化（青→紫）
+///     '3x' - 3色変化（青→紫→赤）
+///     '4x' - 4色変化（青→紫→赤→黄）
+///     '5x' - 5色変化（青→紫→赤→黄→緑）
+///
+/// @param {Number} $duration [2s] - アニメーションの実行時間
+///   例: 2s, 4s, 6s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.5s, 1s
+///
+/// @param {String} $easing [linear] - イージング関数
+///   例: linear, ease, ease-in-out
+///
+/// @param {Number} $iterations [infinite] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $direction [alternate] - アニメーションの方向
+///   例: normal, reverse, alternate, alternate-reverse
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .gradient-bg {
+///     @include color-change('2x');
+///   }
+///
+/// @example scss - カスタム設定
+///   .animated-bg {
+///     @include color-change('4x', 6s, 0s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .rainbow-bg {
+///     @include color-change(
+///       $variant: '5x',
+///       $duration: 8s,
+///       $delay: 0.5s,
+///       $easing: linear,
+///       $iterations: infinite,
+///       $direction: alternate,
+///       $fill: both
+///     );
+///   }
+@mixin color-change(
+  $variant: '2x',
+  $duration: 2s,
+  $delay: 0s,
+  $easing: linear,
+  $iterations: infinite,
+  $direction: alternate,
+  $fill: both
+) {
+  animation: color-change-#{$variant} $duration $easing $delay $iterations $direction $fill;
+}
+

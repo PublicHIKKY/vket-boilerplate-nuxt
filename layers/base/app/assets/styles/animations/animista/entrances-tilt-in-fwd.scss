@@ -1,0 +1,147 @@
+/**
+ * Tilt-In-Forward Animation (Entrance with 3D Rotation Forward + Skew + Translation)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Top Right
+@keyframes tilt-in-fwd-tr {
+  0% {
+    transform: rotateY(20deg) rotateX(35deg) translate(300px, -300px) skew(-35deg, 10deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotateY(0) rotateX(0deg) translate(0, 0) skew(0deg, 0deg);
+    opacity: 1;
+  }
+}
+
+// Bottom Right
+@keyframes tilt-in-fwd-br {
+  0% {
+    transform: rotateY(20deg) rotateX(-35deg) translate(300px, 300px) skew(35deg, -10deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotateY(0) rotateX(0deg) translate(0, 0) skew(0deg, 0deg);
+    opacity: 1;
+  }
+}
+
+// Bottom Left
+@keyframes tilt-in-fwd-bl {
+  0% {
+    transform: rotateY(-20deg) rotateX(-35deg) translate(-300px, 300px) skew(-35deg, 10deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotateY(0) rotateX(0deg) translate(0, 0) skew(0deg, 0deg);
+    opacity: 1;
+  }
+}
+
+// Top Left
+@keyframes tilt-in-fwd-tl {
+  0% {
+    transform: rotateY(-20deg) rotateX(35deg) translate(-300px, -300px) skew(35deg, -10deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotateY(0) rotateX(0deg) translate(0, 0) skew(0deg, 0deg);
+    opacity: 1;
+  }
+}
+
+// ============================================
+// Mixin: Tilt In Forward
+// ============================================
+
+/// Tilt-In-Forwardアニメーション（前方への3D回転とスキュー、移動を組み合わせた傾き入場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['tr'] - アニメーションのバリエーション
+///   Diagonal (4種類) - 4つのコーナーからの前方傾き入場:
+///     'tr' - 右上から（rotateY 20deg + rotateX 35deg + translate(300, -300) + skew(-35, 10)）
+///     'br' - 右下から（rotateY 20deg + rotateX -35deg + translate(300, 300) + skew(35, -10)）
+///     'bl' - 左下から（rotateY -20deg + rotateX -35deg + translate(-300, 300) + skew(-35, 10)）
+///     'tl' - 左上から（rotateY -20deg + rotateX 35deg + translate(-300, -300) + skew(35, -10)）
+///
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+///   例: 0.5s, 0.7s, 0.8s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include tilt-in-fwd('tr');
+///   }
+///
+/// @example scss - カスタム設定
+///   .modal {
+///     @include tilt-in-fwd('bl', 0.7s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include tilt-in-fwd(
+///       $variant: 'br',
+///       $duration: 0.8s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin tilt-in-fwd(
+  $variant: 'tr',
+  $duration: 0.6s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: tilt-in-fwd-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Tilt-In-Forwardアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['tr'] - アニメーションのバリエーション（tilt-in-fwdと同じ4種類）
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include tilt-in-fwd-hover('tr', 0.7s);
+///   }
+@mixin tilt-in-fwd-hover(
+  $variant: 'tr',
+  $duration: 0.6s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940)
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: tilt-in-fwd-#{$variant} $duration $easing both;
+    }
+  }
+}
+

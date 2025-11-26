@@ -1,0 +1,286 @@
+/**
+ * Flip Animation
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Horizontal Bottom
+@keyframes flip-horizontal-bottom {
+  0% {
+    transform: rotateX(0);
+  }
+
+  100% {
+    transform: rotateX(-180deg);
+  }
+}
+
+// Horizontal Top
+@keyframes flip-horizontal-top {
+  0% {
+    transform: rotateX(0);
+  }
+
+  100% {
+    transform: rotateX(180deg);
+  }
+}
+
+// Horizontal Back
+@keyframes flip-horizontal-bck {
+  0% {
+    transform: rotateX(0);
+  }
+
+  100% {
+    transform: rotateX(-180deg);
+  }
+}
+
+// Horizontal Forward
+@keyframes flip-horizontal-fwd {
+  0% {
+    transform: rotateX(0);
+  }
+
+  100% {
+    transform: rotateX(180deg);
+  }
+}
+
+// Vertical Right
+@keyframes flip-vertical-right {
+  0% {
+    transform: rotateY(0);
+  }
+
+  100% {
+    transform: rotateY(180deg);
+  }
+}
+
+// Vertical Left
+@keyframes flip-vertical-left {
+  0% {
+    transform: rotateY(0);
+  }
+
+  100% {
+    transform: rotateY(-180deg);
+  }
+}
+
+// Vertical Back
+@keyframes flip-vertical-bck {
+  0% {
+    transform: rotateY(0);
+  }
+
+  100% {
+    transform: rotateY(-180deg);
+  }
+}
+
+// Vertical Forward
+@keyframes flip-vertical-fwd {
+  0% {
+    transform: rotateY(0);
+  }
+
+  100% {
+    transform: rotateY(180deg);
+  }
+}
+
+// Diagonal 1 Top Right
+@keyframes flip-diagonal-1-tr {
+  0% {
+    transform: rotate3d(1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform: rotate3d(1, 1, 0, 180deg);
+  }
+}
+
+// Diagonal 1 Bottom Left
+@keyframes flip-diagonal-1-bl {
+  0% {
+    transform: rotate3d(1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform: rotate3d(1, 1, 0, -180deg);
+  }
+}
+
+// Diagonal 1 Back
+@keyframes flip-diagonal-1-bck {
+  0% {
+    transform: rotate3d(1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform: rotate3d(1, 1, 0, -180deg);
+  }
+}
+
+// Diagonal 1 Forward
+@keyframes flip-diagonal-1-fwd {
+  0% {
+    transform: rotate3d(1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform: rotate3d(1, 1, 0, 180deg);
+  }
+}
+
+// Diagonal 2 Bottom Right
+@keyframes flip-diagonal-2-br {
+  0% {
+    transform: rotate3d(-1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform: rotate3d(-1, 1, 0, 180deg);
+  }
+}
+
+// Diagonal 2 Top Left
+@keyframes flip-diagonal-2-tl {
+  0% {
+    transform: rotate3d(-1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform: rotate3d(-1, 1, 0, -180deg);
+  }
+}
+
+// Diagonal 2 Back
+@keyframes flip-diagonal-2-bck {
+  0% {
+    transform: rotate3d(-1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform: rotate3d(-1, 1, 0, -180deg);
+  }
+}
+
+// Diagonal 2 Forward
+@keyframes flip-diagonal-2-fwd {
+  0% {
+    transform: rotate3d(-1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform: rotate3d(-1, 1, 0, 180deg);
+  }
+}
+
+// ============================================
+// Mixin: Flip
+// ============================================
+
+/// Flipアニメーションを適用するmixin
+///
+/// @param {String} $variant ['horizontal-bottom'] - アニメーションのバリエーション
+///   Horizontal (4種類) - X軸フリップ:
+///     'horizontal-bottom' - 下方向にフリップ
+///     'horizontal-top'    - 上方向にフリップ
+///     'horizontal-bck'    - 後方にフリップ
+///     'horizontal-fwd'    - 前方にフリップ
+///   Vertical (4種類) - Y軸フリップ:
+///     'vertical-right' - 右方向にフリップ
+///     'vertical-left'  - 左方向にフリップ
+///     'vertical-bck'   - 後方にフリップ
+///     'vertical-fwd'   - 前方にフリップ
+///   Diagonal 1 (4種類) - 対角線1方向:
+///     'diagonal-1-tr'  - 右上方向にフリップ
+///     'diagonal-1-bl'  - 左下方向にフリップ
+///     'diagonal-1-bck' - 対角線後方にフリップ
+///     'diagonal-1-fwd' - 対角線前方にフリップ
+///   Diagonal 2 (4種類) - 対角線2方向:
+///     'diagonal-2-br'  - 右下方向にフリップ
+///     'diagonal-2-tl'  - 左上方向にフリップ
+///     'diagonal-2-bck' - 対角線後方にフリップ
+///     'diagonal-2-fwd' - 対角線前方にフリップ
+///
+/// @param {Number} $duration [0.4s] - アニメーションの実行時間
+///   例: 0.3s, 0.5s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.455, 0.030, 0.515, 0.955)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include flip('horizontal-bottom');
+///   }
+///
+/// @example scss - カスタム設定
+///   .card {
+///     @include flip('vertical-right', 0.6s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .card {
+///     @include flip(
+///       $variant: 'diagonal-1-tr',
+///       $duration: 0.8s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 2,
+///       $fill: forwards
+///     );
+///   }
+@mixin flip(
+  $variant: 'horizontal-bottom',
+  $duration: 0.4s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.455, 0.030, 0.515, 0.955),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: flip-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Flipアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['horizontal-bottom'] - アニメーションのバリエーション（flipと同じ16種類）
+/// @param {Number} $duration [0.4s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.455, 0.030, 0.515, 0.955)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include flip-hover('vertical-right', 0.5s);
+///   }
+@mixin flip-hover(
+  $variant: 'horizontal-bottom',
+  $duration: 0.4s,
+  $easing: cubic-bezier(0.455, 0.030, 0.515, 0.955)
+) {
+  transition: transform $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: flip-#{$variant} $duration $easing both;
+    }
+  }
+}
+

@@ -1,0 +1,234 @@
+/**
+ * Tracking-Out Animation (Text with Letter Spacing + Exit Effect)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Tracking Out Contract
+@keyframes tracking-out-contract {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    letter-spacing: -0.5em;
+    opacity: 0;
+  }
+}
+
+// Tracking Out Contract Backward
+@keyframes tracking-out-contract-bck {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(-500px);
+    letter-spacing: -0.5em;
+    opacity: 0;
+  }
+}
+
+// Tracking Out Contract Backward Top
+@keyframes tracking-out-contract-bck-top {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(-500px) translateY(-300px);
+    letter-spacing: -0.5em;
+    opacity: 0;
+  }
+}
+
+// Tracking Out Contract Backward Bottom
+@keyframes tracking-out-contract-bck-bottom {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(-500px) translateY(300px);
+    letter-spacing: -0.5em;
+    opacity: 0;
+  }
+}
+
+// Tracking Out Expand
+@keyframes tracking-out-expand {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    letter-spacing: 1em;
+    opacity: 0;
+  }
+}
+
+// Tracking Out Expand Forward
+@keyframes tracking-out-expand-fwd {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(300px);
+    letter-spacing: 1em;
+    opacity: 0;
+  }
+}
+
+// Tracking Out Expand Forward Top
+@keyframes tracking-out-expand-fwd-top {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(300px) translateY(-200px);
+    letter-spacing: 1em;
+    opacity: 0;
+  }
+}
+
+// Tracking Out Expand Forward Bottom
+@keyframes tracking-out-expand-fwd-bottom {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(300px) translateY(200px);
+    letter-spacing: 1em;
+    opacity: 0;
+  }
+}
+
+// ============================================
+// Mixin: Tracking Out
+// ============================================
+
+/// Tracking-Outアニメーション（文字間隔の変化による退場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['contract'] - アニメーションのバリエーション
+///   Contract (4種類) - 文字間隔を縮めながら退場:
+///     'contract'           - 基本的な縮小（letter-spacing 0→-0.5em + opacity 1→0）
+///     'contract-bck'       - 後方へ（letter-spacing 0→-0.5em + translateZ 0→-500px + opacity 1→0）
+///     'contract-bck-top'   - 後方上へ（letter-spacing 0→-0.5em + translateZ 0→-500px + translateY 0→-300px + opacity 1→0）
+///     'contract-bck-bottom'- 後方下へ（letter-spacing 0→-0.5em + translateZ 0→-500px + translateY 0→300px + opacity 1→0）
+///   Expand (4種類) - 文字間隔を広げながら退場:
+///     'expand'             - 基本的な拡大（letter-spacing 0→1em + opacity 1→0）
+///     'expand-fwd'         - 前方へ（letter-spacing 0→1em + translateZ 0→300px + opacity 1→0）
+///     'expand-fwd-top'     - 前方上へ（letter-spacing 0→1em + translateZ 0→300px + translateY 0→-200px + opacity 1→0）
+///     'expand-fwd-bottom'  - 前方下へ（letter-spacing 0→1em + translateZ 0→300px + translateY 0→200px + opacity 1→0）
+///
+/// @param {Number} $duration [0.7s] - アニメーションの実行時間
+///   例: 0.7s, 0.8s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.550, 0.085, 0.680, 0.530)] - イージング関数
+///   例: ease-in, cubic-bezier(0.550, 0.085, 0.680, 0.530)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .title {
+///     @include tracking-out('contract');
+///   }
+///
+/// @example scss - カスタム設定
+///   .heading {
+///     @include tracking-out('expand-fwd', 0.8s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .text {
+///     @include tracking-out(
+///       $variant: 'contract-bck-top',
+///       $duration: 1s,
+///       $delay: 0.1s,
+///       $easing: ease-in,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin tracking-out(
+  $variant: 'contract',
+  $duration: 0.7s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.550, 0.085, 0.680, 0.530),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: tracking-out-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Tracking-Outアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['contract'] - アニメーションのバリエーション（tracking-outと同じ8種類）
+/// @param {Number} $duration [0.7s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.550, 0.085, 0.680, 0.530)] - イージング関数
+///
+/// @example scss - タイトルのホバーエフェクト
+///   .title {
+///     @include tracking-out-hover('contract', 0.8s);
+///   }
+@mixin tracking-out-hover(
+  $variant: 'contract',
+  $duration: 0.7s,
+  $easing: cubic-bezier(0.550, 0.085, 0.680, 0.530)
+) {
+  transition: letter-spacing $duration $easing, transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: tracking-out-#{$variant} $duration $easing both;
+    }
+  }
+}
+

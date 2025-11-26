@@ -1,0 +1,171 @@
+/**
+ * Slit-In Animation (Entrance with Slit Opening Effect + 3D Rotation)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Vertical
+@keyframes slit-in-vertical {
+  0% {
+    transform: translateZ(-800px) rotateY(90deg);
+    opacity: 0;
+  }
+
+  54% {
+    transform: translateZ(-160px) rotateY(87deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(0) rotateY(0);
+  }
+}
+
+// Horizontal
+@keyframes slit-in-horizontal {
+  0% {
+    transform: translateZ(-800px) rotateX(90deg);
+    opacity: 0;
+  }
+
+  54% {
+    transform: translateZ(-160px) rotateX(87deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(0) rotateX(0);
+  }
+}
+
+// Diagonal 1
+@keyframes slit-in-diagonal-1 {
+  0% {
+    transform: translateZ(-800px) rotate3d(1, 1, 0, 90deg);
+    opacity: 0;
+    animation-timing-function: ease-in;
+  }
+
+  54% {
+    transform: translateZ(-160px) rotate3d(1, 1, 0, 87deg);
+    opacity: 1;
+    animation-timing-function: ease-in-out;
+  }
+
+  100% {
+    transform: translateZ(0) rotate3d(1, 1, 0, 0);
+    animation-timing-function: ease-out;
+  }
+}
+
+// Diagonal 2
+@keyframes slit-in-diagonal-2 {
+  0% {
+    transform: translateZ(-800px) rotate3d(-1, 1, 0, -90deg);
+    opacity: 0;
+    animation-timing-function: ease-in;
+  }
+
+  54% {
+    transform: translateZ(-160px) rotate3d(-1, 1, 0, -87deg);
+    opacity: 1;
+    animation-timing-function: ease-in-out;
+  }
+
+  100% {
+    transform: translateZ(0) rotate3d(-1, 1, 0, 0);
+    animation-timing-function: ease-out;
+  }
+}
+
+// ============================================
+// Mixin: Slit In
+// ============================================
+
+/// Slit-Inアニメーション（スリット開口エフェクトと3D回転を使った入場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['vertical'] - アニメーションのバリエーション
+///   Axis-based (2種類) - 軸を指定したスリット開口:
+///     'vertical'   - 垂直スリット（Y軸回転、rotateY 90度→0度）
+///     'horizontal' - 水平スリット（X軸回転、rotateX 90度→0度）
+///   Diagonal (2種類) - 対角線スリット開口:
+///     'diagonal-1' - 対角線1（rotate3d(1, 1, 0, 90deg)→0deg）
+///     'diagonal-2' - 対角線2（rotate3d(-1, 1, 0, -90deg)→0deg）
+///
+/// @param {Number} $duration [0.45s] - アニメーションの実行時間
+///   例: 0.3s, 0.5s, 0.6s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [ease-out] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///   注意: diagonal-1とdiagonal-2は内部で動的にイージングが変化します
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .modal {
+///     @include slit-in('vertical');
+///   }
+///
+/// @example scss - カスタム設定
+///   .card {
+///     @include slit-in('horizontal', 0.5s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include slit-in(
+///       $variant: 'diagonal-1',
+///       $duration: 0.6s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin slit-in(
+  $variant: 'vertical',
+  $duration: 0.45s,
+  $delay: 0s,
+  $easing: ease-out,
+  $iterations: 1,
+  $fill: both
+) {
+  animation: slit-in-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Slit-Inアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['vertical'] - アニメーションのバリエーション（slit-inと同じ4種類）
+/// @param {Number} $duration [0.45s] - アニメーションの実行時間
+/// @param {String} $easing [ease-out] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include slit-in-hover('vertical', 0.5s);
+///   }
+@mixin slit-in-hover(
+  $variant: 'vertical',
+  $duration: 0.45s,
+  $easing: ease-out
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: slit-in-#{$variant} $duration $easing both;
+    }
+  }
+}
+
