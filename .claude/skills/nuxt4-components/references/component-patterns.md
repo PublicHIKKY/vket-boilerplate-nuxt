@@ -495,133 +495,244 @@ const onClickItem = (item: Item) => {
 
 ### 設計原則
 
-- **ページ統合**: ページ全体のレイアウト
-- **データ統合**: 複数のComposableを組み合わせ
+- **ページ統合**: ページ全体のレイアウトとUI表示
+- **API呼び出しはpage層に委譲**: emitsでアクションを通知し、page層でAPI呼び出しを実行
+- **propsでデータ受け取り**: 親（page層）からデータを受け取る
 - **ルーティング連携**: ページ遷移を管理
+
+### API呼び出しの責務分離
+
+Ht層ではAPI呼び出しを直接行わず、以下のいずれかのパターンでデータを受け取る:
+
+1. propsで親（page層）から受け取る
+2. page層でprovideされたcomposableをinjectで受け取る
+
+アクション（作成/更新/削除など）はemitsでpage層に通知し、page層でAPI呼び出しとエラーハンドリングを実装する。
 
 ### 実装パターン
 
-#### パターン1: 基本ページ
+#### パターン1: 基本ページ（props/emitsパターン）
 
 ```vue
 <i18n lang="yaml">
 ja:
-  title: アカウント情報
-  description: お客様情報とお支払い情報の確認・変更
+  title: スケジュール管理
+  addNew: 新規追加
+  confirmDelete: この予定を削除してもよろしいですか？
 en:
-  title: Account Information
-  description: Check / Change Customer and Payment Information
+  title: Schedule Manager
+  addNew: Add New
+  confirmDelete: Are you sure you want to delete this schedule?
 </i18n>
 
 <template>
-  <div class="ht-account-info">
-    <div class="page-title">
-      {{ i18n.t('title') }}
-    </div>
-    <div class="page-description">
-      {{ i18n.t('description') }}
+  <div class="ht-schedule">
+    <header class="ht-schedule__header">
+      <h1 class="ht-schedule__title">{{ t('title') }}</h1>
+    </header>
+
+    <div v-if="isLoading" class="ht-schedule__loading">
+      <HoContentLoading />
     </div>
 
-    <div class="content">
-      <!-- Organism components -->
-      <HoAccountInfoSection />
-      <HoBillingInfoSection />
-      <HoPaymentMethodSection />
+    <div v-else class="ht-schedule__content">
+      <HoScheduleCalendar
+        v-model:selectedDate="selectedDate"
+        :schedules="schedules"
+      />
+
+      <HmScheduleList
+        :schedules="schedulesForSelectedDate"
+        @toggle="handleToggle"
+        @edit="openEditForm"
+        @delete="handleDelete"
+      />
+
+      <HmScheduleForm
+        v-if="isFormOpen"
+        :schedule="editingSchedule"
+        @submit="handleSubmit"
+        @cancel="closeForm"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useFeature } from '@/composables/useFeature'
+import type { Schedule, ScheduleFormData } from '@/models/schedule'
 
-const i18n = useI18n()
-const { data, updateData } = useFeature()
+const { t } = useI18n()
 
-// Page-level logic
-onMounted(() => {
-  // Initialize page data
+// Props: page層からデータを受け取る
+type Props = {
+  schedules: readonly Schedule[]
+  isLoading: boolean
+}
+
+// Emits: page層にアクションを通知（API呼び出しはpage層で実行）
+type Emits = {
+  (e: 'add', data: ScheduleFormData): void
+  (e: 'update', id: string, data: Partial<ScheduleFormData>): void
+  (e: 'delete', id: string): void
+  (e: 'toggle', id: string): void
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
+
+// UI状態のみを管理
+const selectedDate = ref(formatDate(new Date()))
+const isFormOpen = ref(false)
+const editingSchedule = ref<Schedule | null>(null)
+
+const schedulesForSelectedDate = computed(() => {
+  return props.schedules.filter(s => s.date === selectedDate.value)
 })
-</script>
 
-<style lang="scss" scoped>
-@use '@/assets/styles/variables' as v;
-@use '@/assets/styles/mixins' as m;
+// UI操作
+function openEditForm(schedule: Schedule) {
+  editingSchedule.value = schedule
+  isFormOpen.value = true
+}
 
-.ht-account-info {
-  .page-title {
-    font-size: v.size-per-vw(40);
-    font-weight: 700;
-    margin-bottom: v.space(4);
+function closeForm() {
+  editingSchedule.value = null
+  isFormOpen.value = false
+}
+
+// emitsでpage層に通知（API呼び出しはしない）
+function handleSubmit(data: ScheduleFormData) {
+  if (editingSchedule.value) {
+    emit('update', editingSchedule.value.id, data)
+  } else {
+    emit('add', data)
   }
+  closeForm()
+}
 
-  .page-description {
-    font-size: v.size-per-vw(16);
-    color: v.$secondary-color-3;
-    margin-bottom: v.space(8);
-  }
+function handleToggle(id: string) {
+  emit('toggle', id)
+}
 
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: v.space(6);
+function handleDelete(id: string) {
+  if (confirm(t('confirmDelete'))) {
+    emit('delete', id)
   }
 }
-</style>
+
+function formatDate(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+</script>
 ```
 
-#### パターン2: フィルター付きリストページ
+#### パターン2: page層での使用例
+
+```vue
+<!-- pages/schedule.vue -->
+<template>
+  <HtSchedule
+    :schedules="schedules"
+    :is-loading="isLoading"
+    @add="handleAdd"
+    @update="handleUpdate"
+    @delete="handleDelete"
+    @toggle="handleToggle"
+  />
+</template>
+
+<script setup lang="ts">
+import type { ScheduleFormData } from '@/models/schedule'
+
+const {
+  schedules,
+  isLoading,
+  loadSchedules,
+  addSchedule,
+  updateSchedule,
+  deleteSchedule,
+  toggleSchedule,
+} = useSchedule()
+
+// page層でAPI呼び出しを実行
+onMounted(async () => {
+  await loadSchedules()
+})
+
+async function handleAdd(data: ScheduleFormData) {
+  await addSchedule(data)
+}
+
+async function handleUpdate(id: string, data: Partial<ScheduleFormData>) {
+  await updateSchedule(id, data)
+}
+
+async function handleDelete(id: string) {
+  await deleteSchedule(id)
+}
+
+async function handleToggle(id: string) {
+  await toggleSchedule(id)
+}
+</script>
+```
+
+#### パターン3: フィルター付きリストページ
 
 ```vue
 <template>
   <div class="ht-asset-list">
     <div class="title-section">
       <div class="title">{{ i18n.t('title') }}</div>
-      <div class="page-description">{{ i18n.t('description') }}</div>
     </div>
 
     <div class="content">
-      <!-- Filters -->
+      <!-- Filters（UI状態のみ管理） -->
       <div class="filter-area">
-        <div class="filter">
-          <div class="title">{{ i18n.t('category.title') }}</div>
-          <HmInputRadioChangeable
-            name="category"
-            :options="categoryOptions"
-            @click="onChangeFilter($event, 'category')"
-          />
-        </div>
+        <HmInputRadioChangeable
+          name="category"
+          :options="categoryOptions"
+          @click="onChangeFilter($event, 'category')"
+        />
       </div>
 
       <!-- List -->
-      <template v-if="filteredItems && filteredItems.length > 0">
+      <template v-if="filteredItems.length > 0">
         <HoAssetList
           :items="filteredItems"
           @click:card="onClickCard"
+          @delete="handleDelete"
         />
-      </template>
-      <template v-else>
-        <div class="no-data">
-          {{ i18n.t('no_asset') }}
-        </div>
       </template>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useAssets } from '@/composables/useAssets'
+type Props = {
+  items: readonly Asset[]
+  loading: boolean
+}
+
+type Emits = {
+  (e: 'delete', id: string): void
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
 
 const i18n = useI18n()
-const { assets, loading, fetchAssets } = useAssets()
 
+// UI状態（フィルター）
 const filters = reactive({
   category: 'all',
-  price: 'all',
 })
 
 const filteredItems = computed(() => {
-  return assets.value.filter(item => {
-    // Apply filters
+  return props.items.filter(item => {
     if (filters.category !== 'all' && item.category !== filters.category) {
       return false
     }
@@ -637,67 +748,25 @@ const onClickCard = (item: Asset) => {
   navigateTo(`/account/asset/${item.id}`)
 }
 
-onMounted(() => {
-  fetchAssets()
-})
-</script>
-
-<style lang="scss" scoped>
-@use '@/assets/styles/variables' as v;
-@use '@/assets/styles/mixins' as m;
-
-.ht-asset-list {
-  .title-section {
-    margin-bottom: v.space(6);
-
-    .title {
-      font-size: v.size-per-vw(40);
-      font-weight: 700;
-      margin-bottom: v.space(2);
-    }
-
-    .page-description {
-      font-size: v.size-per-vw(16);
-      color: v.$secondary-color-3;
-    }
-  }
-
-  .content {
-    .filter-area {
-      display: flex;
-      gap: v.space(4);
-      margin-bottom: v.space(6);
-
-      .filter {
-        flex: 1;
-
-        .title {
-          font-weight: 700;
-          margin-bottom: v.space(2);
-        }
-      }
-    }
-
-    .no-data {
-      text-align: center;
-      padding: v.space(8);
-      color: v.$secondary-color-3;
-    }
-  }
+// emitsでpage層に通知
+const handleDelete = (id: string) => {
+  emit('delete', id)
 }
-</style>
+</script>
 ```
 
 ### ベストプラクティス
 
 ✅ **DO**:
-- 複数のComposableを組み合わせる
-- ページレベルのライフサイクル管理
-- ルーティングとの連携
+- propsでデータを受け取る
+- emitsでアクションをpage層に通知
+- UI状態のみを管理（フォーム表示、選択状態など）
 - Organismコンポーネントを組み合わせる
+- ルーティングとの連携（navigateTo）
 
 ❌ **DON'T**:
-- ビジネスロジックを直接記述（Composableへ）
+- **直接API呼び出し**（emitsでpage層に委譲すること）
+- **Composableでのデータフェッチ**（page層で実行）
 - 複雑なDOM操作
 - グローバルステートの直接変更
 
