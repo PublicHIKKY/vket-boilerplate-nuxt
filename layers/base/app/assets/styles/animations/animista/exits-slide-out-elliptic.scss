@@ -1,0 +1,237 @@
+/**
+ * Slide-Out-Elliptic Animation (Exit with Elliptic Motion + Rotation + Scale)
+ * From Animista (http://animista.net)
+ */
+
+@use "sass:string";
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Top Back
+@keyframes slide-out-elliptic-top-bck {
+  0% {
+    transform-origin: 50% 1400px;
+    transform: translateY(0) rotateX(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: translateY(-600px) rotateX(-30deg) scale(0);
+    opacity: 1;
+  }
+}
+
+// Top Forward
+@keyframes slide-out-elliptic-top-fwd {
+  0% {
+    transform-origin: 50% -500px;
+    transform: translateY(0) rotateX(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 50% 200%;
+    transform: translateY(-600px) rotateX(20deg) scale(6);
+    opacity: 0;
+  }
+}
+
+// Right Back
+@keyframes slide-out-elliptic-right-bck {
+  0% {
+    transform-origin: -1800px 50%;
+    transform: translateX(0) rotateY(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: -100% 50%;
+    transform: translateX(1000px) rotateY(-30deg) scale(0);
+    opacity: 1;
+  }
+}
+
+// Right Forward
+@keyframes slide-out-elliptic-right-fwd {
+  0% {
+    transform-origin: 600px 50%;
+    transform: translateX(0) rotateY(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: -100% 50%;
+    transform: translateX(1000px) rotateY(20deg) scale(6);
+    opacity: 0;
+  }
+}
+
+// Bottom Back
+@keyframes slide-out-elliptic-bottom-bck {
+  0% {
+    transform-origin: 50% -1400px;
+    transform: translateY(0) rotateX(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: translateY(600px) rotateX(30deg) scale(0);
+    opacity: 1;
+  }
+}
+
+// Bottom Forward
+@keyframes slide-out-elliptic-bottom-fwd {
+  0% {
+    transform-origin: 50% 500px;
+    transform: translateY(0) rotateX(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 50% -100%;
+    transform: translateY(600px) rotateX(-20deg) scale(6);
+    opacity: 0;
+  }
+}
+
+// Left Back
+@keyframes slide-out-elliptic-left-bck {
+  0% {
+    transform-origin: 2000px 50%;
+    transform: translateX(0) rotateY(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: -100% 50%;
+    transform: translateX(-1000px) rotateY(30deg) scale(0);
+    opacity: 1;
+  }
+}
+
+// Left Forward
+@keyframes slide-out-elliptic-left-fwd {
+  0% {
+    transform-origin: -500px 50%;
+    transform: translateX(0) rotateY(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 200% 50%;
+    transform: translateX(-1000px) rotateY(-20deg) scale(6);
+    opacity: 0;
+  }
+}
+
+// ============================================
+// Mixin: Slide Out Elliptic
+// ============================================
+
+/// Slide-Out-Ellipticアニメーション（楕円軌道による退場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['top-bck'] - アニメーションのバリエーション
+///   Elliptic Motion (8種類) - 楕円軌道による退場:
+///     'top-bck'    - 上へ後退（translateY 0→-600px + rotateX 0→-30deg + scale 1→0 + opacity 1）
+///     'top-fwd'    - 上へ前進（translateY 0→-600px + rotateX 0→20deg + scale 1→6 + opacity 1→0）
+///     'right-bck'  - 右へ後退（translateX 0→1000px + rotateY 0→-30deg + scale 1→0 + opacity 1）
+///     'right-fwd'  - 右へ前進（translateX 0→1000px + rotateY 0→20deg + scale 1→6 + opacity 1→0）
+///     'bottom-bck' - 下へ後退（translateY 0→600px + rotateX 0→30deg + scale 1→0 + opacity 1）
+///     'bottom-fwd' - 下へ前進（translateY 0→600px + rotateX 0→-20deg + scale 1→6 + opacity 1→0）
+///     'left-bck'   - 左へ後退（translateX 0→-1000px + rotateY 0→30deg + scale 1→0 + opacity 1）
+///     'left-fwd'   - 左へ前進（translateX 0→-1000px + rotateY 0→-20deg + scale 1→6 + opacity 1→0）
+///
+/// @param {Number} $duration [0.7s] - アニメーションの実行時間
+///   例: 0.6s, 0.7s, 0.8s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [ease-in] - イージング関数（-bckバリエーション用）
+///   例: ease-in, cubic-bezier(0.550, 0.085, 0.680, 0.530)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include slide-out-elliptic('top-bck');
+///   }
+///
+/// @example scss - カスタム設定
+///   .modal {
+///     @include slide-out-elliptic('right-fwd', 0.6s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include slide-out-elliptic(
+///       $variant: 'bottom-fwd',
+///       $duration: 0.8s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin slide-out-elliptic(
+  $variant: 'top-bck',
+  $duration: 0.7s,
+  $delay: 0s,
+  $easing: null,
+  $iterations: 1,
+  $fill: both
+) {
+  // -bckバリエーションはease-in、-fwdバリエーションはcubic-bezier
+  $default-easing: if(
+    string.index($variant, '-bck'),
+    ease-in,
+    cubic-bezier(0.550, 0.085, 0.680, 0.530)
+  );
+  $final-easing: if($easing, $easing, $default-easing);
+
+  animation: slide-out-elliptic-#{$variant} $duration $final-easing $delay $iterations normal $fill;
+}
+
+/// Slide-Out-Ellipticアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['top-bck'] - アニメーションのバリエーション（slide-out-ellipticと同じ8種類）
+/// @param {Number} $duration [0.7s] - アニメーションの実行時間
+/// @param {String} $easing [null] - イージング関数（nullの場合は-bckならease-in、-fwdならcubic-bezier）
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include slide-out-elliptic-hover('top-bck', 0.6s);
+///   }
+@mixin slide-out-elliptic-hover(
+  $variant: 'top-bck',
+  $duration: 0.7s,
+  $easing: null
+) {
+  // -bckバリエーションはease-in、-fwdバリエーションはcubic-bezier
+  $default-easing: if(
+    string.index($variant, '-bck'),
+    ease-in,
+    cubic-bezier(0.550, 0.085, 0.680, 0.530)
+  );
+  $final-easing: if($easing, $easing, $default-easing);
+
+  transition: transform $duration $final-easing, opacity $duration $final-easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: slide-out-elliptic-#{$variant} $duration $final-easing both;
+    }
+  }
+}
+

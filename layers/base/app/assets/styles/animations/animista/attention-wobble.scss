@@ -1,0 +1,207 @@
+/**
+ * Wobble Animation (Attention with Wobble Effect)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Wobble Horizontal Bottom
+@keyframes wobble-hor-bottom {
+  0%, 100% {
+    transform-origin: 50% 50%;
+    transform: translateX(0%);
+  }
+
+  15% {
+    transform: translateX(-30px) rotate(-6deg);
+  }
+
+  30% {
+    transform: translateX(15px) rotate(6deg);
+  }
+
+  45% {
+    transform: translateX(-15px) rotate(-3.6deg);
+  }
+
+  60% {
+    transform: translateX(9px) rotate(2.4deg);
+  }
+
+  75% {
+    transform: translateX(-6px) rotate(-1.2deg);
+  }
+}
+
+// Wobble Horizontal Top
+@keyframes wobble-hor-top {
+  0%, 100% {
+    transform-origin: 50% 50%;
+    transform: translateX(0%);
+  }
+
+  15% {
+    transform: translateX(-30px) rotate(6deg);
+  }
+
+  30% {
+    transform: translateX(15px) rotate(-6deg);
+  }
+
+  45% {
+    transform: translateX(-15px) rotate(3.6deg);
+  }
+
+  60% {
+    transform: translateX(9px) rotate(-2.4deg);
+  }
+
+  75% {
+    transform: translateX(-6px) rotate(1.2deg);
+  }
+}
+
+// Wobble Vertical Left
+@keyframes wobble-ver-left {
+  0%, 100% {
+    transform-origin: 50% 50%;
+    transform: translateY(0) rotate(0);
+  }
+
+  15% {
+    transform: translateY(-30px) rotate(-6deg);
+  }
+
+  30% {
+    transform: translateY(15px) rotate(6deg);
+  }
+
+  45% {
+    transform: translateY(-15px) rotate(-3.6deg);
+  }
+
+  60% {
+    transform: translateY(9px) rotate(2.4deg);
+  }
+
+  75% {
+    transform: translateY(-6px) rotate(-1.2deg);
+  }
+}
+
+// Wobble Vertical Right
+@keyframes wobble-ver-right {
+  0%, 100% {
+    transform-origin: 50% 50%;
+    transform: translateY(0) rotate(0);
+  }
+
+  15% {
+    transform: translateY(-30px) rotate(6deg);
+  }
+
+  30% {
+    transform: translateY(15px) rotate(-6deg);
+  }
+
+  45% {
+    transform: translateY(-15px) rotate(3.6deg);
+  }
+
+  60% {
+    transform: translateY(9px) rotate(-2.4deg);
+  }
+
+  75% {
+    transform: translateY(-6px) rotate(1.2deg);
+  }
+}
+
+// ============================================
+// Mixin: Wobble
+// ============================================
+
+/// Wobbleアニメーション（揺れによる注目エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['hor-bottom'] - アニメーションのバリエーション
+///   4種類の揺れパターン:
+///     'hor-bottom' - 水平揺れ下向き回転（translateX + rotate負）
+///     'hor-top'    - 水平揺れ上向き回転（translateX + rotate正）
+///     'ver-left'   - 垂直揺れ左向き回転（translateY + rotate負）
+///     'ver-right'  - 垂直揺れ右向き回転（translateY + rotate正）
+///
+/// @param {Number} $duration [0.8s] - アニメーションの実行時間
+///   例: 0.8s, 1s, 1.2s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [ease] - イージング関数
+///   例: ease, ease-out, linear
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .notification {
+///     @include wobble('hor-bottom');
+///   }
+///
+/// @example scss - カスタム設定
+///   .alert {
+///     @include wobble('ver-left', 1s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .warning {
+///     @include wobble(
+///       $variant: 'hor-top',
+///       $duration: 1.2s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 2,
+///       $fill: both
+///     );
+///   }
+@mixin wobble(
+  $variant: 'hor-bottom',
+  $duration: 0.8s,
+  $delay: 0s,
+  $easing: ease,
+  $iterations: 1,
+  $fill: both
+) {
+  animation: wobble-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Wobbleアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['hor-bottom'] - アニメーションのバリエーション（wobbleと同じ4種類）
+/// @param {Number} $duration [0.8s] - アニメーションの実行時間
+/// @param {String} $easing [ease] - イージング関数
+///
+/// @example scss - ボタンのホバーエフェクト
+///   .button {
+///     @include wobble-hover('hor-bottom', 0.8s);
+///   }
+@mixin wobble-hover(
+  $variant: 'hor-bottom',
+  $duration: 0.8s,
+  $easing: ease
+) {
+  transition: transform $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: wobble-#{$variant} $duration $easing both;
+    }
+  }
+}
+

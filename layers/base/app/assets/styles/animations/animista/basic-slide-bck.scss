@@ -1,0 +1,201 @@
+/**
+ * Slide-Bck Animation (Slide Backward with Z-axis)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Center
+@keyframes slide-bck-center {
+  0% {
+    transform: translateZ(0);
+  }
+
+  100% {
+    transform: translateZ(-400px);
+  }
+}
+
+// Top
+@keyframes slide-bck-top {
+  0% {
+    transform: translateZ(0) translateY(0);
+  }
+
+  100% {
+    transform: translateZ(-400px) translateY(-200px);
+  }
+}
+
+// Top Right
+@keyframes slide-bck-tr {
+  0% {
+    transform: translateZ(0) translateY(0) translateX(0);
+  }
+
+  100% {
+    transform: translateZ(-400px) translateY(-200px) translateX(200px);
+  }
+}
+
+// Right
+@keyframes slide-bck-right {
+  0% {
+    transform: translateZ(0) translateX(0);
+  }
+
+  100% {
+    transform: translateZ(-400px) translateX(200px);
+  }
+}
+
+// Bottom Right
+@keyframes slide-bck-br {
+  0% {
+    transform: translateZ(0) translateY(0) translateX(0);
+  }
+
+  100% {
+    transform: translateZ(-400px) translateY(200px) translateX(200px);
+  }
+}
+
+// Bottom
+@keyframes slide-bck-bottom {
+  0% {
+    transform: translateZ(0) translateY(0);
+  }
+
+  100% {
+    transform: translateZ(-400px) translateY(200px);
+  }
+}
+
+// Bottom Left
+@keyframes slide-bck-bl {
+  0% {
+    transform: translateZ(0) translateY(0) translateX(0);
+  }
+
+  100% {
+    transform: translateZ(-400px) translateY(200px) translateX(-200px);
+  }
+}
+
+// Left
+@keyframes slide-bck-left {
+  0% {
+    transform: translateZ(0) translateX(0);
+  }
+
+  100% {
+    transform: translateZ(-400px) translateX(-200px);
+  }
+}
+
+// Top Left
+@keyframes slide-bck-tl {
+  0% {
+    transform: translateZ(0) translateY(0) translateX(0);
+  }
+
+  100% {
+    transform: translateZ(-400px) translateY(-200px) translateX(-200px);
+  }
+}
+
+// ============================================
+// Mixin: Slide Backward
+// ============================================
+
+/// Slide-Bckアニメーション（後方へのスライド）を適用するmixin
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション
+///   Center (1種類) - Z軸のみの移動:
+///     'center' - 中心から後方へスライド
+///   Cardinal Directions (4種類) - Z軸 + 上下左右への移動:
+///     'top'    - 上後方へスライド
+///     'right'  - 右後方へスライド
+///     'bottom' - 下後方へスライド
+///     'left'   - 左後方へスライド
+///   Diagonal Directions (4種類) - Z軸 + 対角線方向への移動:
+///     'tr' - 右上後方へスライド
+///     'br' - 右下後方へスライド
+///     'bl' - 左下後方へスライド
+///     'tl' - 左上後方へスライド
+///
+/// @param {Number} $duration [0.45s] - アニメーションの実行時間
+///   例: 0.4s, 0.6s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.470, 0.000, 0.745, 0.715)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .box {
+///     @include slide-bck('center');
+///   }
+///
+/// @example scss - カスタム設定
+///   .box {
+///     @include slide-bck('top', 0.6s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .box {
+///     @include slide-bck(
+///       $variant: 'br',
+///       $duration: 0.8s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 2,
+///       $fill: forwards
+///     );
+///   }
+@mixin slide-bck(
+  $variant: 'center',
+  $duration: 0.45s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.470, 0.000, 0.745, 0.715),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: slide-bck-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Slide-Bckアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション（slide-bckと同じ9種類）
+/// @param {Number} $duration [0.45s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.470, 0.000, 0.745, 0.715)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include slide-bck-hover('center', 0.5s);
+///   }
+@mixin slide-bck-hover(
+  $variant: 'center',
+  $duration: 0.45s,
+  $easing: cubic-bezier(0.470, 0.000, 0.745, 0.715)
+) {
+  transition: transform $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: slide-bck-#{$variant} $duration $easing both;
+    }
+  }
+}
+

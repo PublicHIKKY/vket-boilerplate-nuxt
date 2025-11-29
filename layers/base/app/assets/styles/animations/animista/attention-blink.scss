@@ -1,0 +1,119 @@
+/**
+ * Blink Animation (Attention with Blink Effect)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Blink 1 (Hard Blink)
+@keyframes blink-1 {
+  0%, 50%, 100% {
+    opacity: 1;
+  }
+
+  25%, 75% {
+    opacity: 0;
+  }
+}
+
+// Blink 2 (Soft Blink)
+@keyframes blink-2 {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.2;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+// ============================================
+// Mixin: Blink
+// ============================================
+
+/// Blinkアニメーション（点滅による注目エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['1'] - アニメーションのバリエーション
+///   2種類の点滅パターン:
+///     '1' - ハード点滅（opacity 1→0→1）
+///     '2' - ソフト点滅（opacity 1→0.2→1）
+///
+/// @param {Number} $duration [0.9s] - アニメーションの実行時間
+///   例: 0.9s, 1s, 1.2s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [ease-in-out] - イージング関数
+///   例: ease-in-out, ease, linear
+///
+/// @param {Number} $iterations [infinite] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .notification {
+///     @include blink('1');
+///   }
+///
+/// @example scss - カスタム設定
+///   .alert {
+///     @include blink('2', 1s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .warning {
+///     @include blink(
+///       $variant: '1',
+///       $duration: 1.2s,
+///       $delay: 0.1s,
+///       $easing: ease-in-out,
+///       $iterations: infinite,
+///       $fill: both
+///     );
+///   }
+@mixin blink(
+  $variant: '1',
+  $duration: 0.9s,
+  $delay: 0s,
+  $easing: ease-in-out,
+  $iterations: infinite,
+  $fill: both
+) {
+  animation: blink-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Blinkアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['1'] - アニメーションのバリエーション（blinkと同じ2種類）
+/// @param {Number} $duration [0.9s] - アニメーションの実行時間
+/// @param {String} $easing [ease-in-out] - イージング関数
+///
+/// @example scss - ボタンのホバーエフェクト
+///   .button {
+///     @include blink-hover('1', 0.9s);
+///   }
+@mixin blink-hover(
+  $variant: '1',
+  $duration: 0.9s,
+  $easing: ease-in-out
+) {
+  transition: opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: blink-#{$variant} $duration $easing infinite both;
+    }
+  }
+}
+

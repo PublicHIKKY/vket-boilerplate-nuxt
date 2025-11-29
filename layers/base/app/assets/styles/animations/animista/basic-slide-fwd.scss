@@ -1,0 +1,201 @@
+/**
+ * Slide-Fwd Animation (Slide Forward with Z-axis)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Center
+@keyframes slide-fwd-center {
+  0% {
+    transform: translateZ(0);
+  }
+
+  100% {
+    transform: translateZ(160px);
+  }
+}
+
+// Top
+@keyframes slide-fwd-top {
+  0% {
+    transform: translateZ(0) translateY(0);
+  }
+
+  100% {
+    transform: translateZ(160px) translateY(-100px);
+  }
+}
+
+// Top Right
+@keyframes slide-fwd-tr {
+  0% {
+    transform: translateZ(0) translateY(0) translateX(0);
+  }
+
+  100% {
+    transform: translateZ(160px) translateY(-100px) translateX(100px);
+  }
+}
+
+// Right
+@keyframes slide-fwd-right {
+  0% {
+    transform: translateZ(0) translateX(0);
+  }
+
+  100% {
+    transform: translateZ(160px) translateX(100px);
+  }
+}
+
+// Bottom Right
+@keyframes slide-fwd-br {
+  0% {
+    transform: translateZ(0) translateY(0) translateX(0);
+  }
+
+  100% {
+    transform: translateZ(160px) translateY(100px) translateX(100px);
+  }
+}
+
+// Bottom
+@keyframes slide-fwd-bottom {
+  0% {
+    transform: translateZ(0) translateY(0);
+  }
+
+  100% {
+    transform: translateZ(160px) translateY(100px);
+  }
+}
+
+// Bottom Left
+@keyframes slide-fwd-bl {
+  0% {
+    transform: translateZ(0) translateY(0) translateX(0);
+  }
+
+  100% {
+    transform: translateZ(160px) translateY(100px) translateX(-100px);
+  }
+}
+
+// Left
+@keyframes slide-fwd-left {
+  0% {
+    transform: translateZ(0) translateX(0);
+  }
+
+  100% {
+    transform: translateZ(160px) translateX(-100px);
+  }
+}
+
+// Top Left
+@keyframes slide-fwd-tl {
+  0% {
+    transform: translateZ(0) translateY(0) translateX(0);
+  }
+
+  100% {
+    transform: translateZ(160px) translateY(-100px) translateX(-100px);
+  }
+}
+
+// ============================================
+// Mixin: Slide Forward
+// ============================================
+
+/// Slide-Fwdアニメーション（前方へのスライド）を適用するmixin
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション
+///   Center (1種類) - Z軸のみの移動:
+///     'center' - 中心から前方へスライド
+///   Cardinal Directions (4種類) - Z軸 + 上下左右への移動:
+///     'top'    - 上前方へスライド
+///     'right'  - 右前方へスライド
+///     'bottom' - 下前方へスライド
+///     'left'   - 左前方へスライド
+///   Diagonal Directions (4種類) - Z軸 + 対角線方向への移動:
+///     'tr' - 右上前方へスライド
+///     'br' - 右下前方へスライド
+///     'bl' - 左下前方へスライド
+///     'tl' - 左上前方へスライド
+///
+/// @param {Number} $duration [0.45s] - アニメーションの実行時間
+///   例: 0.4s, 0.6s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .box {
+///     @include slide-fwd('center');
+///   }
+///
+/// @example scss - カスタム設定
+///   .box {
+///     @include slide-fwd('top', 0.6s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .box {
+///     @include slide-fwd(
+///       $variant: 'br',
+///       $duration: 0.8s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 2,
+///       $fill: forwards
+///     );
+///   }
+@mixin slide-fwd(
+  $variant: 'center',
+  $duration: 0.45s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: slide-fwd-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Slide-Fwdアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション（slide-fwdと同じ9種類）
+/// @param {Number} $duration [0.45s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include slide-fwd-hover('center', 0.5s);
+///   }
+@mixin slide-fwd-hover(
+  $variant: 'center',
+  $duration: 0.45s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940)
+) {
+  transition: transform $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: slide-fwd-#{$variant} $duration $easing both;
+    }
+  }
+}
+

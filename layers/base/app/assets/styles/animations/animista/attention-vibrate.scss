@@ -1,0 +1,195 @@
+/**
+ * Vibrate Animation (Attention with Vibration Effect)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Vibrate 1
+@keyframes vibrate-1 {
+  0% {
+    transform: translate(0);
+  }
+
+  20% {
+    transform: translate(-2px, 2px);
+  }
+
+  40% {
+    transform: translate(-2px, -2px);
+  }
+
+  60% {
+    transform: translate(2px, 2px);
+  }
+
+  80% {
+    transform: translate(2px, -2px);
+  }
+
+  100% {
+    transform: translate(0);
+  }
+}
+
+// Vibrate 2
+@keyframes vibrate-2 {
+  0% {
+    transform: translate(0);
+  }
+
+  20% {
+    transform: translate(2px, -2px);
+  }
+
+  40% {
+    transform: translate(2px, 2px);
+  }
+
+  60% {
+    transform: translate(-2px, 2px);
+  }
+
+  80% {
+    transform: translate(-2px, -2px);
+  }
+
+  100% {
+    transform: translate(0);
+  }
+}
+
+// Vibrate 3
+@keyframes vibrate-3 {
+  0% {
+    transform: translate(0);
+  }
+
+  10% {
+    transform: translate(-2px, -2px);
+  }
+
+  20% {
+    transform: translate(2px, -2px);
+  }
+
+  30% {
+    transform: translate(-2px, 2px);
+  }
+
+  40% {
+    transform: translate(2px, 2px);
+  }
+
+  50% {
+    transform: translate(-2px, -2px);
+  }
+
+  60% {
+    transform: translate(2px, -2px);
+  }
+
+  70% {
+    transform: translate(-2px, 2px);
+  }
+
+  80% {
+    transform: translate(-2px, -2px);
+  }
+
+  90% {
+    transform: translate(2px, -2px);
+  }
+
+  100% {
+    transform: translate(0);
+  }
+}
+
+// ============================================
+// Mixin: Vibrate
+// ============================================
+
+/// Vibrateアニメーション（振動による注目エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['1'] - アニメーションのバリエーション
+///   3種類の振動パターン:
+///     '1' - 基本的な振動（5ステップ、20%刻み）
+///     '2' - 逆パターン振動（5ステップ、20%刻み）
+///     '3' - 高速振動（10ステップ、10%刻み）
+///
+/// @param {Number} $duration [0.3s] - アニメーションの実行時間
+///   例: 0.3s, 0.5s, 0.8s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [linear] - イージング関数
+///   例: linear, ease-in-out
+///
+/// @param {Number} $iterations [infinite] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .notification {
+///     @include vibrate('1');
+///   }
+///
+/// @example scss - カスタム設定
+///   .alert {
+///     @include vibrate('3', 0.5s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .warning {
+///     @include vibrate(
+///       $variant: '2',
+///       $duration: 0.4s,
+///       $delay: 0.1s,
+///       $easing: linear,
+///       $iterations: infinite,
+///       $fill: both
+///     );
+///   }
+@mixin vibrate(
+  $variant: '1',
+  $duration: 0.3s,
+  $delay: 0s,
+  $easing: linear,
+  $iterations: infinite,
+  $fill: both
+) {
+  animation: vibrate-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Vibrateアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['1'] - アニメーションのバリエーション（vibrateと同じ3種類）
+/// @param {Number} $duration [0.3s] - アニメーションの実行時間
+/// @param {String} $easing [linear] - イージング関数
+///
+/// @example scss - ボタンのホバーエフェクト
+///   .button {
+///     @include vibrate-hover('1', 0.3s);
+///   }
+@mixin vibrate-hover(
+  $variant: '1',
+  $duration: 0.3s,
+  $easing: linear
+) {
+  transition: transform $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: vibrate-#{$variant} $duration $easing infinite both;
+    }
+  }
+}
+

@@ -1,0 +1,205 @@
+/**
+ * Flip-In Animation (Entrance with 3D Flip + Opacity)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Horizontal Bottom
+@keyframes flip-in-hor-bottom {
+  0% {
+    transform: rotateX(80deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotateX(0);
+    opacity: 1;
+  }
+}
+
+// Horizontal Top
+@keyframes flip-in-hor-top {
+  0% {
+    transform: rotateX(-80deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotateX(0);
+    opacity: 1;
+  }
+}
+
+// Vertical Right
+@keyframes flip-in-ver-right {
+  0% {
+    transform: rotateY(-80deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotateY(0);
+    opacity: 1;
+  }
+}
+
+// Vertical Left
+@keyframes flip-in-ver-left {
+  0% {
+    transform: rotateY(80deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotateY(0);
+    opacity: 1;
+  }
+}
+
+// Diagonal 1 Top Right
+@keyframes flip-in-diag-1-tr {
+  0% {
+    transform: rotate3d(1, 1, 0, -80deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotate3d(1, 1, 0, 0deg);
+    opacity: 1;
+  }
+}
+
+// Diagonal 1 Bottom Left
+@keyframes flip-in-diag-1-bl {
+  0% {
+    transform: rotate3d(1, 1, 0, 80deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotate3d(1, 1, 0, 0deg);
+    opacity: 1;
+  }
+}
+
+// Diagonal 2 Top Left
+@keyframes flip-in-diag-2-tl {
+  0% {
+    transform: rotate3d(-1, 1, 0, -80deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotate3d(-1, 1, 0, 0deg);
+    opacity: 1;
+  }
+}
+
+// Diagonal 2 Bottom Right
+@keyframes flip-in-diag-2-br {
+  0% {
+    transform: rotate3d(-1, 1, 0, 80deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotate3d(-1, 1, 0, 0deg);
+    opacity: 1;
+  }
+}
+
+// ============================================
+// Mixin: Flip In
+// ============================================
+
+/// Flip-Inアニメーション（3Dフリップと透明度を使った入場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['hor-bottom'] - アニメーションのバリエーション
+///   Horizontal (2種類) - X軸回転（水平軸）:
+///     'hor-bottom' - 下端を軸に上方向へフリップ（80度回転）
+///     'hor-top'    - 上端を軸に下方向へフリップ（-80度回転）
+///   Vertical (2種類) - Y軸回転（垂直軸）:
+///     'ver-right' - 右端を軸に左方向へフリップ（-80度回転）
+///     'ver-left'  - 左端を軸に右方向へフリップ（80度回転）
+///   Diagonal (4種類) - 3D対角線フリップ:
+///     'diag-1-tr' - 対角線1の右上を起点にフリップ（rotate3d(1, 1, 0, -80deg)）
+///     'diag-1-bl' - 対角線1の左下を起点にフリップ（rotate3d(1, 1, 0, 80deg)）
+///     'diag-2-tl' - 対角線2の左上を起点にフリップ（rotate3d(-1, 1, 0, -80deg)）
+///     'diag-2-br' - 対角線2の右下を起点にフリップ（rotate3d(-1, 1, 0, 80deg)）
+///
+/// @param {Number} $duration [0.5s] - アニメーションの実行時間
+///   例: 0.4s, 0.6s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include flip-in('hor-bottom');
+///   }
+///
+/// @example scss - カスタム設定
+///   .modal {
+///     @include flip-in('ver-right', 0.6s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include flip-in(
+///       $variant: 'diag-1-tr',
+///       $duration: 0.8s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin flip-in(
+  $variant: 'hor-bottom',
+  $duration: 0.5s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: flip-in-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Flip-Inアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['hor-bottom'] - アニメーションのバリエーション（flip-inと同じ8種類）
+/// @param {Number} $duration [0.5s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include flip-in-hover('hor-bottom', 0.6s);
+///   }
+@mixin flip-in-hover(
+  $variant: 'hor-bottom',
+  $duration: 0.5s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940)
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: flip-in-#{$variant} $duration $easing both;
+    }
+  }
+}
+

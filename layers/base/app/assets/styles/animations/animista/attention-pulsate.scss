@@ -1,0 +1,172 @@
+/**
+ * Pulsate Animation (Attention with Pulsate Effect)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Heartbeat
+@keyframes heartbeat {
+  0% {
+    transform-origin: center center;
+    transform: scale(1);
+    animation-timing-function: ease-out;
+  }
+
+  10% {
+    transform: scale(0.91);
+    animation-timing-function: ease-in;
+  }
+
+  17% {
+    transform: scale(0.98);
+    animation-timing-function: ease-out;
+  }
+
+  33% {
+    transform: scale(0.87);
+    animation-timing-function: ease-in;
+  }
+
+  45% {
+    transform: scale(1);
+    animation-timing-function: ease-out;
+  }
+}
+
+// Pulsate Back
+@keyframes pulsate-bck {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(0.9);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+// Pulsate Forward
+@keyframes pulsate-fwd {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+// Ping
+@keyframes ping {
+  0% {
+    transform: scale(0.2);
+    opacity: 0.8;
+  }
+
+  80% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+// ============================================
+// Mixin: Pulsate
+// ============================================
+
+/// Pulsateアニメーション（拍動による注目エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['heartbeat'] - アニメーションのバリエーション
+///   4種類の拍動パターン:
+///     'heartbeat'     - 心拍パターン（複雑なscale変化 + timing切替）
+///     'pulsate-bck'   - 後退拍動（scale 1→0.9→1）
+///     'pulsate-fwd'   - 前進拍動（scale 1→1.1→1）
+///     'ping'          - ピン拡散（scale 0.2→2.2 + opacity減衰）
+///
+/// @param {Number} $duration [1.5s] - アニメーションの実行時間
+///   例: 1.5s, 0.5s, 0.8s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [ease-in-out] - イージング関数
+///   例: ease-in-out, ease, linear
+///
+/// @param {Number} $iterations [infinite] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .notification {
+///     @include pulsate('heartbeat');
+///   }
+///
+/// @example scss - カスタム設定
+///   .alert {
+///     @include pulsate('ping', 0.8s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .warning {
+///     @include pulsate(
+///       $variant: 'pulsate-fwd',
+///       $duration: 0.5s,
+///       $delay: 0.1s,
+///       $easing: ease-in-out,
+///       $iterations: infinite,
+///       $fill: both
+///     );
+///   }
+@mixin pulsate(
+  $variant: 'heartbeat',
+  $duration: 1.5s,
+  $delay: 0s,
+  $easing: ease-in-out,
+  $iterations: infinite,
+  $fill: both
+) {
+  animation: #{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Pulsateアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['heartbeat'] - アニメーションのバリエーション（pulsateと同じ4種類）
+/// @param {Number} $duration [1.5s] - アニメーションの実行時間
+/// @param {String} $easing [ease-in-out] - イージング関数
+///
+/// @example scss - ボタンのホバーエフェクト
+///   .button {
+///     @include pulsate-hover('heartbeat', 1.5s);
+///   }
+@mixin pulsate-hover(
+  $variant: 'heartbeat',
+  $duration: 1.5s,
+  $easing: ease-in-out
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: #{$variant} $duration $easing infinite both;
+    }
+  }
+}
+

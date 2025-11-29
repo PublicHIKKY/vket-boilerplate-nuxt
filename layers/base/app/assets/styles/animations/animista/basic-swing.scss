@@ -1,0 +1,322 @@
+/**
+ * Swing Animation
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Top Forward
+@keyframes swing-top-fwd {
+  0% {
+    transform-origin: top;
+    transform: rotateX(0);
+  }
+
+  100% {
+    transform-origin: top;
+    transform: rotateX(180deg);
+  }
+}
+
+// Top Backward
+@keyframes swing-top-bck {
+  0% {
+    transform-origin: top;
+    transform: rotateX(0);
+  }
+
+  100% {
+    transform-origin: top;
+    transform: rotateX(-180deg);
+  }
+}
+
+// Top Right Forward
+@keyframes swing-top-right-fwd {
+  0% {
+    transform-origin: 100% 0%;
+    transform: rotate3d(1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform-origin: 100% 0%;
+    transform: rotate3d(1, 1, 0, 180deg);
+  }
+}
+
+// Top Right Backward
+@keyframes swing-top-right-bck {
+  0% {
+    transform-origin: 100% 0%;
+    transform: rotate3d(1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform-origin: 100% 0%;
+    transform: rotate3d(1, 1, 0, -180deg);
+  }
+}
+
+// Right Forward
+@keyframes swing-right-fwd {
+  0% {
+    transform-origin: right;
+    transform: rotateY(0);
+  }
+
+  100% {
+    transform-origin: right;
+    transform: rotateY(180deg);
+  }
+}
+
+// Right Backward
+@keyframes swing-right-bck {
+  0% {
+    transform-origin: right;
+    transform: rotateY(0);
+  }
+
+  100% {
+    transform-origin: right;
+    transform: rotateY(-180deg);
+  }
+}
+
+// Bottom Right Forward
+@keyframes swing-bottom-right-fwd {
+  0% {
+    transform-origin: 100% 100%;
+    transform: rotate3d(-1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: rotate3d(-1, 1, 0, 180deg);
+  }
+}
+
+// Bottom Right Backward
+@keyframes swing-bottom-right-bck {
+  0% {
+    transform-origin: 100% 100%;
+    transform: rotate3d(-1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: rotate3d(-1, 1, 0, -180deg);
+  }
+}
+
+// Bottom Forward
+@keyframes swing-bottom-fwd {
+  0% {
+    transform-origin: bottom;
+    transform: rotateX(0);
+  }
+
+  100% {
+    transform-origin: bottom;
+    transform: rotateX(-180deg);
+  }
+}
+
+// Bottom Backward
+@keyframes swing-bottom-bck {
+  0% {
+    transform-origin: bottom;
+    transform: rotateX(0);
+  }
+
+  100% {
+    transform-origin: bottom;
+    transform: rotateX(180deg);
+  }
+}
+
+// Bottom Left Forward
+@keyframes swing-bottom-left-fwd {
+  0% {
+    transform-origin: 0% 100%;
+    transform: rotate3d(1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform-origin: 0% 100%;
+    transform: rotate3d(1, 1, 0, -180deg);
+  }
+}
+
+// Bottom Left Backward
+@keyframes swing-bottom-left-bck {
+  0% {
+    transform-origin: 0% 100%;
+    transform: rotate3d(1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform-origin: 0% 100%;
+    transform: rotate3d(1, 1, 0, 180deg);
+  }
+}
+
+// Left Forward
+@keyframes swing-left-fwd {
+  0% {
+    transform-origin: left;
+    transform: rotateY(0);
+  }
+
+  100% {
+    transform-origin: left;
+    transform: rotateY(-180deg);
+  }
+}
+
+// Left Backward
+@keyframes swing-left-bck {
+  0% {
+    transform-origin: left;
+    transform: rotateY(0);
+  }
+
+  100% {
+    transform-origin: left;
+    transform: rotateY(180deg);
+  }
+}
+
+// Top Left Forward
+@keyframes swing-top-left-fwd {
+  0% {
+    transform-origin: 0% 0%;
+    transform: rotate3d(-1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: rotate3d(-1, 1, 0, -180deg);
+  }
+}
+
+// Top Left Backward
+@keyframes swing-top-left-bck {
+  0% {
+    transform-origin: 0% 0%;
+    transform: rotate3d(-1, 1, 0, 0deg);
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: rotate3d(-1, 1, 0, 180deg);
+  }
+}
+
+// ============================================
+// Mixin: Swing
+// ============================================
+
+/// Swingアニメーションを適用するmixin
+///
+/// @param {String} $variant ['top-fwd'] - アニメーションのバリエーション
+///   Top (2種類) - X軸回転:
+///     'top-fwd' - 上端を軸に前方へスイング
+///     'top-bck' - 上端を軸に後方へスイング
+///   Top Right (2種類) - 対角線回転:
+///     'top-right-fwd' - 右上を軸に前方へスイング
+///     'top-right-bck' - 右上を軸に後方へスイング
+///   Right (2種類) - Y軸回転:
+///     'right-fwd' - 右端を軸に前方へスイング
+///     'right-bck' - 右端を軸に後方へスイング
+///   Bottom Right (2種類) - 対角線回転:
+///     'bottom-right-fwd' - 右下を軸に前方へスイング
+///     'bottom-right-bck' - 右下を軸に後方へスイング
+///   Bottom (2種類) - X軸回転:
+///     'bottom-fwd' - 下端を軸に前方へスイング
+///     'bottom-bck' - 下端を軸に後方へスイング
+///   Bottom Left (2種類) - 対角線回転:
+///     'bottom-left-fwd' - 左下を軸に前方へスイング
+///     'bottom-left-bck' - 左下を軸に後方へスイング
+///   Left (2種類) - Y軸回転:
+///     'left-fwd' - 左端を軸に前方へスイング
+///     'left-bck' - 左端を軸に後方へスイング
+///   Top Left (2種類) - 対角線回転:
+///     'top-left-fwd' - 左上を軸に前方へスイング
+///     'top-left-bck' - 左上を軸に後方へスイング
+///
+/// @param {Number} $duration [0.4s] - アニメーションの実行時間
+///   例: 0.3s, 0.5s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include swing('top-fwd');
+///   }
+///
+/// @example scss - カスタム設定
+///   .card {
+///     @include swing('right-fwd', 0.6s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .card {
+///     @include swing(
+///       $variant: 'bottom-left-fwd',
+///       $duration: 0.8s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 2,
+///       $fill: forwards
+///     );
+///   }
+@mixin swing(
+  $variant: 'top-fwd',
+  $duration: 0.4s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: swing-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Swingアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['top-fwd'] - アニメーションのバリエーション（swingと同じ16種類）
+/// @param {Number} $duration [0.4s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include swing-hover('top-fwd', 0.5s);
+///   }
+@mixin swing-hover(
+  $variant: 'top-fwd',
+  $duration: 0.4s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940)
+) {
+  transition: transform $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: swing-#{$variant} $duration $easing both;
+    }
+  }
+}
+

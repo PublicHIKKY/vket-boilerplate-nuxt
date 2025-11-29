@@ -1,0 +1,381 @@
+/**
+ * Rotate-90 Animation
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Clockwise Center
+@keyframes rotate-90-cw {
+  0% {
+    transform: rotate(0);
+  }
+
+  100% {
+    transform: rotate(90deg);
+  }
+}
+
+// Counter-clockwise Center
+@keyframes rotate-90-ccw {
+  0% {
+    transform: rotate(0);
+  }
+
+  100% {
+    transform: rotate(-90deg);
+  }
+}
+
+// Clockwise Top
+@keyframes rotate-90-top-cw {
+  0% {
+    transform-origin: 50% 0%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 50% 0%;
+    transform: rotate(90deg);
+  }
+}
+
+// Counter-clockwise Top
+@keyframes rotate-90-top-ccw {
+  0% {
+    transform-origin: 50% 0%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 50% 0%;
+    transform: rotate(-90deg);
+  }
+}
+
+// Clockwise Top Right
+@keyframes rotate-90-tr-cw {
+  0% {
+    transform-origin: 100% 0%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 100% 0%;
+    transform: rotate(90deg);
+  }
+}
+
+// Counter-clockwise Top Right
+@keyframes rotate-90-tr-ccw {
+  0% {
+    transform-origin: 100% 0%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 100% 0%;
+    transform: rotate(-90deg);
+  }
+}
+
+// Clockwise Right
+@keyframes rotate-90-right-cw {
+  0% {
+    transform-origin: 100% 50%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: rotate(90deg);
+  }
+}
+
+// Counter-clockwise Right
+@keyframes rotate-90-right-ccw {
+  0% {
+    transform-origin: 100% 50%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: rotate(-90deg);
+  }
+}
+
+// Clockwise Bottom Right
+@keyframes rotate-90-br-cw {
+  0% {
+    transform-origin: 100% 100%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: rotate(90deg);
+  }
+}
+
+// Counter-clockwise Bottom Right
+@keyframes rotate-90-br-ccw {
+  0% {
+    transform-origin: 100% 100%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: rotate(-90deg);
+  }
+}
+
+// Clockwise Bottom
+@keyframes rotate-90-bottom-cw {
+  0% {
+    transform-origin: 50% 100%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: rotate(90deg);
+  }
+}
+
+// Counter-clockwise Bottom
+@keyframes rotate-90-bottom-ccw {
+  0% {
+    transform-origin: 50% 100%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: rotate(-90deg);
+  }
+}
+
+// Clockwise Bottom Left
+@keyframes rotate-90-bl-cw {
+  0% {
+    transform-origin: 0% 100%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 0% 100%;
+    transform: rotate(90deg);
+  }
+}
+
+// Counter-clockwise Bottom Left
+@keyframes rotate-90-bl-ccw {
+  0% {
+    transform-origin: 0% 100%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 0% 100%;
+    transform: rotate(-90deg);
+  }
+}
+
+// Clockwise Left
+@keyframes rotate-90-left-cw {
+  0% {
+    transform-origin: 0% 50%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 0% 50%;
+    transform: rotate(90deg);
+  }
+}
+
+// Counter-clockwise Left
+@keyframes rotate-90-left-ccw {
+  0% {
+    transform-origin: 0% 50%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 0% 50%;
+    transform: rotate(-90deg);
+  }
+}
+
+// Clockwise Top Left
+@keyframes rotate-90-tl-cw {
+  0% {
+    transform-origin: 0% 0%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: rotate(90deg);
+  }
+}
+
+// Counter-clockwise Top Left
+@keyframes rotate-90-tl-ccw {
+  0% {
+    transform-origin: 0% 0%;
+    transform: rotate(0);
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: rotate(-90deg);
+  }
+}
+
+// Horizontal Forward (rotateX)
+@keyframes rotate-90-horizontal-fwd {
+  0% {
+    transform: rotateX(0);
+  }
+
+  100% {
+    transform: rotateX(-90deg);
+  }
+}
+
+// Horizontal Backward (rotateX)
+@keyframes rotate-90-horizontal-bck {
+  0% {
+    transform: rotateX(0);
+  }
+
+  100% {
+    transform: rotateX(90deg);
+  }
+}
+
+// Vertical Forward (rotateY)
+@keyframes rotate-90-vertical-fwd {
+  0% {
+    transform: rotateY(0);
+  }
+
+  100% {
+    transform: rotateY(90deg);
+  }
+}
+
+// Vertical Backward (rotateY)
+@keyframes rotate-90-vertical-bck {
+  0% {
+    transform: rotateY(0);
+  }
+
+  100% {
+    transform: rotateY(-90deg);
+  }
+}
+
+// ============================================
+// Mixin: Rotate 90
+// ============================================
+
+/// Rotate-90アニメーションを適用するmixin
+///
+/// @param {String} $variant ['cw'] - アニメーションのバリエーション
+///   Basic (2種類):
+///     'cw'  - 時計回りに90度回転
+///     'ccw' - 反時計回りに90度回転
+///   Directional (16種類) - transform-origin指定:
+///     'top-cw', 'top-ccw'
+///     'tr-cw', 'tr-ccw' (top-right)
+///     'right-cw', 'right-ccw'
+///     'br-cw', 'br-ccw' (bottom-right)
+///     'bottom-cw', 'bottom-ccw'
+///     'bl-cw', 'bl-ccw' (bottom-left)
+///     'left-cw', 'left-ccw'
+///     'tl-cw', 'tl-ccw' (top-left)
+///   3D (4種類):
+///     'horizontal-fwd' - X軸回転（前方）
+///     'horizontal-bck' - X軸回転（後方）
+///     'vertical-fwd'   - Y軸回転（前方）
+///     'vertical-bck'   - Y軸回転（後方）
+///
+/// @param {Number} $duration [0.4s] - アニメーションの実行時間
+///   例: 0.3s, 0.5s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .box {
+///     @include rotate-90('cw');
+///   }
+///
+/// @example scss - カスタム設定
+///   .box {
+///     @include rotate-90('top-cw', 0.5s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .box {
+///     @include rotate-90(
+///       $variant: 'horizontal-fwd',
+///       $duration: 0.6s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 2,
+///       $fill: forwards
+///     );
+///   }
+@mixin rotate-90(
+  $variant: 'cw',
+  $duration: 0.4s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: rotate-90-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Rotate-90アニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['cw'] - アニメーションのバリエーション（rotate-90と同じ22種類）
+/// @param {Number} $duration [0.4s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///
+/// @example scss - ボタンのホバーエフェクト
+///   .button {
+///     @include rotate-90-hover('cw', 0.3s);
+///   }
+@mixin rotate-90-hover(
+  $variant: 'cw',
+  $duration: 0.4s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940)
+) {
+  transition: transform $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: rotate-90-#{$variant} $duration $easing both;
+    }
+  }
+}
+

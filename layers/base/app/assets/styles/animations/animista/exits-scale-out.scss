@@ -1,0 +1,325 @@
+/**
+ * Scale-Out Animation (Exit with Scale Shrinking)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Center
+@keyframes scale-out-center {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(0);
+    opacity: 1;
+  }
+}
+
+// Top
+@keyframes scale-out-top {
+  0% {
+    transform-origin: 50% 0%;
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 50% 0%;
+    transform: scale(0);
+    opacity: 1;
+  }
+}
+
+// Top Right
+@keyframes scale-out-tr {
+  0% {
+    transform-origin: 100% 0%;
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 100% 0%;
+    transform: scale(0);
+    opacity: 1;
+  }
+}
+
+// Right
+@keyframes scale-out-right {
+  0% {
+    transform-origin: 100% 50%;
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: scale(0);
+    opacity: 1;
+  }
+}
+
+// Bottom Right
+@keyframes scale-out-br {
+  0% {
+    transform-origin: 100% 100%;
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: scale(0);
+    opacity: 1;
+  }
+}
+
+// Bottom
+@keyframes scale-out-bottom {
+  0% {
+    transform-origin: 50% 100%;
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: scale(0);
+    opacity: 1;
+  }
+}
+
+// Bottom Left
+@keyframes scale-out-bl {
+  0% {
+    transform-origin: 0% 100%;
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 0% 100%;
+    transform: scale(0);
+    opacity: 1;
+  }
+}
+
+// Left
+@keyframes scale-out-left {
+  0% {
+    transform-origin: 0% 50%;
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 0% 50%;
+    transform: scale(0);
+    opacity: 1;
+  }
+}
+
+// Top Left
+@keyframes scale-out-tl {
+  0% {
+    transform-origin: 0% 0%;
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: scale(0);
+    opacity: 1;
+  }
+}
+
+// Horizontal
+@keyframes scale-out-horizontal {
+  0% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scaleX(0);
+    opacity: 1;
+  }
+}
+
+// Horizontal Left
+@keyframes scale-out-hor-left {
+  0% {
+    transform-origin: 0% 0%;
+    transform: scaleX(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: scaleX(0);
+    opacity: 1;
+  }
+}
+
+// Horizontal Right
+@keyframes scale-out-hor-right {
+  0% {
+    transform-origin: 100% 100%;
+    transform: scaleX(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: scaleX(0);
+    opacity: 1;
+  }
+}
+
+// Vertical
+@keyframes scale-out-vertical {
+  0% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scaleY(0);
+    opacity: 1;
+  }
+}
+
+// Vertical Top
+@keyframes scale-out-ver-top {
+  0% {
+    transform-origin: 50% 0%;
+    transform: scaleY(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 50% 0%;
+    transform: scaleY(0);
+    opacity: 1;
+  }
+}
+
+// Vertical Bottom
+@keyframes scale-out-ver-bottom {
+  0% {
+    transform-origin: 50% 100%;
+    transform: scaleY(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: scaleY(0);
+    opacity: 1;
+  }
+}
+
+// ============================================
+// Mixin: Scale Out
+// ============================================
+
+/// Scale-Outアニメーション（スケール縮小による退場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション
+///   Basic & Directional (15種類) - スケール縮小を使った退場:
+///     'center'      - 中心から（scale 1→0）
+///     'top'         - 上から（scale 1→0、transform-origin: 50% 0%）
+///     'tr'          - 右上から（scale 1→0、transform-origin: 100% 0%）
+///     'right'       - 右から（scale 1→0、transform-origin: 100% 50%）
+///     'br'          - 右下から（scale 1→0、transform-origin: 100% 100%）
+///     'bottom'      - 下から（scale 1→0、transform-origin: 50% 100%）
+///     'bl'          - 左下から（scale 1→0、transform-origin: 0% 100%）
+///     'left'        - 左から（scale 1→0、transform-origin: 0% 50%）
+///     'tl'          - 左上から（scale 1→0、transform-origin: 0% 0%）
+///     'horizontal'  - 横方向（scaleX 1→0）
+///     'hor-left'    - 横方向左（scaleX 1→0、transform-origin: 0% 0%）
+///     'hor-right'   - 横方向右（scaleX 1→0、transform-origin: 100% 100%）
+///     'vertical'    - 縦方向（scaleY 1→0）
+///     'ver-top'     - 縦方向上（scaleY 1→0、transform-origin: 50% 0%）
+///     'ver-bottom'  - 縦方向下（scaleY 1→0、transform-origin: 50% 100%）
+///
+/// @param {Number} $duration [0.5s] - アニメーションの実行時間
+///   例: 0.4s, 0.5s, 0.6s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.550, 0.085, 0.680, 0.530)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include scale-out('center');
+///   }
+///
+/// @example scss - カスタム設定
+///   .modal {
+///     @include scale-out('top', 0.4s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include scale-out(
+///       $variant: 'horizontal',
+///       $duration: 0.6s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin scale-out(
+  $variant: 'center',
+  $duration: 0.5s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.550, 0.085, 0.680, 0.530),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: scale-out-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Scale-Outアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション（scale-outと同じ15種類）
+/// @param {Number} $duration [0.5s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.550, 0.085, 0.680, 0.530)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include scale-out-hover('center', 0.4s);
+///   }
+@mixin scale-out-hover(
+  $variant: 'center',
+  $duration: 0.5s,
+  $easing: cubic-bezier(0.550, 0.085, 0.680, 0.530)
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: scale-out-#{$variant} $duration $easing both;
+    }
+  }
+}
+

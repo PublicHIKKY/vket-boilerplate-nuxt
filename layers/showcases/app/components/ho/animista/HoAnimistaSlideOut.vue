@@ -1,5 +1,5 @@
 <template>
-  <div class="ho-animista-scale-up">
+  <div class="ho-animista-slide-out">
     <div class="header-controls">
       <button
         class="back-button"
@@ -10,11 +10,11 @@
     </div>
 
     <h1 class="demo-title">
-      Scale Up Animations
+      Slide Out Animations
     </h1>
 
     <p class="demo-description">
-      15種類のスケールアップアニメーションのデモ。SCSS mixinで実装されています。
+      8種類の方向別スライド退場アニメーションのデモ。SCSS mixinで実装されています。
     </p>
 
     <div class="demo-controls">
@@ -45,19 +45,11 @@
     </div>
 
     <div class="animation-grid">
-      <!-- Basic Directions -->
       <div class="animation-section">
         <h2 class="section-title">
-          Basic Directions (9 patterns)
+          Directional Slides (8 patterns)
         </h2>
         <div class="grid">
-          <div class="animation-item">
-            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
-              <div :class="['demo-box', 'variant-center', { 'is-animating': activeVariants.has('center') }]">
-                center
-              </div>
-            </div>
-          </div>
           <div class="animation-item">
             <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
               <div :class="['demo-box', 'variant-top', { 'is-animating': activeVariants.has('top') }]">
@@ -116,66 +108,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Horizontal Scaling -->
-      <div class="animation-section">
-        <h2 class="section-title">
-          Horizontal Scaling (3 patterns)
-        </h2>
-        <div class="grid">
-          <div class="animation-item">
-            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
-              <div :class="['demo-box', 'variant-hor-center', { 'is-animating': activeVariants.has('hor-center') }]">
-                hor-center
-              </div>
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
-              <div :class="['demo-box', 'variant-hor-left', { 'is-animating': activeVariants.has('hor-left') }]">
-                hor-left
-              </div>
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
-              <div :class="['demo-box', 'variant-hor-right', { 'is-animating': activeVariants.has('hor-right') }]">
-                hor-right
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Vertical Scaling -->
-      <div class="animation-section">
-        <h2 class="section-title">
-          Vertical Scaling (3 patterns)
-        </h2>
-        <div class="grid">
-          <div class="animation-item">
-            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
-              <div :class="['demo-box', 'variant-ver-center', { 'is-animating': activeVariants.has('ver-center') }]">
-                ver-center
-              </div>
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
-              <div :class="['demo-box', 'variant-ver-top', { 'is-animating': activeVariants.has('ver-top') }]">
-                ver-top
-              </div>
-            </div>
-          </div>
-          <div class="animation-item">
-            <div :class="['hover-wrapper', { 'hover-mode': isHoverMode }]">
-              <div :class="['demo-box', 'variant-ver-bottom', { 'is-animating': activeVariants.has('ver-bottom') }]">
-                ver-bottom
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -185,9 +117,8 @@ const emit = defineEmits<{
   back: []
 }>()
 
-type ScaleUpVariant
-  = | 'center'
-    | 'top'
+type SlideOutVariant
+  = | 'top'
     | 'tr'
     | 'right'
     | 'br'
@@ -195,15 +126,8 @@ type ScaleUpVariant
     | 'bl'
     | 'left'
     | 'tl'
-    | 'hor-center'
-    | 'hor-left'
-    | 'hor-right'
-    | 'ver-center'
-    | 'ver-top'
-    | 'ver-bottom'
 
-const basicVariants: ScaleUpVariant[] = [
-  'center',
+const allVariants: SlideOutVariant[] = [
   'top',
   'tr',
   'right',
@@ -214,37 +138,13 @@ const basicVariants: ScaleUpVariant[] = [
   'tl',
 ]
 
-const horizontalVariants: ScaleUpVariant[] = [
-  'hor-center',
-  'hor-left',
-  'hor-right',
-]
-
-const verticalVariants: ScaleUpVariant[] = [
-  'ver-center',
-  'ver-top',
-  'ver-bottom',
-]
-
-// アニメーションモード（通常 or ホバー）
 const isHoverMode = ref(false)
-
-// アニメーション中のバリアントを管理
-const activeVariants = ref<Set<ScaleUpVariant>>(new Set())
+const activeVariants = ref<Set<SlideOutVariant>>(new Set())
 
 const replayAll = async () => {
-  // 一旦全てクリア
   activeVariants.value.clear()
-
   await nextTick()
 
-  const allVariants: ScaleUpVariant[] = [
-    ...basicVariants,
-    ...horizontalVariants,
-    ...verticalVariants,
-  ]
-
-  // 各要素を順番にアニメーション
   for (const [index, variant] of allVariants.entries()) {
     setTimeout(() => {
       activeVariants.value = new Set(activeVariants.value).add(variant)
@@ -252,15 +152,12 @@ const replayAll = async () => {
   }
 }
 
-// ホバーモードに切り替えた時にアニメーション状態をクリア
 watch(isHoverMode, (newValue) => {
   if (newValue) {
-    // ホバーモードに切り替えた時は全てのアニメーション状態をクリア
     activeVariants.value.clear()
   }
 })
 
-// 初回表示時に全てアニメーション
 onMounted(() => {
   setTimeout(() => {
     void replayAll()
@@ -272,153 +169,44 @@ onMounted(() => {
 @use '#base/app/assets/styles/animations/animista' as anim;
 
 // ============================================
-// アニメーションクラス
-// 使い方：
-// 1. DOMに variant-center などのクラスを付与
-// 2. アニメーション開始時に is-animating クラスを追加
-// 3. SCSS側で各バリアントごとにアニメーションを定義
+// Animation Variants
 // ============================================
 
-// ホバーモード用のスタイル - ラッパーでホバーを検知、子要素にアニメーション適用
 .hover-wrapper.hover-mode:hover {
-  .demo-box.variant-center {
-    @include anim.scale-up('center', 0.4s);
-  }
-
-  .demo-box.variant-top {
-    @include anim.scale-up('top', 0.4s);
-  }
-
-  .demo-box.variant-tr {
-    @include anim.scale-up('tr', 0.4s);
-  }
-
-  .demo-box.variant-right {
-    @include anim.scale-up('right', 0.4s);
-  }
-
-  .demo-box.variant-br {
-    @include anim.scale-up('br', 0.4s);
-  }
-
-  .demo-box.variant-bottom {
-    @include anim.scale-up('bottom', 0.4s);
-  }
-
-  .demo-box.variant-bl {
-    @include anim.scale-up('bl', 0.4s);
-  }
-
-  .demo-box.variant-left {
-    @include anim.scale-up('left', 0.4s);
-  }
-
-  .demo-box.variant-tl {
-    @include anim.scale-up('tl', 0.4s);
-  }
-
-  .demo-box.variant-hor-center {
-    @include anim.scale-up('hor-center', 0.4s);
-  }
-
-  .demo-box.variant-hor-left {
-    @include anim.scale-up('hor-left', 0.4s);
-  }
-
-  .demo-box.variant-hor-right {
-    @include anim.scale-up('hor-right', 0.4s);
-  }
-
-  .demo-box.variant-ver-center {
-    @include anim.scale-up('ver-center', 0.4s);
-  }
-
-  .demo-box.variant-ver-top {
-    @include anim.scale-up('ver-top', 0.4s);
-  }
-
-  .demo-box.variant-ver-bottom {
-    @include anim.scale-up('ver-bottom', 0.4s);
-  }
+  .demo-box.variant-top { @include anim.slide-out('top', 0.5s); }
+  .demo-box.variant-tr { @include anim.slide-out('tr', 0.5s); }
+  .demo-box.variant-right { @include anim.slide-out('right', 0.5s); }
+  .demo-box.variant-br { @include anim.slide-out('br', 0.5s); }
+  .demo-box.variant-bottom { @include anim.slide-out('bottom', 0.5s); }
+  .demo-box.variant-bl { @include anim.slide-out('bl', 0.5s); }
+  .demo-box.variant-left { @include anim.slide-out('left', 0.5s); }
+  .demo-box.variant-tl { @include anim.slide-out('tl', 0.5s); }
 }
 
-// Basic Directions (9種類)
-// 通常モード（Auto Play）時のアニメーション
-.variant-center.is-animating {
-  @include anim.scale-up('center', 0.5s);
-}
+// Directional Slides (8 patterns)
+.variant-top.is-animating { @include anim.slide-out('top', 0.5s); }
+.variant-tr.is-animating { @include anim.slide-out('tr', 0.5s); }
+.variant-right.is-animating { @include anim.slide-out('right', 0.5s); }
+.variant-br.is-animating { @include anim.slide-out('br', 0.5s); }
+.variant-bottom.is-animating { @include anim.slide-out('bottom', 0.5s); }
+.variant-bl.is-animating { @include anim.slide-out('bl', 0.5s); }
+.variant-left.is-animating { @include anim.slide-out('left', 0.5s); }
+.variant-tl.is-animating { @include anim.slide-out('tl', 0.5s); }
 
-.variant-top.is-animating {
-  @include anim.scale-up('top', 0.5s);
-}
+// ============================================
+// Page Layout Styles
+// ============================================
 
-.variant-tr.is-animating {
-  @include anim.scale-up('tr', 0.5s);
-}
-
-.variant-right.is-animating {
-  @include anim.scale-up('right', 0.5s);
-}
-
-.variant-br.is-animating {
-  @include anim.scale-up('br', 0.5s);
-}
-
-.variant-bottom.is-animating {
-  @include anim.scale-up('bottom', 0.5s);
-}
-
-.variant-bl.is-animating {
-  @include anim.scale-up('bl', 0.5s);
-}
-
-.variant-left.is-animating {
-  @include anim.scale-up('left', 0.5s);
-}
-
-.variant-tl.is-animating {
-  @include anim.scale-up('tl', 0.5s);
-}
-
-// Horizontal (3種類)
-.variant-hor-center.is-animating {
-  @include anim.scale-up('hor-center', 0.5s);
-}
-
-.variant-hor-left.is-animating {
-  @include anim.scale-up('hor-left', 0.5s);
-}
-
-.variant-hor-right.is-animating {
-  @include anim.scale-up('hor-right', 0.5s);
-}
-
-// Vertical (3種類)
-.variant-ver-center.is-animating {
-  @include anim.scale-up('ver-center', 0.5s);
-}
-
-.variant-ver-top.is-animating {
-  @include anim.scale-up('ver-top', 0.5s);
-}
-
-.variant-ver-bottom.is-animating {
-  @include anim.scale-up('ver-bottom', 0.5s);
-}
-
-// =====================ページ用のスタイル=======================
-.ho-animista-scale-up {
+.ho-animista-slide-out {
   max-width: 1200px;
   min-height: 100vh;
   margin: 0 auto;
   padding: 40px 20px;
 
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 }
 
-.header-controls {
-  margin-bottom: 24px;
-}
+.header-controls { margin-bottom: 24px; }
 
 .back-button {
   cursor: pointer;
@@ -436,7 +224,7 @@ onMounted(() => {
   transition: all 0.3s ease;
 
   &:hover {
-    color: #667eea;
+    color: #f59e0b;
     background: white;
   }
 }
@@ -511,7 +299,7 @@ onMounted(() => {
 
   &.active {
     border-color: white;
-    color: #667eea;
+    color: #f59e0b;
     background: white;
     box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
   }
@@ -539,9 +327,7 @@ onMounted(() => {
     box-shadow: 0 6px 12px rgb(0 0 0 / 30%);
   }
 
-  &:active {
-    transform: translateY(0);
-  }
+  &:active { transform: translateY(0); }
 }
 
 .animation-grid {
@@ -604,7 +390,10 @@ onMounted(() => {
   text-align: center;
   overflow-wrap: break-word;
 
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+
+  &.is-animating {
+    pointer-events: none;
+  }
 }
 </style>
