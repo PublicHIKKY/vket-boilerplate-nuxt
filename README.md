@@ -1,6 +1,6 @@
 # Vket Boilerplate Nuxt
 
-[![japanese](https://badgen.net/badge/README/in%20日本語/red?icon=github)](./README.ja.md)
+[![japanese](https://badgen.net/badge/README/in%20日本語/red?icon=github)](./README.ja.md) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/PublicHIKKY/vket-boilerplate-nuxt)
 
 
 This is a production-ready Nuxt4 boilerplate published by HIKKY Ltd., designed for building scalable VR/metaverse web applications.

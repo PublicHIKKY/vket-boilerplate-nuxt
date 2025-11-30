@@ -5,6 +5,7 @@
 [![Nuxt](https://img.shields.io/badge/Nuxt-4.0+-00DC82?logo=nuxt.js)](https://nuxt.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9+-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![Bun](https://img.shields.io/badge/Bun-1.0+-000000?logo=bun)](https://bun.sh/)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/PublicHIKKY/vket-boilerplate-nuxt)
 
 これはHIKKY株式会社が公開するNuxt4本格運用向けボイラープレートで、スケーラブルなVR/メタバース関連Webアプリケーション構築用に設計されています。
 
