@@ -1,0 +1,147 @@
+/**
+ * Roll-In Animation (Entrance with Rolling Effect + Rotation + Opacity)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Left
+@keyframes roll-in-left {
+  0% {
+    transform: translateX(-800px) rotate(-540deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+// Top
+@keyframes roll-in-top {
+  0% {
+    transform: translateY(-800px) rotate(-540deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+// Right
+@keyframes roll-in-right {
+  0% {
+    transform: translateX(800px) rotate(540deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+// Bottom
+@keyframes roll-in-bottom {
+  0% {
+    transform: translateY(800px) rotate(540deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+// ============================================
+// Mixin: Roll In
+// ============================================
+
+/// Roll-Inアニメーション（回転しながらの転がり入場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['left'] - アニメーションのバリエーション
+///   Directional (4種類) - 4方向からの転がり入場:
+///     'left'   - 左から（translateX -800px + rotate -540deg→0）
+///     'top'    - 上から（translateY -800px + rotate -540deg→0）
+///     'right'  - 右から（translateX 800px + rotate 540deg→0）
+///     'bottom' - 下から（translateY 800px + rotate 540deg→0）
+///
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+///   例: 0.5s, 0.7s, 0.8s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [ease-out] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include roll-in('left');
+///   }
+///
+/// @example scss - カスタム設定
+///   .modal {
+///     @include roll-in('top', 0.7s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include roll-in(
+///       $variant: 'right',
+///       $duration: 0.8s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin roll-in(
+  $variant: 'left',
+  $duration: 0.6s,
+  $delay: 0s,
+  $easing: ease-out,
+  $iterations: 1,
+  $fill: both
+) {
+  animation: roll-in-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Roll-Inアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['left'] - アニメーションのバリエーション（roll-inと同じ4種類）
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+/// @param {String} $easing [ease-out] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include roll-in-hover('left', 0.7s);
+///   }
+@mixin roll-in-hover(
+  $variant: 'left',
+  $duration: 0.6s,
+  $easing: ease-out
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: roll-in-#{$variant} $duration $easing both;
+    }
+  }
+}
+

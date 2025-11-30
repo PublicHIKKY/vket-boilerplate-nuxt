@@ -1,0 +1,199 @@
+/**
+ * Shadow-Drop Animation (Text with Shadow Drop Effect)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Text Shadow Drop Center
+@keyframes text-shadow-drop-center {
+  0% {
+    text-shadow: 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    text-shadow: 0 0 18px rgb(0 0 0 / 35%);
+  }
+}
+
+// Text Shadow Drop Top
+@keyframes text-shadow-drop-top {
+  0% {
+    text-shadow: 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    text-shadow: 0 -6px 18px rgb(0 0 0 / 35%);
+  }
+}
+
+// Text Shadow Drop Top-Right
+@keyframes text-shadow-drop-tr {
+  0% {
+    text-shadow: 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    text-shadow: 6px -6px 18px rgb(0 0 0 / 35%);
+  }
+}
+
+// Text Shadow Drop Right
+@keyframes text-shadow-drop-right {
+  0% {
+    text-shadow: 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    text-shadow: 6px 0 18px rgb(0 0 0 / 35%);
+  }
+}
+
+// Text Shadow Drop Bottom-Right
+@keyframes text-shadow-drop-br {
+  0% {
+    text-shadow: 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    text-shadow: 6px 6px 18px rgb(0 0 0 / 35%);
+  }
+}
+
+// Text Shadow Drop Bottom
+@keyframes text-shadow-drop-bottom {
+  0% {
+    text-shadow: 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    text-shadow: 0 6px 18px rgb(0 0 0 / 35%);
+  }
+}
+
+// Text Shadow Drop Bottom-Left
+@keyframes text-shadow-drop-bl {
+  0% {
+    text-shadow: 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    text-shadow: -6px 6px 18px rgb(0 0 0 / 35%);
+  }
+}
+
+// Text Shadow Drop Left
+@keyframes text-shadow-drop-left {
+  0% {
+    text-shadow: 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    text-shadow: -6px 0 18px rgb(0 0 0 / 35%);
+  }
+}
+
+// Text Shadow Drop Top-Left
+@keyframes text-shadow-drop-tl {
+  0% {
+    text-shadow: 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    text-shadow: -6px -6px 18px rgb(0 0 0 / 35%);
+  }
+}
+
+// ============================================
+// Mixin: Text Shadow Drop
+// ============================================
+
+/// Text-Shadow-Dropアニメーション（影の出現エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション
+///   9方向の影の出現パターン:
+///     'center'  - 中央（text-shadow 0 0 0→0 0 18px）
+///     'top'     - 上（text-shadow 0 0 0→0 -6px 18px）
+///     'tr'      - 右上（text-shadow 0 0 0→6px -6px 18px）
+///     'right'   - 右（text-shadow 0 0 0→6px 0 18px）
+///     'br'      - 右下（text-shadow 0 0 0→6px 6px 18px）
+///     'bottom'  - 下（text-shadow 0 0 0→0 6px 18px）
+///     'bl'      - 左下（text-shadow 0 0 0→-6px 6px 18px）
+///     'left'    - 左（text-shadow 0 0 0→-6px 0 18px）
+///     'tl'      - 左上（text-shadow 0 0 0→-6px -6px 18px）
+///
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+///   例: 0.6s, 0.8s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [ease] - イージング関数
+///   例: ease, ease-out, linear
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .title {
+///     @include text-shadow-drop('center');
+///   }
+///
+/// @example scss - カスタム設定
+///   .heading {
+///     @include text-shadow-drop('bottom', 0.8s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .text {
+///     @include text-shadow-drop(
+///       $variant: 'br',
+///       $duration: 1s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin text-shadow-drop(
+  $variant: 'center',
+  $duration: 0.6s,
+  $delay: 0s,
+  $easing: ease,
+  $iterations: 1,
+  $fill: both
+) {
+  animation: text-shadow-drop-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Text-Shadow-Dropアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション（text-shadow-dropと同じ9種類）
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+/// @param {String} $easing [ease] - イージング関数
+///
+/// @example scss - タイトルのホバーエフェクト
+///   .title {
+///     @include text-shadow-drop-hover('bottom', 0.8s);
+///   }
+@mixin text-shadow-drop-hover(
+  $variant: 'center',
+  $duration: 0.6s,
+  $easing: ease
+) {
+  transition: text-shadow $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: text-shadow-drop-#{$variant} $duration $easing both;
+    }
+  }
+}
+

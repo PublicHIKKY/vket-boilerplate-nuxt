@@ -1,0 +1,222 @@
+/**
+ * Flip-Scale Animation (Flip with Scale)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Horizontal Scale Up
+@keyframes flip-scale-up-hor {
+  0% {
+    transform: scale(1) rotateX(0);
+  }
+
+  50% {
+    transform: scale(2.5) rotateX(-90deg);
+  }
+
+  100% {
+    transform: scale(1) rotateX(-180deg);
+  }
+}
+
+// Horizontal Scale Down
+@keyframes flip-scale-down-hor {
+  0% {
+    transform: scale(1) rotateX(0);
+  }
+
+  50% {
+    transform: scale(0.4) rotateX(-90deg);
+  }
+
+  100% {
+    transform: scale(1) rotateX(-180deg);
+  }
+}
+
+// Vertical Scale Up
+@keyframes flip-scale-up-ver {
+  0% {
+    transform: scale(1) rotateY(0);
+  }
+
+  50% {
+    transform: scale(2.5) rotateY(90deg);
+  }
+
+  100% {
+    transform: scale(1) rotateY(180deg);
+  }
+}
+
+// Vertical Scale Down
+@keyframes flip-scale-down-ver {
+  0% {
+    transform: scale(1) rotateY(0);
+  }
+
+  50% {
+    transform: scale(0.4) rotateY(90deg);
+  }
+
+  100% {
+    transform: scale(1) rotateY(180deg);
+  }
+}
+
+// Diagonal 1 Scale Up
+@keyframes flip-scale-up-diag-1 {
+  0% {
+    transform: scale(1) rotate3d(1, 1, 0, 0deg);
+  }
+
+  50% {
+    transform: scale(2.5) rotate3d(1, 1, 0, 90deg);
+  }
+
+  100% {
+    transform: scale(1) rotate3d(1, 1, 0, 180deg);
+  }
+}
+
+// Diagonal 1 Scale Down
+@keyframes flip-scale-down-diag-1 {
+  0% {
+    transform: scale(1) rotate3d(1, 1, 0, 0deg);
+  }
+
+  50% {
+    transform: scale(0.4) rotate3d(1, 1, 0, 90deg);
+  }
+
+  100% {
+    transform: scale(1) rotate3d(1, 1, 0, 180deg);
+  }
+}
+
+// Diagonal 2 Scale Up
+@keyframes flip-scale-up-diag-2 {
+  0% {
+    transform: scale(1) rotate3d(-1, 1, 0, 0deg);
+  }
+
+  50% {
+    transform: scale(2.5) rotate3d(-1, 1, 0, 90deg);
+  }
+
+  100% {
+    transform: scale(1) rotate3d(-1, 1, 0, 180deg);
+  }
+}
+
+// Diagonal 2 Scale Down
+@keyframes flip-scale-down-diag-2 {
+  0% {
+    transform: scale(1) rotate3d(-1, 1, 0, 0deg);
+  }
+
+  50% {
+    transform: scale(0.4) rotate3d(-1, 1, 0, 90deg);
+  }
+
+  100% {
+    transform: scale(1) rotate3d(-1, 1, 0, 180deg);
+  }
+}
+
+// ============================================
+// Mixin: Flip Scale
+// ============================================
+
+/// Flip-Scaleアニメーション（スケールを伴うフリップ）を適用するmixin
+///
+/// @param {String} $variant ['up-hor'] - アニメーションのバリエーション
+///   Horizontal (2種類) - X軸フリップ:
+///     'up-hor'   - 水平フリップしながらスケールアップ
+///     'down-hor' - 水平フリップしながらスケールダウン
+///   Vertical (2種類) - Y軸フリップ:
+///     'up-ver'   - 垂直フリップしながらスケールアップ
+///     'down-ver' - 垂直フリップしながらスケールダウン
+///   Diagonal 1 (2種類) - 対角線1方向:
+///     'up-diag-1'   - 対角線フリップしながらスケールアップ
+///     'down-diag-1' - 対角線フリップしながらスケールダウン
+///   Diagonal 2 (2種類) - 対角線2方向:
+///     'up-diag-2'   - 対角線フリップしながらスケールアップ
+///     'down-diag-2' - 対角線フリップしながらスケールダウン
+///
+/// @param {Number} $duration [0.5s] - アニメーションの実行時間
+///   例: 0.4s, 0.6s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [linear] - イージング関数
+///   例: linear, ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include flip-scale('up-hor');
+///   }
+///
+/// @example scss - カスタム設定
+///   .card {
+///     @include flip-scale('down-ver', 0.6s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .card {
+///     @include flip-scale(
+///       $variant: 'up-diag-1',
+///       $duration: 0.8s,
+///       $delay: 0.1s,
+///       $easing: ease-in-out,
+///       $iterations: 2,
+///       $fill: forwards
+///     );
+///   }
+@mixin flip-scale(
+  $variant: 'up-hor',
+  $duration: 0.5s,
+  $delay: 0s,
+  $easing: linear,
+  $iterations: 1,
+  $fill: both
+) {
+  animation: flip-scale-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Flip-Scaleアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['up-hor'] - アニメーションのバリエーション（flip-scaleと同じ8種類）
+/// @param {Number} $duration [0.5s] - アニメーションの実行時間
+/// @param {String} $easing [linear] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include flip-scale-hover('up-hor', 0.6s);
+///   }
+@mixin flip-scale-hover(
+  $variant: 'up-hor',
+  $duration: 0.5s,
+  $easing: linear
+) {
+  transition: transform $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: flip-scale-#{$variant} $duration $easing both;
+    }
+  }
+}
+

@@ -1,0 +1,252 @@
+/**
+ * Fade-In Animation (Entrance with Opacity Transition)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Basic
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+// Forward
+@keyframes fade-in-fwd {
+  0% {
+    transform: translateZ(-80px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateZ(0);
+    opacity: 1;
+  }
+}
+
+// Backward
+@keyframes fade-in-bck {
+  0% {
+    transform: translateZ(80px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateZ(0);
+    opacity: 1;
+  }
+}
+
+// Top
+@keyframes fade-in-top {
+  0% {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// Top Right
+@keyframes fade-in-tr {
+  0% {
+    transform: translateX(50px) translateY(-50px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0) translateY(0);
+    opacity: 1;
+  }
+}
+
+// Right
+@keyframes fade-in-right {
+  0% {
+    transform: translateX(50px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+// Bottom Right
+@keyframes fade-in-br {
+  0% {
+    transform: translateX(50px) translateY(50px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0) translateY(0);
+    opacity: 1;
+  }
+}
+
+// Bottom
+@keyframes fade-in-bottom {
+  0% {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// Bottom Left
+@keyframes fade-in-bl {
+  0% {
+    transform: translateX(-50px) translateY(50px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0) translateY(0);
+    opacity: 1;
+  }
+}
+
+// Left
+@keyframes fade-in-left {
+  0% {
+    transform: translateX(-50px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+// Top Left
+@keyframes fade-in-tl {
+  0% {
+    transform: translateX(-50px) translateY(-50px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0) translateY(0);
+    opacity: 1;
+  }
+}
+
+// ============================================
+// Mixin: Fade In
+// ============================================
+
+/// Fade-Inアニメーション（透明度変化による入場エフェクト）を適用するmixin
+///
+/// @param {String} $variant [''] - アニメーションのバリエーション
+///   Basic & Depth (3種類):
+///     ''    - 基本（opacity 0→1のみ）
+///     'fwd' - 前方から（translateZ -80px→0 + opacity）
+///     'bck' - 後方から（translateZ 80px→0 + opacity）
+///   Directional (8種類) - 8方向からのフェード入場:
+///     'top'    - 上から（translateY -50px→0 + opacity）
+///     'tr'     - 右上から（translateX 50px + translateY -50px→0 + opacity）
+///     'right'  - 右から（translateX 50px→0 + opacity）
+///     'br'     - 右下から（translateX 50px + translateY 50px→0 + opacity）
+///     'bottom' - 下から（translateY 50px→0 + opacity）
+///     'bl'     - 左下から（translateX -50px + translateY 50px→0 + opacity）
+///     'left'   - 左から（translateX -50px→0 + opacity）
+///     'tl'     - 左上から（translateX -50px + translateY -50px→0 + opacity）
+///
+/// @param {Number} $duration [1.2s] - アニメーションの実行時間
+///   例: 0.6s, 1s, 1.5s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.390, 0.575, 0.565, 1.000)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include fade-in();
+///   }
+///
+/// @example scss - カスタム設定
+///   .modal {
+///     @include fade-in('top', 0.6s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include fade-in(
+///       $variant: 'tr',
+///       $duration: 1s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin fade-in(
+  $variant: '',
+  $duration: 1.2s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.390, 0.575, 0.565, 1.000),
+  $iterations: 1,
+  $fill: both
+) {
+  @if $variant == '' {
+    animation: fade-in $duration $easing $delay $iterations normal $fill;
+  } @else {
+    animation: fade-in-#{$variant} $duration $easing $delay $iterations normal $fill;
+  }
+}
+
+/// Fade-Inアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant [''] - アニメーションのバリエーション（fade-inと同じ11種類）
+/// @param {Number} $duration [1.2s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.390, 0.575, 0.565, 1.000)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include fade-in-hover('top', 0.6s);
+///   }
+@mixin fade-in-hover(
+  $variant: '',
+  $duration: 1.2s,
+  $easing: cubic-bezier(0.390, 0.575, 0.565, 1.000)
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @if $variant == '' {
+        animation: fade-in $duration $easing both;
+      } @else {
+        animation: fade-in-#{$variant} $duration $easing both;
+      }
+    }
+  }
+}
+

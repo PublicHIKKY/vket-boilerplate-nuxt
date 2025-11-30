@@ -1,0 +1,227 @@
+/**
+ * Shadow-Drop Animation (Box Shadow Appearance)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Center
+@keyframes shadow-drop-center {
+  0% {
+    box-shadow: 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: 0 0 20px 0 rgb(0 0 0 / 35%);
+  }
+}
+
+// Top
+@keyframes shadow-drop-top {
+  0% {
+    box-shadow: 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: 0 -12px 20px -12px rgb(0 0 0 / 35%);
+  }
+}
+
+// Right
+@keyframes shadow-drop-right {
+  0% {
+    box-shadow: 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: 12px 0 20px -12px rgb(0 0 0 / 35%);
+  }
+}
+
+// Bottom
+@keyframes shadow-drop-bottom {
+  0% {
+    box-shadow: 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: 0 12px 20px -12px rgb(0 0 0 / 35%);
+  }
+}
+
+// Left
+@keyframes shadow-drop-left {
+  0% {
+    box-shadow: 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: -12px 0 20px -12px rgb(0 0 0 / 35%);
+  }
+}
+
+// Left-Right
+@keyframes shadow-drop-lr {
+  0% {
+    box-shadow: 0 0 0 0 rgb(0 0 0 / 0%), 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: -12px 0 20px -12px rgb(0 0 0 / 35%),
+      12px 0 20px -12px rgb(0 0 0 / 35%);
+  }
+}
+
+// Top-Bottom
+@keyframes shadow-drop-tb {
+  0% {
+    box-shadow: 0 0 0 0 rgb(0 0 0 / 0%), 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: 0 -12px 20px -12px rgb(0 0 0 / 35%),
+      0 12px 20px -12px rgb(0 0 0 / 35%);
+  }
+}
+
+// Top Right
+@keyframes shadow-drop-tr {
+  0% {
+    box-shadow: 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: 12px -12px 20px -12px rgb(0 0 0 / 35%);
+  }
+}
+
+// Bottom Right
+@keyframes shadow-drop-br {
+  0% {
+    box-shadow: 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: 12px 12px 20px -12px rgb(0 0 0 / 35%);
+  }
+}
+
+// Bottom Left
+@keyframes shadow-drop-bl {
+  0% {
+    box-shadow: 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: -12px 12px 20px -12px rgb(0 0 0 / 35%);
+  }
+}
+
+// Top Left
+@keyframes shadow-drop-tl {
+  0% {
+    box-shadow: 0 0 0 0 rgb(0 0 0 / 0%);
+  }
+
+  100% {
+    box-shadow: -12px -12px 20px -12px rgb(0 0 0 / 35%);
+  }
+}
+
+// ============================================
+// Mixin: Shadow Drop
+// ============================================
+
+/// Shadow-Dropアニメーション（ボックスシャドウの出現）を適用するmixin
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション
+///   Basic (5種類) - 単一方向のシャドウ:
+///     'center' - 中心から全方向へシャドウ
+///     'top'    - 上方向へシャドウ
+///     'right'  - 右方向へシャドウ
+///     'bottom' - 下方向へシャドウ
+///     'left'   - 左方向へシャドウ
+///   Combined (2種類) - 2方向同時のシャドウ:
+///     'lr' - 左右方向へシャドウ
+///     'tb' - 上下方向へシャドウ
+///   Diagonal (4種類) - 対角線方向のシャドウ:
+///     'tr' - 右上方向へシャドウ
+///     'br' - 右下方向へシャドウ
+///     'bl' - 左下方向へシャドウ
+///     'tl' - 左上方向へシャドウ
+///
+/// @param {Number} $duration [0.4s] - アニメーションの実行時間
+///   例: 0.3s, 0.5s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include shadow-drop('center');
+///   }
+///
+/// @example scss - カスタム設定
+///   .card {
+///     @include shadow-drop('bottom', 0.5s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .card {
+///     @include shadow-drop(
+///       $variant: 'lr',
+///       $duration: 0.6s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 2,
+///       $fill: forwards
+///     );
+///   }
+@mixin shadow-drop(
+  $variant: 'center',
+  $duration: 0.4s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: shadow-drop-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Shadow-Dropアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション（shadow-dropと同じ11種類）
+/// @param {Number} $duration [0.4s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include shadow-drop-hover('bottom', 0.5s);
+///   }
+@mixin shadow-drop-hover(
+  $variant: 'center',
+  $duration: 0.4s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940)
+) {
+  transition: box-shadow $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: shadow-drop-#{$variant} $duration $easing both;
+    }
+  }
+}
+

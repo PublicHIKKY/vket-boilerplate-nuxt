@@ -1,0 +1,254 @@
+/**
+ * Fade-Out Animation (Exit with Fade + Optional Movement)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Basic Fade Out
+@keyframes fade-out {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+// Fade Out Back
+@keyframes fade-out-bck {
+  0% {
+    transform: translateZ(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(-80px);
+    opacity: 0;
+  }
+}
+
+// Fade Out Forward
+@keyframes fade-out-fwd {
+  0% {
+    transform: translateZ(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(80px);
+    opacity: 0;
+  }
+}
+
+// Fade Out Top
+@keyframes fade-out-top {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+}
+
+// Fade Out Top Right
+@keyframes fade-out-tr {
+  0% {
+    transform: translateX(0) translateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(50px) translateY(-50px);
+    opacity: 0;
+  }
+}
+
+// Fade Out Right
+@keyframes fade-out-right {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(50px);
+    opacity: 0;
+  }
+}
+
+// Fade Out Bottom Right
+@keyframes fade-out-br {
+  0% {
+    transform: translateX(0) translateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(50px) translateY(50px);
+    opacity: 0;
+  }
+}
+
+// Fade Out Bottom
+@keyframes fade-out-bottom {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+}
+
+// Fade Out Bottom Left
+@keyframes fade-out-bl {
+  0% {
+    transform: translateX(0) translateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(-50px) translateY(50px);
+    opacity: 0;
+  }
+}
+
+// Fade Out Left
+@keyframes fade-out-left {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(-50px);
+    opacity: 0;
+  }
+}
+
+// Fade Out Top Left
+@keyframes fade-out-tl {
+  0% {
+    transform: translateX(0) translateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(-50px) translateY(-50px);
+    opacity: 0;
+  }
+}
+
+// ============================================
+// Mixin: Fade Out
+// ============================================
+
+/// Fade-Outアニメーション（フェードによる退場エフェクト）を適用するmixin
+///
+/// @param {String} $variant [''] - アニメーションのバリエーション
+///   Basic:
+///     ''       - 基本フェード（opacity 1→0）
+///   Depth (2種類) - Z軸移動を伴うフェード:
+///     'bck'    - 後方へ（translateZ 0→-80px + opacity 1→0）
+///     'fwd'    - 前方へ（translateZ 0→80px + opacity 1→0）
+///   Directional (4種類) - 方向移動を伴うフェード:
+///     'top'    - 上へ（translateY 0→-50px + opacity 1→0）
+///     'right'  - 右へ（translateX 0→50px + opacity 1→0）
+///     'bottom' - 下へ（translateY 0→50px + opacity 1→0）
+///     'left'   - 左へ（translateX 0→-50px + opacity 1→0）
+///   Diagonal (4種類) - 斜め移動を伴うフェード:
+///     'tr'     - 右上へ（translateX 0→50px + translateY 0→-50px + opacity 1→0）
+///     'br'     - 右下へ（translateX 0→50px + translateY 0→50px + opacity 1→0）
+///     'bl'     - 左下へ（translateX 0→-50px + translateY 0→50px + opacity 1→0）
+///     'tl'     - 左上へ（translateX 0→-50px + translateY 0→-50px + opacity 1→0）
+///
+/// @param {Number} $duration [1s] - アニメーションの実行時間
+///   例: 0.7s, 1s, 1.2s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [ease-out] - イージング関数
+///   例: ease-out, cubic-bezier(0.250, 0.460, 0.450, 0.940)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include fade-out();
+///   }
+///
+/// @example scss - カスタム設定
+///   .modal {
+///     @include fade-out('top', 0.7s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include fade-out(
+///       $variant: 'br',
+///       $duration: 1.2s,
+///       $delay: 0.1s,
+///       $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940),
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin fade-out(
+  $variant: '',
+  $duration: 1s,
+  $delay: 0s,
+  $easing: ease-out,
+  $iterations: 1,
+  $fill: both
+) {
+  @if $variant == '' {
+    animation: fade-out $duration $easing $delay $iterations normal $fill;
+  } @else {
+    animation: fade-out-#{$variant} $duration $easing $delay $iterations normal $fill;
+  }
+}
+
+/// Fade-Outアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant [''] - アニメーションのバリエーション（fade-outと同じ11種類）
+/// @param {Number} $duration [1s] - アニメーションの実行時間
+/// @param {String} $easing [ease-out] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include fade-out-hover('top', 0.7s);
+///   }
+@mixin fade-out-hover(
+  $variant: '',
+  $duration: 1s,
+  $easing: ease-out
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @if $variant == '' {
+        animation: fade-out $duration $easing both;
+      } @else {
+        animation: fade-out-#{$variant} $duration $easing both;
+      }
+    }
+  }
+}
+

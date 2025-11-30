@@ -1,0 +1,161 @@
+/**
+ * Background Pan Animation (Background Position Pan Effect)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Background Pan Left
+@keyframes bg-pan-left {
+  0% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+// Background Pan Right
+@keyframes bg-pan-right {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+// Background Pan Top
+@keyframes bg-pan-top {
+  0% {
+    background-position: 50% 100%;
+  }
+
+  100% {
+    background-position: 50% 0%;
+  }
+}
+
+// Background Pan Bottom
+@keyframes bg-pan-bottom {
+  0% {
+    background-position: 50% 0%;
+  }
+
+  100% {
+    background-position: 50% 100%;
+  }
+}
+
+// Background Pan Top Right
+@keyframes bg-pan-tr {
+  0% {
+    background-position: 0% 100%;
+  }
+
+  100% {
+    background-position: 100% 0%;
+  }
+}
+
+// Background Pan Bottom Right
+@keyframes bg-pan-br {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  100% {
+    background-position: 100% 100%;
+  }
+}
+
+// Background Pan Bottom Left
+@keyframes bg-pan-bl {
+  0% {
+    background-position: 100% 0%;
+  }
+
+  100% {
+    background-position: 0% 100%;
+  }
+}
+
+// Background Pan Top Left
+@keyframes bg-pan-tl {
+  0% {
+    background-position: 100% 100%;
+  }
+
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+// ============================================
+// Mixin: Background Pan
+// ============================================
+
+/// Background Panアニメーション（背景位置のパン効果）を適用するmixin
+///
+/// @param {String} $variant ['left'] - アニメーションのバリエーション
+///   8方向のパンパターン:
+///     'left'   - 左方向（100% 50% → 0% 50%）
+///     'right'  - 右方向（0% 50% → 100% 50%）
+///     'top'    - 上方向（50% 100% → 50% 0%）
+///     'bottom' - 下方向（50% 0% → 50% 100%）
+///     'tr'     - 右上方向（0% 100% → 100% 0%）
+///     'br'     - 右下方向（0% 0% → 100% 100%）
+///     'bl'     - 左下方向（100% 0% → 0% 100%）
+///     'tl'     - 左上方向（100% 100% → 0% 0%）
+///
+/// @param {Number} $duration [8s] - アニメーションの実行時間
+///   例: 8s, 5s, 10s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.5s, 1s
+///
+/// @param {String} $easing [ease] - イージング関数
+///   例: ease, linear, ease-in-out
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .hero-background {
+///     @include bg-pan('left');
+///   }
+///
+/// @example scss - カスタム設定
+///   .gradient-bg {
+///     @include bg-pan('tr', 10s, 0s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .animated-bg {
+///     @include bg-pan(
+///       $variant: 'bottom',
+///       $duration: 12s,
+///       $delay: 0.5s,
+///       $easing: linear,
+///       $iterations: infinite,
+///       $fill: both
+///     );
+///   }
+@mixin bg-pan(
+  $variant: 'left',
+  $duration: 8s,
+  $delay: 0s,
+  $easing: ease,
+  $iterations: 1,
+  $fill: both
+) {
+  animation: bg-pan-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+

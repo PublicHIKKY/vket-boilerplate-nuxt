@@ -1,0 +1,217 @@
+/**
+ * Slide-Out-Fwd Animation (Exit with Forward Slide + Opacity Fade)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Center
+@keyframes slide-out-fwd-center {
+  0% {
+    transform: translateZ(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(600px);
+    opacity: 0;
+  }
+}
+
+// Top
+@keyframes slide-out-fwd-top {
+  0% {
+    transform: translateZ(1) translateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(600px) translateY(-300px);
+    opacity: 0;
+  }
+}
+
+// Top Right
+@keyframes slide-out-fwd-tr {
+  0% {
+    transform: translateZ(0) translateY(0) translateX(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(600px) translateY(-300px) translateX(400px);
+    opacity: 0;
+  }
+}
+
+// Right
+@keyframes slide-out-fwd-right {
+  0% {
+    transform: translateZ(0) translateX(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(600px) translateX(400px);
+    opacity: 0;
+  }
+}
+
+// Bottom Right
+@keyframes slide-out-fwd-br {
+  0% {
+    transform: translateZ(0) translateY(0) translateX(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(600px) translateY(300px) translateX(400px);
+    opacity: 0;
+  }
+}
+
+// Bottom
+@keyframes slide-out-fwd-bottom {
+  0% {
+    transform: translateZ(0) translateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(600px) translateY(300px);
+    opacity: 0;
+  }
+}
+
+// Bottom Left
+@keyframes slide-out-fwd-bl {
+  0% {
+    transform: translateZ(0) translateY(0) translateX(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(600px) translateY(300px) translateX(-400px);
+    opacity: 0;
+  }
+}
+
+// Left
+@keyframes slide-out-fwd-left {
+  0% {
+    transform: translateZ(0) translateX(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(600px) translateX(-400px);
+    opacity: 0;
+  }
+}
+
+// Top Left
+@keyframes slide-out-fwd-tl {
+  0% {
+    transform: translateZ(0) translateY(0) translateX(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(600px) translateY(-300px) translateX(-400px);
+    opacity: 0;
+  }
+}
+
+// ============================================
+// Mixin: Slide Out Fwd
+// ============================================
+
+/// Slide-Out-Fwdアニメーション（前方へのスライドによる退場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション
+///   Directional (9種類) - 前方へのスライドによる退場:
+///     'center' - 中心から前方へ（translateZ 1→600px + opacity 1→0）
+///     'top'    - 上から前方へ（translateZ 1→600px + translateY 0→-300px + opacity 1→0）
+///     'tr'     - 右上から前方へ（translateZ 0→600px + translateY 0→-300px + translateX 0→400px + opacity 1→0）
+///     'right'  - 右から前方へ（translateZ 0→600px + translateX 0→400px + opacity 1→0）
+///     'br'     - 右下から前方へ（translateZ 0→600px + translateY 0→300px + translateX 0→400px + opacity 1→0）
+///     'bottom' - 下から前方へ（translateZ 0→600px + translateY 0→300px + opacity 1→0）
+///     'bl'     - 左下から前方へ（translateZ 0→600px + translateY 0→300px + translateX 0→-400px + opacity 1→0）
+///     'left'   - 左から前方へ（translateZ 0→600px + translateX 0→-400px + opacity 1→0）
+///     'tl'     - 左上から前方へ（translateZ 0→600px + translateY 0→-300px + translateX 0→-400px + opacity 1→0）
+///
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+///   例: 0.4s, 0.6s, 0.8s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.550, 0.085, 0.680, 0.530)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include slide-out-fwd('center');
+///   }
+///
+/// @example scss - カスタム設定
+///   .modal {
+///     @include slide-out-fwd('top', 0.4s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include slide-out-fwd(
+///       $variant: 'br',
+///       $duration: 0.7s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin slide-out-fwd(
+  $variant: 'center',
+  $duration: 0.6s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.550, 0.085, 0.680, 0.530),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: slide-out-fwd-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Slide-Out-Fwdアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション（slide-out-fwdと同じ9種類）
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.550, 0.085, 0.680, 0.530)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include slide-out-fwd-hover('center', 0.4s);
+///   }
+@mixin slide-out-fwd-hover(
+  $variant: 'center',
+  $duration: 0.6s,
+  $easing: cubic-bezier(0.550, 0.085, 0.680, 0.530)
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: slide-out-fwd-#{$variant} $duration $easing both;
+    }
+  }
+}
+

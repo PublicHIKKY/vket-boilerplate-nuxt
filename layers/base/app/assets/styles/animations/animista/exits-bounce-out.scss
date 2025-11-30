@@ -1,0 +1,380 @@
+/**
+ * Bounce-Out Animation (Exit with Bouncing Motion + Opacity Fade)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Top
+@keyframes bounce-out-top {
+  0% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+
+  5% {
+    transform: translateY(-30px);
+    animation-timing-function: ease-in;
+  }
+
+  15% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+
+  25% {
+    transform: translateY(-38px);
+    animation-timing-function: ease-in;
+  }
+
+  38% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+
+  52% {
+    transform: translateY(-75px);
+    animation-timing-function: ease-in;
+  }
+
+  70% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+
+  85% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-800px);
+    opacity: 0;
+  }
+}
+
+// Right
+@keyframes bounce-out-right {
+  0% {
+    transform: translateX(0);
+    animation-timing-function: ease-out;
+  }
+
+  5% {
+    transform: translateX(30px);
+    animation-timing-function: ease-in;
+  }
+
+  15% {
+    transform: translateX(0);
+    animation-timing-function: ease-out;
+  }
+
+  25% {
+    transform: translateX(38px);
+    animation-timing-function: ease-in;
+  }
+
+  38% {
+    transform: translateX(0);
+    animation-timing-function: ease-out;
+  }
+
+  52% {
+    transform: translateX(80px);
+    animation-timing-function: ease-in;
+  }
+
+  70% {
+    transform: translateX(0);
+    animation-timing-function: ease-out;
+  }
+
+  85% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(1000px);
+    opacity: 0;
+  }
+}
+
+// Bottom
+@keyframes bounce-out-bottom {
+  0% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+
+  5% {
+    transform: translateY(30px);
+    animation-timing-function: ease-in;
+  }
+
+  15% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+
+  25% {
+    transform: translateY(38px);
+    animation-timing-function: ease-in;
+  }
+
+  38% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+
+  52% {
+    transform: translateY(75px);
+    animation-timing-function: ease-in;
+  }
+
+  70% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+
+  85% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(800px);
+    opacity: 0;
+  }
+}
+
+// Left
+@keyframes bounce-out-left {
+  0% {
+    transform: translateX(0);
+    animation-timing-function: ease-out;
+  }
+
+  5% {
+    transform: translateX(-30px);
+    animation-timing-function: ease-in;
+  }
+
+  15% {
+    transform: translateX(0);
+    animation-timing-function: ease-out;
+  }
+
+  25% {
+    transform: translateX(-38px);
+    animation-timing-function: ease-in;
+  }
+
+  38% {
+    transform: translateX(0);
+    animation-timing-function: ease-out;
+  }
+
+  52% {
+    transform: translateX(-80px);
+    animation-timing-function: ease-in;
+  }
+
+  70% {
+    transform: translateX(0);
+    animation-timing-function: ease-out;
+  }
+
+  85% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(-1000px);
+    opacity: 0;
+  }
+}
+
+// Back
+@keyframes bounce-out-bck {
+  0% {
+    transform: translateZ(0);
+    animation-timing-function: ease-out;
+  }
+
+  5% {
+    transform: translateZ(-90px);
+    animation-timing-function: ease-in;
+  }
+
+  15% {
+    transform: translateZ(0);
+    animation-timing-function: ease-out;
+  }
+
+  25% {
+    transform: translateZ(-95px);
+    animation-timing-function: ease-in;
+  }
+
+  38% {
+    transform: translateZ(0);
+    animation-timing-function: ease-out;
+  }
+
+  52% {
+    transform: translateZ(-150px);
+    animation-timing-function: ease-in;
+  }
+
+  70% {
+    transform: translateZ(0);
+    animation-timing-function: ease-out;
+  }
+
+  85% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(-600px);
+    opacity: 0;
+  }
+}
+
+// Forward
+@keyframes bounce-out-fwd {
+  0% {
+    transform: translateZ(0);
+    animation-timing-function: ease-out;
+  }
+
+  5% {
+    transform: translateZ(90px);
+    animation-timing-function: ease-in;
+  }
+
+  15% {
+    transform: translateZ(0);
+    animation-timing-function: ease-out;
+  }
+
+  25% {
+    transform: translateZ(95px);
+    animation-timing-function: ease-in;
+  }
+
+  38% {
+    transform: translateZ(0);
+    animation-timing-function: ease-out;
+  }
+
+  52% {
+    transform: translateZ(150px);
+    animation-timing-function: ease-in;
+  }
+
+  70% {
+    transform: translateZ(0);
+    animation-timing-function: ease-out;
+  }
+
+  85% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateZ(500px);
+    opacity: 0;
+    animation-timing-function: ease-in;
+  }
+}
+
+// ============================================
+// Mixin: Bounce Out
+// ============================================
+
+/// Bounce-Outアニメーション（バウンスによる退場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['top'] - アニメーションのバリエーション
+///   Directional (6種類) - バウンスによる退場:
+///     'top'    - 上へ（複数回バウンス後 translateY 0→-800px + opacity 1→0）
+///     'right'  - 右へ（複数回バウンス後 translateX 0→1000px + opacity 1→0）
+///     'bottom' - 下へ（複数回バウンス後 translateY 0→800px + opacity 1→0）
+///     'left'   - 左へ（複数回バウンス後 translateX 0→-1000px + opacity 1→0）
+///     'bck'    - 後方へ（複数回バウンス後 translateZ 0→-600px + opacity 1→0）
+///     'fwd'    - 前方へ（複数回バウンス後 translateZ 0→500px + opacity 1→0）
+///
+/// @param {Number} $duration [1.5s] - アニメーションの実行時間
+///   例: 1s, 1.5s, 2s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [ease] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include bounce-out('top');
+///   }
+///
+/// @example scss - カスタム設定
+///   .modal {
+///     @include bounce-out('right', 1.2s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include bounce-out(
+///       $variant: 'bck',
+///       $duration: 1.8s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin bounce-out(
+  $variant: 'top',
+  $duration: 1.5s,
+  $delay: 0s,
+  $easing: ease,
+  $iterations: 1,
+  $fill: both
+) {
+  animation: bounce-out-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Bounce-Outアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['top'] - アニメーションのバリエーション（bounce-outと同じ6種類）
+/// @param {Number} $duration [1.5s] - アニメーションの実行時間
+/// @param {String} $easing [ease] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include bounce-out-hover('top', 1.2s);
+///   }
+@mixin bounce-out-hover(
+  $variant: 'top',
+  $duration: 1.5s,
+  $easing: ease
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: bounce-out-#{$variant} $duration $easing both;
+    }
+  }
+}
+

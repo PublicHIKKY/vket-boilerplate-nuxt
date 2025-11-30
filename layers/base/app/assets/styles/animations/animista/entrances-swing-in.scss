@@ -1,0 +1,219 @@
+/**
+ * Swing-In Animation (Entrance with Swinging Rotation Effect + Opacity)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Top Forward
+@keyframes swing-in-top-fwd {
+  0% {
+    transform-origin: top;
+    transform: rotateX(-100deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: top;
+    transform: rotateX(0deg);
+    opacity: 1;
+  }
+}
+
+// Top Backward
+@keyframes swing-in-top-bck {
+  0% {
+    transform-origin: top;
+    transform: rotateX(70deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: top;
+    transform: rotateX(0deg);
+    opacity: 1;
+  }
+}
+
+// Right Forward
+@keyframes swing-in-right-fwd {
+  0% {
+    transform-origin: right;
+    transform: rotateY(-100deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: right;
+    transform: rotateY(0);
+    opacity: 1;
+  }
+}
+
+// Right Backward
+@keyframes swing-in-right-bck {
+  0% {
+    transform-origin: right;
+    transform: rotateY(70deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: right;
+    transform: rotateY(0);
+    opacity: 1;
+  }
+}
+
+// Bottom Forward
+@keyframes swing-in-bottom-fwd {
+  0% {
+    transform-origin: bottom;
+    transform: rotateX(100deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: bottom;
+    transform: rotateX(0);
+    opacity: 1;
+  }
+}
+
+// Bottom Backward
+@keyframes swing-in-bottom-bck {
+  0% {
+    transform-origin: bottom;
+    transform: rotateX(-70deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: bottom;
+    transform: rotateX(0);
+    opacity: 1;
+  }
+}
+
+// Left Forward
+@keyframes swing-in-left-fwd {
+  0% {
+    transform-origin: left;
+    transform: rotateY(100deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: left;
+    transform: rotateY(0);
+    opacity: 1;
+  }
+}
+
+// Left Backward
+@keyframes swing-in-left-bck {
+  0% {
+    transform-origin: left;
+    transform: rotateY(-70deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: left;
+    transform: rotateY(0);
+    opacity: 1;
+  }
+}
+
+// ============================================
+// Mixin: Swing In
+// ============================================
+
+/// Swing-Inアニメーション（スイング回転による入場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['top-fwd'] - アニメーションのバリエーション
+///   Directional Forward/Backward (8種類) - 4方向×前方/後方のスイング入場:
+///     'top-fwd'    - 上から前方へ（rotateX -100deg→0、transform-origin: top）
+///     'top-bck'    - 上から後方へ（rotateX 70deg→0、transform-origin: top）
+///     'right-fwd'  - 右から前方へ（rotateY -100deg→0、transform-origin: right）
+///     'right-bck'  - 右から後方へ（rotateY 70deg→0、transform-origin: right）
+///     'bottom-fwd' - 下から前方へ（rotateX 100deg→0、transform-origin: bottom）
+///     'bottom-bck' - 下から後方へ（rotateX -70deg→0、transform-origin: bottom）
+///     'left-fwd'   - 左から前方へ（rotateY 100deg→0、transform-origin: left）
+///     'left-bck'   - 左から後方へ（rotateY -70deg→0、transform-origin: left）
+///
+/// @param {Number} $duration [0.5s] - アニメーションの実行時間
+///   例: 0.4s, 0.6s, 0.7s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.175, 0.885, 0.320, 1.275)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include swing-in('top-fwd');
+///   }
+///
+/// @example scss - カスタム設定
+///   .modal {
+///     @include swing-in('right-fwd', 0.6s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include swing-in(
+///       $variant: 'bottom-bck',
+///       $duration: 0.7s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin swing-in(
+  $variant: 'top-fwd',
+  $duration: 0.5s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.175, 0.885, 0.320, 1.275),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: swing-in-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Swing-Inアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['top-fwd'] - アニメーションのバリエーション（swing-inと同じ8種類）
+/// @param {Number} $duration [0.5s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.175, 0.885, 0.320, 1.275)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include swing-in-hover('top-fwd', 0.6s);
+///   }
+@mixin swing-in-hover(
+  $variant: 'top-fwd',
+  $duration: 0.5s,
+  $easing: cubic-bezier(0.175, 0.885, 0.320, 1.275)
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: swing-in-#{$variant} $duration $easing both;
+    }
+  }
+}
+

@@ -1,0 +1,292 @@
+/**
+ * Rotate-Scale Animation
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Rotate Scale Up (Z-axis)
+@keyframes rotate-scale-up {
+  0% {
+    transform: scale(1) rotateZ(0);
+  }
+
+  50% {
+    transform: scale(2) rotateZ(180deg);
+  }
+
+  100% {
+    transform: scale(1) rotateZ(360deg);
+  }
+}
+
+// Rotate Scale Down (Z-axis)
+@keyframes rotate-scale-down {
+  0% {
+    transform: scale(1) rotateZ(0);
+  }
+
+  50% {
+    transform: scale(0.5) rotateZ(180deg);
+  }
+
+  100% {
+    transform: scale(1) rotateZ(360deg);
+  }
+}
+
+// Rotate Scale Up Horizontal (X-axis)
+@keyframes rotate-scale-up-hor {
+  0% {
+    transform: scale(1) rotateX(0);
+  }
+
+  50% {
+    transform: scale(2) rotateX(-180deg);
+  }
+
+  100% {
+    transform: scale(1) rotateX(-360deg);
+  }
+}
+
+// Rotate Scale Down Horizontal (X-axis)
+@keyframes rotate-scale-down-hor {
+  0% {
+    transform: scale(1) rotateX(0);
+  }
+
+  50% {
+    transform: scale(0.5) rotateX(-180deg);
+  }
+
+  100% {
+    transform: scale(1) rotateX(-360deg);
+  }
+}
+
+// Rotate Scale Up Vertical (Y-axis)
+@keyframes rotate-scale-up-ver {
+  0% {
+    transform: scale(1) rotateY(0);
+  }
+
+  50% {
+    transform: scale(2) rotateY(180deg);
+  }
+
+  100% {
+    transform: scale(1) rotateY(360deg);
+  }
+}
+
+// Rotate Scale Down Vertical (Y-axis)
+@keyframes rotate-scale-down-ver {
+  0% {
+    transform: scale(1) rotateY(0);
+  }
+
+  50% {
+    transform: scale(0.5) rotateY(180deg);
+  }
+
+  100% {
+    transform: scale(1) rotateY(360deg);
+  }
+}
+
+// Rotate Scale Up Forward (3D - Z-axis translation with rotation)
+@keyframes rotate-scale-up-fwd {
+  0% {
+    transform: translateZ(0) rotateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateZ(160px) rotateY(180deg) scale(1.5);
+  }
+
+  100% {
+    transform: translateZ(0) rotateY(360deg) scale(1);
+  }
+}
+
+// Rotate Scale Down Forward (3D - Z-axis translation with rotation)
+@keyframes rotate-scale-down-fwd {
+  0% {
+    transform: translateZ(0) rotateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateZ(160px) rotateY(180deg) scale(0.5);
+  }
+
+  100% {
+    transform: translateZ(0) rotateY(360deg) scale(1);
+  }
+}
+
+// Rotate Scale Up Diagonal 1 (3D)
+@keyframes rotate-scale-up-diag-1 {
+  0% {
+    transform: scale(1) rotate3d(1, 1, 0, 0deg);
+  }
+
+  50% {
+    transform: scale(2) rotate3d(1, 1, 0, 180deg);
+  }
+
+  100% {
+    transform: scale(1) rotate3d(1, 1, 0, 360deg);
+  }
+}
+
+// Rotate Scale Down Diagonal 1 (3D)
+@keyframes rotate-scale-down-diag-1 {
+  0% {
+    transform: scale(1) rotate3d(1, 1, 0, 0deg);
+  }
+
+  50% {
+    transform: scale(0.5) rotate3d(1, 1, 0, 180deg);
+  }
+
+  100% {
+    transform: scale(1) rotate3d(1, 1, 0, 360deg);
+  }
+}
+
+// Rotate Scale Up Diagonal 2 (3D)
+@keyframes rotate-scale-up-diag-2 {
+  0% {
+    transform: scale(1) rotate3d(-1, 1, 0, 0deg);
+  }
+
+  50% {
+    transform: scale(2) rotate3d(-1, 1, 0, 180deg);
+  }
+
+  100% {
+    transform: scale(1) rotate3d(-1, 1, 0, 360deg);
+  }
+}
+
+// Rotate Scale Down Diagonal 2 (3D)
+@keyframes rotate-scale-down-diag-2 {
+  0% {
+    transform: scale(1) rotate3d(-1, 1, 0, 0deg);
+  }
+
+  50% {
+    transform: scale(0.5) rotate3d(-1, 1, 0, 180deg);
+  }
+
+  100% {
+    transform: scale(1) rotate3d(-1, 1, 0, 360deg);
+  }
+}
+
+// ============================================
+// Mixin: Rotate Scale
+// ============================================
+
+/// Rotate-Scaleアニメーションを適用するmixin
+///
+/// @param {String} $variant ['up'] - アニメーションのバリエーション
+///   Basic (2種類) - Z軸回転:
+///     'up'   - 回転しながらスケールアップ
+///     'down' - 回転しながらスケールダウン
+///   Horizontal (2種類) - X軸回転:
+///     'up-hor'   - 水平回転しながらスケールアップ
+///     'down-hor' - 水平回転しながらスケールダウン
+///   Vertical (2種類) - Y軸回転:
+///     'up-ver'   - 垂直回転しながらスケールアップ
+///     'down-ver' - 垂直回転しながらスケールダウン
+///   Forward (2種類) - 3D前方移動回転:
+///     'up-fwd'   - 前方に移動しながらスケールアップして回転
+///     'down-fwd' - 前方に移動しながらスケールダウンして回転
+///   Diagonal (4種類) - 3D回転:
+///     'up-diag-1'   - 対角線1方向にスケールアップしながら回転
+///     'down-diag-1' - 対角線1方向にスケールダウンしながら回転
+///     'up-diag-2'   - 対角線2方向にスケールアップしながら回転
+///     'down-diag-2' - 対角線2方向にスケールダウンしながら回転
+///
+/// @param {Number} $duration [0.65s] - アニメーションの実行時間
+///   例: 0.5s, 0.8s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [linear] - イージング関数
+///   例: linear, ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .box {
+///     @include rotate-scale('up');
+///   }
+///
+/// @example scss - カスタム設定
+///   .box {
+///     @include rotate-scale('down-ver', 0.8s, 0.2s);
+///   }
+///
+/// @example scss - 無限ループ
+///   .box {
+///     @include rotate-scale('up', 2s, 0s, linear, infinite);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .box {
+///     @include rotate-scale(
+///       $variant: 'up-hor',
+///       $duration: 1s,
+///       $delay: 0.1s,
+///       $easing: ease-in-out,
+///       $iterations: 2,
+///       $fill: forwards
+///     );
+///   }
+@mixin rotate-scale(
+  $variant: 'up',
+  $duration: 0.65s,
+  $delay: 0s,
+  $easing: linear,
+  $iterations: 1,
+  $fill: both
+) {
+  animation: rotate-scale-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Rotate-Scaleアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['up'] - アニメーションのバリエーション（rotate-scaleと同じ10種類）
+/// @param {Number} $duration [0.65s] - アニメーションの実行時間
+/// @param {String} $easing [linear] - イージング関数
+///
+/// @example scss - ボタンのホバーエフェクト
+///   .button {
+///     @include rotate-scale-hover('up', 0.5s);
+///   }
+@mixin rotate-scale-hover(
+  $variant: 'up',
+  $duration: 0.65s,
+  $easing: linear
+) {
+  transition: transform $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: rotate-scale-#{$variant} $duration $easing both;
+    }
+  }
+}
+

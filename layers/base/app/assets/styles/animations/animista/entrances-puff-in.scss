@@ -1,0 +1,283 @@
+/**
+ * Puff-In Animation (Entrance with Scale + Blur Effect)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Center
+@keyframes puff-in-center {
+  0% {
+    transform: scale(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Top
+@keyframes puff-in-top {
+  0% {
+    transform-origin: 50% 0%;
+    transform: scale(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+
+  100% {
+    transform-origin: 50% 0%;
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Top Right
+@keyframes puff-in-tr {
+  0% {
+    transform-origin: 100% 0%;
+    transform: scale(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+
+  100% {
+    transform-origin: 100% 0%;
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Right
+@keyframes puff-in-right {
+  0% {
+    transform-origin: 100% 50%;
+    transform: scale(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Bottom Right
+@keyframes puff-in-br {
+  0% {
+    transform-origin: 100% 100%;
+    transform: scale(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Bottom
+@keyframes puff-in-bottom {
+  0% {
+    transform-origin: 50% 100%;
+    transform: scale(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Bottom Left
+@keyframes puff-in-bl {
+  0% {
+    transform-origin: 0% 100%;
+    transform: scale(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+
+  100% {
+    transform-origin: 0% 100%;
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Left
+@keyframes puff-in-left {
+  0% {
+    transform-origin: 0% 50%;
+    transform: scale(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+
+  100% {
+    transform-origin: 0% 50%;
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Top Left
+@keyframes puff-in-tl {
+  0% {
+    transform-origin: 0% 0%;
+    transform: scale(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Horizontal
+@keyframes puff-in-hor {
+  0% {
+    transform: scaleX(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Vertical
+@keyframes puff-in-ver {
+  0% {
+    transform: scaleY(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// ============================================
+// Mixin: Puff In
+// ============================================
+
+/// Puff-Inアニメーション（スケールとブラーによる入場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション
+///   Basic & Directional (11種類) - スケールとブラーを使った入場:
+///     'center' - 中心から（scale 2→1 + blur 4px→0）
+///     'top'    - 上から（scale 2→1 + blur、transform-origin: 50% 0%）
+///     'tr'     - 右上から（scale 2→1 + blur、transform-origin: 100% 0%）
+///     'right'  - 右から（scale 2→1 + blur、transform-origin: 100% 50%）
+///     'br'     - 右下から（scale 2→1 + blur、transform-origin: 100% 100%）
+///     'bottom' - 下から（scale 2→1 + blur、transform-origin: 50% 100%）
+///     'bl'     - 左下から（scale 2→1 + blur、transform-origin: 0% 100%）
+///     'left'   - 左から（scale 2→1 + blur、transform-origin: 0% 50%）
+///     'tl'     - 左上から（scale 2→1 + blur、transform-origin: 0% 0%）
+///     'hor'    - 横方向（scaleX 2→1 + blur）
+///     'ver'    - 縦方向（scaleY 2→1 + blur）
+///
+/// @param {Number} $duration [0.7s] - アニメーションの実行時間
+///   例: 0.5s, 0.7s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.470, 0.000, 0.745, 0.715)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include puff-in('center');
+///   }
+///
+/// @example scss - カスタム設定
+///   .modal {
+///     @include puff-in('top', 0.5s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include puff-in(
+///       $variant: 'br',
+///       $duration: 1s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin puff-in(
+  $variant: 'center',
+  $duration: 0.7s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.470, 0.000, 0.745, 0.715),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: puff-in-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Puff-Inアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション（puff-inと同じ11種類）
+/// @param {Number} $duration [0.7s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.470, 0.000, 0.745, 0.715)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include puff-in-hover('center', 0.5s);
+///   }
+@mixin puff-in-hover(
+  $variant: 'center',
+  $duration: 0.7s,
+  $easing: cubic-bezier(0.470, 0.000, 0.745, 0.715)
+) {
+  transition: transform $duration $easing, filter $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: puff-in-#{$variant} $duration $easing both;
+    }
+  }
+}
+

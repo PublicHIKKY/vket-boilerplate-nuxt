@@ -1,0 +1,147 @@
+/**
+ * Shadow-Pop Animation (Layered Box Shadow Effect)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Top Right
+@keyframes shadow-pop-tr {
+  0% {
+    transform: translateX(0) translateY(0);
+    box-shadow: 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e;
+  }
+
+  100% {
+    transform: translateX(-8px) translateY(8px);
+    box-shadow: 1px -1px #3e3e3e, 2px -2px #3e3e3e, 3px -3px #3e3e3e, 4px -4px #3e3e3e, 5px -5px #3e3e3e, 6px -6px #3e3e3e, 7px -7px #3e3e3e, 8px -8px #3e3e3e;
+  }
+}
+
+// Bottom Right
+@keyframes shadow-pop-br {
+  0% {
+    transform: translateX(0) translateY(0);
+    box-shadow: 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e;
+  }
+
+  100% {
+    transform: translateX(-8px) translateY(-8px);
+    box-shadow: 1px 1px #3e3e3e, 2px 2px #3e3e3e, 3px 3px #3e3e3e, 4px 4px #3e3e3e, 5px 5px #3e3e3e, 6px 6px #3e3e3e, 7px 7px #3e3e3e, 8px 8px #3e3e3e;
+  }
+}
+
+// Bottom Left
+@keyframes shadow-pop-bl {
+  0% {
+    transform: translateX(0) translateY(0);
+    box-shadow: 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e;
+  }
+
+  100% {
+    transform: translateX(8px) translateY(-8px);
+    box-shadow: -1px 1px #3e3e3e, -2px 2px #3e3e3e, -3px 3px #3e3e3e, -4px 4px #3e3e3e, -5px 5px #3e3e3e, -6px 6px #3e3e3e, -7px 7px #3e3e3e, -8px 8px #3e3e3e;
+  }
+}
+
+// Top Left
+@keyframes shadow-pop-tl {
+  0% {
+    transform: translateX(0) translateY(0);
+    box-shadow: 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e, 0 0 #3e3e3e;
+  }
+
+  100% {
+    transform: translateX(8px) translateY(8px);
+    box-shadow: -1px -1px #3e3e3e, -2px -2px #3e3e3e, -3px -3px #3e3e3e, -4px -4px #3e3e3e, -5px -5px #3e3e3e, -6px -6px #3e3e3e, -7px -7px #3e3e3e, -8px -8px #3e3e3e;
+  }
+}
+
+// ============================================
+// Mixin: Shadow Pop
+// ============================================
+
+/// Shadow-Popアニメーション（レイヤードシャドウエフェクト）を適用するmixin
+///
+/// @param {String} $variant ['tr'] - アニメーションのバリエーション
+///   Diagonal (4種類) - 対角線方向のレイヤードシャドウ:
+///     'tr' - 右上方向にシャドウを展開
+///     'br' - 右下方向にシャドウを展開
+///     'bl' - 左下方向にシャドウを展開
+///     'tl' - 左上方向にシャドウを展開
+///
+/// @param {Number} $duration [0.3s] - アニメーションの実行時間
+///   例: 0.2s, 0.4s, 0.5s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.470, 0.000, 0.745, 0.715)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include shadow-pop('tr');
+///   }
+///
+/// @example scss - カスタム設定
+///   .card {
+///     @include shadow-pop('br', 0.4s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .card {
+///     @include shadow-pop(
+///       $variant: 'bl',
+///       $duration: 0.5s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 2,
+///       $fill: forwards
+///     );
+///   }
+@mixin shadow-pop(
+  $variant: 'tr',
+  $duration: 0.3s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.470, 0.000, 0.745, 0.715),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: shadow-pop-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Shadow-Popアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['tr'] - アニメーションのバリエーション（shadow-popと同じ4種類）
+/// @param {Number} $duration [0.3s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.470, 0.000, 0.745, 0.715)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include shadow-pop-hover('br', 0.4s);
+///   }
+@mixin shadow-pop-hover(
+  $variant: 'tr',
+  $duration: 0.3s,
+  $easing: cubic-bezier(0.470, 0.000, 0.745, 0.715)
+) {
+  transition: transform $duration $easing, box-shadow $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: shadow-pop-#{$variant} $duration $easing both;
+    }
+  }
+}
+

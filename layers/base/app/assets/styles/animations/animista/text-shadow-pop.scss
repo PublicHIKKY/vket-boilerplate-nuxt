@@ -1,0 +1,203 @@
+/**
+ * Shadow-Pop Animation (Text with Layered Shadow Pop Effect)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Text Shadow Pop Top
+@keyframes text-shadow-pop-top {
+  0% {
+    transform: translateY(0);
+    text-shadow: 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555;
+  }
+
+  100% {
+    transform: translateY(8px);
+    text-shadow: 0 -1px #555, 0 -2px #555, 0 -3px #555, 0 -4px #555, 0 -5px #555, 0 -6px #555, 0 -7px #555, 0 -8px #555;
+  }
+}
+
+// Text Shadow Pop Top-Right
+@keyframes text-shadow-pop-tr {
+  0% {
+    transform: translateX(0) translateY(0);
+    text-shadow: 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555;
+  }
+
+  100% {
+    transform: translateX(-8px) translateY(8px);
+    text-shadow: 1px -1px #555, 2px -2px #555, 3px -3px #555, 4px -4px #555, 5px -5px #555, 6px -6px #555, 7px -7px #555, 8px -8px #555;
+  }
+}
+
+// Text Shadow Pop Right
+@keyframes text-shadow-pop-right {
+  0% {
+    transform: translateX(0);
+    text-shadow: 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555;
+  }
+
+  100% {
+    transform: translateX(-8px);
+    text-shadow: 1px 0 #555, 2px 0 #555, 3px 0 #555, 4px 0 #555, 5px 0 #555, 6px 0 #555, 7px 0 #555, 8px 0 #555;
+  }
+}
+
+// Text Shadow Pop Bottom-Right
+@keyframes text-shadow-pop-br {
+  0% {
+    transform: translateX(0) translateY(0);
+    text-shadow: 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555;
+  }
+
+  100% {
+    transform: translateX(-8px) translateY(-8px);
+    text-shadow: 1px 1px #555, 2px 2px #555, 3px 3px #555, 4px 4px #555, 5px 5px #555, 6px 6px #555, 7px 7px #555, 8px 8px #555;
+  }
+}
+
+// Text Shadow Pop Bottom
+@keyframes text-shadow-pop-bottom {
+  0% {
+    transform: translateY(0);
+    text-shadow: 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555;
+  }
+
+  100% {
+    transform: translateY(-8px);
+    text-shadow: 0 1px #555, 0 2px #555, 0 3px #555, 0 4px #555, 0 5px #555, 0 6px #555, 0 7px #555, 0 8px #555;
+  }
+}
+
+// Text Shadow Pop Bottom-Left
+@keyframes text-shadow-pop-bl {
+  0% {
+    transform: translateX(0) translateY(0);
+    text-shadow: 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555;
+  }
+
+  100% {
+    transform: translateX(8px) translateY(-8px);
+    text-shadow: -1px 1px #555, -2px 2px #555, -3px 3px #555, -4px 4px #555, -5px 5px #555, -6px 6px #555, -7px 7px #555, -8px 8px #555;
+  }
+}
+
+// Text Shadow Pop Left
+@keyframes text-shadow-pop-left {
+  0% {
+    transform: translateX(0);
+    text-shadow: 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555;
+  }
+
+  100% {
+    transform: translateX(8px);
+    text-shadow: -1px 0 #555, -2px 0 #555, -3px 0 #555, -4px 0 #555, -5px 0 #555, -6px 0 #555, -7px 0 #555, -8px 0 #555;
+  }
+}
+
+// Text Shadow Pop Top-Left
+@keyframes text-shadow-pop-tl {
+  0% {
+    transform: translateX(0) translateY(0);
+    text-shadow: 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555, 0 0 #555;
+  }
+
+  100% {
+    transform: translateX(8px) translateY(8px);
+    text-shadow: -1px -1px #555, -2px -2px #555, -3px -3px #555, -4px -4px #555, -5px -5px #555, -6px -6px #555, -7px -7px #555, -8px -8px #555;
+  }
+}
+
+// ============================================
+// Mixin: Text Shadow Pop
+// ============================================
+
+/// Text-Shadow-Popアニメーション（多層影の出現エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['top'] - アニメーションのバリエーション
+///   8方向の多層影の出現パターン:
+///     'top'     - 上（text-shadow 8層 + translateY 0→8px）
+///     'tr'      - 右上（text-shadow 8層 + translateX 0→-8px + translateY 0→8px）
+///     'right'   - 右（text-shadow 8層 + translateX 0→-8px）
+///     'br'      - 右下（text-shadow 8層 + translateX 0→-8px + translateY 0→-8px）
+///     'bottom'  - 下（text-shadow 8層 + translateY 0→-8px）
+///     'bl'      - 左下（text-shadow 8層 + translateX 0→8px + translateY 0→-8px）
+///     'left'    - 左（text-shadow 8層 + translateX 0→8px）
+///     'tl'      - 左上（text-shadow 8層 + translateX 0→8px + translateY 0→8px）
+///
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+///   例: 0.6s, 0.8s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [ease] - イージング関数
+///   例: ease, ease-out, linear
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .title {
+///     @include text-shadow-pop('top');
+///   }
+///
+/// @example scss - カスタム設定
+///   .heading {
+///     @include text-shadow-pop('br', 0.8s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .text {
+///     @include text-shadow-pop(
+///       $variant: 'bottom',
+///       $duration: 1s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin text-shadow-pop(
+  $variant: 'top',
+  $duration: 0.6s,
+  $delay: 0s,
+  $easing: ease,
+  $iterations: 1,
+  $fill: both
+) {
+  animation: text-shadow-pop-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Text-Shadow-Popアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['top'] - アニメーションのバリエーション（text-shadow-popと同じ8種類）
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+/// @param {String} $easing [ease] - イージング関数
+///
+/// @example scss - タイトルのホバーエフェクト
+///   .title {
+///     @include text-shadow-pop-hover('br', 0.8s);
+///   }
+@mixin text-shadow-pop-hover(
+  $variant: 'top',
+  $duration: 0.6s,
+  $easing: ease
+) {
+  transition: text-shadow $duration $easing, transform $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: text-shadow-pop-#{$variant} $duration $easing both;
+    }
+  }
+}
+

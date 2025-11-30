@@ -1,0 +1,286 @@
+/**
+ * Puff-Out Animation (Exit with Scale + Blur + Opacity Fade)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Puff Out Center
+@keyframes puff-out-center {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform: scale(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+// Puff Out Top
+@keyframes puff-out-top {
+  0% {
+    transform-origin: 50% 0%;
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform-origin: 50% 0%;
+    transform: scale(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+// Puff Out Top Right
+@keyframes puff-out-tr {
+  0% {
+    transform-origin: 100% 0%;
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform-origin: 100% 0%;
+    transform: scale(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+// Puff Out Right
+@keyframes puff-out-right {
+  0% {
+    transform-origin: 100% 50%;
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: scale(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+// Puff Out Bottom Right
+@keyframes puff-out-br {
+  0% {
+    transform-origin: 100% 100%;
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: scale(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+// Puff Out Bottom
+@keyframes puff-out-bottom {
+  0% {
+    transform-origin: 50% 100%;
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: scale(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+// Puff Out Bottom Left
+@keyframes puff-out-bl {
+  0% {
+    transform-origin: 0% 100%;
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform-origin: 0% 100%;
+    transform: scale(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+// Puff Out Left
+@keyframes puff-out-left {
+  0% {
+    transform-origin: 0% 50%;
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform-origin: 0% 50%;
+    transform: scale(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+// Puff Out Top Left
+@keyframes puff-out-tl {
+  0% {
+    transform-origin: 0% 0%;
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: scale(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+// Puff Out Horizontal
+@keyframes puff-out-hor {
+  0% {
+    transform: scaleX(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform: scaleX(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+// Puff Out Vertical
+@keyframes puff-out-ver {
+  0% {
+    transform: scaleY(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform: scaleY(2);
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+// ============================================
+// Mixin: Puff Out
+// ============================================
+
+/// Puff-Outアニメーション（拡大とブラーによる退場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション
+///   Center:
+///     'center' - 中心から拡大（scale 1→2 + blur 0→4px + opacity 1→0）
+///   Directional (4種類) - 方向を基準に拡大:
+///     'top'    - 上を基準に拡大（transform-origin: 50% 0%）
+///     'right'  - 右を基準に拡大（transform-origin: 100% 50%）
+///     'bottom' - 下を基準に拡大（transform-origin: 50% 100%）
+///     'left'   - 左を基準に拡大（transform-origin: 0% 50%）
+///   Diagonal (4種類) - 角を基準に拡大:
+///     'tr'     - 右上を基準に拡大（transform-origin: 100% 0%）
+///     'br'     - 右下を基準に拡大（transform-origin: 100% 100%）
+///     'bl'     - 左下を基準に拡大（transform-origin: 0% 100%）
+///     'tl'     - 左上を基準に拡大（transform-origin: 0% 0%）
+///   Axis (2種類) - 軸方向に拡大:
+///     'hor'    - 横方向に拡大（scaleX 1→2 + blur 0→4px + opacity 1→0）
+///     'ver'    - 縦方向に拡大（scaleY 1→2 + blur 0→4px + opacity 1→0）
+///
+/// @param {Number} $duration [1s] - アニメーションの実行時間
+///   例: 0.8s, 1s, 1.2s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.165, 0.840, 0.440, 1.000)] - イージング関数
+///   例: ease-out, cubic-bezier(0.165, 0.840, 0.440, 1.000)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include puff-out('center');
+///   }
+///
+/// @example scss - カスタム設定
+///   .modal {
+///     @include puff-out('top', 0.8s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include puff-out(
+///       $variant: 'br',
+///       $duration: 1.2s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin puff-out(
+  $variant: 'center',
+  $duration: 1s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.165, 0.840, 0.440, 1.000),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: puff-out-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Puff-Outアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション（puff-outと同じ11種類）
+/// @param {Number} $duration [1s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.165, 0.840, 0.440, 1.000)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include puff-out-hover('center', 0.8s);
+///   }
+@mixin puff-out-hover(
+  $variant: 'center',
+  $duration: 1s,
+  $easing: cubic-bezier(0.165, 0.840, 0.440, 1.000)
+) {
+  transition: transform $duration $easing, filter $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: puff-out-#{$variant} $duration $easing both;
+    }
+  }
+}
+

@@ -1,0 +1,218 @@
+/**
+ * Slide-In-Bck Animation (Entrance with Backward Z-axis Movement + Directional Sliding + Opacity)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Center
+@keyframes slide-in-bck-center {
+  0% {
+    transform: translateZ(600px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateZ(0);
+    opacity: 1;
+  }
+}
+
+// Top
+@keyframes slide-in-bck-top {
+  0% {
+    transform: translateZ(700px) translateY(-300px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateZ(0) translateY(0);
+    opacity: 1;
+  }
+}
+
+// Top Right
+@keyframes slide-in-bck-tr {
+  0% {
+    transform: translateZ(700px) translateY(-300px) translateX(300px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateZ(0) translateY(0) translateX(0);
+    opacity: 1;
+  }
+}
+
+// Right
+@keyframes slide-in-bck-right {
+  0% {
+    transform: translateZ(700px) translateX(300px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateZ(0) translateX(0);
+    opacity: 1;
+  }
+}
+
+// Bottom Right
+@keyframes slide-in-bck-br {
+  0% {
+    transform: translateZ(700px) translateY(300px) translateX(300px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateZ(0) translateY(0) translateX(0);
+    opacity: 1;
+  }
+}
+
+// Bottom
+@keyframes slide-in-bck-bottom {
+  0% {
+    transform: translateZ(700px) translateY(300px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateZ(0) translateY(0);
+    opacity: 1;
+  }
+}
+
+// Bottom Left
+@keyframes slide-in-bck-bl {
+  0% {
+    transform: translateZ(700px) translateY(300px) translateX(-300px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateZ(0) translateY(0) translateX(0);
+    opacity: 1;
+  }
+}
+
+// Left
+@keyframes slide-in-bck-left {
+  0% {
+    transform: translateZ(700px) translateX(-300px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateZ(0) translateX(0);
+    opacity: 1;
+  }
+}
+
+// Top Left
+@keyframes slide-in-bck-tl {
+  0% {
+    transform: translateZ(700px) translateY(-300px) translateX(-300px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateZ(0) translateY(0) translateX(0);
+    opacity: 1;
+  }
+}
+
+// ============================================
+// Mixin: Slide In Bck
+// ============================================
+
+/// Slide-In-Bckアニメーション（後方からのZ軸移動とスライドを組み合わせた入場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション
+///   Basic (1種類) - 中心からの後方移動:
+///     'center' - 中心から後方へ（translateZ 600px→0）
+///   Directional (8種類) - 8方向からの後方移動:
+///     'top'    - 上から後方へ（translateZ 700px + translateY -300px→0）
+///     'tr'     - 右上から後方へ（translateZ 700px + translateY -300px + translateX 300px→0）
+///     'right'  - 右から後方へ（translateZ 700px + translateX 300px→0）
+///     'br'     - 右下から後方へ（translateZ 700px + translateY 300px + translateX 300px→0）
+///     'bottom' - 下から後方へ（translateZ 700px + translateY 300px→0）
+///     'bl'     - 左下から後方へ（translateZ 700px + translateY 300px + translateX -300px→0）
+///     'left'   - 左から後方へ（translateZ 700px + translateX -300px→0）
+///     'tl'     - 左上から後方へ（translateZ 700px + translateY -300px + translateX -300px→0）
+///
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+///   例: 0.5s, 0.7s, 0.8s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .modal {
+///     @include slide-in-bck('center');
+///   }
+///
+/// @example scss - カスタム設定
+///   .card {
+///     @include slide-in-bck('top', 0.7s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include slide-in-bck(
+///       $variant: 'br',
+///       $duration: 0.8s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin slide-in-bck(
+  $variant: 'center',
+  $duration: 0.6s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: slide-in-bck-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Slide-In-Bckアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション（slide-in-bckと同じ9種類）
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include slide-in-bck-hover('center', 0.7s);
+///   }
+@mixin slide-in-bck-hover(
+  $variant: 'center',
+  $duration: 0.6s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940)
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: slide-in-bck-#{$variant} $duration $easing both;
+    }
+  }
+}
+

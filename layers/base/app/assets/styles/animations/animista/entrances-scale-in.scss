@@ -1,0 +1,327 @@
+/**
+ * Scale-In Animation (Entrance with Scale + Opacity)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Center
+@keyframes scale-in-center {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// Top
+@keyframes scale-in-top {
+  0% {
+    transform-origin: 50% 0%;
+    transform: scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 50% 0%;
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// Top Right
+@keyframes scale-in-tr {
+  0% {
+    transform-origin: 100% 0%;
+    transform: scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 100% 0%;
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// Right
+@keyframes scale-in-right {
+  0% {
+    transform-origin: 100% 50%;
+    transform: scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// Bottom Right
+@keyframes scale-in-br {
+  0% {
+    transform-origin: 100% 100%;
+    transform: scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// Bottom
+@keyframes scale-in-bottom {
+  0% {
+    transform-origin: 50% 100%;
+    transform: scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// Bottom Left
+@keyframes scale-in-bl {
+  0% {
+    transform-origin: 0% 100%;
+    transform: scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 0% 100%;
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// Left
+@keyframes scale-in-left {
+  0% {
+    transform-origin: 0% 50%;
+    transform: scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 0% 50%;
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// Top Left
+@keyframes scale-in-tl {
+  0% {
+    transform-origin: 0% 0%;
+    transform: scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// Horizontal Center
+@keyframes scale-in-hor-center {
+  0% {
+    transform: scaleX(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+// Horizontal Left
+@keyframes scale-in-hor-left {
+  0% {
+    transform-origin: 0% 0%;
+    transform: scaleX(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+// Horizontal Right
+@keyframes scale-in-hor-right {
+  0% {
+    transform-origin: 100% 100%;
+    transform: scaleX(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+// Vertical Center
+@keyframes scale-in-ver-center {
+  0% {
+    transform: scaleY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+// Vertical Top
+@keyframes scale-in-ver-top {
+  0% {
+    transform-origin: 100% 0%;
+    transform: scaleY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 100% 0%;
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+// Vertical Bottom
+@keyframes scale-in-ver-bottom {
+  0% {
+    transform-origin: 0% 100%;
+    transform: scaleY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: 0% 100%;
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+// ============================================
+// Mixin: Scale In
+// ============================================
+
+/// Scale-Inアニメーション（スケールと透明度を使った入場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション
+///   Origin-based (9種類) - 起点を指定してスケール:
+///     'center' - 中心から拡大
+///     'top'    - 上端を起点に拡大
+///     'tr'     - 右上を起点に拡大
+///     'right'  - 右端を起点に拡大
+///     'br'     - 右下を起点に拡大
+///     'bottom' - 下端を起点に拡大
+///     'bl'     - 左下を起点に拡大
+///     'left'   - 左端を起点に拡大
+///     'tl'     - 左上を起点に拡大
+///   Horizontal (3種類) - 水平方向のみスケール:
+///     'hor-center' - 中心から水平に拡大
+///     'hor-left'   - 左端から水平に拡大
+///     'hor-right'  - 右端から水平に拡大
+///   Vertical (3種類) - 垂直方向のみスケール:
+///     'ver-center' - 中心から垂直に拡大
+///     'ver-top'    - 上端から垂直に拡大
+///     'ver-bottom' - 下端から垂直に拡大
+///
+/// @param {Number} $duration [0.5s] - アニメーションの実行時間
+///   例: 0.4s, 0.6s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .modal {
+///     @include scale-in('center');
+///   }
+///
+/// @example scss - カスタム設定
+///   .card {
+///     @include scale-in('bottom', 0.6s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include scale-in(
+///       $variant: 'tr',
+///       $duration: 0.8s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin scale-in(
+  $variant: 'center',
+  $duration: 0.5s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: scale-in-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Scale-Inアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション（scale-inと同じ15種類）
+/// @param {Number} $duration [0.5s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include scale-in-hover('center', 0.4s);
+///   }
+@mixin scale-in-hover(
+  $variant: 'center',
+  $duration: 0.5s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940)
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: scale-in-#{$variant} $duration $easing both;
+    }
+  }
+}
+

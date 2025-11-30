@@ -1,0 +1,179 @@
+/**
+ * Focus-In Animation (Text with Blur to Focus Effect)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Text Focus In
+@keyframes text-focus-in {
+  0% {
+    opacity: 0;
+    filter: blur(12px);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Focus In Expand
+@keyframes focus-in-expand {
+  0% {
+    letter-spacing: -0.5em;
+    opacity: 0;
+    filter: blur(12px);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Focus In Expand Forward
+@keyframes focus-in-expand-fwd {
+  0% {
+    transform: translateZ(-800px);
+    letter-spacing: -0.5em;
+    opacity: 0;
+    filter: blur(12px);
+  }
+
+  100% {
+    transform: translateZ(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Focus In Contract
+@keyframes focus-in-contract {
+  0% {
+    letter-spacing: 1em;
+    opacity: 0;
+    filter: blur(12px);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Focus In Contract Backward
+@keyframes focus-in-contract-bck {
+  0% {
+    transform: translateZ(300px);
+    letter-spacing: 1em;
+    opacity: 0;
+    filter: blur(12px);
+  }
+
+  100% {
+    transform: translateZ(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// ============================================
+// Mixin: Focus In
+// ============================================
+
+/// Focus-Inアニメーション（ブラーからフォーカスへの登場エフェクト）を適用するmixin
+///
+/// @param {String} $variant [''] - アニメーションのバリエーション
+///   Basic:
+///     ''                  - 基本的なフォーカス（filter blur 12px→0 + opacity 0→1）
+///   Expand (2種類) - 文字間隔を狭めながらフォーカス:
+///     'expand'            - 拡大フォーカス（letter-spacing -0.5em→0 + filter blur 12px→0 + opacity 0→1）
+///     'expand-fwd'        - 前方から拡大フォーカス（letter-spacing -0.5em→0 + translateZ -800px→0 + filter blur 12px→0 + opacity 0→1）
+///   Contract (2種類) - 文字間隔を広げながらフォーカス:
+///     'contract'          - 縮小フォーカス（letter-spacing 1em→0 + filter blur 12px→0 + opacity 0→1）
+///     'contract-bck'      - 後方から縮小フォーカス（letter-spacing 1em→0 + translateZ 300px→0 + filter blur 12px→0 + opacity 0→1）
+///
+/// @param {Number} $duration [1s] - アニメーションの実行時間
+///   例: 0.8s, 1s, 1.2s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.550, 0.085, 0.680, 0.530)] - イージング関数
+///   例: ease-out, cubic-bezier(0.250, 0.460, 0.450, 0.940)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .title {
+///     @include focus-in();
+///   }
+///
+/// @example scss - カスタム設定
+///   .heading {
+///     @include focus-in('expand', 0.8s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .text {
+///     @include focus-in(
+///       $variant: 'contract-bck',
+///       $duration: 1.2s,
+///       $delay: 0.1s,
+///       $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940),
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin focus-in(
+  $variant: '',
+  $duration: 1s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.550, 0.085, 0.680, 0.530),
+  $iterations: 1,
+  $fill: both
+) {
+  @if $variant == '' {
+    animation: text-focus-in $duration $easing $delay $iterations normal $fill;
+  } @else {
+    animation: focus-in-#{$variant} $duration $easing $delay $iterations normal $fill;
+  }
+}
+
+/// Focus-Inアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant [''] - アニメーションのバリエーション（focus-inと同じ5種類）
+/// @param {Number} $duration [1s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.550, 0.085, 0.680, 0.530)] - イージング関数
+///
+/// @example scss - タイトルのホバーエフェクト
+///   .title {
+///     @include focus-in-hover('expand', 0.8s);
+///   }
+@mixin focus-in-hover(
+  $variant: '',
+  $duration: 1s,
+  $easing: cubic-bezier(0.550, 0.085, 0.680, 0.530)
+) {
+  transition: letter-spacing $duration $easing, filter $duration $easing, transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @if $variant == '' {
+        animation: text-focus-in $duration $easing both;
+      } @else {
+        animation: focus-in-#{$variant} $duration $easing both;
+      }
+    }
+  }
+}
+

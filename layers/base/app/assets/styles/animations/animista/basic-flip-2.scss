@@ -1,0 +1,318 @@
+/**
+ * Flip-2 Animation (Flip with Translation)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Horizontal Top 1
+@keyframes flip-2-hor-top-1 {
+  0% {
+    transform-origin: 50% 0%;
+    transform: translateY(0) rotateX(0);
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: translateY(-100%) rotateX(-180deg);
+  }
+}
+
+// Horizontal Top 2
+@keyframes flip-2-hor-top-2 {
+  0% {
+    transform-origin: 50% 0%;
+    transform: translateY(0) rotateX(0);
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: translateY(-100%) rotateX(180deg);
+  }
+}
+
+// Horizontal Top Back
+@keyframes flip-2-hor-top-bck {
+  0% {
+    transform-origin: 50% 0%;
+    transform: translateY(0) rotateX(0);
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: translateY(-100%) rotateX(-180deg);
+  }
+}
+
+// Horizontal Top Forward
+@keyframes flip-2-hor-top-fwd {
+  0% {
+    transform-origin: 50% 0%;
+    transform: translateY(0) rotateX(0);
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: translateY(-100%) rotateX(180deg);
+  }
+}
+
+// Vertical Right 1
+@keyframes flip-2-ver-right-1 {
+  0% {
+    transform-origin: 100% 50%;
+    transform: translateX(0) rotateY(0);
+  }
+
+  100% {
+    transform-origin: 0% 50%;
+    transform: translateX(100%) rotateY(180deg);
+  }
+}
+
+// Vertical Right 2
+@keyframes flip-2-ver-right-2 {
+  0% {
+    transform-origin: 100% 50%;
+    transform: translateX(0) rotateY(0);
+  }
+
+  100% {
+    transform-origin: 0% 50%;
+    transform: translateX(100%) rotateY(-180deg);
+  }
+}
+
+// Vertical Right Back
+@keyframes flip-2-ver-right-bck {
+  0% {
+    transform-origin: 100% 50%;
+    transform: translateX(0) rotateY(0);
+  }
+
+  100% {
+    transform-origin: 0% 50%;
+    transform: translateX(100%) rotateY(-180deg);
+  }
+}
+
+// Vertical Right Forward
+@keyframes flip-2-ver-right-fwd {
+  0% {
+    transform-origin: 100% 50%;
+    transform: translateX(0) rotateY(0);
+  }
+
+  100% {
+    transform-origin: 0% 50%;
+    transform: translateX(100%) rotateY(180deg);
+  }
+}
+
+// Horizontal Bottom 1
+@keyframes flip-2-hor-bottom-1 {
+  0% {
+    transform-origin: 50% 100%;
+    transform: translateY(0) rotateX(0);
+  }
+
+  100% {
+    transform-origin: 50% 0%;
+    transform: translateY(100%) rotateX(180deg);
+  }
+}
+
+// Horizontal Bottom 2
+@keyframes flip-2-hor-bottom-2 {
+  0% {
+    transform-origin: 50% 100%;
+    transform: translateY(0) rotateX(0);
+  }
+
+  100% {
+    transform-origin: 50% 0%;
+    transform: translateY(100%) rotateX(-180deg);
+  }
+}
+
+// Horizontal Bottom Back
+@keyframes flip-2-hor-bottom-bck {
+  0% {
+    transform-origin: 50% 100%;
+    transform: translateY(0) rotateX(0);
+  }
+
+  100% {
+    transform-origin: 50% 0%;
+    transform: translateY(100%) rotateX(-180deg);
+  }
+}
+
+// Horizontal Bottom Forward
+@keyframes flip-2-hor-bottom-fwd {
+  0% {
+    transform-origin: 50% 100%;
+    transform: translateY(0) rotateX(0);
+  }
+
+  100% {
+    transform-origin: 50% 0%;
+    transform: translateY(100%) rotateX(180deg);
+  }
+}
+
+// Vertical Left 1
+@keyframes flip-2-ver-left-1 {
+  0% {
+    transform-origin: 0% 50%;
+    transform: translateX(0) rotateY(0);
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: translateX(-100%) rotateY(-180deg);
+  }
+}
+
+// Vertical Left 2
+@keyframes flip-2-ver-left-2 {
+  0% {
+    transform-origin: 0% 50%;
+    transform: translateX(0) rotateY(0);
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: translateX(-100%) rotateY(180deg);
+  }
+}
+
+// Vertical Left Back
+@keyframes flip-2-ver-left-bck {
+  0% {
+    transform-origin: 0% 50%;
+    transform: translateX(0) rotateY(0);
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: translateX(-100%) rotateY(180deg);
+  }
+}
+
+// Vertical Left Forward
+@keyframes flip-2-ver-left-fwd {
+  0% {
+    transform-origin: 0% 50%;
+    transform: translateX(0) rotateY(0);
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: translateX(-100%) rotateY(-180deg);
+  }
+}
+
+// ============================================
+// Mixin: Flip 2
+// ============================================
+
+/// Flip-2アニメーション（移動を伴うフリップ）を適用するmixin
+///
+/// @param {String} $variant ['hor-top-1'] - アニメーションのバリエーション
+///   Horizontal Top (4種類):
+///     'hor-top-1'   - 上方向に移動しながらフリップ（パターン1）
+///     'hor-top-2'   - 上方向に移動しながらフリップ（パターン2）
+///     'hor-top-bck' - 上方向に移動しながら後方フリップ
+///     'hor-top-fwd' - 上方向に移動しながら前方フリップ
+///   Vertical Right (4種類):
+///     'ver-right-1'   - 右方向に移動しながらフリップ（パターン1）
+///     'ver-right-2'   - 右方向に移動しながらフリップ（パターン2）
+///     'ver-right-bck' - 右方向に移動しながら後方フリップ
+///     'ver-right-fwd' - 右方向に移動しながら前方フリップ
+///   Horizontal Bottom (4種類):
+///     'hor-bottom-1'   - 下方向に移動しながらフリップ（パターン1）
+///     'hor-bottom-2'   - 下方向に移動しながらフリップ（パターン2）
+///     'hor-bottom-bck' - 下方向に移動しながら後方フリップ
+///     'hor-bottom-fwd' - 下方向に移動しながら前方フリップ
+///   Vertical Left (4種類):
+///     'ver-left-1'   - 左方向に移動しながらフリップ（パターン1）
+///     'ver-left-2'   - 左方向に移動しながらフリップ（パターン2）
+///     'ver-left-bck' - 左方向に移動しながら後方フリップ
+///     'ver-left-fwd' - 左方向に移動しながら前方フリップ
+///
+/// @param {Number} $duration [0.5s] - アニメーションの実行時間
+///   例: 0.4s, 0.6s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.455, 0.030, 0.515, 0.955)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include flip-2('hor-top-1');
+///   }
+///
+/// @example scss - カスタム設定
+///   .card {
+///     @include flip-2('ver-right-1', 0.6s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .card {
+///     @include flip-2(
+///       $variant: 'hor-bottom-1',
+///       $duration: 0.8s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 2,
+///       $fill: forwards
+///     );
+///   }
+@mixin flip-2(
+  $variant: 'hor-top-1',
+  $duration: 0.5s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.455, 0.030, 0.515, 0.955),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: flip-2-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Flip-2アニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['hor-top-1'] - アニメーションのバリエーション（flip-2と同じ16種類）
+/// @param {Number} $duration [0.5s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.455, 0.030, 0.515, 0.955)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include flip-2-hover('hor-top-1', 0.6s);
+///   }
+@mixin flip-2-hover(
+  $variant: 'hor-top-1',
+  $duration: 0.5s,
+  $easing: cubic-bezier(0.455, 0.030, 0.515, 0.955)
+) {
+  transition: transform $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: flip-2-#{$variant} $duration $easing both;
+    }
+  }
+}
+

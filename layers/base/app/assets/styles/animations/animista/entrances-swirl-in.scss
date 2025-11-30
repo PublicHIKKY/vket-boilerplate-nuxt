@@ -1,0 +1,376 @@
+/**
+ * Swirl-In Animation (Entrance with Rotation + Scale + Opacity)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Forward
+@keyframes swirl-in-fwd {
+  0% {
+    transform: rotate(-540deg) scale(0);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Backward
+@keyframes swirl-in-bck {
+  0% {
+    transform: rotate(540deg) scale(5);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Top Forward
+@keyframes swirl-in-top-fwd {
+  0% {
+    transform-origin: 50% 0;
+    transform: rotate(-540deg) scale(0);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 50% 0;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Top Backward
+@keyframes swirl-in-top-bck {
+  0% {
+    transform-origin: 50% 0;
+    transform: rotate(540deg) scale(5);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 50% 0;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Top Right Forward
+@keyframes swirl-in-tr-fwd {
+  0% {
+    transform-origin: 100% 0;
+    transform: rotate(-540deg) scale(0);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 100% 0;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Top Right Backward
+@keyframes swirl-in-tr-bck {
+  0% {
+    transform-origin: 100% 0;
+    transform: rotate(540deg) scale(5);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 100% 0;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Right Forward
+@keyframes swirl-in-right-fwd {
+  0% {
+    transform-origin: 100% 50%;
+    transform: rotate(-540deg) scale(0);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Right Backward
+@keyframes swirl-in-right-bck {
+  0% {
+    transform-origin: 100% 50%;
+    transform: rotate(540deg) scale(5);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Bottom Right Forward
+@keyframes swirl-in-br-fwd {
+  0% {
+    transform-origin: 100% 100%;
+    transform: rotate(-540deg) scale(0);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Bottom Right Backward
+@keyframes swirl-in-br-bck {
+  0% {
+    transform-origin: 100% 100%;
+    transform: rotate(540deg) scale(5);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Bottom Forward
+@keyframes swirl-in-bottom-fwd {
+  0% {
+    transform-origin: 50% 100%;
+    transform: rotate(-540deg) scale(0);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Bottom Backward
+@keyframes swirl-in-bottom-bck {
+  0% {
+    transform-origin: 50% 100%;
+    transform: rotate(540deg) scale(5);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Bottom Left Forward
+@keyframes swirl-in-bl-fwd {
+  0% {
+    transform-origin: 0 100%;
+    transform: rotate(-540deg) scale(0);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 0 100%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Bottom Left Backward
+@keyframes swirl-in-bl-bck {
+  0% {
+    transform-origin: 0 100%;
+    transform: rotate(540deg) scale(5);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 0 100%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Left Forward
+@keyframes swirl-in-left-fwd {
+  0% {
+    transform-origin: 0 50%;
+    transform: rotate(-540deg) scale(0);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 0 50%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Left Backward
+@keyframes swirl-in-left-bck {
+  0% {
+    transform-origin: 0 50%;
+    transform: rotate(540deg) scale(5);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 0 50%;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Top Left Forward
+@keyframes swirl-in-tl-fwd {
+  0% {
+    transform-origin: 0 0;
+    transform: rotate(-540deg) scale(0);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 0 0;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Top Left Backward
+@keyframes swirl-in-tl-bck {
+  0% {
+    transform-origin: 0 0;
+    transform: rotate(540deg) scale(5);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 0 0;
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// ============================================
+// Mixin: Swirl In
+// ============================================
+
+/// Swirl-Inアニメーション（回転・スケール・透明度を組み合わせた渦巻き入場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['fwd'] - アニメーションのバリエーション
+///   Basic (2種類) - 基本的な渦巻き:
+///     'fwd' - 前方から（-540度回転 + scale 0→1）
+///     'bck' - 後方から（540度回転 + scale 5→1）
+///   Directional (16種類) - 起点を指定した渦巻き:
+///     'top-fwd'    - 上端から前方へ渦巻き
+///     'top-bck'    - 上端から後方へ渦巻き
+///     'tr-fwd'     - 右上から前方へ渦巻き
+///     'tr-bck'     - 右上から後方へ渦巻き
+///     'right-fwd'  - 右端から前方へ渦巻き
+///     'right-bck'  - 右端から後方へ渦巻き
+///     'br-fwd'     - 右下から前方へ渦巻き
+///     'br-bck'     - 右下から後方へ渦巻き
+///     'bottom-fwd' - 下端から前方へ渦巻き
+///     'bottom-bck' - 下端から後方へ渦巻き
+///     'bl-fwd'     - 左下から前方へ渦巻き
+///     'bl-bck'     - 左下から後方へ渦巻き
+///     'left-fwd'   - 左端から前方へ渦巻き
+///     'left-bck'   - 左端から後方へ渦巻き
+///     'tl-fwd'     - 左上から前方へ渦巻き
+///     'tl-bck'     - 左上から後方へ渦巻き
+///
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+///   例: 0.5s, 0.8s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [ease-out] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .modal {
+///     @include swirl-in('fwd');
+///   }
+///
+/// @example scss - カスタム設定
+///   .card {
+///     @include swirl-in('top-fwd', 0.8s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include swirl-in(
+///       $variant: 'br-bck',
+///       $duration: 0.7s,
+///       $delay: 0.1s,
+///       $easing: ease-in-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin swirl-in(
+  $variant: 'fwd',
+  $duration: 0.6s,
+  $delay: 0s,
+  $easing: ease-out,
+  $iterations: 1,
+  $fill: both
+) {
+  animation: swirl-in-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Swirl-Inアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['fwd'] - アニメーションのバリエーション（swirl-inと同じ18種類）
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+/// @param {String} $easing [ease-out] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include swirl-in-hover('fwd', 0.5s);
+///   }
+@mixin swirl-in-hover(
+  $variant: 'fwd',
+  $duration: 0.6s,
+  $easing: ease-out
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: swirl-in-#{$variant} $duration $easing both;
+    }
+  }
+}
+

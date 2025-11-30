@@ -1,0 +1,155 @@
+/**
+ * Roll-In-Blurred Animation (Entrance with Rolling Effect + Blur + Rotation + Opacity)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Left
+@keyframes roll-in-blurred-left {
+  0% {
+    transform: translateX(-1000px) rotate(-720deg);
+    opacity: 0;
+    filter: blur(50px);
+  }
+
+  100% {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Top
+@keyframes roll-in-blurred-top {
+  0% {
+    transform: translateY(-800px) rotate(-720deg);
+    opacity: 0;
+    filter: blur(50px);
+  }
+
+  100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Right
+@keyframes roll-in-blurred-right {
+  0% {
+    transform: translateX(1000px) rotate(720deg);
+    opacity: 0;
+    filter: blur(50px);
+  }
+
+  100% {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Bottom
+@keyframes roll-in-blurred-bottom {
+  0% {
+    transform: translateY(800px) rotate(720deg);
+    opacity: 0;
+    filter: blur(50px);
+  }
+
+  100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// ============================================
+// Mixin: Roll In Blurred
+// ============================================
+
+/// Roll-In-Blurredアニメーション（回転しながらの転がり入場エフェクト + ブラー効果）を適用するmixin
+///
+/// @param {String} $variant ['left'] - アニメーションのバリエーション
+///   Directional (4種類) - 4方向からの転がり入場（ブラー付き）:
+///     'left'   - 左から（translateX -1000px + rotate -720deg + blur 50px→0）
+///     'top'    - 上から（translateY -800px + rotate -720deg + blur 50px→0）
+///     'right'  - 右から（translateX 1000px + rotate 720deg + blur 50px→0）
+///     'bottom' - 下から（translateY 800px + rotate 720deg + blur 50px→0）
+///
+/// @param {Number} $duration [0.65s] - アニメーションの実行時間
+///   例: 0.5s, 0.7s, 0.8s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.230, 1.000, 0.320, 1.000)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include roll-in-blurred('left');
+///   }
+///
+/// @example scss - カスタム設定
+///   .modal {
+///     @include roll-in-blurred('top', 0.7s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include roll-in-blurred(
+///       $variant: 'right',
+///       $duration: 0.8s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin roll-in-blurred(
+  $variant: 'left',
+  $duration: 0.65s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.230, 1.000, 0.320, 1.000),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: roll-in-blurred-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Roll-In-Blurredアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['left'] - アニメーションのバリエーション（roll-in-blurredと同じ4種類）
+/// @param {Number} $duration [0.65s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.230, 1.000, 0.320, 1.000)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include roll-in-blurred-hover('left', 0.7s);
+///   }
+@mixin roll-in-blurred-hover(
+  $variant: 'left',
+  $duration: 0.65s,
+  $easing: cubic-bezier(0.230, 1.000, 0.320, 1.000)
+) {
+  transition: transform $duration $easing, filter $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: roll-in-blurred-#{$variant} $duration $easing both;
+    }
+  }
+}
+

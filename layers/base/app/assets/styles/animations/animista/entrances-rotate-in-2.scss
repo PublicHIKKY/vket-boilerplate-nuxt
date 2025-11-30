@@ -1,0 +1,306 @@
+/**
+ * Rotate-In-2 Animation (Entrance with 45deg Rotation + Opacity)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Clockwise
+@keyframes rotate-in-2-cw {
+  0% {
+    transform: rotate(-45deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotate(0);
+    opacity: 1;
+  }
+}
+
+// Counter-Clockwise
+@keyframes rotate-in-2-ccw {
+  0% {
+    transform: rotate(45deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotate(0);
+    opacity: 1;
+  }
+}
+
+// Forward Clockwise
+@keyframes rotate-in-2-fwd-cw {
+  0% {
+    transform: translateZ(-200px) rotate(-45deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateZ(0) rotate(0);
+    opacity: 1;
+  }
+}
+
+// Forward Counter-Clockwise
+@keyframes rotate-in-2-fwd-ccw {
+  0% {
+    transform: translateZ(-200px) rotate(45deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateZ(0) rotate(0);
+    opacity: 1;
+  }
+}
+
+// Backward Clockwise
+@keyframes rotate-in-2-bck-cw {
+  0% {
+    transform: translateZ(200px) rotate(-45deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateZ(0) rotate(0);
+    opacity: 1;
+  }
+}
+
+// Backward Counter-Clockwise
+@keyframes rotate-in-2-bck-ccw {
+  0% {
+    transform: translateZ(200px) rotate(45deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateZ(0) rotate(0);
+    opacity: 1;
+  }
+}
+
+// Top Right Clockwise
+@keyframes rotate-in-2-tr-cw {
+  0% {
+    transform-origin: 100% 0%;
+    transform: rotate(-45deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 100% 0%;
+    transform: rotate(0);
+    opacity: 1;
+  }
+}
+
+// Top Right Counter-Clockwise
+@keyframes rotate-in-2-tr-ccw {
+  0% {
+    transform-origin: 100% 0%;
+    transform: rotate(45deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 100% 0%;
+    transform: rotate(0);
+    opacity: 1;
+  }
+}
+
+// Bottom Right Clockwise
+@keyframes rotate-in-2-br-cw {
+  0% {
+    transform-origin: 100% 100%;
+    transform: rotate(-45deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: rotate(0);
+    opacity: 1;
+  }
+}
+
+// Bottom Right Counter-Clockwise
+@keyframes rotate-in-2-br-ccw {
+  0% {
+    transform-origin: 100% 100%;
+    transform: rotate(45deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: rotate(0);
+    opacity: 1;
+  }
+}
+
+// Bottom Left Clockwise
+@keyframes rotate-in-2-bl-cw {
+  0% {
+    transform-origin: 0% 100%;
+    transform: rotate(-45deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 0% 100%;
+    transform: rotate(0);
+    opacity: 1;
+  }
+}
+
+// Bottom Left Counter-Clockwise
+@keyframes rotate-in-2-bl-ccw {
+  0% {
+    transform-origin: 0% 100%;
+    transform: rotate(45deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 0% 100%;
+    transform: rotate(0);
+    opacity: 1;
+  }
+}
+
+// Top Left Clockwise
+@keyframes rotate-in-2-tl-cw {
+  0% {
+    transform-origin: 0% 0%;
+    transform: rotate(-45deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: rotate(0);
+    opacity: 1;
+  }
+}
+
+// Top Left Counter-Clockwise
+@keyframes rotate-in-2-tl-ccw {
+  0% {
+    transform-origin: 0% 0%;
+    transform: rotate(45deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: rotate(0);
+    opacity: 1;
+  }
+}
+
+// ============================================
+// Mixin: Rotate In 2
+// ============================================
+
+/// Rotate-In-2アニメーション（45度回転と透明度を使った入場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['cw'] - アニメーションのバリエーション
+///   Basic (2種類) - 基本的な回転:
+///     'cw'  - 時計回り（-45度から0度）
+///     'ccw' - 反時計回り（45度から0度）
+///   Z-axis Forward (2種類) - 前方移動 + 回転:
+///     'fwd-cw'  - 前方から時計回り
+///     'fwd-ccw' - 前方から反時計回り
+///   Z-axis Backward (2種類) - 後方移動 + 回転:
+///     'bck-cw'  - 後方から時計回り
+///     'bck-ccw' - 後方から反時計回り
+///   Corner-based (8種類) - 起点を指定して回転:
+///     'tr-cw'  - 右上を軸に時計回り
+///     'tr-ccw' - 右上を軸に反時計回り
+///     'br-cw'  - 右下を軸に時計回り
+///     'br-ccw' - 右下を軸に反時計回り
+///     'bl-cw'  - 左下を軸に時計回り
+///     'bl-ccw' - 左下を軸に反時計回り
+///     'tl-cw'  - 左上を軸に時計回り
+///     'tl-ccw' - 左上を軸に反時計回り
+///
+/// @param {Number} $duration [0.5s] - アニメーションの実行時間
+///   例: 0.4s, 0.6s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .modal {
+///     @include rotate-in-2('cw');
+///   }
+///
+/// @example scss - カスタム設定
+///   .card {
+///     @include rotate-in-2('fwd-cw', 0.6s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include rotate-in-2(
+///       $variant: 'tr-ccw',
+///       $duration: 0.8s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin rotate-in-2(
+  $variant: 'cw',
+  $duration: 0.5s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: rotate-in-2-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Rotate-In-2アニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['cw'] - アニメーションのバリエーション（rotate-in-2と同じ14種類）
+/// @param {Number} $duration [0.5s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include rotate-in-2-hover('cw', 0.4s);
+///   }
+@mixin rotate-in-2-hover(
+  $variant: 'cw',
+  $duration: 0.5s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940)
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: rotate-in-2-#{$variant} $duration $easing both;
+    }
+  }
+}
+

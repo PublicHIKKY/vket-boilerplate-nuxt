@@ -1,0 +1,400 @@
+/**
+ * Shake Animation (Attention with Shake Effect)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Shake Horizontal
+@keyframes shake-horizontal {
+  0%, 100% {
+    transform: translateX(0);
+  }
+
+  10%, 30%, 50%, 70% {
+    transform: translateX(-10px);
+  }
+
+  20%, 40%, 60% {
+    transform: translateX(10px);
+  }
+
+  80% {
+    transform: translateX(8px);
+  }
+
+  90% {
+    transform: translateX(-8px);
+  }
+}
+
+// Shake Vertical
+@keyframes shake-vertical {
+  0%, 100% {
+    transform: translateY(0);
+  }
+
+  10%, 30%, 50%, 70% {
+    transform: translateY(-8px);
+  }
+
+  20%, 40%, 60% {
+    transform: translateY(8px);
+  }
+
+  80% {
+    transform: translateY(6.4px);
+  }
+
+  90% {
+    transform: translateY(-6.4px);
+  }
+}
+
+// Shake LR (Left-Right)
+@keyframes shake-lr {
+  0%, 100% {
+    transform-origin: 50% 50%;
+    transform: rotate(0deg);
+  }
+
+  10% {
+    transform: rotate(8deg);
+  }
+
+  20%, 40%, 60% {
+    transform: rotate(-10deg);
+  }
+
+  30%, 50%, 70% {
+    transform: rotate(10deg);
+  }
+
+  80% {
+    transform: rotate(-8deg);
+  }
+
+  90% {
+    transform: rotate(8deg);
+  }
+}
+
+// Shake Top
+@keyframes shake-top {
+  0%, 100% {
+    transform-origin: 50% 0%;
+    transform: rotate(0deg);
+  }
+
+  10% {
+    transform: rotate(2deg);
+  }
+
+  20%, 40%, 60% {
+    transform: rotate(-4deg);
+  }
+
+  30%, 50%, 70% {
+    transform: rotate(4deg);
+  }
+
+  80% {
+    transform: rotate(-2deg);
+  }
+
+  90% {
+    transform: rotate(2deg);
+  }
+}
+
+// Shake Top-Right
+@keyframes shake-tr {
+  0%, 100% {
+    transform-origin: 100% 0%;
+    transform: rotate(0deg);
+  }
+
+  10% {
+    transform: rotate(2deg);
+  }
+
+  20%, 40%, 60% {
+    transform: rotate(-4deg);
+  }
+
+  30%, 50%, 70% {
+    transform: rotate(4deg);
+  }
+
+  80% {
+    transform: rotate(-2deg);
+  }
+
+  90% {
+    transform: rotate(2deg);
+  }
+}
+
+// Shake Right
+@keyframes shake-right {
+  0%, 100% {
+    transform-origin: 100% 50%;
+    transform: rotate(0deg);
+  }
+
+  10% {
+    transform: rotate(2deg);
+  }
+
+  20%, 40%, 60% {
+    transform: rotate(-4deg);
+  }
+
+  30%, 50%, 70% {
+    transform: rotate(4deg);
+  }
+
+  80% {
+    transform: rotate(-2deg);
+  }
+
+  90% {
+    transform: rotate(2deg);
+  }
+}
+
+// Shake Bottom-Right
+@keyframes shake-br {
+  0%, 100% {
+    transform-origin: 100% 100%;
+    transform: rotate(0deg);
+  }
+
+  10% {
+    transform: rotate(2deg);
+  }
+
+  20%, 40%, 60% {
+    transform: rotate(-4deg);
+  }
+
+  30%, 50%, 70% {
+    transform: rotate(4deg);
+  }
+
+  80% {
+    transform: rotate(-2deg);
+  }
+
+  90% {
+    transform: rotate(2deg);
+  }
+}
+
+// Shake Bottom
+@keyframes shake-bottom {
+  0%, 100% {
+    transform-origin: 50% 100%;
+    transform: rotate(0deg);
+  }
+
+  10% {
+    transform: rotate(2deg);
+  }
+
+  20%, 40%, 60% {
+    transform: rotate(-4deg);
+  }
+
+  30%, 50%, 70% {
+    transform: rotate(4deg);
+  }
+
+  80% {
+    transform: rotate(-2deg);
+  }
+
+  90% {
+    transform: rotate(2deg);
+  }
+}
+
+// Shake Bottom-Left
+@keyframes shake-bl {
+  0%, 100% {
+    transform-origin: 0% 100%;
+    transform: rotate(0deg);
+  }
+
+  10% {
+    transform: rotate(2deg);
+  }
+
+  20%, 40%, 60% {
+    transform: rotate(-4deg);
+  }
+
+  30%, 50%, 70% {
+    transform: rotate(4deg);
+  }
+
+  80% {
+    transform: rotate(-2deg);
+  }
+
+  90% {
+    transform: rotate(2deg);
+  }
+}
+
+// Shake Left
+@keyframes shake-left {
+  0%, 100% {
+    transform-origin: 0% 50%;
+    transform: rotate(0deg);
+  }
+
+  10% {
+    transform: rotate(2deg);
+  }
+
+  20%, 40%, 60% {
+    transform: rotate(-4deg);
+  }
+
+  30%, 50%, 70% {
+    transform: rotate(4deg);
+  }
+
+  80% {
+    transform: rotate(-2deg);
+  }
+
+  90% {
+    transform: rotate(2deg);
+  }
+}
+
+// Shake Top-Left
+@keyframes shake-tl {
+  0%, 100% {
+    transform-origin: 0% 0%;
+    transform: rotate(0deg);
+  }
+
+  10% {
+    transform: rotate(2deg);
+  }
+
+  20%, 40%, 60% {
+    transform: rotate(-4deg);
+  }
+
+  30%, 50%, 70% {
+    transform: rotate(4deg);
+  }
+
+  80% {
+    transform: rotate(-2deg);
+  }
+
+  90% {
+    transform: rotate(2deg);
+  }
+}
+
+// ============================================
+// Mixin: Shake
+// ============================================
+
+/// Shakeアニメーション（振動による注目エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['horizontal'] - アニメーションのバリエーション
+///   11種類の振動パターン:
+///     'horizontal' - 水平振動（translateX ±10px/±8px）
+///     'vertical'   - 垂直振動（translateY ±8px/±6.4px）
+///     'lr'         - 左右回転（rotate ±10deg/±8deg、中心軸）
+///     'top'        - 上辺回転（rotate ±4deg/±2deg、上辺軸）
+///     'tr'         - 右上回転（rotate ±4deg/±2deg、右上軸）
+///     'right'      - 右辺回転（rotate ±4deg/±2deg、右辺軸）
+///     'br'         - 右下回転（rotate ±4deg/±2deg、右下軸）
+///     'bottom'     - 下辺回転（rotate ±4deg/±2deg、下辺軸）
+///     'bl'         - 左下回転（rotate ±4deg/±2deg、左下軸）
+///     'left'       - 左辺回転（rotate ±4deg/±2deg、左辺軸）
+///     'tl'         - 左上回転（rotate ±4deg/±2deg、左上軸）
+///
+/// @param {Number} $duration [0.8s] - アニメーションの実行時間
+///   例: 0.8s, 1s, 1.2s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.455, 0.030, 0.515, 0.955)] - イージング関数
+///   例: linear, ease-in-out, cubic-bezier(0.455, 0.030, 0.515, 0.955)
+///
+/// @param {Number} $iterations [infinite] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .notification {
+///     @include shake('horizontal');
+///   }
+///
+/// @example scss - カスタム設定
+///   .alert {
+///     @include shake('br', 1s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .warning {
+///     @include shake(
+///       $variant: 'vertical',
+///       $duration: 1.2s,
+///       $delay: 0.1s,
+///       $easing: linear,
+///       $iterations: infinite,
+///       $fill: both
+///     );
+///   }
+@mixin shake(
+  $variant: 'horizontal',
+  $duration: 0.8s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.455, 0.030, 0.515, 0.955),
+  $iterations: infinite,
+  $fill: both
+) {
+  animation: shake-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Shakeアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['horizontal'] - アニメーションのバリエーション（shakeと同じ11種類）
+/// @param {Number} $duration [0.8s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.455, 0.030, 0.515, 0.955)] - イージング関数
+///
+/// @example scss - ボタンのホバーエフェクト
+///   .button {
+///     @include shake-hover('horizontal', 0.8s);
+///   }
+@mixin shake-hover(
+  $variant: 'horizontal',
+  $duration: 0.8s,
+  $easing: cubic-bezier(0.455, 0.030, 0.515, 0.955)
+) {
+  transition: transform $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: shake-#{$variant} $duration $easing infinite both;
+    }
+  }
+}
+

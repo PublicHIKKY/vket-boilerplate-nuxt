@@ -1,0 +1,235 @@
+/**
+ * Slide-In-Blurred Animation (Entrance with Sliding + Blur Effect + Scale + Opacity)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Top
+@keyframes slide-in-blurred-top {
+  0% {
+    transform-origin: 50% 0%;
+    transform: translateY(-1000px) scaleY(2.5) scaleX(0.2);
+    opacity: 0;
+    filter: blur(40px);
+  }
+
+  100% {
+    transform-origin: 50% 50%;
+    transform: translateY(0) scaleY(1) scaleX(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Top Right
+@keyframes slide-in-blurred-tr {
+  0% {
+    transform-origin: 0% 0%;
+    transform: translateY(-1000px) translateX(1000px) scale(0);
+    opacity: 0;
+    filter: blur(40px);
+  }
+
+  100% {
+    transform-origin: 50% 50%;
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Right
+@keyframes slide-in-blurred-right {
+  0% {
+    transform-origin: 0% 50%;
+    transform: translateX(1000px) scaleX(2.5) scaleY(0.2);
+    opacity: 0;
+    filter: blur(40px);
+  }
+
+  100% {
+    transform-origin: 50% 50%;
+    transform: translateX(0) scaleY(1) scaleX(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Bottom Right
+@keyframes slide-in-blurred-br {
+  0% {
+    transform-origin: 0% 100%;
+    transform: translateY(1000px) translateX(1000px) scale(0);
+    opacity: 0;
+    filter: blur(40px);
+  }
+
+  100% {
+    transform-origin: 50% 50%;
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Bottom
+@keyframes slide-in-blurred-bottom {
+  0% {
+    transform-origin: 50% 100%;
+    transform: translateY(1000px) scaleY(2.5) scaleX(0.2);
+    opacity: 0;
+    filter: blur(40px);
+  }
+
+  100% {
+    transform-origin: 50% 50%;
+    transform: translateY(0) scaleY(1) scaleX(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Bottom Left
+@keyframes slide-in-blurred-bl {
+  0% {
+    transform-origin: 100% 100%;
+    transform: translateY(1000px) translateX(-1000px) scale(0);
+    opacity: 0;
+    filter: blur(40px);
+  }
+
+  100% {
+    transform-origin: 50% 50%;
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Left
+@keyframes slide-in-blurred-left {
+  0% {
+    transform-origin: 100% 50%;
+    transform: translateX(-1000px) scaleX(2.5) scaleY(0.2);
+    opacity: 0;
+    filter: blur(40px);
+  }
+
+  100% {
+    transform-origin: 50% 50%;
+    transform: translateX(0) scaleY(1) scaleX(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// Top Left
+@keyframes slide-in-blurred-tl {
+  0% {
+    transform-origin: 100% 0%;
+    transform: translateY(-1000px) translateX(-1000px) scale(0);
+    opacity: 0;
+    filter: blur(40px);
+  }
+
+  100% {
+    transform-origin: 50% 50%;
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+// ============================================
+// Mixin: Slide In Blurred
+// ============================================
+
+/// Slide-In-Blurredアニメーション（スライドとブラー効果、スケールを組み合わせた入場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['top'] - アニメーションのバリエーション
+///   Directional (8種類) - 8方向からのブラースライド入場:
+///     'top'    - 上から（translateY -1000px + scaleY 2.5 + scaleX 0.2 + blur 40px→0）
+///     'tr'     - 右上から（translateY -1000px + translateX 1000px + scale 0 + blur 40px→0）
+///     'right'  - 右から（translateX 1000px + scaleX 2.5 + scaleY 0.2 + blur 40px→0）
+///     'br'     - 右下から（translateY 1000px + translateX 1000px + scale 0 + blur 40px→0）
+///     'bottom' - 下から（translateY 1000px + scaleY 2.5 + scaleX 0.2 + blur 40px→0）
+///     'bl'     - 左下から（translateY 1000px + translateX -1000px + scale 0 + blur 40px→0）
+///     'left'   - 左から（translateX -1000px + scaleX 2.5 + scaleY 0.2 + blur 40px→0）
+///     'tl'     - 左上から（translateY -1000px + translateX -1000px + scale 0 + blur 40px→0）
+///
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+///   例: 0.5s, 0.7s, 0.8s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.230, 1.000, 0.320, 1.000)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .modal {
+///     @include slide-in-blurred('top');
+///   }
+///
+/// @example scss - カスタム設定
+///   .card {
+///     @include slide-in-blurred('right', 0.7s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include slide-in-blurred(
+///       $variant: 'br',
+///       $duration: 0.8s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin slide-in-blurred(
+  $variant: 'top',
+  $duration: 0.6s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.230, 1.000, 0.320, 1.000),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: slide-in-blurred-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Slide-In-Blurredアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['top'] - アニメーションのバリエーション（slide-in-blurredと同じ8種類）
+/// @param {Number} $duration [0.6s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.230, 1.000, 0.320, 1.000)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include slide-in-blurred-hover('top', 0.7s);
+///   }
+@mixin slide-in-blurred-hover(
+  $variant: 'top',
+  $duration: 0.6s,
+  $easing: cubic-bezier(0.230, 1.000, 0.320, 1.000)
+) {
+  transition: transform $duration $easing, filter $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: slide-in-blurred-#{$variant} $duration $easing both;
+    }
+  }
+}
+

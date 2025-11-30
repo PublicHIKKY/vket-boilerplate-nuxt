@@ -1,0 +1,297 @@
+/**
+ * Scale-down Animation
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Center
+@keyframes scale-down-center {
+  0% {
+    transform: scale(1);
+  }
+
+  100% {
+    transform: scale(0.5);
+  }
+}
+
+// Top
+@keyframes scale-down-top {
+  0% {
+    transform-origin: 50% 0%;
+    transform: scale(1);
+  }
+
+  100% {
+    transform-origin: 50% 0%;
+    transform: scale(0.5);
+  }
+}
+
+// Top Right
+@keyframes scale-down-tr {
+  0% {
+    transform-origin: 100% 0%;
+    transform: scale(1);
+  }
+
+  100% {
+    transform-origin: 100% 0%;
+    transform: scale(0.5);
+  }
+}
+
+// Right
+@keyframes scale-down-right {
+  0% {
+    transform-origin: 100% 50%;
+    transform: scale(1);
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: scale(0.5);
+  }
+}
+
+// Bottom Right
+@keyframes scale-down-br {
+  0% {
+    transform-origin: 100% 100%;
+    transform: scale(1);
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: scale(0.5);
+  }
+}
+
+// Bottom
+@keyframes scale-down-bottom {
+  0% {
+    transform-origin: 50% 100%;
+    transform: scale(1);
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: scale(0.5);
+  }
+}
+
+// Bottom Left
+@keyframes scale-down-bl {
+  0% {
+    transform-origin: 0% 100%;
+    transform: scale(1);
+  }
+
+  100% {
+    transform-origin: 0% 100%;
+    transform: scale(0.5);
+  }
+}
+
+// Left
+@keyframes scale-down-left {
+  0% {
+    transform-origin: 0% 50%;
+    transform: scale(1);
+  }
+
+  100% {
+    transform-origin: 0% 50%;
+    transform: scale(0.5);
+  }
+}
+
+// Top Left
+@keyframes scale-down-tl {
+  0% {
+    transform-origin: 0% 0%;
+    transform: scale(1);
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: scale(0.5);
+  }
+}
+
+// Horizontal Center
+@keyframes scale-down-hor-center {
+  0% {
+    transform: scaleX(1);
+  }
+
+  100% {
+    transform: scaleX(0.4);
+  }
+}
+
+// Horizontal Left
+@keyframes scale-down-hor-left {
+  0% {
+    transform-origin: 0% 0%;
+    transform: scaleX(1);
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: scaleX(0.4);
+  }
+}
+
+// Horizontal Right
+@keyframes scale-down-hor-right {
+  0% {
+    transform-origin: 100% 100%;
+    transform: scaleX(1);
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: scaleX(0.4);
+  }
+}
+
+// Vertical Center
+@keyframes scale-down-ver-center {
+  0% {
+    transform: scaleY(1);
+  }
+
+  100% {
+    transform: scaleY(0.4);
+  }
+}
+
+// Vertical Top
+@keyframes scale-down-ver-top {
+  0% {
+    transform-origin: 0% 0%;
+    transform: scaleY(1);
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: scaleY(0.4);
+  }
+}
+
+// Vertical Bottom
+@keyframes scale-down-ver-bottom {
+  0% {
+    transform-origin: 100% 100%;
+    transform: scaleY(1);
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: scaleY(0.4);
+  }
+}
+
+// ============================================
+// Mixin: Scale Down
+// ============================================
+
+/// Scale-downアニメーションを適用するmixin
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション
+///   Basic Directions (9種類):
+///     'center'  - 中心に向かって縮小
+///     'top'     - 上に向かって縮小
+///     'tr'      - 右上に向かって縮小
+///     'right'   - 右に向かって縮小
+///     'br'      - 右下に向かって縮小
+///     'bottom'  - 下に向かって縮小
+///     'bl'      - 左下に向かって縮小
+///     'left'    - 左に向かって縮小
+///     'tl'      - 左上に向かって縮小
+///   Horizontal (3種類):
+///     'hor-center' - 水平方向に中心から
+///     'hor-left'   - 水平方向に左から
+///     'hor-right'  - 水平方向に右から
+///   Vertical (3種類):
+///     'ver-center' - 垂直方向に中心から
+///     'ver-top'    - 垂直方向に上から
+///     'ver-bottom' - 垂直方向に下から
+///
+/// @param {Number} $duration [0.4s] - アニメーションの実行時間
+///   例: 0.3s, 0.5s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .box {
+///     @include scale-down('center');
+///   }
+///
+/// @example scss - カスタム設定
+///   .box {
+///     @include scale-down('bottom', 0.8s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .box {
+///     @include scale-down(
+///       $variant: 'center',
+///       $duration: 0.6s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 2,
+///       $fill: forwards
+///     );
+///   }
+@mixin scale-down(
+  $variant: 'center',
+  $duration: 0.4s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: scale-down-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Scale-downアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['center'] - アニメーションのバリエーション（scale-downと同じ15種類）
+/// @param {Number} $duration [0.4s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///
+/// @example scss - ボタンのホバーエフェクト
+///   .button {
+///     @include scale-down-hover('center', 0.3s);
+///   }
+@mixin scale-down-hover(
+  $variant: 'center',
+  $duration: 0.4s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940)
+) {
+  transition: transform $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: scale-down-#{$variant} $duration $easing both;
+    }
+  }
+}
+

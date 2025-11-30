@@ -1,0 +1,219 @@
+/**
+ * Slide-In-Elliptic Animation (Entrance with Elliptic Path Movement + 3D Rotation + Scale + Opacity)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Top Forward
+@keyframes slide-in-elliptic-top-fwd {
+  0% {
+    transform-origin: 50% 100%;
+    transform: translateY(-600px) rotateX(-30deg) scale(0);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 50% 1400px;
+    transform: translateY(0) rotateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Top Backward
+@keyframes slide-in-elliptic-top-bck {
+  0% {
+    transform-origin: 50% 200%;
+    transform: translateY(-600px) rotateX(30deg) scale(6.5);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 50% -500px;
+    transform: translateY(0) rotateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Right Forward
+@keyframes slide-in-elliptic-right-fwd {
+  0% {
+    transform-origin: -100% 50%;
+    transform: translateX(800px) rotateY(-30deg) scale(0);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: -1800px 50%;
+    transform: translateX(0) rotateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Right Backward
+@keyframes slide-in-elliptic-right-bck {
+  0% {
+    transform-origin: -100% 50%;
+    transform: translateX(800px) rotateY(30deg) scale(6.5);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 600px 50%;
+    transform: translateX(0) rotateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Bottom Forward
+@keyframes slide-in-elliptic-bottom-fwd {
+  0% {
+    transform-origin: 50% -100%;
+    transform: translateY(600px) rotateX(30deg) scale(0);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 50% -1400px;
+    transform: translateY(0) rotateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Bottom Backward
+@keyframes slide-in-elliptic-bottom-bck {
+  0% {
+    transform-origin: 50% -200%;
+    transform: translateY(600px) rotateX(-30deg) scale(6.5);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 50% 500px;
+    transform: translateY(0) rotateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Left Forward
+@keyframes slide-in-elliptic-left-fwd {
+  0% {
+    transform-origin: 200% 50%;
+    transform: translateX(-800px) rotateY(30deg) scale(0);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: 1800px 50%;
+    transform: translateX(0) rotateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Left Backward
+@keyframes slide-in-elliptic-left-bck {
+  0% {
+    transform-origin: 200% 50%;
+    transform: translateX(-800px) rotateY(-30deg) scale(6.5);
+    opacity: 0;
+  }
+
+  100% {
+    transform-origin: -600px 50%;
+    transform: translateX(0) rotateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// ============================================
+// Mixin: Slide In Elliptic
+// ============================================
+
+/// Slide-In-Ellipticアニメーション（楕円軌道の移動と3D回転、スケールを組み合わせた入場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['top-fwd'] - アニメーションのバリエーション
+///   Directional Forward/Backward (8種類) - 4方向×前方/後方の楕円軌道移動:
+///     'top-fwd'    - 上から前方へ（translateY -600px + rotateX -30deg + scale 0→1）
+///     'top-bck'    - 上から後方へ（translateY -600px + rotateX 30deg + scale 6.5→1）
+///     'right-fwd'  - 右から前方へ（translateX 800px + rotateY -30deg + scale 0→1）
+///     'right-bck'  - 右から後方へ（translateX 800px + rotateY 30deg + scale 6.5→1）
+///     'bottom-fwd' - 下から前方へ（translateY 600px + rotateX 30deg + scale 0→1）
+///     'bottom-bck' - 下から後方へ（translateY 600px + rotateX -30deg + scale 6.5→1）
+///     'left-fwd'   - 左から前方へ（translateX -800px + rotateY 30deg + scale 0→1）
+///     'left-bck'   - 左から後方へ（translateX -800px + rotateY -30deg + scale 6.5→1）
+///
+/// @param {Number} $duration [0.7s] - アニメーションの実行時間
+///   例: 0.6s, 0.8s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .modal {
+///     @include slide-in-elliptic('top-fwd');
+///   }
+///
+/// @example scss - カスタム設定
+///   .card {
+///     @include slide-in-elliptic('right-fwd', 0.8s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include slide-in-elliptic(
+///       $variant: 'bottom-bck',
+///       $duration: 0.9s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin slide-in-elliptic(
+  $variant: 'top-fwd',
+  $duration: 0.7s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: slide-in-elliptic-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Slide-In-Ellipticアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['top-fwd'] - アニメーションのバリエーション（slide-in-ellipticと同じ8種類）
+/// @param {Number} $duration [0.7s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include slide-in-elliptic-hover('top-fwd', 0.8s);
+///   }
+@mixin slide-in-elliptic-hover(
+  $variant: 'top-fwd',
+  $duration: 0.7s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940)
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: slide-in-elliptic-#{$variant} $duration $easing both;
+    }
+  }
+}
+

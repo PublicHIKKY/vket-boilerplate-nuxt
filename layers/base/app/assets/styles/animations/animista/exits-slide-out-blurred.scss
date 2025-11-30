@@ -1,0 +1,235 @@
+/**
+ * Slide-Out-Blurred Animation (Exit with Blurred Slide + Opacity Fade)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Top
+@keyframes slide-out-blurred-top {
+  0% {
+    transform-origin: 50% 0%;
+    transform: translateY(0) scaleY(1) scaleX(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform-origin: 50% 0%;
+    transform: translateY(-1000px) scaleY(2) scaleX(0.2);
+    opacity: 0;
+    filter: blur(40px);
+  }
+}
+
+// Top Right
+@keyframes slide-out-blurred-tr {
+  0% {
+    transform-origin: 50% 50%;
+    transform: translate(0, 0) skew(0deg, 0deg);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform-origin: 0% 0%;
+    transform: translate(1000px, -1000px) skew(-80deg, -10deg);
+    opacity: 0;
+    filter: blur(40px);
+  }
+}
+
+// Right
+@keyframes slide-out-blurred-right {
+  0% {
+    transform-origin: 50% 50%;
+    transform: translateX(0) scaleY(1) scaleX(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform-origin: 0% 50%;
+    transform: translateX(1000px) scaleX(2) scaleY(0.2);
+    opacity: 0;
+    filter: blur(40px);
+  }
+}
+
+// Bottom Right
+@keyframes slide-out-blurred-br {
+  0% {
+    transform-origin: 50% 50%;
+    transform: translate(0, 0) skew(0deg, 0deg);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform-origin: 0% 100%;
+    transform: translate(1000px, 1000px) skew(80deg, 10deg);
+    opacity: 0;
+    filter: blur(40px);
+  }
+}
+
+// Bottom
+@keyframes slide-out-blurred-bottom {
+  0% {
+    transform-origin: 50% 50%;
+    transform: translateY(0) scaleY(1) scaleX(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform-origin: 50% 100%;
+    transform: translateY(1000px) scaleY(2) scaleX(0.2);
+    opacity: 0;
+    filter: blur(40px);
+  }
+}
+
+// Bottom Left
+@keyframes slide-out-blurred-bl {
+  0% {
+    transform-origin: 50% 50%;
+    transform: translate(0, 0) skew(0deg, 0deg);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform-origin: 100% 100%;
+    transform: translate(-1000px, 1000px) skew(-80deg, -10deg);
+    opacity: 0;
+    filter: blur(40px);
+  }
+}
+
+// Left
+@keyframes slide-out-blurred-left {
+  0% {
+    transform-origin: 50% 50%;
+    transform: translateX(0) scaleY(1) scaleX(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform-origin: 100% 50%;
+    transform: translateX(-1000px) scaleX(2) scaleY(0.2);
+    opacity: 0;
+    filter: blur(40px);
+  }
+}
+
+// Top Left
+@keyframes slide-out-blurred-tl {
+  0% {
+    transform-origin: 50% 50%;
+    transform: translate(0, 0) skew(0deg, 0deg);
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    transform-origin: 100% 0%;
+    transform: translate(-1000px, -1000px) skew(80deg, 10deg);
+    opacity: 0;
+    filter: blur(40px);
+  }
+}
+
+// ============================================
+// Mixin: Slide Out Blurred
+// ============================================
+
+/// Slide-Out-Blurredアニメーション（ブラー効果付きスライドによる退場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['top'] - アニメーションのバリエーション
+///   Directional (8種類) - ブラー効果付きスライドによる退場:
+///     'top'    - 上へ（translateY 0→-1000px + scaleY 1→2 + scaleX 1→0.2 + blur 0→40px + opacity 1→0）
+///     'tr'     - 右上へ（translate(0,0)→(1000px,-1000px) + skew(0,0)→(-80deg,-10deg) + blur 0→40px + opacity 1→0）
+///     'right'  - 右へ（translateX 0→1000px + scaleX 1→2 + scaleY 1→0.2 + blur 0→40px + opacity 1→0）
+///     'br'     - 右下へ（translate(0,0)→(1000px,1000px) + skew(0,0)→(80deg,10deg) + blur 0→40px + opacity 1→0）
+///     'bottom' - 下へ（translateY 0→1000px + scaleY 1→2 + scaleX 1→0.2 + blur 0→40px + opacity 1→0）
+///     'bl'     - 左下へ（translate(0,0)→(-1000px,1000px) + skew(0,0)→(-80deg,-10deg) + blur 0→40px + opacity 1→0）
+///     'left'   - 左へ（translateX 0→-1000px + scaleX 1→2 + scaleY 1→0.2 + blur 0→40px + opacity 1→0）
+///     'tl'     - 左上へ（translate(0,0)→(-1000px,-1000px) + skew(0,0)→(80deg,10deg) + blur 0→40px + opacity 1→0）
+///
+/// @param {Number} $duration [0.45s] - アニメーションの実行時間
+///   例: 0.4s, 0.45s, 0.5s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.755, 0.050, 0.855, 0.060)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include slide-out-blurred('top');
+///   }
+///
+/// @example scss - カスタム設定
+///   .modal {
+///     @include slide-out-blurred('right', 0.4s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include slide-out-blurred(
+///       $variant: 'br',
+///       $duration: 0.5s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin slide-out-blurred(
+  $variant: 'top',
+  $duration: 0.45s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.755, 0.050, 0.855, 0.060),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: slide-out-blurred-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Slide-Out-Blurredアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['top'] - アニメーションのバリエーション（slide-out-blurredと同じ8種類）
+/// @param {Number} $duration [0.45s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.755, 0.050, 0.855, 0.060)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include slide-out-blurred-hover('top', 0.4s);
+///   }
+@mixin slide-out-blurred-hover(
+  $variant: 'top',
+  $duration: 0.45s,
+  $easing: cubic-bezier(0.755, 0.050, 0.855, 0.060)
+) {
+  transition: transform $duration $easing, filter $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: slide-out-blurred-#{$variant} $duration $easing both;
+    }
+  }
+}
+

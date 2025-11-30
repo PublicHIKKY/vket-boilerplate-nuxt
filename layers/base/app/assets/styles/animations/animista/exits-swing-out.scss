@@ -1,0 +1,219 @@
+/**
+ * Swing-Out Animation (Exit with Swinging Motion + Opacity Fade)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Top Back
+@keyframes swing-out-top-bck {
+  0% {
+    transform-origin: top;
+    transform: rotateX(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: top;
+    transform: rotateX(-100deg);
+    opacity: 0;
+  }
+}
+
+// Top Forward
+@keyframes swing-out-top-fwd {
+  0% {
+    transform-origin: top;
+    transform: rotateX(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: top;
+    transform: rotateX(70deg);
+    opacity: 0;
+  }
+}
+
+// Right Back
+@keyframes swing-out-right-bck {
+  0% {
+    transform-origin: right;
+    transform: rotateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: right;
+    transform: rotateY(-100deg);
+    opacity: 0;
+  }
+}
+
+// Right Forward
+@keyframes swing-out-right-fwd {
+  0% {
+    transform-origin: right;
+    transform: rotateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: right;
+    transform: rotateY(70deg);
+    opacity: 0;
+  }
+}
+
+// Bottom Back
+@keyframes swing-out-bottom-bck {
+  0% {
+    transform-origin: bottom;
+    transform: rotateX(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: bottom;
+    transform: rotateX(100deg);
+    opacity: 0;
+  }
+}
+
+// Bottom Forward
+@keyframes swing-out-bottom-fwd {
+  0% {
+    transform-origin: bottom;
+    transform: rotateX(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: bottom;
+    transform: rotateX(-70deg);
+    opacity: 0;
+  }
+}
+
+// Left Back
+@keyframes swing-out-left-bck {
+  0% {
+    transform-origin: left;
+    transform: rotateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: left;
+    transform: rotateY(100deg);
+    opacity: 0;
+  }
+}
+
+// Left Forward
+@keyframes swing-out-left-fwd {
+  0% {
+    transform-origin: left;
+    transform: rotateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform-origin: left;
+    transform: rotateY(-70deg);
+    opacity: 0;
+  }
+}
+
+// ============================================
+// Mixin: Swing Out
+// ============================================
+
+/// Swing-Outアニメーション（スイング動作による退場エフェクト）を適用するmixin
+///
+/// @param {String} $variant ['top-bck'] - アニメーションのバリエーション
+///   Swinging Motion (8種類) - スイング動作による退場:
+///     'top-bck'    - 上へ後退（rotateX 0→-100deg + transform-origin: top + opacity 1→0）
+///     'top-fwd'    - 上へ前進（rotateX 0→70deg + transform-origin: top + opacity 1→0）
+///     'right-bck'  - 右へ後退（rotateY 0→-100deg + transform-origin: right + opacity 1→0）
+///     'right-fwd'  - 右へ前進（rotateY 0→70deg + transform-origin: right + opacity 1→0）
+///     'bottom-bck' - 下へ後退（rotateX 0→100deg + transform-origin: bottom + opacity 1→0）
+///     'bottom-fwd' - 下へ前進（rotateX 0→-70deg + transform-origin: bottom + opacity 1→0）
+///     'left-bck'   - 左へ後退（rotateY 0→100deg + transform-origin: left + opacity 1→0）
+///     'left-fwd'   - 左へ前進（rotateY 0→-70deg + transform-origin: left + opacity 1→0）
+///
+/// @param {Number} $duration [0.45s] - アニメーションの実行時間
+///   例: 0.4s, 0.45s, 0.55s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.600, -0.280, 0.735, 0.045)] - イージング関数
+///   例: ease-in, cubic-bezier(0.600, -0.280, 0.735, 0.045)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include swing-out('top-bck');
+///   }
+///
+/// @example scss - カスタム設定
+///   .modal {
+///     @include swing-out('right-fwd', 0.6s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .element {
+///     @include swing-out(
+///       $variant: 'bottom-fwd',
+///       $duration: 0.5s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin swing-out(
+  $variant: 'top-bck',
+  $duration: 0.45s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.600, -0.280, 0.735, 0.045),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: swing-out-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Swing-Outアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['top-bck'] - アニメーションのバリエーション（swing-outと同じ8種類）
+/// @param {Number} $duration [0.45s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.600, -0.280, 0.735, 0.045)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include swing-out-hover('top-bck', 0.4s);
+///   }
+@mixin swing-out-hover(
+  $variant: 'top-bck',
+  $duration: 0.45s,
+  $easing: cubic-bezier(0.600, -0.280, 0.735, 0.045)
+) {
+  transition: transform $duration $easing, opacity $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: swing-out-#{$variant} $duration $easing both;
+    }
+  }
+}
+

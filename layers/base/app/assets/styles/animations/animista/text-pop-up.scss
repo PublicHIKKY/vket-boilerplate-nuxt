@@ -1,0 +1,219 @@
+/**
+ * Pop-Up Animation (Text with 3D Pop-Up Effect)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Text Pop-Up Top
+@keyframes text-pop-up-top {
+  0% {
+    transform-origin: 50% 50%;
+    transform: translateY(0);
+    text-shadow: none;
+  }
+
+  100% {
+    transform-origin: 50% 50%;
+    transform: translateY(-50px);
+    text-shadow: 0 1px 0 #ccc, 0 2px 0 #ccc, 0 3px 0 #ccc, 0 4px 0 #ccc, 0 5px 0 #ccc, 0 6px 0 #ccc, 0 7px 0 #ccc, 0 8px 0 #ccc, 0 9px 0 #ccc, 0 50px 30px rgb(0 0 0 / 30%);
+  }
+}
+
+// Text Pop-Up Top-Right
+@keyframes text-pop-up-tr {
+  0% {
+    transform-origin: 50% 50%;
+    transform: translateY(0) translateX(0);
+    text-shadow: none;
+  }
+
+  100% {
+    transform-origin: 50% 50%;
+    transform: translateY(-50px) translateX(50px);
+    text-shadow: 0 1px 0 #ccc, 0 2px 0 #ccc, 0 3px 0 #ccc, 0 4px 0 #ccc, 0 5px 0 #ccc, 0 6px 0 #ccc, 0 7px 0 #ccc, 0 8px 0 #ccc, 0 9px 0 #ccc, 0 50px 30px rgb(0 0 0 / 30%);
+  }
+}
+
+// Text Pop-Up Right
+@keyframes text-pop-up-right {
+  0% {
+    transform-origin: 50% 50%;
+    transform: translateX(0);
+    text-shadow: none;
+  }
+
+  100% {
+    transform-origin: 50% 50%;
+    transform: translateX(50px);
+    text-shadow: 0 1px 0 #ccc, 0 2px 0 #ccc, 0 3px 0 #ccc, 0 4px 0 #ccc, 0 5px 0 #ccc, 0 6px 0 #ccc, 0 7px 0 #ccc, 0 8px 0 #ccc, 0 9px 0 #ccc, 0 50px 30px rgb(0 0 0 / 30%);
+  }
+}
+
+// Text Pop-Up Bottom-Right
+@keyframes text-pop-up-br {
+  0% {
+    transform-origin: 50% 50%;
+    transform: translateY(0) translateX(0);
+    text-shadow: none;
+  }
+
+  100% {
+    transform-origin: 50% 50%;
+    transform: translateY(50px) translateX(50px);
+    text-shadow: 0 1px 0 #ccc, 0 2px 0 #ccc, 0 3px 0 #ccc, 0 4px 0 #ccc, 0 5px 0 #ccc, 0 6px 0 #ccc, 0 7px 0 #ccc, 0 8px 0 #ccc, 0 9px 0 #ccc, 0 50px 30px rgb(0 0 0 / 30%);
+  }
+}
+
+// Text Pop-Up Bottom
+@keyframes text-pop-up-bottom {
+  0% {
+    transform-origin: 50% 50%;
+    transform: translateY(0);
+    text-shadow: none;
+  }
+
+  100% {
+    transform-origin: 50% 50%;
+    transform: translateY(50px);
+    text-shadow: 0 1px 0 #ccc, 0 2px 0 #ccc, 0 3px 0 #ccc, 0 4px 0 #ccc, 0 5px 0 #ccc, 0 6px 0 #ccc, 0 7px 0 #ccc, 0 8px 0 #ccc, 0 9px 0 #ccc, 0 50px 30px rgb(0 0 0 / 30%);
+  }
+}
+
+// Text Pop-Up Bottom-Left
+@keyframes text-pop-up-bl {
+  0% {
+    transform-origin: 50% 50%;
+    transform: translateY(0) translateX(0);
+    text-shadow: none;
+  }
+
+  100% {
+    transform-origin: 50% 50%;
+    transform: translateY(50px) translateX(-50px);
+    text-shadow: 0 1px 0 #ccc, 0 2px 0 #ccc, 0 3px 0 #ccc, 0 4px 0 #ccc, 0 5px 0 #ccc, 0 6px 0 #ccc, 0 7px 0 #ccc, 0 8px 0 #ccc, 0 9px 0 #ccc, 0 50px 30px rgb(0 0 0 / 30%);
+  }
+}
+
+// Text Pop-Up Left
+@keyframes text-pop-up-left {
+  0% {
+    transform-origin: 50% 50%;
+    transform: translateX(0);
+    text-shadow: none;
+  }
+
+  100% {
+    transform-origin: 50% 50%;
+    transform: translateX(-50px);
+    text-shadow: 0 1px 0 #ccc, 0 2px 0 #ccc, 0 3px 0 #ccc, 0 4px 0 #ccc, 0 5px 0 #ccc, 0 6px 0 #ccc, 0 7px 0 #ccc, 0 8px 0 #ccc, 0 9px 0 #ccc, 0 50px 30px rgb(0 0 0 / 30%);
+  }
+}
+
+// Text Pop-Up Top-Left
+@keyframes text-pop-up-tl {
+  0% {
+    transform-origin: 50% 50%;
+    transform: translateY(0) translateX(0);
+    text-shadow: none;
+  }
+
+  100% {
+    transform-origin: 50% 50%;
+    transform: translateY(-50px) translateX(-50px);
+    text-shadow: 0 1px 0 #ccc, 0 2px 0 #ccc, 0 3px 0 #ccc, 0 4px 0 #ccc, 0 5px 0 #ccc, 0 6px 0 #ccc, 0 7px 0 #ccc, 0 8px 0 #ccc, 0 9px 0 #ccc, 0 50px 30px rgb(0 0 0 / 30%);
+  }
+}
+
+// ============================================
+// Mixin: Text Pop-Up
+// ============================================
+
+/// Text-Pop-Upアニメーション（3Dポップアップエフェクト）を適用するmixin
+///
+/// @param {String} $variant ['top'] - アニメーションのバリエーション
+///   8方向の3Dポップアップパターン:
+///     'top'     - 上（translateY 0→-50px + text-shadow 9層 + 最終影）
+///     'tr'      - 右上（translateY 0→-50px + translateX 0→50px + text-shadow 9層 + 最終影）
+///     'right'   - 右（translateX 0→50px + text-shadow 9層 + 最終影）
+///     'br'      - 右下（translateY 0→50px + translateX 0→50px + text-shadow 9層 + 最終影）
+///     'bottom'  - 下（translateY 0→50px + text-shadow 9層 + 最終影）
+///     'bl'      - 左下（translateY 0→50px + translateX 0→-50px + text-shadow 9層 + 最終影）
+///     'left'    - 左（translateX 0→-50px + text-shadow 9層 + 最終影）
+///     'tl'      - 左上（translateY 0→-50px + translateX 0→-50px + text-shadow 9層 + 最終影）
+///
+/// @param {Number} $duration [0.5s] - アニメーションの実行時間
+///   例: 0.5s, 0.6s, 0.8s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///   例: ease-out, cubic-bezier(0.250, 0.460, 0.450, 0.940)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .title {
+///     @include text-pop-up('top');
+///   }
+///
+/// @example scss - カスタム設定
+///   .heading {
+///     @include text-pop-up('br', 0.6s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .text {
+///     @include text-pop-up(
+///       $variant: 'bottom',
+///       $duration: 0.8s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 1,
+///       $fill: both
+///     );
+///   }
+@mixin text-pop-up(
+  $variant: 'top',
+  $duration: 0.5s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: text-pop-up-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Text-Pop-Upアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['top'] - アニメーションのバリエーション（text-pop-upと同じ8種類）
+/// @param {Number} $duration [0.5s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///
+/// @example scss - タイトルのホバーエフェクト
+///   .title {
+///     @include text-pop-up-hover('br', 0.6s);
+///   }
+@mixin text-pop-up-hover(
+  $variant: 'top',
+  $duration: 0.5s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940)
+) {
+  transition: transform $duration $easing, text-shadow $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: text-pop-up-#{$variant} $duration $easing both;
+    }
+  }
+}
+

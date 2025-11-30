@@ -1,0 +1,254 @@
+/**
+ * Slide-Rotate Animation (Slide with Rotation)
+ * From Animista (http://animista.net)
+ */
+
+// ============================================
+// Keyframes Definitions
+// ============================================
+
+// Horizontal Top
+@keyframes slide-rotate-hor-top {
+  0% {
+    transform: translateY(0) rotateX(0deg);
+  }
+
+  100% {
+    transform: translateY(-150px) rotateX(-90deg);
+  }
+}
+
+// Horizontal Top Backward
+@keyframes slide-rotate-hor-t-bck {
+  0% {
+    transform-origin: top center;
+    transform: translateY(0) translateZ(0) rotateX(0deg);
+  }
+
+  100% {
+    transform-origin: top center;
+    transform: translateY(-150px) translateZ(-230px) rotateX(-90deg);
+  }
+}
+
+// Horizontal Top Forward
+@keyframes slide-rotate-hor-t-fwd {
+  0% {
+    transform-origin: top center;
+    transform: translateY(0) translateZ(0) rotateX(0deg);
+  }
+
+  100% {
+    transform-origin: top center;
+    transform: translateY(-150px) translateZ(230px) rotateX(-90deg);
+  }
+}
+
+// Vertical Right
+@keyframes slide-rotate-ver-right {
+  0% {
+    transform: translateX(0) rotateY(0deg);
+  }
+
+  100% {
+    transform: translateX(150px) rotateY(90deg);
+  }
+}
+
+// Vertical Right Backward
+@keyframes slide-rotate-ver-r-bck {
+  0% {
+    transform-origin: center right;
+    transform: translateX(0) translateZ(0) rotateY(0deg);
+  }
+
+  100% {
+    transform-origin: center right;
+    transform: translateX(150px) translateZ(-230px) rotateY(90deg);
+  }
+}
+
+// Vertical Right Forward
+@keyframes slide-rotate-ver-r-fwd {
+  0% {
+    transform-origin: center right;
+    transform: translateX(0) translateZ(0) rotateY(0deg);
+  }
+
+  100% {
+    transform-origin: center right;
+    transform: translateX(150px) translateZ(230px) rotateY(90deg);
+  }
+}
+
+// Horizontal Bottom
+@keyframes slide-rotate-hor-bottom {
+  0% {
+    transform: translateY(0) rotateX(0deg);
+  }
+
+  100% {
+    transform: translateY(150px) rotateX(90deg);
+  }
+}
+
+// Horizontal Bottom Backward
+@keyframes slide-rotate-hor-b-bck {
+  0% {
+    transform-origin: bottom center;
+    transform: translateY(0) translateZ(0) rotateX(0deg);
+  }
+
+  100% {
+    transform-origin: bottom center;
+    transform: translateY(150px) translateZ(-230px) rotateX(90deg);
+  }
+}
+
+// Horizontal Bottom Forward
+@keyframes slide-rotate-hor-b-fwd {
+  0% {
+    transform-origin: bottom center;
+    transform: translateY(0) translateZ(0) rotateX(0deg);
+  }
+
+  100% {
+    transform-origin: bottom center;
+    transform: translateY(150px) translateZ(230px) rotateX(90deg);
+  }
+}
+
+// Vertical Left
+@keyframes slide-rotate-ver-left {
+  0% {
+    transform: translateX(0) rotateY(0deg);
+  }
+
+  100% {
+    transform: translateX(-150px) rotateY(-90deg);
+  }
+}
+
+// Vertical Left Backward
+@keyframes slide-rotate-ver-l-bck {
+  0% {
+    transform-origin: center left;
+    transform: translateX(0) translateZ(0) rotateY(0deg);
+  }
+
+  100% {
+    transform-origin: center left;
+    transform: translateX(-150px) translateZ(-230px) rotateY(-90deg);
+  }
+}
+
+// Vertical Left Forward
+@keyframes slide-rotate-ver-l-fwd {
+  0% {
+    transform-origin: center left;
+    transform: translateX(0) translateZ(0) rotateY(0deg);
+  }
+
+  100% {
+    transform-origin: center left;
+    transform: translateX(-150px) translateZ(230px) rotateY(-90deg);
+  }
+}
+
+// ============================================
+// Mixin: Slide Rotate
+// ============================================
+
+/// Slide-Rotateアニメーション（スライドと回転の組み合わせ）を適用するmixin
+///
+/// @param {String} $variant ['hor-top'] - アニメーションのバリエーション
+///   Horizontal Top (3種類) - X軸回転:
+///     'hor-top'   - 上方向にスライドしながらX軸回転
+///     'hor-t-bck' - 上後方にスライドしながらX軸回転
+///     'hor-t-fwd' - 上前方にスライドしながらX軸回転
+///   Vertical Right (3種類) - Y軸回転:
+///     'ver-right'   - 右方向にスライドしながらY軸回転
+///     'ver-r-bck' - 右後方にスライドしながらY軸回転
+///     'ver-r-fwd' - 右前方にスライドしながらY軸回転
+///   Horizontal Bottom (3種類) - X軸回転:
+///     'hor-bottom'   - 下方向にスライドしながらX軸回転
+///     'hor-b-bck' - 下後方にスライドしながらX軸回転
+///     'hor-b-fwd' - 下前方にスライドしながらX軸回転
+///   Vertical Left (3種類) - Y軸回転:
+///     'ver-left'   - 左方向にスライドしながらY軸回転
+///     'ver-l-bck' - 左後方にスライドしながらY軸回転
+///     'ver-l-fwd' - 左前方にスライドしながらY軸回転
+///
+/// @param {Number} $duration [0.5s] - アニメーションの実行時間
+///   例: 0.4s, 0.6s, 1s
+///
+/// @param {Number} $delay [0s] - アニメーションの遅延時間
+///   例: 0s, 0.1s, 0.5s
+///
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///   例: ease, ease-in-out, cubic-bezier(0.68, -0.55, 0.265, 1.55)
+///
+/// @param {Number} $iterations [1] - 反復回数
+///   例: 1, 2, infinite
+///
+/// @param {String} $fill [both] - fill-mode
+///   例: none, forwards, backwards, both
+///
+/// @example scss - 基本的な使い方
+///   .card {
+///     @include slide-rotate('hor-top');
+///   }
+///
+/// @example scss - カスタム設定
+///   .card {
+///     @include slide-rotate('ver-right', 0.6s, 0.2s);
+///   }
+///
+/// @example scss - 完全なカスタム
+///   .card {
+///     @include slide-rotate(
+///       $variant: 'hor-b-bck',
+///       $duration: 0.8s,
+///       $delay: 0.1s,
+///       $easing: ease-out,
+///       $iterations: 2,
+///       $fill: forwards
+///     );
+///   }
+@mixin slide-rotate(
+  $variant: 'hor-top',
+  $duration: 0.5s,
+  $delay: 0s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940),
+  $iterations: 1,
+  $fill: both
+) {
+  animation: slide-rotate-#{$variant} $duration $easing $delay $iterations normal $fill;
+}
+
+/// Slide-Rotateアニメーションをホバー時に適用するmixin
+/// スマートフォンなどのタッチデバイスでは無効化されます
+///
+/// @param {String} $variant ['hor-top'] - アニメーションのバリエーション（slide-rotateと同じ12種類）
+/// @param {Number} $duration [0.5s] - アニメーションの実行時間
+/// @param {String} $easing [cubic-bezier(0.250, 0.460, 0.450, 0.940)] - イージング関数
+///
+/// @example scss - カードのホバーエフェクト
+///   .card {
+///     @include slide-rotate-hover('hor-top', 0.6s);
+///   }
+@mixin slide-rotate-hover(
+  $variant: 'hor-top',
+  $duration: 0.5s,
+  $easing: cubic-bezier(0.250, 0.460, 0.450, 0.940)
+) {
+  transition: transform $duration $easing;
+
+  // ホバー機能があるデバイスのみでアニメーションを有効化
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      animation: slide-rotate-#{$variant} $duration $easing both;
+    }
+  }
+}
+
