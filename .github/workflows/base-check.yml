@@ -2,7 +2,7 @@ name: <Base> Check by lint, type-check, and test
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, review_requested, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review]
     branches: ['develop']
 
 jobs:

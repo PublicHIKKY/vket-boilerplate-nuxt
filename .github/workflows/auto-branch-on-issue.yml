@@ -1,0 +1,60 @@
+name: Create Branch on Issue (with Prefix)
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  create_branch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create branch based on issue type
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_LABELS: ${{ toJson(github.event.issue.labels) }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Issue labels: $ISSUE_LABELS"
+
+          # ラベルを抽出
+          if echo "$ISSUE_LABELS" | grep -qi "bug"; then
+            PREFIX="bug"
+          elif echo "$ISSUE_LABELS" | grep -qi "feature"; then
+            PREFIX="feature"
+          elif echo "$ISSUE_LABELS" | grep -qi "refactor"; then
+            PREFIX="refactor"
+          else
+            PREFIX="task"
+          fi
+
+          # タイトルから安全なスラッグ生成
+          SAFE_TITLE=$(echo "${ISSUE_TITLE,,}" | sed -E 's/[^a-z0-9]+/-/g' | sed -E 's/^-+|-+$//g')
+          BRANCH_NAME="${PREFIX}/issue-${ISSUE_NUMBER}-${SAFE_TITLE}"
+
+          echo "Creating branch: $BRANCH_NAME"
+
+          # 最新main取得 & ブランチ作成
+          git fetch origin main
+          git checkout main
+          git checkout -b "$BRANCH_NAME"
+          git push origin "$BRANCH_NAME"
+
+          # Issueにコメントを追加
+          gh api repos/${{ github.repository }}/issues/${ISSUE_NUMBER}/comments \
+            -f body="✅ 自動生成されたブランチ: \`${BRANCH_NAME}\` が作成されました。"
+
+          # Draft PR も自動生成（任意）
+          gh pr create --base main --head "$BRANCH_NAME" \
+            --title "Draft: $ISSUE_TITLE" \
+            --body "自動生成されたPRです。関連Issue: #${ISSUE_NUMBER}" \
+            --draft

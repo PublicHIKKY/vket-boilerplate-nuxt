@@ -1,0 +1,82 @@
+name: 🐛 バグ報告
+description: 問題修正のためのバグ報告はこちら
+title: "[Bug] "
+labels:
+  - bug
+
+body:
+  - type: textarea
+    id: bug_description
+    attributes:
+      label: 🐛 不具合の内容
+      description: 発生しているバグの内容をできるだけ簡潔に記述してください。
+      placeholder: 例）特定のページでボタンが反応しません
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: ✅ 再現手順
+      description: バグが再現する手順を具体的に記述してください。
+      placeholder: |
+        1. 〇〇ページへ移動
+        2. 〇〇をクリック
+        3. 〇〇までスクロール
+        4. エラーが表示される
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: ✅ 期待していた動作
+      description: 本来どのように動作してほしかったかを記述してください。
+      placeholder: 例）クリック時にモーダルが開くべき
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 📸 スクリーンショット（任意）
+      description: 問題説明に役立つ画像があれば添付してください。
+
+  - type: dropdown
+    id: device_type
+    attributes:
+      label: 使用環境の種類
+      description: 主に問題が発生した環境を選択してください。
+      options:
+        - デスクトップ
+        - スマートフォン
+        - タブレット
+        - その他
+      default: 0
+
+  - type: textarea
+    id: desktop_info
+    attributes:
+      label: 💻 デスクトップ環境（該当する場合）
+      placeholder: |
+        OS: Windows 11 / macOS Sonoma
+        ブラウザ: Chrome 120 / Edge
+        バージョン: 120.0
+    validations:
+      required: false
+
+  - type: textarea
+    id: mobile_info
+    attributes:
+      label: 📱 スマートフォン環境（該当する場合）
+      placeholder: |
+        デバイス: iPhone 14
+        OS: iOS 17.2
+        ブラウザ: Safari / Chrome
+        バージョン: 120.0
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: 📝 その他の情報
+      description: 原因の手掛かりになりそうな補足情報があれば記述してください。
