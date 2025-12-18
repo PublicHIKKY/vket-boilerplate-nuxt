@@ -337,80 +337,6 @@ function getProduction(envType: EnvType, _baseEnv: Env) {
 }
 ````
 
-## File: layers/base/server/tsconfig.json
-````json
-{
-  "extends": "../.nuxt/tsconfig.server.json"
-}
-````
-
-## File: layers/base/reset.d.ts
-````typescript
-import '@total-typescript/ts-reset'
-````
-
-## File: layers/base/tsconfig.json
-````json
-{
-  // https://nuxt.com/docs/guide/concepts/typescript
-  "extends": [
-    "./.nuxt/tsconfig.server.json",
-    "./.nuxt/tsconfig.json",
-    "./tsconfig.shared.json"
-  ],
-}
-````
-
-## File: layers/base/tsconfig.shared.json
-````json
-{
-  "compilerOptions": {
-    "target": "ES2023",
-    "module": "preserve",
-    "lib": [
-      "dom",
-      "ES2023"
-    ],
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "allowJs": true,
-    "sourceMap": true,
-    "strict": true,
-    "experimentalDecorators": true,
-    "noUncheckedIndexedAccess": true,
-    "jsx": "preserve",
-    "isolatedModules": true,
-    "typeRoots": [
-      "../../node_modules",
-      "../../node_modules/@types",
-      "./@types"
-    ],
-    "types": [
-      "vue3-toastify/global",
-      "unplugin-icons/types/vue",
-      "vite/client",
-      "vitest/globals"
-    ]
-  },
-  "vueCompilerOptions": {
-    "target": 3
-  },
-  "ts-node": {
-    "esm": true
-  },
-  "exclude": [
-    "node_modules",
-    ".output",
-    "dist",
-    "eslint.config.shared.mjs",
-    ".stylelintrc.shared.mjs",
-    "tsconfig.shared.json"
-  ]
-}
-````
-
 ## File: layers/base/i18n/i18n.config.ts
 ````typescript
 /*
@@ -489,136 +415,78 @@ export default {
 }
 ````
 
-## File: layers/base/nuxt.config.ts
+## File: layers/base/server/tsconfig.json
+````json
+{
+  "extends": "../.nuxt/tsconfig.server.json"
+}
+````
+
+## File: layers/base/reset.d.ts
 ````typescript
-import { defineNuxtConfig } from 'nuxt/config'
-import { FileSystemIconLoader } from 'unplugin-icons/loaders'
-import IconsResolver from 'unplugin-icons/resolver'
-import Icons from 'unplugin-icons/vite'
-import Components from 'unplugin-vue-components/vite'
-import eslintPlugin from 'vite-plugin-eslint2'
-import svgLoader from 'vite-svg-loader'
-import { readEnvType } from './config/models/EnvType'
-import { getRuntimeConfigOfEnvType } from './config/runtimeConfig'
-import { nuxtI18nOptions } from './i18n/i18n.config'
+import '@total-typescript/ts-reset'
+````
 
-const cssUrls = [`./app/assets/styles/style.scss`]
-const srcDir = 'app'
+## File: layers/base/tsconfig.json
+````json
+{
+  // https://nuxt.com/docs/guide/concepts/typescript
+  "extends": [
+    "./.nuxt/tsconfig.server.json",
+    "./.nuxt/tsconfig.json",
+    "./tsconfig.shared.json"
+  ],
+}
+````
 
-/**
- * Nuxt Config
- * @ref https://nuxt.com/docs/api/configuration/nuxt-config
- */
-export default defineNuxtConfig({
-  modules: [
-    '@nuxtjs/i18n',
-    '@nuxt/eslint',
-    '@vueuse/nuxt',
-    'unplugin-icons/nuxt',
-    '@nuxtjs/robots',
-    '@nuxtjs/device',
-    '@nuxt/test-utils/module',
-  ],
-  imports: {
-    dirs: ['utils/types/**'],
-    global: false,
-  },
-  devtools: { enabled: true },
-  app: {
-    head: {
-      viewport: 'width=device-width, initial-scale=1',
-      charset: 'utf-8',
-      meta: [
-        { property: 'og:type', content: 'website' },
-        {
-          name: 'twitter:card',
-          content: 'summary_large_image',
-        },
-        {
-          name: 'note:card',
-          content: 'summary_large_image',
-        },
-      ],
-      noscript: [{ innerHTML: 'JavaScript is required' }],
-    },
-  },
-  css: cssUrls,
-  runtimeConfig: getRuntimeConfigOfEnvType(
-    readEnvType(process.env),
-    process.env,
-  ),
-  rootDir: __dirname,
-  srcDir: `${srcDir}/`,
-  alias: {
-    '#base': __dirname,
-  },
-  ignore: [
-    '.output',
-    '**/test/*.{js,ts,jsx,tsx}',
-    '**/*.{spec,test}.{js,ts,jsx,tsx}',
-    '**/-*.*',
-  ],
-  compatibilityDate: '2024-04-03',
-  vite: {
-    build: {
-      emptyOutDir: true,
-    },
-    plugins: [
-      eslintPlugin(),
-      svgLoader({
-        defaultImport: 'component', // 'component', 'url', 'raw'
-        svgo: false,
-      }),
-      Icons({
-        customCollections: {
-          'hikky-icons': FileSystemIconLoader(`${srcDir}/assets/icons/hikky`),
-          'sns-icons': FileSystemIconLoader(`${srcDir}/assets/icons/sns`),
-        },
-        iconCustomizer(collection, _icon, props) {
-          // customize all icons in this collection
-          if (
-            collection === 'hikky-icons'
-            || collection === 'sns-icons'
-            || collection === 'ri'
-          ) {
-            props.width = '1em'
-            props.height = '1em'
-          }
-        },
-      }),
-      Components({
-        dts: false,
-        resolvers: [
-          IconsResolver({
-            customCollections: ['hikky-icons', 'sns-icons'],
-          }),
-        ],
-      }),
+## File: layers/base/tsconfig.shared.json
+````json
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "preserve",
+    "lib": [
+      "dom",
+      "ES2023"
     ],
-    css: {
-      preprocessorMaxWorkers: true,
-    },
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "sourceMap": true,
+    "strict": true,
+    "experimentalDecorators": true,
+    "noUncheckedIndexedAccess": true,
+    "jsx": "preserve",
+    "isolatedModules": true,
+    "typeRoots": [
+      "../../node_modules",
+      "../../node_modules/@types",
+      "./@types"
+    ],
+    "types": [
+      "vue3-toastify/global",
+      "unplugin-icons/types/vue",
+      "vite/client",
+      "vitest/globals"
+    ]
   },
-  typescript: {
-    tsConfig: {
-      compilerOptions: {
-        verbatimModuleSyntax: false,
-      },
-    },
+  "vueCompilerOptions": {
+    "target": 3
   },
-  eslint: {
-    checker: true,
-    config: {
-      stylistic: {
-        semi: false,
-        indent: 2,
-        quotes: 'single',
-        braceStyle: '1tbs',
-      },
-    },
+  "ts-node": {
+    "esm": true
   },
-  i18n: nuxtI18nOptions,
-})
+  "exclude": [
+    "node_modules",
+    ".output",
+    "dist",
+    "eslint.config.shared.mjs",
+    ".stylelintrc.shared.mjs",
+    "tsconfig.shared.json"
+  ]
+}
 ````
 
 ## File: layers/base/@types/auto-imports.d.ts
@@ -942,6 +810,138 @@ declare global {
 }
 ````
 
+## File: layers/base/nuxt.config.ts
+````typescript
+import { defineNuxtConfig } from 'nuxt/config'
+import { FileSystemIconLoader } from 'unplugin-icons/loaders'
+import IconsResolver from 'unplugin-icons/resolver'
+import Icons from 'unplugin-icons/vite'
+import Components from 'unplugin-vue-components/vite'
+import eslintPlugin from 'vite-plugin-eslint2'
+import svgLoader from 'vite-svg-loader'
+import { readEnvType } from './config/models/EnvType'
+import { getRuntimeConfigOfEnvType } from './config/runtimeConfig'
+import { nuxtI18nOptions } from './i18n/i18n.config'
+
+const cssUrls = [`./app/assets/styles/style.scss`]
+const srcDir = 'app'
+
+/**
+ * Nuxt Config
+ * @ref https://nuxt.com/docs/api/configuration/nuxt-config
+ */
+export default defineNuxtConfig({
+  modules: [
+    '@nuxtjs/i18n',
+    '@nuxt/eslint',
+    '@vueuse/nuxt',
+    'unplugin-icons/nuxt',
+    '@nuxtjs/robots',
+    '@nuxtjs/device',
+    '@nuxt/test-utils/module',
+  ],
+  imports: {
+    dirs: ['utils/types/**'],
+    global: false,
+  },
+  devtools: { enabled: true },
+  app: {
+    head: {
+      viewport: 'width=device-width, initial-scale=1',
+      charset: 'utf-8',
+      meta: [
+        { property: 'og:type', content: 'website' },
+        {
+          name: 'twitter:card',
+          content: 'summary_large_image',
+        },
+        {
+          name: 'note:card',
+          content: 'summary_large_image',
+        },
+      ],
+      noscript: [{ innerHTML: 'JavaScript is required' }],
+    },
+  },
+  css: cssUrls,
+  runtimeConfig: getRuntimeConfigOfEnvType(
+    readEnvType(process.env),
+    process.env,
+  ),
+  rootDir: __dirname,
+  srcDir: `${srcDir}/`,
+  alias: {
+    '#base': __dirname,
+  },
+  ignore: [
+    '.output',
+    '**/test/*.{js,ts,jsx,tsx}',
+    '**/*.{spec,test}.{js,ts,jsx,tsx}',
+    '**/-*.*',
+  ],
+  compatibilityDate: '2024-04-03',
+  vite: {
+    build: {
+      emptyOutDir: true,
+    },
+    plugins: [
+      eslintPlugin(),
+      svgLoader({
+        defaultImport: 'component', // 'component', 'url', 'raw'
+        svgo: false,
+      }),
+      Icons({
+        customCollections: {
+          'hikky-icons': FileSystemIconLoader(`${srcDir}/assets/icons/hikky`),
+          'sns-icons': FileSystemIconLoader(`${srcDir}/assets/icons/sns`),
+        },
+        iconCustomizer(collection, _icon, props) {
+          // customize all icons in this collection
+          if (
+            collection === 'hikky-icons'
+            || collection === 'sns-icons'
+            || collection === 'ri'
+          ) {
+            props.width = '1em'
+            props.height = '1em'
+          }
+        },
+      }),
+      Components({
+        dts: false,
+        resolvers: [
+          IconsResolver({
+            customCollections: ['hikky-icons', 'sns-icons'],
+          }),
+        ],
+      }),
+    ],
+    css: {
+      preprocessorMaxWorkers: true,
+    },
+  },
+  typescript: {
+    tsConfig: {
+      compilerOptions: {
+        verbatimModuleSyntax: false,
+      },
+    },
+  },
+  eslint: {
+    checker: true,
+    config: {
+      stylistic: {
+        semi: false,
+        indent: 2,
+        quotes: 'single',
+        braceStyle: '1tbs',
+      },
+    },
+  },
+  i18n: nuxtI18nOptions,
+})
+````
+
 ## File: layers/base/package.json
 ````json
 {
@@ -949,6 +949,7 @@ declare global {
   "private": true,
   "type": "module",
   "version": "1.0.1",
+  "packageManager": "bun@1.2.23",
   "scripts": {
     "postinstall": "nuxt prepare",
     "dev": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt dev -o",
@@ -974,7 +975,9 @@ declare global {
     "test:e2e:ui": "playwright test --ui",
     "exec-test": "baseDir='./app/test' ext='\\.spec\\.ts' bun exec-if-file-exists",
     "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true",
-    "package-update": "bunx npm-check-updates -i"
+    "package-update": "bunx npm-check-updates -i",
+    "clean-install": "bun run ../../scripts/clean_install.js",
+    "allclean-install": "bun run ../../scripts/clean_install.js all"
   },
   "dependencies": {
     "@gtm-support/vue-gtm": "^3.1.0",

@@ -88,6 +88,10 @@ layers/
           HmSocialShareLink.vue
           HmTab.vue
           HmTsx.vue
+        ho/
+          .gitkeep
+        ht/
+          .gitkeep
       layouts/
         default.vue
 ```
@@ -131,6 +135,160 @@ const onClick = (event: MouseEvent): void => {
 
 <style lang="scss" scoped>
 .ha-base-button {
+  max-width: 100%;
+  max-height: 100%;
+}
+</style>
+```
+
+## File: layers/base/app/components/ha/base/HaBaseInput.vue
+```vue
+<template>
+  <input
+    :id="props.id"
+    v-bind="valueProp"
+    class="ha-base-input"
+    :type="props.type"
+    :accept="props.accept"
+    :autocomplete="props.autocomplete"
+    :autofocus="props.autofocus"
+    :capture="capture_"
+    :checked="props.checked"
+    :disabled="props.disabled"
+    :list="props.list"
+    :max="props.max"
+    :maxLength="props.maxLength"
+    :min="props.min"
+    :minLength="props.minLength"
+    :multiple="props.multiple"
+    :name="props.name"
+    :placeholder="props.placeholder"
+    :readonly="props.readonly"
+    :required="props.required"
+    :size="props.size"
+    :files="props.files"
+    @input="onInput"
+    @change="onChange"
+  />
+</template>
+
+<script setup lang="ts">
+export type InputType
+  = | 'button'
+    | 'checkbox'
+    | 'email'
+    | 'file'
+    | 'number'
+    | 'password'
+    | 'radio'
+    | 'search'
+    | 'tel'
+    | 'text'
+    | 'url'
+    | 'date'
+    | 'datetime-local'
+    | 'time'
+
+type Props = {
+  type: InputType
+  accept?: string
+  autocomplete?: string
+  autofocus?: boolean
+  capture?: boolean | 'user' | 'environment'
+  checked?: boolean
+  disabled?: boolean
+  id?: string
+  list?: string
+  max?: number | string
+  maxLength?: number
+  min?: number | string
+  minLength?: number
+  multiple?: boolean
+  name?: string
+  placeholder?: string
+  readonly?: boolean
+  required?: boolean
+  size?: number
+  value?: string | number | boolean
+  modelValue?: string | number | boolean
+  files?: FileList | undefined
+}
+type Emits = {
+  (
+    e: 'update:modelValue' | 'update:value',
+    eventValue: string | number | boolean
+  ): void
+  (e: 'input' | 'change', event: Event): void
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
+
+const typeofInputValue = () => {
+  if (props.type === 'checkbox') return 'boolean'
+
+  if (props.type === 'radio' && typeof props.value === 'number') return 'number'
+
+  return 'string'
+}
+
+const onInput = (event: Event) => {
+  emit('input', event)
+  if (event.target instanceof HTMLInputElement) {
+    const returnType = typeofInputValue()
+
+    const checked = event.target.checked
+    if (returnType === 'boolean') {
+      emit('update:modelValue', checked)
+      emit('update:value', checked)
+      return
+    }
+
+    const value = event.target.value
+    if (returnType === 'number') {
+      emit('update:modelValue', Number(value))
+      emit('update:value', Number(value))
+      return
+    }
+
+    emit('update:modelValue', value)
+    emit('update:value', value)
+  }
+}
+
+const onChange = (event: Event) => {
+  emit('change', event)
+}
+
+const valueProp = computed(() => {
+  /*
+   * props.value の型にbooleanが含まれているからかflagとして解釈されている？
+   * 指定しない時のデフォルト値がundefinedでなくfalseになってつらいので対処
+   */
+  if (props.type === 'file' && props.value === false) return {}
+  if (props.modelValue !== undefined) return { value: props.modelValue }
+  return {
+    value: props.value,
+  }
+})
+
+/**
+ * https://developer.mozilla.org/ja/docs/Web/HTML/Attributes/capture
+ * capture属性はどうも論理属性でなくなっていて？  falseでもカメラが起動するので対応
+ */
+const capture_ = computed<'user' | 'environment' | true | undefined>(() => {
+  switch (props.capture) {
+    case false:
+      return undefined
+    default:
+      return props.capture
+  }
+})
+</script>
+
+<style lang="scss" scoped>
+.ha-base-input {
+  display: block;
   max-width: 100%;
   max-height: 100%;
 }
@@ -215,6 +373,216 @@ const handleCloseDialog = () => emit('close')
     padding: 10px;
 
     background-color: v.$white;
+  }
+}
+</style>
+```
+
+## File: layers/base/app/components/ha/HaDialogElement.vue
+```vue
+<!--
+HaDialogとの違いとして、HaDialogElementは別階層の別要素のz-indexの影響により、それよりも下に表示されてしまう
+と言った現象が起きません(dialog要素は常に最前面に表示される)。
+-->
+<template>
+  <dialog
+    ref="dialog"
+    class="ha-dialog-element"
+    :closedby
+    @click.stop
+  >
+    <component
+      :is="props.closeButtonHtmlTag"
+      ref="close"
+      class="close"
+      :aria-label="
+        i18n.locale.value === 'ja' ? `ダイアログを閉じる` : `Close the dialog`
+      "
+      @click="closeDialog"
+    >
+      <slot name="close">
+        <RiCloseLine class="icon" />
+      </slot>
+    </component>
+    <div
+      tabindex="0"
+      class="inner"
+      role="presentation"
+    >
+      <slot name="inner" />
+    </div>
+    <div
+      tabindex="0"
+      @focus="handleEndFocus"
+    ></div>
+  </dialog>
+</template>
+
+<script lang="ts" setup>
+import RiCloseLine from '~icons/ri/close-line'
+
+export type Props = {
+  closeButtonHtmlTag?: string
+  closedby: 'any' | 'closerequest' | 'none' | undefined
+}
+const props = withDefaults(defineProps<Props>(), {
+  closeButtonHtmlTag: 'button',
+})
+
+// aria-label用のi18n
+const i18n = useI18n()
+
+// dialog要素をrefにする
+const dialog = ref<HTMLDialogElement>()
+const isActive = ref(false)
+
+const emit = defineEmits<{
+  (e: 'open' | 'close'): void
+}>()
+
+// dialogを開く関数
+const openDialog = () => {
+  isActive.value = true
+  if (!dialog.value) {
+    throw new Error('dialog要素はnull (HaDialogElement openDialog)')
+  }
+  dialog.value.addEventListener('keydown', (e) => {
+    if (dialog.value?.open && e.key === 'Escape') {
+      e.stopPropagation()
+      closeDialog()
+    }
+  })
+  if (typeof dialog.value.showModal === 'function') {
+    dialog.value.showModal()
+  } else {
+    console.error('dialog要素はHTMLDialogElementではありません (HaDialogElement openDialog)')
+  }
+  dialog.value.addEventListener('close', resetPageScrolling)
+  onOpen()
+}
+
+// dialogを閉じる関数
+const closeDialog = () => {
+  if (!dialog.value) {
+    throw new Error('dialog要素はnull (HaDialogElement closeDialog)')
+  }
+  dialog.value.close()
+  onClose()
+  isActive.value = false
+}
+
+const stopPageScrolling = () => {
+  // html要素とbody要素の両方にoverflowを記述
+  document.body.style.overflow = 'hidden'
+  document.documentElement.style.overflow = 'hidden'
+}
+
+const resetPageScrolling = () => {
+  // html要素とbody要素の両方のoverflowを元に戻す
+  document.body.style.overflow = ''
+  document.documentElement.style.overflow = ''
+}
+
+const onOpen = () => {
+  stopPageScrolling()
+  emit('open')
+}
+
+const onClose = () => {
+  resetPageScrolling()
+  emit('close')
+}
+
+// ダイアログ内のフォーカスを制御する
+const close = ref<HTMLElement>()
+const handleEndFocus = () => {
+  close.value?.focus()
+}
+
+onBeforeUnmount(resetPageScrolling)
+
+defineExpose({
+  openDialog,
+  closeDialog,
+  isActive,
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+@use '#base/app/assets/styles/mixins' as m;
+
+.open {
+  cursor: pointer;
+}
+
+.ha-dialog-element {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+
+  width: 90%;
+  max-width: initial; // dialogのデフォルトのmax-widthをリセット
+  height: max-content; // autoにすると、十分に画面縦幅がある場合でもダイアログに縦スクロールが生まれる場合がある
+  max-height: initial; // dialogのデフォルトのmax-heightをリセット
+  padding: 0; // dialogのデフォルトのpaddingをリセット
+
+  opacity: 0;
+  background-color: rgb(
+    0 0 0 / 0%
+  ); // dialogにデフォルトで指定される白の背景色を透明にする
+
+  &::backdrop {
+    cursor: pointer;
+    background-color: rgb(0 0 0 / 80%);
+  }
+
+  &[open] {
+    animation: fade-in 0.3s forwards;
+  }
+
+  > .inner {
+    overflow-y: auto;
+
+    width: 100%;
+    height: max-content;
+    max-height: 100vh; // 先祖要素にmax-contentを指定した場合、その子孫要素の単位に%を使うとwebkitで値が0になる場合があるためvhを使用
+
+    background-color: #fff;
+
+    &:focus-visible {
+      outline: none;
+    }
+  }
+
+  > .close {
+    cursor: pointer;
+
+    position: absolute;
+    top: 2%;
+    right: 2%;
+
+    aspect-ratio: 1;
+    width: 20px;
+
+    > .icon {
+      font-size: 24px;
+
+      &:deep(path) {
+        fill: v.$black;
+      }
+    }
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
   }
 }
 </style>
@@ -626,6 +994,382 @@ const loading = ref(props.manual)
 </style>
 ```
 
+## File: layers/base/app/components/ha/HaModal.vue
+```vue
+<template>
+  <!-- モーダルを開くボタン -->
+  <button
+    class="open"
+    type="button"
+    :aria-controls="'popup' + props.index.toString()"
+    aria-expanded="false"
+    @click="togglePopup"
+  >
+    <slot name="button">
+      <span class="text">モーダルを開く</span>
+    </slot>
+  </button>
+  <!-- モーダル -->
+  <section
+    :id="'popup' + props.index.toString()"
+    class="ha-modal"
+    :aria-hidden="!popupVisibility"
+  >
+    <button
+      ref="close"
+      class="close"
+      type="button"
+      :aria-label="
+        i18n.locale.value === 'ja' ? `モーダルを閉じる` : `Close the dialog`
+      "
+      @click="togglePopup"
+    >
+      <!-- 閉じるボタンのアイコン -->
+      <slot name="close">
+        <RiCloseLine class="icon" />
+      </slot>
+    </button>
+    <div
+      class="inner"
+      role="presentation"
+    >
+      <!-- モーダルの背景 -->
+      <div
+        class="background"
+        aria-hidden="true"
+        @click="togglePopup"
+      ></div>
+      <div
+        class="modal"
+        role="presentation"
+      >
+        <slot name="inner">
+          <div>モーダルの中身</div>
+        </slot>
+      </div>
+    </div>
+    <div
+      tabindex="0"
+      class="modal-end"
+      @focus="handleEndFocus"
+    ></div>
+  </section>
+</template>
+
+<script lang="ts" setup>
+import RiCloseLine from '~icons/ri/close-line'
+
+type Props = {
+  index: string
+}
+const props = defineProps<Props>()
+const i18n = useI18n()
+
+/* ポップアップの開閉はrefで制御 */
+const popupVisibility = ref(false)
+const togglePopup = () => {
+  // html要素とbody要素の両方にoverflowを記述
+  if (!popupVisibility.value) {
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+    document.documentElement.style.overflow = ''
+  }
+  popupVisibility.value = !popupVisibility.value
+}
+/* フォーカスを制御する要素を定義 */
+const close = ref<HTMLElement | null>(null)
+// modal-endにフォーカスが当たったらcloseにフォーカスを移す(ポップアップを開いている最中にポップアップの外にアクセスさせない)
+const handleEndFocus = () => {
+  if (close.value === null) {
+    throw new Error('close要素はnull')
+  }
+  close.value.focus()
+}
+
+/* モーダルが開いている状態でESCキーを押すとモーダルを閉じる */
+onMounted(() => {
+  window.addEventListener('keydown', (e) => {
+    if (popupVisibility.value === true && e.key === 'Escape') {
+      popupVisibility.value = false
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
+  })
+})
+
+defineExpose({
+  close,
+  handleEndFocus,
+  togglePopup,
+  popupVisibility,
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+@use '#base/app/assets/styles/mixins' as m;
+
+.open {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+}
+
+.ha-modal {
+  position: fixed;
+  z-index: 2147483647;
+  inset: 0;
+
+  &[aria-hidden='true'] {
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0.4s, opacity 0.4s;
+  }
+
+  &[aria-hidden='false'] {
+    visibility: visible;
+    opacity: 1;
+    transition: visibility 0.4s, opacity 0.4s;
+  }
+
+  > .inner {
+    position: absolute;
+    inset: 0;
+
+    > .background {
+      position: absolute;
+      inset: 0;
+    }
+
+    > .modal {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      translate: -50% -50%;
+
+      overflow-y: auto; /* モーダルの中身はスクロール可能に */
+
+      width: 90%;
+      height: 90vh;
+    }
+  }
+
+  > .close {
+    position: absolute;
+    z-index: 2;
+    top: 2%;
+    right: 2%;
+
+    aspect-ratio: 1/1;
+
+    > .icon {
+      font-size: 24px;
+
+      &:deep(path) {
+        fill: v.$white;
+      }
+    }
+  }
+}
+</style>
+```
+
+## File: layers/base/app/components/ha/HaSelectBox.vue
+```vue
+<template>
+  <div class="ha-select-box">
+    <select
+      v-model="innerValue"
+      :name="validatorName"
+      :disabled="disabled"
+      :required="required"
+      class="select"
+      :class="[{ '-error': !!errorMessage }, { '-small': small }]"
+    >
+      <option
+        :disabled="disabledPlaceholder"
+        :value="null"
+      >
+        {{ placeholder }}
+      </option>
+      <option
+        v-for="(option, index) in options"
+        :key="index"
+        :disabled="option.disabled"
+        :value="option.value"
+      >
+        {{ option.text }}
+      </option>
+    </select>
+    <span
+      v-if="validatorRules && errorMessage"
+      class="error"
+    >{{
+      errorMessage
+    }}</span>
+  </div>
+</template>
+
+<script lang="ts">
+import { useField } from 'vee-validate'
+import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
+
+export type Option = {
+  value: number | string | null
+  text: string
+  disabled?: boolean
+}
+
+type FieldInput = string | number | null
+
+export type Props = {
+  modelValue?: number | string | null
+  validatorName: string
+  validatorRules?:
+    | ZodType<string, ZodTypeDef, FieldInput>
+    | ZodEffects<ZodType<string, ZodTypeDef, FieldInput>>
+  options: readonly Option[]
+  placeholder?: string
+  disabledPlaceholder?: boolean
+  disabled?: boolean
+  required?: boolean
+  small?: boolean
+  keepValueOnUnmount?: boolean
+}
+
+export default defineComponent({
+  name: 'HaSelectBox',
+})
+</script>
+
+<script setup lang="ts">
+const props = withDefaults(
+  defineProps<Props>(),
+  {
+    modelValue: null,
+    validatorRules: undefined,
+    placeholder: '---Select---',
+    disabledPlaceholder: false,
+    disabled: false,
+    required: false,
+    small: false,
+    keepValueOnUnmount: false,
+  },
+)
+
+const emit = defineEmits<{
+  (e: 'update:modelValue' | 'input', value: number | string | null): void
+}>()
+
+const { value: fieldValue, errorMessage } = useField(
+  toRef(props, 'validatorName'),
+  props.validatorRules,
+  {
+    initialValue: props.modelValue,
+    keepValueOnUnmount: props.keepValueOnUnmount,
+    syncVModel: true,
+  },
+)
+
+const innerValue = computed({
+  get(): number | string | null {
+    return fieldValue.value
+  },
+  set(value: number | string | null): void {
+    emit('update:modelValue', value)
+    fieldValue.value = value
+    emit('input', value)
+  },
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+@use '#base/app/assets/styles/mixins' as m;
+
+.ha-select-box {
+  position: relative;
+
+  > .select {
+    cursor: pointer;
+
+    width: 100%;
+    height: 44px;
+    padding: 8px 16px;
+    border: 1px solid v.$primary-color;
+    border-radius: 4px;
+
+    font-size: 15px;
+    line-height: 1;
+    color: v.$black;
+    text-overflow: ellipsis;
+
+    background-color: v.$white;
+    outline: none;
+
+    &::placeholder {
+      color: v.$gray;
+    }
+
+    &:disabled {
+      border-color: rgb(0 0 0 / 12%);
+      color: v.$gray;
+      opacity: 0.5;
+      background-color: v.$gray-2;
+    }
+
+    &:focus {
+      border-color: v.$primary-color;
+    }
+
+    &.-error {
+      border: 2px solid v.$red;
+
+      &:focus {
+        border: 2px solid v.$red;
+      }
+    }
+
+    &.-small {
+      height: 30px;
+      padding: 0 10px;
+    }
+  }
+
+  > .error {
+    display: block;
+
+    width: fit-content;
+    min-height: 20px;
+    margin-top: 8px;
+
+    font-size: 10px;
+    font-weight: 400;
+    color: v.$red;
+  }
+
+  @include m.sp {
+    > .select {
+      font-size: v.$base-font-size;
+    }
+  }
+
+  // ヘッダー検索窓用設定
+  &.-search {
+    > .select {
+      border-color: v.$gray-2;
+    }
+
+    > .error {
+      display: none;
+    }
+  }
+}
+</style>
+```
+
 ## File: layers/base/app/components/ha/HaSkewBackground.vue
 ```vue
 <template>
@@ -844,6 +1588,206 @@ const onClick = () => {
     &.-disabled {
       color: v.$gray-3;
       background-color: v.$button-disabled-color;
+    }
+  }
+}
+</style>
+```
+
+## File: layers/base/app/components/ha/HaTextarea.vue
+```vue
+<template>
+  <div class="ha-textarea">
+    <label
+      class="label"
+      :class="[errorMessage ? '-error' : '']"
+    >
+      <template v-if="counter">
+        <span class="counter">{{ count }}</span>
+      </template>
+      <textarea
+        v-model="text"
+        :type="type"
+        :placeholder="placeholder"
+        :disabled="disabled"
+        :required="required"
+        :rows="rows"
+        class="input"
+      />
+    </label>
+    <p :class="['error-container', { '-hide': hideDetails }]">
+      <span
+        v-if="errorMessage"
+        class="error"
+      >{{ errorMessage }}</span>
+    </p>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useField } from 'vee-validate'
+import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
+
+type FieldInput = string | number | null
+
+const props = withDefaults(
+  defineProps<{
+    placeholder?: string
+    type?: string
+    validatorName?: string
+    validatorRules?:
+      | ZodType<string, ZodTypeDef, FieldInput>
+      | ZodEffects<ZodType<string, ZodTypeDef, FieldInput>>
+    required?: boolean
+    modelValue?: string | number
+    disabled?: boolean
+    rows?: number
+    counter?: boolean | { max: number }
+    hideDetails?: boolean
+    keepValueOnUnmount?: boolean
+  }>(),
+  {
+    placeholder: 'Input Text',
+    type: 'text',
+    validatorName: 'FileInput',
+    validatorRules: undefined,
+    required: false,
+    modelValue: '',
+    disabled: false,
+    rows: 5,
+    counter: false,
+    hideDetails: false,
+    keepValueOnUnmount: false,
+  },
+)
+
+const emit = defineEmits<{
+  (e: 'update:modelValue' | 'input', text: string): void
+  (e: 'validate', isValid: boolean): void
+}>()
+
+const fieldOptions = {
+  initialValue: props.modelValue,
+  keepValueOnUnmount: props.keepValueOnUnmount,
+}
+
+const { value: fieldValue, errorMessage } = useField(
+  toRef(props, 'validatorName'), props.validatorRules, fieldOptions,
+)
+
+const text = computed({
+  get(): string {
+    if (fieldValue.value === null) {
+      return ''
+    }
+    return '' + fieldValue.value
+  },
+  set(text: string): void {
+    emit('update:modelValue', text)
+    emit('input', text)
+    fieldValue.value = text
+    emit('validate', !!errorMessage.value)
+  },
+})
+
+/** 肩に表示する文字数カウント文字列 */
+const count = computed((): string | number => {
+  const inputLength = text.value.length
+  const max = typeof props.counter === 'object' ? props.counter.max : undefined
+  const maxRuleLength = max ?? getMax(props.validatorRules?._def)
+  return maxRuleLength ? `${inputLength}/${maxRuleLength}` : inputLength
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+
+.ha-textarea {
+  > .label {
+    position: relative;
+
+    display: block;
+
+    width: 100%;
+    border: 1px solid #d5d5d5;
+    border-radius: 3px;
+
+    background-color: v.$white;
+
+    &:disabled {
+      border-color: rgb(0 0 0 / 12%);
+    }
+
+    &:active,
+    &:focus,
+    &:hover,
+    &:focus-within {
+      border-color: v.$primary-color;
+
+      .ha-textarea {
+        &__input {
+          caret-color: v.$primary-color;
+        }
+      }
+    }
+
+    &.-error {
+      border-color: v.$red;
+
+      > .input {
+        caret-color: v.$red;
+      }
+    }
+  }
+
+  > .label > .counter {
+    position: absolute;
+    top: -18px;
+    right: 0;
+
+    display: block;
+
+    font-size: 11px;
+    text-align: right;
+  }
+
+  > .label > .input {
+    width: 100%;
+    padding: 9px 12px 11px;
+
+    font-size: 16px;
+    line-height: 24px;
+    color: v.$black;
+
+    &::placeholder {
+      color: v.$gray-1;
+    }
+
+    &::selection {
+      color: v.$white;
+      background-color: v.$primary-color;
+    }
+  }
+
+  > .error-container {
+    display: block;
+    min-height: 20px;
+    margin-top: 8px;
+
+    > .error {
+      display: block;
+
+      width: fit-content;
+
+      font-size: 12px;
+      font-weight: 400;
+      color: v.$red;
+    }
+
+    &.-hide {
+      display: none;
+      min-height: auto;
+      margin-top: 0;
     }
   }
 }
@@ -1301,6 +2245,760 @@ withDefaults(defineProps<Props>(), {
 </style>
 ```
 
+## File: layers/base/app/components/hm/button/HmButtonFavorite.vue
+```vue
+<template>
+  <div
+    class="hm-button-favorite"
+    :class="{ '-disabled': disabled }"
+  >
+    <div
+      class="button"
+      @click="onClick"
+    >
+      <IconFavorite
+        class="favorite-icon"
+        :class="{ '-active': value, '-disabled': disabled }"
+      />
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import IconFavorite from '#base/app/assets/icons/icon-heart.svg'
+
+const props = withDefaults(
+  defineProps<{
+    value: boolean
+    disabled?: boolean
+  }>(),
+  {
+    disabled: false,
+  },
+)
+const emit = defineEmits<{
+  (event: 'input', value: boolean): void
+}>()
+
+const onClick = () => {
+  if (props.disabled) return
+  emit('input', !props.value)
+}
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+
+.hm-button-favorite {
+  > .button {
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+  }
+
+  &.-disabled {
+    > .button {
+      cursor: not-allowed;
+    }
+  }
+
+  .button:deep(.body) {
+    fill: none;
+  }
+
+  .button:deep(.border) {
+    fill: #f5f5f5;
+  }
+}
+
+.favorite-icon:not(.-disabled) {
+  filter: drop-shadow(0 0 3px rgba(#fff, 0.75));
+
+  .body {
+    fill: #fff;
+    transition: fill 0.1s ease-in;
+  }
+
+  &.-active,
+  &:hover {
+    .border,
+    .body {
+      fill: #f2509c;
+    }
+  }
+}
+
+.favorite-icon.-disabled {
+  .body {
+    fill: v.$gray-3;
+    transition: fill 0.1s ease-in;
+  }
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/icon/HmIconUser.vue
+```vue
+<template>
+  <span class="hm-icon-user">
+    <HaImage
+      class="image"
+      :src="props.src"
+      :noImage="noImage"
+      :draggable="false"
+    />
+  </span>
+</template>
+
+<script lang="ts" setup>
+import noImage from '#base/public/images/no-image_1x1.jpg'
+
+type Props = {
+  src: string
+}
+
+const props = defineProps<Props>()
+</script>
+
+<style lang="scss" scoped>
+// NOTE:
+// 汎用性を持たせるためにサイズについては、srcに設定した画像サイズを可能な範囲で反映するように作成しています。
+// プロジェクトの要件などで「設定した画像のサイズに関わらず固定の値を設定したい」場合は適宜CSSを変更してください。
+.hm-icon-user {
+  user-select: none;
+
+  overflow: hidden;
+  display: inline-block;
+
+  aspect-ratio: 1 / 1;
+  min-width: 24px;
+  border-radius: 50%;
+
+  > .image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/input/HmInputCheckbox.vue
+```vue
+<template>
+  <label
+    class="hm-input-checkbox"
+    :class="{ ['-disabled']: disabled }"
+  >
+    <HaBaseInput
+      v-model="innerValue"
+      type="checkbox"
+      class="button"
+      :name="name"
+      :disabled="disabled"
+      :required="required"
+      :checked="innerValue"
+    />
+    <div class="content">
+      <slot />
+    </div>
+    <span
+      v-if="validatorRules && errorMessage"
+      class="error"
+    >{{
+      errorMessage
+    }}</span>
+  </label>
+</template>
+
+<script setup lang="ts">
+import { useField } from 'vee-validate'
+import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
+
+const props = withDefaults(
+  defineProps<{
+    validatorName?: string
+    validatorRules?:
+      | ZodType<boolean, ZodTypeDef, boolean>
+      | ZodEffects<ZodType<boolean, ZodTypeDef, boolean>>
+    name: string
+    modelValue?: boolean
+    required?: boolean
+    disabled?: boolean
+  }>(),
+  {
+    validatorName: 'checkbox',
+    validatorRules: undefined,
+    modelValue: false,
+    required: false,
+    disabled: false,
+  },
+)
+
+const emit = defineEmits<{
+  (e: 'update:modelValue' | 'validate' | 'input', value: boolean): void
+}>()
+
+const { value: fieldValue, errorMessage } = useField(
+  toRef(props, 'validatorName'),
+  props.validatorRules,
+  { initialValue: props.modelValue },
+)
+
+const innerValue = computed({
+  get(): boolean {
+    return props.modelValue
+  },
+  set(value: boolean): void {
+    emit('update:modelValue', value)
+    emit('input', value)
+    fieldValue.value = value
+    emit('validate', !!errorMessage.value)
+  },
+})
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+
+.hm-input-checkbox {
+  cursor: pointer;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+
+  &.-disabled {
+    cursor: default;
+    color: v.$gray-1;
+  }
+
+  > .button {
+    display: none;
+  }
+
+  > .button:checked + .content {
+    &::after {
+      display: block;
+    }
+  }
+
+  > .error {
+    display: block;
+
+    width: 100%;
+    margin-top: 8px;
+
+    font-size: 10px;
+    font-weight: 400;
+    color: v.$red;
+  }
+
+  > .content {
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    width: 100%;
+    padding-left: 34px;
+
+    &::before {
+      content: '';
+
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+
+      width: 24px;
+      height: 24px;
+      border: 1px solid v.$primary-color;
+      border-radius: 20%;
+
+      background-color: v.$white;
+    }
+
+    &::after {
+      content: '';
+
+      position: absolute;
+      top: 50%;
+      left: 11px;
+      transform: translate(-50%, -50%) rotate(-140deg);
+
+      display: none;
+
+      width: 10px;
+      height: 14px;
+      border-top: 4px solid v.$primary-color;
+      border-left: 4px solid v.$primary-color;
+    }
+  }
+
+  &.-disabled > .content {
+    &::before {
+      border: 1px solid v.$gray-1;
+    }
+
+    &::after {
+      border-top: 4px solid v.$gray-1;
+      border-left: 4px solid v.$gray-1;
+    }
+  }
+
+  // ヘッダー検索窓用設定
+  &.-search {
+    > .content {
+      padding-left: 28px;
+
+      &::before {
+        width: 20px;
+        height: 20px;
+        border: 3px solid v.$gray-2;
+        background-color: transparent;
+      }
+
+      &::after {
+        top: 45%;
+        left: 10px;
+      }
+    }
+
+    > .error {
+      display: none;
+    }
+  }
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/input/HmInputDatetime.vue
+```vue
+<template>
+  <div
+    :name="validatorName"
+    class="hm-input-datetime"
+  >
+    <label
+      :class="[
+        errorMessage
+          ? 'hm-input-datetime__label --error'
+          : 'hm-input-datetime__label',
+      ]"
+    >
+      <HaBaseInput
+        v-model="date"
+        :type="type"
+        :disabled="disabled"
+        :required="required"
+        :min="min"
+        :max="max"
+        class="hm-input-datetime__input"
+        @keyup.enter="enter"
+      />
+    </label>
+    <p
+      class="error-container"
+      :class="{ '-hide': hideDetails }"
+    >
+      <template v-if="errorMessage">
+        <span class="error">{{ errorMessage }}</span>
+      </template>
+    </p>
+  </div>
+</template>
+
+<script lang="ts">
+import { useField } from 'vee-validate'
+import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
+
+export default defineComponent({
+  name: 'HmInputDatetime',
+})
+
+export type Props = {
+  type?: 'datetime-local' | 'date' | 'time'
+  validatorName?: string
+  validatorRules?:
+    | ZodType<string, ZodTypeDef, string>
+    | ZodEffects<ZodType<string, ZodTypeDef, string>>
+  required?: boolean
+  modelValue?: string
+  disabled?: boolean
+  // FIXME: 型定義をstringからyyyy-mm-ddなどinput type=dateが許容している物にする
+  min?: number | string
+  // FIXME: 型定義をstringからyyyy-mm-ddなどinput type=dateが許容している物にする
+  max?: number | string
+  keyupEnter?: boolean
+  validateOnMount?: boolean
+  hideDetails?: boolean
+  error?: string | undefined
+}
+</script>
+
+<script setup lang="ts">
+const props = withDefaults(
+  defineProps<Props>(),
+  {
+    type: 'datetime-local',
+    validatorName: 'dateLocal',
+    validatorRules: undefined,
+    required: false,
+    modelValue: '',
+    disabled: false,
+    min: undefined,
+    max: undefined,
+    keyupEnter: false,
+    validateOnMount: false,
+  },
+)
+
+const emit = defineEmits<{
+  (e: 'update:modelValue' | 'input', value: string): void
+  (e: 'validation', isValid: boolean): void
+  (e: 'enter'): void
+}>()
+
+const { value: fieldValue, errorMessage: _errorMessage } = useField(
+  toRef(props, 'validatorName'),
+  props.validatorRules,
+  { initialValue: props.modelValue, validateOnMount: props.validateOnMount },
+)
+
+const date = computed({
+  get: () => {
+    if (props.modelValue === undefined) return ''
+    if (props.type === 'datetime-local')
+      return formatDate('YYYY-MM-DD HH:mm', props.modelValue)
+    if (props.type === 'date') return formatDate('YYYY-MM-DD', props.modelValue)
+    if (props.type === 'time')
+      return formatDate('HH:mm', `1970-00-00 ${props.modelValue}`)
+    return ''
+  },
+  set: (date: string) => {
+    emit('update:modelValue', date)
+    emit('input', date)
+    fieldValue.value = date
+    emit('validation', !!errorMessage.value)
+  },
+})
+
+const errorMessage = computed(() => {
+  if (props.error) return props.error
+  return _errorMessage.value
+})
+
+const enter = () => {
+  if (props.keyupEnter) {
+    emit('enter')
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+
+.hm-input-datetime {
+  &__label {
+    position: relative;
+
+    display: block;
+
+    width: 100%;
+    height: 44px;
+    padding: 9px 12px 11px;
+    border: 1px solid #d5d5d5;
+    border-radius: 3px;
+
+    background-color: v.$white;
+
+    &:disabled {
+      border-color: rgb(0 0 0 / 12%);
+    }
+
+    &:active,
+    &:focus,
+    &:hover,
+    &:focus-within {
+      border-color: v.$primary-color;
+
+      .hm-input-datetime {
+        &__input {
+          caret-color: v.$primary-color;
+        }
+      }
+    }
+
+    &.--error {
+      border-color: v.$red;
+
+      .hm-input-datetime {
+        &__input {
+          caret-color: v.$red;
+        }
+      }
+    }
+  }
+
+  &__counter {
+    position: absolute;
+    top: -18px;
+    right: 0;
+
+    display: block;
+
+    font-size: 11px;
+    text-align: right;
+  }
+
+  &__input {
+    width: 100%;
+    font-size: 16px;
+    line-height: 24px;
+
+    &::placeholder {
+      color: v.$gray-1;
+    }
+
+    &::selection {
+      color: v.$white;
+      background-color: v.$primary-color;
+    }
+  }
+}
+
+.error-container {
+  display: block;
+  min-height: 20px;
+  margin-top: 8px;
+
+  &.-hide {
+    display: none;
+  }
+
+  > .error {
+    display: block;
+
+    width: fit-content;
+
+    font-size: 12px;
+    font-weight: 400;
+    color: v.$red;
+  }
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/input/HmInputFile.vue
+```vue
+<template>
+  <!-- TODO: エラーメッセージの表示をする際に、必要に応じてHmInputTextBase.vue同様の修正(DOM構造とエラーmsgのstyle)を行う -->
+  <label
+    ref="box"
+    :class="['hm-input-file', { '-dragover': isDragOver }]"
+    @dragenter.prevent="toggleDragOver(true)"
+    @dragleave.prevent="toggleDragOver(false)"
+    @dragover.prevent
+    @drop.prevent="onDrop($event)"
+  >
+    <HaBaseInput
+      ref="fileInput"
+      class="input"
+      type="file"
+      name="file"
+      :accept="accept"
+      :multiple="multiple"
+      :files="files"
+      :required="required"
+      @click="onClick"
+      @change="onChange($event)"
+    />
+    <div class="image-box">
+      <slot>
+        <div class="inner">
+          <span class="text"> Select file or drag it! </span>
+        </div>
+      </slot>
+    </div>
+  </label>
+</template>
+
+<script lang="ts" setup>
+import { z } from 'zod/v3'
+import { isValueOf } from '#base/app/utils/zod'
+
+const htmlInputElementAndFilesSchema = z.instanceof(HTMLInputElement).and(
+  z.object({
+    files: z.instanceof(FileList),
+  }),
+)
+
+type Props = {
+  required?: boolean
+  accept?: string
+  multiple?: boolean
+  propFiles?: FileList
+}
+const props = withDefaults(defineProps<Props>(), {
+  required: false,
+  accept: '',
+  multiple: false,
+  propFiles: undefined,
+})
+
+type Emits = {
+  (e: 'input:multiple' | 'input:single', files: FileList): void
+  (e: 'cancel'): void
+}
+const emit = defineEmits<Emits>()
+
+const fileInput = ref<HTMLInputElement>()
+const isDragOver = ref(false)
+const clickListener = ref<((evt: Event) => void) | null>(null)
+
+const files = computed({
+  get: () => props.propFiles,
+  set: (files?: FileList) => {
+    if (!files) return
+    if (props.multiple) {
+      emit('input:multiple', files)
+    }
+    if (!props.multiple) {
+      emit('input:single', files)
+    }
+  },
+})
+
+onMounted(() => {
+  if (!isValueOf(htmlInputElementAndFilesSchema, fileInput.value)) {
+    return
+  }
+
+  clickListener.value = () => {
+    window.onfocus = () => {
+      setTimeout(() => {
+        if (fileInput.value?.files?.length === 0) {
+          emit('cancel')
+        }
+      }, 500)
+    }
+    window.onload = null
+  }
+  fileInput.value.addEventListener('click', clickListener.value)
+})
+
+onUnmounted(() => {
+  if (
+    isValueOf(htmlInputElementAndFilesSchema, fileInput.value)
+    && clickListener.value
+  ) {
+    fileInput.value.removeEventListener('click', clickListener.value)
+  }
+})
+
+const toggleDragOver = (isDragover: boolean) => {
+  isDragOver.value = isDragover
+}
+
+const onDrop = (event: DragEvent) => {
+  toggleDragOver(false)
+  if (event?.dataTransfer) {
+    files.value = event?.dataTransfer?.files
+  }
+}
+
+const onChange = (event: Event) => {
+  const target: (EventTarget & { files?: FileList }) | null = event?.target
+  if (target !== null && !(target?.files instanceof FileList)) {
+    throw new Error('Illegal. This functions is only for file input elements')
+  }
+  if (target?.files) {
+    files.value = target.files
+  }
+}
+
+const onClick = () => {
+  // todo: 同じファイルを二回開けないのでclick時空にする
+  if (fileInput.value instanceof HTMLInputElement) {
+    fileInput.value.value = ''
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/mixins' as m;
+@use '#base/app/assets/styles/variables' as v;
+
+.hm-input-file {
+  cursor: pointer;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+
+  &.-dragover {
+    cursor: pointer;
+    opacity: 0.8;
+  }
+
+  &:hover {
+    opacity: 0.7;
+  }
+
+  @include m.sp {
+    &:hover {
+      opacity: inherit;
+    }
+
+    &:active {
+      opacity: 0.7;
+    }
+  }
+
+  > .input {
+    display: none;
+    width: 0;
+    height: 0;
+    visibility: hidden;
+  }
+
+  > .error {
+    display: block;
+
+    width: fit-content;
+
+    font-size: 10px;
+    font-weight: 400;
+    color: v.$red;
+  }
+}
+
+.image-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+
+  > .inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    height: 100%;
+
+    background-color: #d5d5d5;
+  }
+
+  > .inner > .text {
+    color: v.$base-font-color;
+  }
+}
+</style>
+```
+
 ## File: layers/base/app/components/hm/input/HmInputRadio.vue
 ```vue
 <template>
@@ -1397,6 +3095,883 @@ function onChange(e: Event): void {
   > .button:checked + .content::after {
     display: block;
   }
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/input/HmInputRadioChangeable.vue
+```vue
+<template>
+  <div class="hm-input-radio-changeable">
+    <div
+      v-for="(option, index) in props.options"
+      :key="option.value"
+      ref="radiobuttons"
+      class="radio"
+    >
+      <HaBaseInput
+        :id="option.value"
+        class="input"
+        type="radio"
+        :name="props.name"
+        :value="option.value"
+        :modelValue="option.value"
+        :checked="option.checked"
+        :disabled="option.disabled"
+        required
+        @change="onChange($event)"
+      />
+      <label
+        :for="option.value"
+        class="label"
+        :class="`option-${index}`"
+      >
+        <template v-if="option.before">
+          <ClientOnly>
+            <component
+              :is="option.before"
+              class="before"
+            />
+          </ClientOnly>
+        </template>
+        {{ option.label }}
+        <template v-if="option.after">
+          <ClientOnly>
+            <component
+              :is="option.after"
+              class="after"
+            />
+          </ClientOnly>
+        </template>
+      </label>
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { z } from 'zod/v3'
+
+type Radio = {
+  label: string
+  value: string
+  checked?: boolean
+  disabled?: boolean
+  before?: Component
+  after?: Component
+}
+
+type Props = {
+  name: string
+  options: Radio[]
+}
+const props = defineProps<Props>()
+
+const radiobuttons = ref<HTMLDivElement[]>()
+
+/** props.optionsを監視し、親コンポーネントでの変更をラジオボタンに反映する */
+watch(toRef(props.options), (_next, _prev) => {
+  // チェックされているオブジェクトを探す
+  const checkedOptions
+    = props.options.find(element => element.checked)
+      ?? raiseError('HmInputRadioChangeable: watch: checkedOptions')
+
+  // チェック対象を探す
+  const buttons
+    = radiobuttons.value
+      ?? raiseError('HmInputRadioChangeable: watch: radiobuttons')
+  const checkTarget
+    = buttons.find(
+      // チェックされているオブジェクトとidが同じものがチェック対象
+      element => element.children[0]?.id === checkedOptions?.value,
+    ) ?? raiseError('HmInputRadioChangeable: watch: checkTarget')
+
+  // 探したチェック対象をチェック済にする
+  const checkbox = z
+    .object({ checked: z.boolean() })
+    .parse(checkTarget.children[0])
+  checkbox.checked = true
+})
+
+type Emits = {
+  (e: 'change', value: string): void
+}
+const emit = defineEmits<Emits>()
+const onChange = (e: Event) => {
+  if (e.target instanceof HTMLInputElement) {
+    emit('change', e.target.value)
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+
+.hm-input-radio-changeable {
+  display: flex;
+  width: 100%;
+
+  .radio {
+    flex: 1;
+
+    > .label {
+      cursor: pointer;
+      user-select: none;
+
+      display: block;
+
+      height: 100%;
+      padding: v.space(2) 0;
+      border: solid 1px v.$navy-2;
+
+      text-align: center;
+      white-space: pre-wrap;
+
+      background-color: v.$navy-1;
+
+      &:hover {
+        background-color: v.$green-4;
+      }
+    }
+  }
+}
+
+.input {
+  display: none;
+
+  &:checked,
+  &:hover,
+  &:focus {
+    + .label {
+      border-color: v.$blue;
+      background-color: v.$green-4;
+    }
+  }
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/input/HmInputSingleImage.vue
+```vue
+<i18n lang="yaml">
+ja:
+  explain: "画像を切り抜く範囲を指定して、「切り抜く」ボタンをクリックしてください。マウスホイールで拡大・縮小できます。"
+en:
+  explain: "Please adjust the crop area and click the 'Crop' button. Scroll the mouse wheel to zoom in and out."
+</i18n>
+
+<template>
+  <div
+    class="hm-input-single-image"
+    :class="{ '-rounded': previewRounded }"
+  >
+    <div class="wrapper">
+      <HmInputFile
+        ref="input"
+        :required="isRequired"
+        :accept="accept"
+        class="hm-single-image-uploader"
+        :class="{ '-rounded': previewRounded }"
+        :propFiles="fileList"
+        @input:single="changeImage"
+        @cancel="cancel"
+      >
+        <template v-if="imageUrl">
+          <HaImage
+            :key="imageUrl"
+            :src="imageUrl"
+            :alt="imageAlt"
+            class="preview"
+            :class="[previewRounded ? '-rounded' : '']"
+          />
+        </template>
+        <template v-else>
+          <slot name="noImage" />
+        </template>
+        <slot />
+      </HmInputFile>
+    </div>
+    <p class="error-container">
+      <template v-if="error">
+        <span class="error">{{ error }}</span>
+      </template>
+    </p>
+    <template v-if="imageUrl && isRemovable">
+      <button
+        type="button"
+        class="remove"
+        @click="removeImage"
+      />
+    </template>
+    <template v-if="showCropper">
+      <HaDialog
+        class="ha-dialog"
+        @close="cancelCropper"
+      >
+        <div class="crop-container">
+          <p class="message">
+            {{ i18n.t('explain') }}
+          </p>
+          <HmClipping
+            :src="cropImage || ''"
+            :width="cropWidth"
+            :height="cropHeight"
+            :ext="cropExt"
+            :autoZoom="true"
+            class="main"
+            @clipped="onClipped"
+          />
+        </div>
+      </HaDialog>
+    </template>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { useField } from 'vee-validate'
+import { ZodEffects, ZodOptional, ZodType, ZodTypeDef } from 'zod/v3'
+
+const i18n = useI18n()
+
+export type Props = {
+  validatorName?: string
+  imageAlt?: string
+  optionalAccept?: string
+  modelValue?: File
+  defaultImageUrl: string | null
+  validatorRules?:
+    | ZodType<File, ZodTypeDef, File>
+    | ZodEffects<ZodEffects<ZodOptional<ZodType<File, ZodTypeDef, File>>>>
+  error?: string | undefined
+  previewRounded?: boolean
+  isRemovable?: boolean
+  isRequired?: boolean
+  needCropper?: boolean
+  cropWidth?: number
+  cropHeight?: number
+  cropExt?: string
+}
+const props = withDefaults(defineProps<Props>(), {
+  validatorName: 'SingleImageInput',
+  imageAlt: 'uploaded image',
+  optionalAccept: '',
+  modelValue: undefined,
+  validatorRules: undefined,
+  error: undefined,
+  previewRounded: false,
+  isRemovable: false,
+  isRequired: true,
+  needCropper: false,
+  cropWidth: 0,
+  cropHeight: 0,
+  cropExt: 'jpeg',
+})
+
+type Emits = {
+  (e: 'update:model-value', image?: File): void
+  (e: 'remove'): void
+}
+const emit = defineEmits<Emits>()
+
+const fileList = computed(() => {
+  if (!value.value) return undefined
+  const dt = new DataTransfer()
+  dt.items.add(value.value)
+  return dt.files
+})
+
+const imageUrl = computed(() =>
+  value.value ? readFileAsBlob(value.value) : props.defaultImageUrl,
+)
+
+const showCropper = ref(false)
+const cropImage = ref<string>()
+
+const { value, errorMessage, validate } = useField<File | undefined>(
+  toRef(props, 'validatorName'),
+  props.validatorRules,
+  { initialValue: props.modelValue, syncVModel: false },
+)
+
+/** 外からエラーメッセージを上書きするパターン用エスケープハッチ */
+const error = computed(() => errorMessage.value || props.error)
+
+const accept = computed(() => {
+  const defaultAccept = 'image/png,image/jpeg'
+  if (!props.optionalAccept) return defaultAccept
+  return `${defaultAccept}, ${props.optionalAccept}`
+})
+
+const changeImage = async (images: FileList | null) => {
+  if (images === null) {
+    return
+  }
+
+  // note: ファイルが空の場合、cancelメソッドが叩かれる。この分岐は正常系では通らない
+  const image = images[0]
+  if (!image) {
+    return
+  }
+
+  if (!props.needCropper) {
+    await returnImage(image)
+    return
+  }
+  if (!props.cropWidth && !props.cropHeight) {
+    await openCropper(image)
+    return
+  }
+
+  /*
+   * note: Cropサイズが指定されている場合、画像がそのサイズと同じならクロッパーを表示しない
+   * note: Cropサイズが指定されている場合、画像がそのサイズより小さいならアラートを表示
+   */
+  const imgEl = new Image()
+  imgEl.src = URL.createObjectURL(image)
+  imgEl.onerror = () => {
+    alert('image loading failed / 画像の読み込みに失敗しました')
+  }
+  imgEl.onload = async () => {
+    if (props.cropWidth && props.cropHeight) {
+      if (
+        imgEl.width === props.cropWidth
+        && imgEl.height === props.cropHeight
+      ) {
+        await returnImage(image)
+        return
+      } else if (
+        imgEl.width < props.cropWidth
+        || imgEl.height < props.cropHeight
+      ) {
+        alert(
+          `${props.cropWidth}px x ${props.cropHeight}px以上の画像を指定してください`,
+        )
+        return
+      }
+      await openCropper(image)
+      return
+    }
+
+    if (props.cropWidth) {
+      if (imgEl.width === props.cropWidth) {
+        await returnImage(image)
+        return
+      } else if (imgEl.width < props.cropWidth) {
+        alert(`幅${props.cropWidth}px以上の画像を指定してください`)
+        return
+      }
+      await openCropper(image)
+      return
+    }
+
+    if (props.cropHeight) {
+      if (imgEl.height === props.cropHeight) {
+        await returnImage(image)
+        return
+      } else if (imgEl.height < props.cropHeight) {
+        alert(`高さ${props.cropHeight}px以上の画像を指定してください`)
+        return
+      }
+      await openCropper(image)
+    }
+  }
+}
+
+const openCropper = (image: File) => {
+  const reader = new FileReader()
+  reader.readAsDataURL(image)
+  return new Promise<void>((resolve, _reject) => {
+    reader.onload = () => {
+      cropImage.value
+        = typeof reader.result === 'string' ? `${reader.result}` : ''
+      showCropper.value = true
+      return resolve()
+    }
+  })
+}
+
+const cancelCropper = () => {
+  cancel()
+  closeCropper()
+}
+
+const closeCropper = () => {
+  showCropper.value = false
+}
+
+const onClipped = async (images: File[]) => {
+  if (!images[0]) return
+  await returnImage(images[0])
+  closeCropper()
+}
+
+const returnImage = (image: File) => {
+  return emitImage(image)
+}
+
+const removeImage = async () => {
+  emit('remove')
+  await emitImage()
+}
+
+const emitImage = async (image?: File) => {
+  value.value = image
+  const result = await validate()
+  if (result.valid) emit('update:model-value', image)
+}
+
+const cancel = () => {
+  emit('update:model-value', undefined)
+}
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+@use '#base/app/assets/styles/mixins' as m;
+
+.hm-input-single-image {
+  position: relative;
+
+  display: block;
+
+  width: fit-content;
+  max-width: 100%;
+  height: fit-content;
+  max-height: 100%;
+  margin: auto;
+
+  > .wrapper {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: calc(100% - 28px);
+    height: calc(100% - 28px);
+    margin: 0 auto;
+  }
+
+  > .wrapper > .uploader {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  > .remove {
+    position: absolute;
+    top: 0;
+    right: 0;
+
+    display: block;
+
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+
+    background-color: v.$black;
+
+    &::before,
+    &::after {
+      content: '';
+
+      position: relative;
+
+      display: block;
+
+      width: 30px;
+      border-top: 3px solid v.$white;
+    }
+
+    &::before {
+      top: 1px;
+      left: 1px;
+      transform: rotate(45deg);
+      height: 1px;
+    }
+
+    &::after {
+      top: -1px;
+      right: -1px;
+      transform: rotate(-45deg);
+      height: 2px;
+    }
+  }
+
+  .error-container {
+    display: block;
+
+    min-height: 20px;
+    margin-top: 8px;
+
+    font-size: 12px;
+    font-weight: 400;
+    color: v.$red;
+  }
+}
+
+.crop-message {
+  margin-bottom: 16px;
+  font-size: 12px;
+  line-height: 16px;
+  color: v.$base-font-color;
+}
+
+.crop-container {
+  height: 100%;
+  padding: 30px;
+
+  @include m.sp {
+    font-size: 10px;
+  }
+
+  > .main {
+    height: calc(100% - 90px);
+  }
+}
+
+.preview {
+  max-height: 100%;
+  object-fit: cover;
+}
+
+.ha-dialog {
+  padding: 30px;
+
+  &:deep(.dialog-window) {
+    height: 100%;
+  }
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/input/HmInputText.vue
+```vue
+<template>
+  <div
+    tag="div"
+    class="hm-input-text"
+  >
+    <label :class="['label', { '-error': error }, { '-small': small }]">
+      <template v-if="counter">
+        <span class="counter">{{ count }}</span>
+      </template>
+      <template v-if="isLazy">
+        <template v-if="isTrim">
+          <HaBaseInput
+            v-model.trim.lazy="text"
+            :type="type"
+            :placeholder="placeholder"
+            :disabled="disabled"
+            :required="required"
+            :min="typeof min === 'boolean' ? undefined : min"
+            class="input"
+            :class="{ '-small': small }"
+            :name="name"
+            :list="list"
+            @keyup.enter="enter"
+          />
+        </template>
+        <template v-else>
+          <HaBaseInput
+            v-model.lazy="text"
+            :type="type"
+            :placeholder="placeholder"
+            :disabled="disabled"
+            :required="required"
+            :min="typeof min === 'boolean' ? undefined : min"
+            class="input"
+            :class="{ '-small': small }"
+            :name="name"
+            :list="list"
+            @keyup.enter="enter"
+          />
+        </template>
+      </template>
+      <template v-else-if="isTrim">
+        <HaBaseInput
+          v-model.trim="text"
+          :type="type"
+          :placeholder="placeholder"
+          :disabled="disabled"
+          :required="required"
+          :min="typeof min === 'boolean' ? undefined : min"
+          class="input"
+          :class="{ '-small': small }"
+          :name="name"
+          :list="list"
+          @keyup.enter="enter"
+        />
+      </template>
+      <template v-else>
+        <HaBaseInput
+          v-model="text"
+          :type="type"
+          :placeholder="placeholder"
+          :disabled="disabled"
+          :required="required"
+          :min="typeof min === 'boolean' ? undefined : min"
+          class="input"
+          :class="{ '-small': small }"
+          :name="name"
+          :list="list"
+          @keyup.enter="enter"
+        />
+      </template>
+    </label>
+    <template v-if="!noValidate">
+      <p :class="['error-container', { '-hide': hideDetails }]">
+        <template v-if="error">
+          <span class="error">{{ error }}</span>
+        </template>
+      </p>
+    </template>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { InputType } from '#base/app/components/ha/base/HaBaseInput.vue'
+import { useField } from 'vee-validate'
+import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
+
+type FieldInput = string | number | null
+
+const props = withDefaults(
+  defineProps<{
+    placeholder?: string
+    type?: InputType
+    validatorName?: string
+    validatorRules?:
+      | ZodType<string, ZodTypeDef, FieldInput>
+      | ZodEffects<ZodType<string, ZodTypeDef, FieldInput>>
+    required?: boolean
+    modelValue?: FieldInput
+    disabled?: boolean
+    counter?: boolean | { max: number }
+    min?: number | boolean
+    keyupEnter?: boolean
+    isLazy?: boolean
+    isTrim?: boolean
+    small?: boolean
+    name?: string | undefined
+    error?: string | undefined
+    hideDetails?: boolean
+    list?: string | undefined
+    keepValueOnUnmount?: boolean
+    validateOnMount?: boolean
+  }>(),
+  {
+    placeholder: 'Input Text',
+    type: 'text',
+    validatorName: 'FileInput',
+    validatorRules: undefined,
+    required: false,
+    modelValue: '',
+    disabled: false,
+    counter: false,
+    min: false,
+    keyupEnter: false,
+    isLazy: false,
+    isTrim: false,
+    small: false,
+    name: undefined,
+    error: undefined,
+    hideDetails: false,
+    list: undefined,
+    keepValueOnUnmount: false,
+    validateOnMount: false,
+  },
+)
+
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: string): void
+  (e: 'validate', isValid: boolean): void
+  (e: 'enter'): void
+}>()
+
+/**
+ * v-if によってフォームが再表示された場合など、
+ * レンダリング時にmodelValueがから出ない場合にバリデーションを実行する
+ */
+const validateOnMount
+  = props.validateOnMount
+    && typeof props.modelValue?.toString() === 'string'
+    && props.modelValue.toString().length > 0
+
+const { value, errorMessage } = useField(
+  toRef(props, 'validatorName'),
+  props.validatorRules,
+  { initialValue: props.modelValue, validateOnMount },
+)
+
+const text = computed({
+  get(): string {
+    if (value.value === null) return ''
+    return '' + value.value
+  },
+  set(text: string): void {
+    emit('update:modelValue', text)
+    value.value = text
+    emit('validate', !!errorMessage.value)
+  },
+})
+
+/** バリデーションがない場合、エラー領域を出さない */
+const noValidate = computed(
+  () =>
+    props.validatorName === 'FileInput' && props.validatorRules === undefined,
+)
+
+/** 肩に表示する文字数カウント文字列 */
+const count = computed((): string | number => {
+  const inputLength = text.value.length
+  const max = typeof props.counter === 'object' ? props.counter.max : undefined
+  const maxRuleLength = max ?? getMax(props.validatorRules?._def)
+  return maxRuleLength ? `${inputLength}/${maxRuleLength}` : inputLength
+})
+
+/** 外からエラーメッセージを上書きするパターン用エスケープハッチ */
+const error = computed(() => errorMessage.value || props.error)
+
+function enter(): void {
+  if (props.keyupEnter) {
+    emit('enter')
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+@use '#base/app/assets/styles/variables' as v;
+
+.hm-input-text {
+  > .label {
+    position: relative;
+
+    display: block;
+
+    width: 100%;
+    height: 44px;
+    border: 1px solid #d5d5d5;
+    border-radius: 4px;
+
+    background-color: v.$white;
+
+    &:disabled {
+      border-color: rgb(0 0 0 / 12%);
+    }
+
+    &:active,
+    &:focus,
+    &:hover,
+    &:focus-within {
+      border-color: v.$primary-color;
+
+      .hm-input-text {
+        > .input {
+          caret-color: v.$primary-color;
+        }
+      }
+    }
+
+    &.-error {
+      border-color: v.$red;
+
+      .hm-input-text {
+        > .input {
+          caret-color: v.$red;
+        }
+      }
+    }
+
+    &.-small {
+      height: 30px;
+    }
+  }
+
+  > .label > .counter {
+    position: absolute;
+    top: -18px;
+    right: 0;
+
+    display: block;
+
+    font-size: 11px;
+    text-align: right;
+  }
+
+  > .label > .input {
+    width: 100%;
+    padding: 9px 12px 11px;
+
+    font-size: 16px;
+    line-height: 24px;
+    color: v.$black;
+
+    &::placeholder {
+      color: v.$gray-1;
+    }
+
+    &::selection {
+      color: v.$white;
+      background-color: v.$primary-color;
+    }
+
+    &:disabled {
+      height: 100%;
+      padding: 0 12px;
+      background: rgb(0 0 0 / 12.6%);
+    }
+
+    &.-small {
+      padding: 0 11px;
+      font-size: 12px;
+      line-height: 28px;
+    }
+  }
+
+  > .error-container {
+    display: block;
+    min-height: 20px;
+    margin-top: 8px;
+
+    > .error {
+      display: block;
+
+      width: fit-content;
+
+      font-size: 12px;
+      font-weight: 400;
+      color: v.$red;
+    }
+  }
+
+  > .error-container.-hide {
+    display: none;
+    min-height: auto;
+    margin-top: 0;
+  }
+
+  // カタログヘッダー検索窓用設定
+  &.-search {
+    > .label {
+      border-color: v.$gray-2;
+
+      > .input {
+        padding-right: 72px;
+      }
+    }
+  }
+}
+
+// input type=numberの時に出るスピンボタンを消す
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 </style>
 ```
@@ -1767,6 +4342,102 @@ const clip = () => {
       background-color: v.$primary-button-active-color;
     }
   }
+}
+</style>
+```
+
+## File: layers/base/app/components/hm/HmDialogElement.vue
+```vue
+<!--
+HaDialogとの違いとして、HmDialogElementは別階層の別要素のz-indexの影響により、それよりも下に表示されてしまう
+と言った現象が起きません(dialog要素は常に最前面に表示される)。
+ -->
+<template>
+  <!-- ダイアログを開くボタン -->
+  <component
+    :is="props.openButtonHtmlTag"
+    :tabindex="props.openButtonHtmlTag !== 'button' ? 0 : undefined"
+    class="open"
+    aria-expanded="false"
+    @click.stop="openDialog"
+  >
+    <slot name="open">
+      <span class="text">{{
+        i18n.locale.value === 'ja' ? 'ダイアログを開く' : 'Open the dialog'
+      }}</span>
+    </slot>
+  </component>
+  <!-- ダイアログ -->
+  <template v-if="isActive">
+    <HaDialogElement
+      ref="dialog"
+      :closeButtonHtmlTag="props.closeButtonHtmlTag"
+      :closedby="props.closedby"
+    >
+      <template
+        v-if="$slots.close"
+        #close
+      >
+        <slot name="close"></slot>
+      </template>
+      <template #inner>
+        <slot name="inner"></slot>
+      </template>
+    </HaDialogElement>
+  </template>
+</template>
+
+<script lang="ts" setup>
+import HaDialogElement from '#base/app/components/ha/HaDialogElement.vue'
+// import RiCloseLine from '~icons/ri/close-line'
+
+export type Props = {
+  openButtonHtmlTag?: string
+  closeButtonHtmlTag?: string
+  closedby?: 'any' | 'closerequest' | 'none' | undefined
+}
+const props = withDefaults(defineProps<Props>(), {
+  openButtonHtmlTag: 'button',
+  closeButtonHtmlTag: 'button',
+  closedby: 'any',
+})
+
+// aria-label用のi18n
+const i18n = useI18n()
+
+// dialog要素をrefにする
+const dialog = ref<InstanceType<typeof HaDialogElement>>()
+const isActive = ref(false)
+
+// dialogを開く関数
+const openDialog = async () => {
+  isActive.value = true
+  await nextTick()
+  if (!dialog.value) {
+    throw new Error('dialogコンポーネントはnull (HmDialogElement openDialog)')
+  }
+  dialog.value.openDialog()
+}
+
+// dialogを閉じる関数
+const closeDialog = () => {
+  if (!dialog.value) {
+    throw new Error('dialogコンポーネントはnull (HmDialogElement closeDialog)')
+  }
+  dialog.value.closeDialog()
+  isActive.value = false
+}
+
+defineExpose({
+  openDialog,
+  closeDialog,
+  isActive,
+})
+</script>
+
+<style lang="scss" scoped>
+.open {
+  cursor: pointer;
 }
 </style>
 ```
@@ -3030,954 +5701,6 @@ onBeforeUnmount(() => stopAutoPlay())
 </style>
 ```
 
-## File: layers/base/app/layouts/default.vue
-```vue
-<template>
-  <div class="layout -default">
-    <h1 class="heading">
-      Base App Nuxt3
-    </h1>
-    <slot />
-  </div>
-</template>
-
-<style lang="scss" scoped>
-.layout.-default {
-  overflow-x: hidden;
-}
-</style>
-```
-
-## File: layers/base/app/components/ha/base/HaBaseInput.vue
-```vue
-<template>
-  <input
-    :id="props.id"
-    v-bind="valueProp"
-    class="ha-base-input"
-    :type="props.type"
-    :accept="props.accept"
-    :autocomplete="props.autocomplete"
-    :autofocus="props.autofocus"
-    :capture="capture_"
-    :checked="props.checked"
-    :disabled="props.disabled"
-    :list="props.list"
-    :max="props.max"
-    :maxLength="props.maxLength"
-    :min="props.min"
-    :minLength="props.minLength"
-    :multiple="props.multiple"
-    :name="props.name"
-    :placeholder="props.placeholder"
-    :readonly="props.readonly"
-    :required="props.required"
-    :size="props.size"
-    :files="props.files"
-    @input="onInput"
-    @change="onChange"
-  />
-</template>
-
-<script setup lang="ts">
-export type InputType
-  = | 'button'
-    | 'checkbox'
-    | 'email'
-    | 'file'
-    | 'number'
-    | 'password'
-    | 'radio'
-    | 'search'
-    | 'tel'
-    | 'text'
-    | 'url'
-    | 'date'
-    | 'datetime-local'
-    | 'time'
-
-type Props = {
-  type: InputType
-  accept?: string
-  autocomplete?: string
-  autofocus?: boolean
-  capture?: boolean | 'user' | 'environment'
-  checked?: boolean
-  disabled?: boolean
-  id?: string
-  list?: string
-  max?: number | string
-  maxLength?: number
-  min?: number | string
-  minLength?: number
-  multiple?: boolean
-  name?: string
-  placeholder?: string
-  readonly?: boolean
-  required?: boolean
-  size?: number
-  value?: string | number | boolean
-  modelValue?: string | number | boolean
-  files?: FileList | undefined
-}
-type Emits = {
-  (
-    e: 'update:modelValue' | 'update:value',
-    eventValue: string | number | boolean
-  ): void
-  (e: 'input' | 'change', event: Event): void
-}
-
-const props = defineProps<Props>()
-const emit = defineEmits<Emits>()
-
-const typeofInputValue = () => {
-  if (props.type === 'checkbox') return 'boolean'
-
-  if (props.type === 'radio' && typeof props.value === 'number') return 'number'
-
-  return 'string'
-}
-
-const onInput = (event: Event) => {
-  emit('input', event)
-  if (event.target instanceof HTMLInputElement) {
-    const returnType = typeofInputValue()
-
-    const checked = event.target.checked
-    if (returnType === 'boolean') {
-      emit('update:modelValue', checked)
-      emit('update:value', checked)
-      return
-    }
-
-    const value = event.target.value
-    if (returnType === 'number') {
-      emit('update:modelValue', Number(value))
-      emit('update:value', Number(value))
-      return
-    }
-
-    emit('update:modelValue', value)
-    emit('update:value', value)
-  }
-}
-
-const onChange = (event: Event) => {
-  emit('change', event)
-}
-
-const valueProp = computed(() => {
-  /*
-   * props.value の型にbooleanが含まれているからかflagとして解釈されている？
-   * 指定しない時のデフォルト値がundefinedでなくfalseになってつらいので対処
-   */
-  if (props.type === 'file' && props.value === false) return {}
-  if (props.modelValue !== undefined) return { value: props.modelValue }
-  return {
-    value: props.value,
-  }
-})
-
-/**
- * https://developer.mozilla.org/ja/docs/Web/HTML/Attributes/capture
- * capture属性はどうも論理属性でなくなっていて？  falseでもカメラが起動するので対応
- */
-const capture_ = computed<'user' | 'environment' | true | undefined>(() => {
-  switch (props.capture) {
-    case false:
-      return undefined
-    default:
-      return props.capture
-  }
-})
-</script>
-
-<style lang="scss" scoped>
-.ha-base-input {
-  display: block;
-  max-width: 100%;
-  max-height: 100%;
-}
-</style>
-```
-
-## File: layers/base/app/components/ha/HaModal.vue
-```vue
-<template>
-  <!-- モーダルを開くボタン -->
-  <button
-    class="open"
-    type="button"
-    :aria-controls="'popup' + props.index.toString()"
-    aria-expanded="false"
-    @click="togglePopup"
-  >
-    <slot name="button">
-      <span class="text">モーダルを開く</span>
-    </slot>
-  </button>
-  <!-- モーダル -->
-  <section
-    :id="'popup' + props.index.toString()"
-    class="ha-modal"
-    :aria-hidden="!popupVisibility"
-  >
-    <button
-      ref="close"
-      class="close"
-      type="button"
-      :aria-label="
-        i18n.locale.value === 'ja' ? `モーダルを閉じる` : `Close the dialog`
-      "
-      @click="togglePopup"
-    >
-      <!-- 閉じるボタンのアイコン -->
-      <slot name="close">
-        <RiCloseLine class="icon" />
-      </slot>
-    </button>
-    <div
-      class="inner"
-      role="presentation"
-    >
-      <!-- モーダルの背景 -->
-      <div
-        class="background"
-        aria-hidden="true"
-        @click="togglePopup"
-      ></div>
-      <div
-        class="modal"
-        role="presentation"
-      >
-        <slot name="inner">
-          <div>モーダルの中身</div>
-        </slot>
-      </div>
-    </div>
-    <div
-      tabindex="0"
-      class="modal-end"
-      @focus="handleEndFocus"
-    ></div>
-  </section>
-</template>
-
-<script lang="ts" setup>
-import RiCloseLine from '~icons/ri/close-line'
-
-type Props = {
-  index: string
-}
-const props = defineProps<Props>()
-const i18n = useI18n()
-
-/* ポップアップの開閉はrefで制御 */
-const popupVisibility = ref(false)
-const togglePopup = () => {
-  // html要素とbody要素の両方にoverflowを記述
-  if (!popupVisibility.value) {
-    document.body.style.overflow = 'hidden'
-    document.documentElement.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-    document.documentElement.style.overflow = ''
-  }
-  popupVisibility.value = !popupVisibility.value
-}
-/* フォーカスを制御する要素を定義 */
-const close = ref<HTMLElement | null>(null)
-// modal-endにフォーカスが当たったらcloseにフォーカスを移す(ポップアップを開いている最中にポップアップの外にアクセスさせない)
-const handleEndFocus = () => {
-  if (close.value === null) {
-    throw new Error('close要素はnull')
-  }
-  close.value.focus()
-}
-
-/* モーダルが開いている状態でESCキーを押すとモーダルを閉じる */
-onMounted(() => {
-  window.addEventListener('keydown', (e) => {
-    if (popupVisibility.value === true && e.key === 'Escape') {
-      popupVisibility.value = false
-      document.body.style.overflow = ''
-      document.documentElement.style.overflow = ''
-    }
-  })
-})
-
-defineExpose({
-  close,
-  handleEndFocus,
-  togglePopup,
-  popupVisibility,
-})
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-@use '#base/app/assets/styles/mixins' as m;
-
-.open {
-  display: block;
-  width: max-content;
-  max-width: 100%;
-}
-
-.ha-modal {
-  position: fixed;
-  z-index: 2147483647;
-  inset: 0;
-
-  &[aria-hidden='true'] {
-    visibility: hidden;
-    opacity: 0;
-    transition: visibility 0.4s, opacity 0.4s;
-  }
-
-  &[aria-hidden='false'] {
-    visibility: visible;
-    opacity: 1;
-    transition: visibility 0.4s, opacity 0.4s;
-  }
-
-  > .inner {
-    position: absolute;
-    inset: 0;
-
-    > .background {
-      position: absolute;
-      inset: 0;
-    }
-
-    > .modal {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      translate: -50% -50%;
-
-      overflow-y: auto; /* モーダルの中身はスクロール可能に */
-
-      width: 90%;
-      height: 90vh;
-    }
-  }
-
-  > .close {
-    position: absolute;
-    z-index: 2;
-    top: 2%;
-    right: 2%;
-
-    aspect-ratio: 1/1;
-
-    > .icon {
-      font-size: 24px;
-
-      &:deep(path) {
-        fill: v.$white;
-      }
-    }
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/button/HmButtonFavorite.vue
-```vue
-<template>
-  <div
-    class="hm-button-favorite"
-    :class="{ '-disabled': disabled }"
-  >
-    <div
-      class="button"
-      @click="onClick"
-    >
-      <IconFavorite
-        class="favorite-icon"
-        :class="{ '-active': value, '-disabled': disabled }"
-      />
-    </div>
-  </div>
-</template>
-
-<script lang="ts" setup>
-import IconFavorite from '#base/app/assets/icons/icon-heart.svg'
-
-const props = withDefaults(
-  defineProps<{
-    value: boolean
-    disabled?: boolean
-  }>(),
-  {
-    disabled: false,
-  },
-)
-const emit = defineEmits<{
-  (event: 'input', value: boolean): void
-}>()
-
-const onClick = () => {
-  if (props.disabled) return
-  emit('input', !props.value)
-}
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-
-.hm-button-favorite {
-  > .button {
-    cursor: pointer;
-    width: 24px;
-    height: 24px;
-  }
-
-  &.-disabled {
-    > .button {
-      cursor: not-allowed;
-    }
-  }
-
-  .button:deep(.body) {
-    fill: none;
-  }
-
-  .button:deep(.border) {
-    fill: #f5f5f5;
-  }
-}
-
-.favorite-icon:not(.-disabled) {
-  filter: drop-shadow(0 0 3px rgba(#fff, 0.75));
-
-  .body {
-    fill: #fff;
-    transition: fill 0.1s ease-in;
-  }
-
-  &.-active,
-  &:hover {
-    .border,
-    .body {
-      fill: #f2509c;
-    }
-  }
-}
-
-.favorite-icon.-disabled {
-  .body {
-    fill: v.$gray-3;
-    transition: fill 0.1s ease-in;
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/icon/HmIconUser.vue
-```vue
-<template>
-  <span class="hm-icon-user">
-    <HaImage
-      class="image"
-      :src="props.src"
-      :noImage="noImage"
-      :draggable="false"
-    />
-  </span>
-</template>
-
-<script lang="ts" setup>
-import noImage from '#base/public/images/no-image_1x1.jpg'
-
-type Props = {
-  src: string
-}
-
-const props = defineProps<Props>()
-</script>
-
-<style lang="scss" scoped>
-// NOTE:
-// 汎用性を持たせるためにサイズについては、srcに設定した画像サイズを可能な範囲で反映するように作成しています。
-// プロジェクトの要件などで「設定した画像のサイズに関わらず固定の値を設定したい」場合は適宜CSSを変更してください。
-.hm-icon-user {
-  user-select: none;
-
-  overflow: hidden;
-  display: inline-block;
-
-  aspect-ratio: 1 / 1;
-  min-width: 24px;
-  border-radius: 50%;
-
-  > .image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/input/HmInputFile.vue
-```vue
-<template>
-  <!-- TODO: エラーメッセージの表示をする際に、必要に応じてHmInputTextBase.vue同様の修正(DOM構造とエラーmsgのstyle)を行う -->
-  <label
-    ref="box"
-    :class="['hm-input-file', { '-dragover': isDragOver }]"
-    @dragenter.prevent="toggleDragOver(true)"
-    @dragleave.prevent="toggleDragOver(false)"
-    @dragover.prevent
-    @drop.prevent="onDrop($event)"
-  >
-    <HaBaseInput
-      ref="fileInput"
-      class="input"
-      type="file"
-      name="file"
-      :accept="accept"
-      :multiple="multiple"
-      :files="files"
-      :required="required"
-      @click="onClick"
-      @change="onChange($event)"
-    />
-    <div class="image-box">
-      <slot>
-        <div class="inner">
-          <span class="text"> Select file or drag it! </span>
-        </div>
-      </slot>
-    </div>
-  </label>
-</template>
-
-<script lang="ts" setup>
-import { z } from 'zod/v3'
-import { isValueOf } from '#base/app/utils/zod'
-
-const htmlInputElementAndFilesSchema = z.instanceof(HTMLInputElement).and(
-  z.object({
-    files: z.instanceof(FileList),
-  }),
-)
-
-type Props = {
-  required?: boolean
-  accept?: string
-  multiple?: boolean
-  propFiles?: FileList
-}
-const props = withDefaults(defineProps<Props>(), {
-  required: false,
-  accept: '',
-  multiple: false,
-  propFiles: undefined,
-})
-
-type Emits = {
-  (e: 'input:multiple' | 'input:single', files: FileList): void
-  (e: 'cancel'): void
-}
-const emit = defineEmits<Emits>()
-
-const fileInput = ref<HTMLInputElement>()
-const isDragOver = ref(false)
-const clickListener = ref<((evt: Event) => void) | null>(null)
-
-const files = computed({
-  get: () => props.propFiles,
-  set: (files?: FileList) => {
-    if (!files) return
-    if (props.multiple) {
-      emit('input:multiple', files)
-    }
-    if (!props.multiple) {
-      emit('input:single', files)
-    }
-  },
-})
-
-onMounted(() => {
-  if (!isValueOf(htmlInputElementAndFilesSchema, fileInput.value)) {
-    return
-  }
-
-  clickListener.value = () => {
-    window.onfocus = () => {
-      setTimeout(() => {
-        if (fileInput.value?.files?.length === 0) {
-          emit('cancel')
-        }
-      }, 500)
-    }
-    window.onload = null
-  }
-  fileInput.value.addEventListener('click', clickListener.value)
-})
-
-onUnmounted(() => {
-  if (
-    isValueOf(htmlInputElementAndFilesSchema, fileInput.value)
-    && clickListener.value
-  ) {
-    fileInput.value.removeEventListener('click', clickListener.value)
-  }
-})
-
-const toggleDragOver = (isDragover: boolean) => {
-  isDragOver.value = isDragover
-}
-
-const onDrop = (event: DragEvent) => {
-  toggleDragOver(false)
-  if (event?.dataTransfer) {
-    files.value = event?.dataTransfer?.files
-  }
-}
-
-const onChange = (event: Event) => {
-  const target: (EventTarget & { files?: FileList }) | null = event?.target
-  if (target !== null && !(target?.files instanceof FileList)) {
-    throw new Error('Illegal. This functions is only for file input elements')
-  }
-  if (target?.files) {
-    files.value = target.files
-  }
-}
-
-const onClick = () => {
-  // todo: 同じファイルを二回開けないのでclick時空にする
-  if (fileInput.value instanceof HTMLInputElement) {
-    fileInput.value.value = ''
-  }
-}
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/mixins' as m;
-@use '#base/app/assets/styles/variables' as v;
-
-.hm-input-file {
-  cursor: pointer;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-
-  &.-dragover {
-    cursor: pointer;
-    opacity: 0.8;
-  }
-
-  &:hover {
-    opacity: 0.7;
-  }
-
-  @include m.sp {
-    &:hover {
-      opacity: inherit;
-    }
-
-    &:active {
-      opacity: 0.7;
-    }
-  }
-
-  > .input {
-    display: none;
-    width: 0;
-    height: 0;
-    visibility: hidden;
-  }
-
-  > .error {
-    display: block;
-
-    width: fit-content;
-
-    font-size: 10px;
-    font-weight: 400;
-    color: v.$red;
-  }
-}
-
-.image-box {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 100%;
-  height: 100%;
-
-  > .inner {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 100%;
-    height: 100%;
-
-    background-color: #d5d5d5;
-  }
-
-  > .inner > .text {
-    color: v.$base-font-color;
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/input/HmInputRadioChangeable.vue
-```vue
-<template>
-  <div class="hm-input-radio-changeable">
-    <div
-      v-for="(option, index) in props.options"
-      :key="option.value"
-      ref="radiobuttons"
-      class="radio"
-    >
-      <HaBaseInput
-        :id="option.value"
-        class="input"
-        type="radio"
-        :name="props.name"
-        :value="option.value"
-        :modelValue="option.value"
-        :checked="option.checked"
-        :disabled="option.disabled"
-        required
-        @change="onChange($event)"
-      />
-      <label
-        :for="option.value"
-        class="label"
-        :class="`option-${index}`"
-      >
-        <template v-if="option.before">
-          <ClientOnly>
-            <component
-              :is="option.before"
-              class="before"
-            />
-          </ClientOnly>
-        </template>
-        {{ option.label }}
-        <template v-if="option.after">
-          <ClientOnly>
-            <component
-              :is="option.after"
-              class="after"
-            />
-          </ClientOnly>
-        </template>
-      </label>
-    </div>
-  </div>
-</template>
-
-<script lang="ts" setup>
-import { z } from 'zod/v3'
-
-type Radio = {
-  label: string
-  value: string
-  checked?: boolean
-  disabled?: boolean
-  before?: Component
-  after?: Component
-}
-
-type Props = {
-  name: string
-  options: Radio[]
-}
-const props = defineProps<Props>()
-
-const radiobuttons = ref<HTMLDivElement[]>()
-
-/** props.optionsを監視し、親コンポーネントでの変更をラジオボタンに反映する */
-watch(toRef(props.options), (_next, _prev) => {
-  // チェックされているオブジェクトを探す
-  const checkedOptions
-    = props.options.find(element => element.checked)
-      ?? raiseError('HmInputRadioChangeable: watch: checkedOptions')
-
-  // チェック対象を探す
-  const buttons
-    = radiobuttons.value
-      ?? raiseError('HmInputRadioChangeable: watch: radiobuttons')
-  const checkTarget
-    = buttons.find(
-      // チェックされているオブジェクトとidが同じものがチェック対象
-      element => element.children[0]?.id === checkedOptions?.value,
-    ) ?? raiseError('HmInputRadioChangeable: watch: checkTarget')
-
-  // 探したチェック対象をチェック済にする
-  const checkbox = z
-    .object({ checked: z.boolean() })
-    .parse(checkTarget.children[0])
-  checkbox.checked = true
-})
-
-type Emits = {
-  (e: 'change', value: string): void
-}
-const emit = defineEmits<Emits>()
-const onChange = (e: Event) => {
-  if (e.target instanceof HTMLInputElement) {
-    emit('change', e.target.value)
-  }
-}
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-
-.hm-input-radio-changeable {
-  display: flex;
-  width: 100%;
-
-  .radio {
-    flex: 1;
-
-    > .label {
-      cursor: pointer;
-      user-select: none;
-
-      display: block;
-
-      height: 100%;
-      padding: v.space(2) 0;
-      border: solid 1px v.$navy-2;
-
-      text-align: center;
-      white-space: pre-wrap;
-
-      background-color: v.$navy-1;
-
-      &:hover {
-        background-color: v.$green-4;
-      }
-    }
-  }
-}
-
-.input {
-  display: none;
-
-  &:checked,
-  &:hover,
-  &:focus {
-    + .label {
-      border-color: v.$blue;
-      background-color: v.$green-4;
-    }
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/HmDialogElement.vue
-```vue
-<!--
-HaDialogとの違いとして、HmDialogElementは別階層の別要素のz-indexの影響により、それよりも下に表示されてしまう
-と言った現象が起きません(dialog要素は常に最前面に表示される)。
- -->
-<template>
-  <!-- ダイアログを開くボタン -->
-  <component
-    :is="props.openButtonHtmlTag"
-    :tabindex="props.openButtonHtmlTag !== 'button' ? 0 : undefined"
-    class="open"
-    aria-expanded="false"
-    @click.stop="openDialog"
-  >
-    <slot name="open">
-      <span class="text">{{
-        i18n.locale.value === 'ja' ? 'ダイアログを開く' : 'Open the dialog'
-      }}</span>
-    </slot>
-  </component>
-  <!-- ダイアログ -->
-  <template v-if="isActive">
-    <HaDialogElement
-      ref="dialog"
-      :closeButtonHtmlTag="props.closeButtonHtmlTag"
-      :closedby="props.closedby"
-    >
-      <template
-        v-if="$slots.close"
-        #close
-      >
-        <slot name="close"></slot>
-      </template>
-      <template #inner>
-        <slot name="inner"></slot>
-      </template>
-    </HaDialogElement>
-  </template>
-</template>
-
-<script lang="ts" setup>
-import HaDialogElement from '#base/app/components/ha/HaDialogElement.vue'
-// import RiCloseLine from '~icons/ri/close-line'
-
-export type Props = {
-  openButtonHtmlTag?: string
-  closeButtonHtmlTag?: string
-  closedby?: 'any' | 'closerequest' | 'none' | undefined
-}
-const props = withDefaults(defineProps<Props>(), {
-  openButtonHtmlTag: 'button',
-  closeButtonHtmlTag: 'button',
-  closedby: 'any',
-})
-
-// aria-label用のi18n
-const i18n = useI18n()
-
-// dialog要素をrefにする
-const dialog = ref<InstanceType<typeof HaDialogElement>>()
-const isActive = ref(false)
-
-// dialogを開く関数
-const openDialog = async () => {
-  isActive.value = true
-  await nextTick()
-  if (!dialog.value) {
-    throw new Error('dialogコンポーネントはnull (HmDialogElement openDialog)')
-  }
-  dialog.value.openDialog()
-}
-
-// dialogを閉じる関数
-const closeDialog = () => {
-  if (!dialog.value) {
-    throw new Error('dialogコンポーネントはnull (HmDialogElement closeDialog)')
-  }
-  dialog.value.closeDialog()
-  isActive.value = false
-}
-
-defineExpose({
-  openDialog,
-  closeDialog,
-  isActive,
-})
-</script>
-
-<style lang="scss" scoped>
-.open {
-  cursor: pointer;
-}
-</style>
-```
-
 ## File: layers/base/app/components/hm/HmSliderItem.vue
 ```vue
 <template>
@@ -4158,1739 +5881,20 @@ const DefaultSlot = () => {
 </script>
 ```
 
-## File: layers/base/app/components/ha/HaDialogElement.vue
-```vue
-<!--
-HaDialogとの違いとして、HaDialogElementは別階層の別要素のz-indexの影響により、それよりも下に表示されてしまう
-と言った現象が起きません(dialog要素は常に最前面に表示される)。
--->
-<template>
-  <dialog
-    ref="dialog"
-    class="ha-dialog-element"
-    :closedby
-    @click.stop
-  >
-    <component
-      :is="props.closeButtonHtmlTag"
-      ref="close"
-      class="close"
-      :aria-label="
-        i18n.locale.value === 'ja' ? `ダイアログを閉じる` : `Close the dialog`
-      "
-      @click="closeDialog"
-    >
-      <slot name="close">
-        <RiCloseLine class="icon" />
-      </slot>
-    </component>
-    <div
-      tabindex="0"
-      class="inner"
-      role="presentation"
-    >
-      <slot name="inner" />
-    </div>
-    <div
-      tabindex="0"
-      @focus="handleEndFocus"
-    ></div>
-  </dialog>
-</template>
-
-<script lang="ts" setup>
-import RiCloseLine from '~icons/ri/close-line'
-
-export type Props = {
-  closeButtonHtmlTag?: string
-  closedby: 'any' | 'closerequest' | 'none' | undefined
-}
-const props = withDefaults(defineProps<Props>(), {
-  closeButtonHtmlTag: 'button',
-})
-
-// aria-label用のi18n
-const i18n = useI18n()
-
-// dialog要素をrefにする
-const dialog = ref<HTMLDialogElement>()
-const isActive = ref(false)
-
-const emit = defineEmits<{
-  (e: 'open' | 'close'): void
-}>()
-
-// dialogを開く関数
-const openDialog = () => {
-  isActive.value = true
-  if (!dialog.value) {
-    throw new Error('dialog要素はnull (HaDialogElement openDialog)')
-  }
-  dialog.value.addEventListener('keydown', (e) => {
-    if (dialog.value?.open && e.key === 'Escape') {
-      e.stopPropagation()
-      closeDialog()
-    }
-  })
-  if (typeof dialog.value.showModal === 'function') {
-    dialog.value.showModal()
-  } else {
-    console.error('dialog要素はHTMLDialogElementではありません (HaDialogElement openDialog)')
-  }
-  dialog.value.addEventListener('close', resetPageScrolling)
-  onOpen()
-}
-
-// dialogを閉じる関数
-const closeDialog = () => {
-  if (!dialog.value) {
-    throw new Error('dialog要素はnull (HaDialogElement closeDialog)')
-  }
-  dialog.value.close()
-  onClose()
-  isActive.value = false
-}
-
-const stopPageScrolling = () => {
-  // html要素とbody要素の両方にoverflowを記述
-  document.body.style.overflow = 'hidden'
-  document.documentElement.style.overflow = 'hidden'
-}
-
-const resetPageScrolling = () => {
-  // html要素とbody要素の両方のoverflowを元に戻す
-  document.body.style.overflow = ''
-  document.documentElement.style.overflow = ''
-}
-
-const onOpen = () => {
-  stopPageScrolling()
-  emit('open')
-}
-
-const onClose = () => {
-  resetPageScrolling()
-  emit('close')
-}
-
-// ダイアログ内のフォーカスを制御する
-const close = ref<HTMLElement>()
-const handleEndFocus = () => {
-  close.value?.focus()
-}
-
-onBeforeUnmount(resetPageScrolling)
-
-defineExpose({
-  openDialog,
-  closeDialog,
-  isActive,
-})
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-@use '#base/app/assets/styles/mixins' as m;
-
-.open {
-  cursor: pointer;
-}
-
-.ha-dialog-element {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  translate: -50% -50%;
-
-  width: 90%;
-  max-width: initial; // dialogのデフォルトのmax-widthをリセット
-  height: max-content; // autoにすると、十分に画面縦幅がある場合でもダイアログに縦スクロールが生まれる場合がある
-  max-height: initial; // dialogのデフォルトのmax-heightをリセット
-  padding: 0; // dialogのデフォルトのpaddingをリセット
-
-  opacity: 0;
-  background-color: rgb(
-    0 0 0 / 0%
-  ); // dialogにデフォルトで指定される白の背景色を透明にする
-
-  &::backdrop {
-    cursor: pointer;
-    background-color: rgb(0 0 0 / 80%);
-  }
-
-  &[open] {
-    animation: fade-in 0.3s forwards;
-  }
-
-  > .inner {
-    overflow-y: auto;
-
-    width: 100%;
-    height: max-content;
-    max-height: 100vh; // 先祖要素にmax-contentを指定した場合、その子孫要素の単位に%を使うとwebkitで値が0になる場合があるためvhを使用
-
-    background-color: #fff;
-
-    &:focus-visible {
-      outline: none;
-    }
-  }
-
-  > .close {
-    cursor: pointer;
-
-    position: absolute;
-    top: 2%;
-    right: 2%;
-
-    aspect-ratio: 1;
-    width: 20px;
-
-    > .icon {
-      font-size: 24px;
-
-      &:deep(path) {
-        fill: v.$black;
-      }
-    }
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/ha/HaSelectBox.vue
+## File: layers/base/app/layouts/default.vue
 ```vue
 <template>
-  <div class="ha-select-box">
-    <select
-      v-model="innerValue"
-      :name="validatorName"
-      :disabled="disabled"
-      :required="required"
-      class="select"
-      :class="[{ '-error': !!errorMessage }, { '-small': small }]"
-    >
-      <option
-        :disabled="disabledPlaceholder"
-        :value="null"
-      >
-        {{ placeholder }}
-      </option>
-      <option
-        v-for="(option, index) in options"
-        :key="index"
-        :disabled="option.disabled"
-        :value="option.value"
-      >
-        {{ option.text }}
-      </option>
-    </select>
-    <span
-      v-if="validatorRules && errorMessage"
-      class="error"
-    >{{
-      errorMessage
-    }}</span>
+  <div class="layout -default">
+    <h1 class="heading">
+      Base App Nuxt3
+    </h1>
+    <slot />
   </div>
 </template>
 
-<script lang="ts">
-import { useField } from 'vee-validate'
-import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
-
-export type Option = {
-  value: number | string | null
-  text: string
-  disabled?: boolean
-}
-
-type FieldInput = string | number | null
-
-export type Props = {
-  modelValue?: number | string | null
-  validatorName: string
-  validatorRules?:
-    | ZodType<string, ZodTypeDef, FieldInput>
-    | ZodEffects<ZodType<string, ZodTypeDef, FieldInput>>
-  options: readonly Option[]
-  placeholder?: string
-  disabledPlaceholder?: boolean
-  disabled?: boolean
-  required?: boolean
-  small?: boolean
-  keepValueOnUnmount?: boolean
-}
-
-export default defineComponent({
-  name: 'HaSelectBox',
-})
-</script>
-
-<script setup lang="ts">
-const props = withDefaults(
-  defineProps<Props>(),
-  {
-    modelValue: null,
-    validatorRules: undefined,
-    placeholder: '---Select---',
-    disabledPlaceholder: false,
-    disabled: false,
-    required: false,
-    small: false,
-    keepValueOnUnmount: false,
-  },
-)
-
-const emit = defineEmits<{
-  (e: 'update:modelValue' | 'input', value: number | string | null): void
-}>()
-
-const { value: fieldValue, errorMessage } = useField(
-  toRef(props, 'validatorName'),
-  props.validatorRules,
-  {
-    initialValue: props.modelValue,
-    keepValueOnUnmount: props.keepValueOnUnmount,
-    syncVModel: true,
-  },
-)
-
-const innerValue = computed({
-  get(): number | string | null {
-    return fieldValue.value
-  },
-  set(value: number | string | null): void {
-    emit('update:modelValue', value)
-    fieldValue.value = value
-    emit('input', value)
-  },
-})
-</script>
-
 <style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-@use '#base/app/assets/styles/mixins' as m;
-
-.ha-select-box {
-  position: relative;
-
-  > .select {
-    cursor: pointer;
-
-    width: 100%;
-    height: 44px;
-    padding: 8px 16px;
-    border: 1px solid v.$primary-color;
-    border-radius: 4px;
-
-    font-size: 15px;
-    line-height: 1;
-    color: v.$black;
-    text-overflow: ellipsis;
-
-    background-color: v.$white;
-    outline: none;
-
-    &::placeholder {
-      color: v.$gray;
-    }
-
-    &:disabled {
-      border-color: rgb(0 0 0 / 12%);
-      color: v.$gray;
-      opacity: 0.5;
-      background-color: v.$gray-2;
-    }
-
-    &:focus {
-      border-color: v.$primary-color;
-    }
-
-    &.-error {
-      border: 2px solid v.$red;
-
-      &:focus {
-        border: 2px solid v.$red;
-      }
-    }
-
-    &.-small {
-      height: 30px;
-      padding: 0 10px;
-    }
-  }
-
-  > .error {
-    display: block;
-
-    width: fit-content;
-    min-height: 20px;
-    margin-top: 8px;
-
-    font-size: 10px;
-    font-weight: 400;
-    color: v.$red;
-  }
-
-  @include m.sp {
-    > .select {
-      font-size: v.$base-font-size;
-    }
-  }
-
-  // ヘッダー検索窓用設定
-  &.-search {
-    > .select {
-      border-color: v.$gray-2;
-    }
-
-    > .error {
-      display: none;
-    }
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/ha/HaTextarea.vue
-```vue
-<template>
-  <div class="ha-textarea">
-    <label
-      class="label"
-      :class="[errorMessage ? '-error' : '']"
-    >
-      <template v-if="counter">
-        <span class="counter">{{ count }}</span>
-      </template>
-      <textarea
-        v-model="text"
-        :type="type"
-        :placeholder="placeholder"
-        :disabled="disabled"
-        :required="required"
-        :rows="rows"
-        class="input"
-      />
-    </label>
-    <p :class="['error-container', { '-hide': hideDetails }]">
-      <span
-        v-if="errorMessage"
-        class="error"
-      >{{ errorMessage }}</span>
-    </p>
-  </div>
-</template>
-
-<script setup lang="ts">
-import { useField } from 'vee-validate'
-import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
-
-type FieldInput = string | number | null
-
-const props = withDefaults(
-  defineProps<{
-    placeholder?: string
-    type?: string
-    validatorName?: string
-    validatorRules?:
-      | ZodType<string, ZodTypeDef, FieldInput>
-      | ZodEffects<ZodType<string, ZodTypeDef, FieldInput>>
-    required?: boolean
-    modelValue?: string | number
-    disabled?: boolean
-    rows?: number
-    counter?: boolean | { max: number }
-    hideDetails?: boolean
-    keepValueOnUnmount?: boolean
-  }>(),
-  {
-    placeholder: 'Input Text',
-    type: 'text',
-    validatorName: 'FileInput',
-    validatorRules: undefined,
-    required: false,
-    modelValue: '',
-    disabled: false,
-    rows: 5,
-    counter: false,
-    hideDetails: false,
-    keepValueOnUnmount: false,
-  },
-)
-
-const emit = defineEmits<{
-  (e: 'update:modelValue' | 'input', text: string): void
-  (e: 'validate', isValid: boolean): void
-}>()
-
-const fieldOptions = {
-  initialValue: props.modelValue,
-  keepValueOnUnmount: props.keepValueOnUnmount,
-}
-
-const { value: fieldValue, errorMessage } = useField(
-  toRef(props, 'validatorName'), props.validatorRules, fieldOptions,
-)
-
-const text = computed({
-  get(): string {
-    if (fieldValue.value === null) {
-      return ''
-    }
-    return '' + fieldValue.value
-  },
-  set(text: string): void {
-    emit('update:modelValue', text)
-    emit('input', text)
-    fieldValue.value = text
-    emit('validate', !!errorMessage.value)
-  },
-})
-
-/** 肩に表示する文字数カウント文字列 */
-const count = computed((): string | number => {
-  const inputLength = text.value.length
-  const max = typeof props.counter === 'object' ? props.counter.max : undefined
-  const maxRuleLength = max ?? getMax(props.validatorRules?._def)
-  return maxRuleLength ? `${inputLength}/${maxRuleLength}` : inputLength
-})
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-
-.ha-textarea {
-  > .label {
-    position: relative;
-
-    display: block;
-
-    width: 100%;
-    border: 1px solid #d5d5d5;
-    border-radius: 3px;
-
-    background-color: v.$white;
-
-    &:disabled {
-      border-color: rgb(0 0 0 / 12%);
-    }
-
-    &:active,
-    &:focus,
-    &:hover,
-    &:focus-within {
-      border-color: v.$primary-color;
-
-      .ha-textarea {
-        &__input {
-          caret-color: v.$primary-color;
-        }
-      }
-    }
-
-    &.-error {
-      border-color: v.$red;
-
-      > .input {
-        caret-color: v.$red;
-      }
-    }
-  }
-
-  > .label > .counter {
-    position: absolute;
-    top: -18px;
-    right: 0;
-
-    display: block;
-
-    font-size: 11px;
-    text-align: right;
-  }
-
-  > .label > .input {
-    width: 100%;
-    padding: 9px 12px 11px;
-
-    font-size: 16px;
-    line-height: 24px;
-    color: v.$black;
-
-    &::placeholder {
-      color: v.$gray-1;
-    }
-
-    &::selection {
-      color: v.$white;
-      background-color: v.$primary-color;
-    }
-  }
-
-  > .error-container {
-    display: block;
-    min-height: 20px;
-    margin-top: 8px;
-
-    > .error {
-      display: block;
-
-      width: fit-content;
-
-      font-size: 12px;
-      font-weight: 400;
-      color: v.$red;
-    }
-
-    &.-hide {
-      display: none;
-      min-height: auto;
-      margin-top: 0;
-    }
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/input/HmInputCheckbox.vue
-```vue
-<template>
-  <label
-    class="hm-input-checkbox"
-    :class="{ ['-disabled']: disabled }"
-  >
-    <HaBaseInput
-      v-model="innerValue"
-      type="checkbox"
-      class="button"
-      :name="name"
-      :disabled="disabled"
-      :required="required"
-      :checked="innerValue"
-    />
-    <div class="content">
-      <slot />
-    </div>
-    <span
-      v-if="validatorRules && errorMessage"
-      class="error"
-    >{{
-      errorMessage
-    }}</span>
-  </label>
-</template>
-
-<script setup lang="ts">
-import { useField } from 'vee-validate'
-import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
-
-const props = withDefaults(
-  defineProps<{
-    validatorName?: string
-    validatorRules?:
-      | ZodType<boolean, ZodTypeDef, boolean>
-      | ZodEffects<ZodType<boolean, ZodTypeDef, boolean>>
-    name: string
-    modelValue?: boolean
-    required?: boolean
-    disabled?: boolean
-  }>(),
-  {
-    validatorName: 'checkbox',
-    validatorRules: undefined,
-    modelValue: false,
-    required: false,
-    disabled: false,
-  },
-)
-
-const emit = defineEmits<{
-  (e: 'update:modelValue' | 'validate' | 'input', value: boolean): void
-}>()
-
-const { value: fieldValue, errorMessage } = useField(
-  toRef(props, 'validatorName'),
-  props.validatorRules,
-  { initialValue: props.modelValue },
-)
-
-const innerValue = computed({
-  get(): boolean {
-    return props.modelValue
-  },
-  set(value: boolean): void {
-    emit('update:modelValue', value)
-    emit('input', value)
-    fieldValue.value = value
-    emit('validate', !!errorMessage.value)
-  },
-})
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-
-.hm-input-checkbox {
-  cursor: pointer;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-
-  &.-disabled {
-    cursor: default;
-    color: v.$gray-1;
-  }
-
-  > .button {
-    display: none;
-  }
-
-  > .button:checked + .content {
-    &::after {
-      display: block;
-    }
-  }
-
-  > .error {
-    display: block;
-
-    width: 100%;
-    margin-top: 8px;
-
-    font-size: 10px;
-    font-weight: 400;
-    color: v.$red;
-  }
-
-  > .content {
-    position: relative;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    width: 100%;
-    padding-left: 34px;
-
-    &::before {
-      content: '';
-
-      position: absolute;
-      top: 50%;
-      left: 0;
-      transform: translateY(-50%);
-
-      width: 24px;
-      height: 24px;
-      border: 1px solid v.$primary-color;
-      border-radius: 20%;
-
-      background-color: v.$white;
-    }
-
-    &::after {
-      content: '';
-
-      position: absolute;
-      top: 50%;
-      left: 11px;
-      transform: translate(-50%, -50%) rotate(-140deg);
-
-      display: none;
-
-      width: 10px;
-      height: 14px;
-      border-top: 4px solid v.$primary-color;
-      border-left: 4px solid v.$primary-color;
-    }
-  }
-
-  &.-disabled > .content {
-    &::before {
-      border: 1px solid v.$gray-1;
-    }
-
-    &::after {
-      border-top: 4px solid v.$gray-1;
-      border-left: 4px solid v.$gray-1;
-    }
-  }
-
-  // ヘッダー検索窓用設定
-  &.-search {
-    > .content {
-      padding-left: 28px;
-
-      &::before {
-        width: 20px;
-        height: 20px;
-        border: 3px solid v.$gray-2;
-        background-color: transparent;
-      }
-
-      &::after {
-        top: 45%;
-        left: 10px;
-      }
-    }
-
-    > .error {
-      display: none;
-    }
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/input/HmInputDatetime.vue
-```vue
-<template>
-  <div
-    :name="validatorName"
-    class="hm-input-datetime"
-  >
-    <label
-      :class="[
-        errorMessage
-          ? 'hm-input-datetime__label --error'
-          : 'hm-input-datetime__label',
-      ]"
-    >
-      <HaBaseInput
-        v-model="date"
-        :type="type"
-        :disabled="disabled"
-        :required="required"
-        :min="min"
-        :max="max"
-        class="hm-input-datetime__input"
-        @keyup.enter="enter"
-      />
-    </label>
-    <p
-      class="error-container"
-      :class="{ '-hide': hideDetails }"
-    >
-      <template v-if="errorMessage">
-        <span class="error">{{ errorMessage }}</span>
-      </template>
-    </p>
-  </div>
-</template>
-
-<script lang="ts">
-import { useField } from 'vee-validate'
-import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
-
-export default defineComponent({
-  name: 'HmInputDatetime',
-})
-
-export type Props = {
-  type?: 'datetime-local' | 'date' | 'time'
-  validatorName?: string
-  validatorRules?:
-    | ZodType<string, ZodTypeDef, string>
-    | ZodEffects<ZodType<string, ZodTypeDef, string>>
-  required?: boolean
-  modelValue?: string
-  disabled?: boolean
-  // FIXME: 型定義をstringからyyyy-mm-ddなどinput type=dateが許容している物にする
-  min?: number | string
-  // FIXME: 型定義をstringからyyyy-mm-ddなどinput type=dateが許容している物にする
-  max?: number | string
-  keyupEnter?: boolean
-  validateOnMount?: boolean
-  hideDetails?: boolean
-  error?: string | undefined
-}
-</script>
-
-<script setup lang="ts">
-const props = withDefaults(
-  defineProps<Props>(),
-  {
-    type: 'datetime-local',
-    validatorName: 'dateLocal',
-    validatorRules: undefined,
-    required: false,
-    modelValue: '',
-    disabled: false,
-    min: undefined,
-    max: undefined,
-    keyupEnter: false,
-    validateOnMount: false,
-  },
-)
-
-const emit = defineEmits<{
-  (e: 'update:modelValue' | 'input', value: string): void
-  (e: 'validation', isValid: boolean): void
-  (e: 'enter'): void
-}>()
-
-const { value: fieldValue, errorMessage: _errorMessage } = useField(
-  toRef(props, 'validatorName'),
-  props.validatorRules,
-  { initialValue: props.modelValue, validateOnMount: props.validateOnMount },
-)
-
-const date = computed({
-  get: () => {
-    if (props.modelValue === undefined) return ''
-    if (props.type === 'datetime-local')
-      return formatDate('YYYY-MM-DD HH:mm', props.modelValue)
-    if (props.type === 'date') return formatDate('YYYY-MM-DD', props.modelValue)
-    if (props.type === 'time')
-      return formatDate('HH:mm', `1970-00-00 ${props.modelValue}`)
-    return ''
-  },
-  set: (date: string) => {
-    emit('update:modelValue', date)
-    emit('input', date)
-    fieldValue.value = date
-    emit('validation', !!errorMessage.value)
-  },
-})
-
-const errorMessage = computed(() => {
-  if (props.error) return props.error
-  return _errorMessage.value
-})
-
-const enter = () => {
-  if (props.keyupEnter) {
-    emit('enter')
-  }
-}
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-
-.hm-input-datetime {
-  &__label {
-    position: relative;
-
-    display: block;
-
-    width: 100%;
-    height: 44px;
-    padding: 9px 12px 11px;
-    border: 1px solid #d5d5d5;
-    border-radius: 3px;
-
-    background-color: v.$white;
-
-    &:disabled {
-      border-color: rgb(0 0 0 / 12%);
-    }
-
-    &:active,
-    &:focus,
-    &:hover,
-    &:focus-within {
-      border-color: v.$primary-color;
-
-      .hm-input-datetime {
-        &__input {
-          caret-color: v.$primary-color;
-        }
-      }
-    }
-
-    &.--error {
-      border-color: v.$red;
-
-      .hm-input-datetime {
-        &__input {
-          caret-color: v.$red;
-        }
-      }
-    }
-  }
-
-  &__counter {
-    position: absolute;
-    top: -18px;
-    right: 0;
-
-    display: block;
-
-    font-size: 11px;
-    text-align: right;
-  }
-
-  &__input {
-    width: 100%;
-    font-size: 16px;
-    line-height: 24px;
-
-    &::placeholder {
-      color: v.$gray-1;
-    }
-
-    &::selection {
-      color: v.$white;
-      background-color: v.$primary-color;
-    }
-  }
-}
-
-.error-container {
-  display: block;
-  min-height: 20px;
-  margin-top: 8px;
-
-  &.-hide {
-    display: none;
-  }
-
-  > .error {
-    display: block;
-
-    width: fit-content;
-
-    font-size: 12px;
-    font-weight: 400;
-    color: v.$red;
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/input/HmInputSingleImage.vue
-```vue
-<i18n lang="yaml">
-ja:
-  explain: "画像を切り抜く範囲を指定して、「切り抜く」ボタンをクリックしてください。マウスホイールで拡大・縮小できます。"
-en:
-  explain: "Please adjust the crop area and click the 'Crop' button. Scroll the mouse wheel to zoom in and out."
-</i18n>
-
-<template>
-  <div
-    class="hm-input-single-image"
-    :class="{ '-rounded': previewRounded }"
-  >
-    <div class="wrapper">
-      <HmInputFile
-        ref="input"
-        :required="isRequired"
-        :accept="accept"
-        class="hm-single-image-uploader"
-        :class="{ '-rounded': previewRounded }"
-        :propFiles="fileList"
-        @input:single="changeImage"
-        @cancel="cancel"
-      >
-        <template v-if="imageUrl">
-          <HaImage
-            :key="imageUrl"
-            :src="imageUrl"
-            :alt="imageAlt"
-            class="preview"
-            :class="[previewRounded ? '-rounded' : '']"
-          />
-        </template>
-        <template v-else>
-          <slot name="noImage" />
-        </template>
-        <slot />
-      </HmInputFile>
-    </div>
-    <p class="error-container">
-      <template v-if="error">
-        <span class="error">{{ error }}</span>
-      </template>
-    </p>
-    <template v-if="imageUrl && isRemovable">
-      <button
-        type="button"
-        class="remove"
-        @click="removeImage"
-      />
-    </template>
-    <template v-if="showCropper">
-      <HaDialog
-        class="ha-dialog"
-        @close="cancelCropper"
-      >
-        <div class="crop-container">
-          <p class="message">
-            {{ i18n.t('explain') }}
-          </p>
-          <HmClipping
-            :src="cropImage || ''"
-            :width="cropWidth"
-            :height="cropHeight"
-            :ext="cropExt"
-            :autoZoom="true"
-            class="main"
-            @clipped="onClipped"
-          />
-        </div>
-      </HaDialog>
-    </template>
-  </div>
-</template>
-
-<script lang="ts" setup>
-import { useField } from 'vee-validate'
-import { ZodEffects, ZodOptional, ZodType, ZodTypeDef } from 'zod/v3'
-
-const i18n = useI18n()
-
-export type Props = {
-  validatorName?: string
-  imageAlt?: string
-  optionalAccept?: string
-  modelValue?: File
-  defaultImageUrl: string | null
-  validatorRules?:
-    | ZodType<File, ZodTypeDef, File>
-    | ZodEffects<ZodEffects<ZodOptional<ZodType<File, ZodTypeDef, File>>>>
-  error?: string | undefined
-  previewRounded?: boolean
-  isRemovable?: boolean
-  isRequired?: boolean
-  needCropper?: boolean
-  cropWidth?: number
-  cropHeight?: number
-  cropExt?: string
-}
-const props = withDefaults(defineProps<Props>(), {
-  validatorName: 'SingleImageInput',
-  imageAlt: 'uploaded image',
-  optionalAccept: '',
-  modelValue: undefined,
-  validatorRules: undefined,
-  error: undefined,
-  previewRounded: false,
-  isRemovable: false,
-  isRequired: true,
-  needCropper: false,
-  cropWidth: 0,
-  cropHeight: 0,
-  cropExt: 'jpeg',
-})
-
-type Emits = {
-  (e: 'update:model-value', image?: File): void
-  (e: 'remove'): void
-}
-const emit = defineEmits<Emits>()
-
-const fileList = computed(() => {
-  if (!value.value) return undefined
-  const dt = new DataTransfer()
-  dt.items.add(value.value)
-  return dt.files
-})
-
-const imageUrl = computed(() =>
-  value.value ? readFileAsBlob(value.value) : props.defaultImageUrl,
-)
-
-const showCropper = ref(false)
-const cropImage = ref<string>()
-
-const { value, errorMessage, validate } = useField<File | undefined>(
-  toRef(props, 'validatorName'),
-  props.validatorRules,
-  { initialValue: props.modelValue, syncVModel: false },
-)
-
-/** 外からエラーメッセージを上書きするパターン用エスケープハッチ */
-const error = computed(() => errorMessage.value || props.error)
-
-const accept = computed(() => {
-  const defaultAccept = 'image/png,image/jpeg'
-  if (!props.optionalAccept) return defaultAccept
-  return `${defaultAccept}, ${props.optionalAccept}`
-})
-
-const changeImage = async (images: FileList | null) => {
-  if (images === null) {
-    return
-  }
-
-  // note: ファイルが空の場合、cancelメソッドが叩かれる。この分岐は正常系では通らない
-  const image = images[0]
-  if (!image) {
-    return
-  }
-
-  if (!props.needCropper) {
-    await returnImage(image)
-    return
-  }
-  if (!props.cropWidth && !props.cropHeight) {
-    await openCropper(image)
-    return
-  }
-
-  /*
-   * note: Cropサイズが指定されている場合、画像がそのサイズと同じならクロッパーを表示しない
-   * note: Cropサイズが指定されている場合、画像がそのサイズより小さいならアラートを表示
-   */
-  const imgEl = new Image()
-  imgEl.src = URL.createObjectURL(image)
-  imgEl.onerror = () => {
-    alert('image loading failed / 画像の読み込みに失敗しました')
-  }
-  imgEl.onload = async () => {
-    if (props.cropWidth && props.cropHeight) {
-      if (
-        imgEl.width === props.cropWidth
-        && imgEl.height === props.cropHeight
-      ) {
-        await returnImage(image)
-        return
-      } else if (
-        imgEl.width < props.cropWidth
-        || imgEl.height < props.cropHeight
-      ) {
-        alert(
-          `${props.cropWidth}px x ${props.cropHeight}px以上の画像を指定してください`,
-        )
-        return
-      }
-      await openCropper(image)
-      return
-    }
-
-    if (props.cropWidth) {
-      if (imgEl.width === props.cropWidth) {
-        await returnImage(image)
-        return
-      } else if (imgEl.width < props.cropWidth) {
-        alert(`幅${props.cropWidth}px以上の画像を指定してください`)
-        return
-      }
-      await openCropper(image)
-      return
-    }
-
-    if (props.cropHeight) {
-      if (imgEl.height === props.cropHeight) {
-        await returnImage(image)
-        return
-      } else if (imgEl.height < props.cropHeight) {
-        alert(`高さ${props.cropHeight}px以上の画像を指定してください`)
-        return
-      }
-      await openCropper(image)
-    }
-  }
-}
-
-const openCropper = (image: File) => {
-  const reader = new FileReader()
-  reader.readAsDataURL(image)
-  return new Promise<void>((resolve, _reject) => {
-    reader.onload = () => {
-      cropImage.value
-        = typeof reader.result === 'string' ? `${reader.result}` : ''
-      showCropper.value = true
-      return resolve()
-    }
-  })
-}
-
-const cancelCropper = () => {
-  cancel()
-  closeCropper()
-}
-
-const closeCropper = () => {
-  showCropper.value = false
-}
-
-const onClipped = async (images: File[]) => {
-  if (!images[0]) return
-  await returnImage(images[0])
-  closeCropper()
-}
-
-const returnImage = (image: File) => {
-  return emitImage(image)
-}
-
-const removeImage = async () => {
-  emit('remove')
-  await emitImage()
-}
-
-const emitImage = async (image?: File) => {
-  value.value = image
-  const result = await validate()
-  if (result.valid) emit('update:model-value', image)
-}
-
-const cancel = () => {
-  emit('update:model-value', undefined)
-}
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-@use '#base/app/assets/styles/mixins' as m;
-
-.hm-input-single-image {
-  position: relative;
-
-  display: block;
-
-  width: fit-content;
-  max-width: 100%;
-  height: fit-content;
-  max-height: 100%;
-  margin: auto;
-
-  > .wrapper {
-    position: relative;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    width: calc(100% - 28px);
-    height: calc(100% - 28px);
-    margin: 0 auto;
-  }
-
-  > .wrapper > .uploader {
-    display: block;
-    width: 100%;
-    height: 100%;
-  }
-
-  > .remove {
-    position: absolute;
-    top: 0;
-    right: 0;
-
-    display: block;
-
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-
-    background-color: v.$black;
-
-    &::before,
-    &::after {
-      content: '';
-
-      position: relative;
-
-      display: block;
-
-      width: 30px;
-      border-top: 3px solid v.$white;
-    }
-
-    &::before {
-      top: 1px;
-      left: 1px;
-      transform: rotate(45deg);
-      height: 1px;
-    }
-
-    &::after {
-      top: -1px;
-      right: -1px;
-      transform: rotate(-45deg);
-      height: 2px;
-    }
-  }
-
-  .error-container {
-    display: block;
-
-    min-height: 20px;
-    margin-top: 8px;
-
-    font-size: 12px;
-    font-weight: 400;
-    color: v.$red;
-  }
-}
-
-.crop-message {
-  margin-bottom: 16px;
-  font-size: 12px;
-  line-height: 16px;
-  color: v.$base-font-color;
-}
-
-.crop-container {
-  height: 100%;
-  padding: 30px;
-
-  @include m.sp {
-    font-size: 10px;
-  }
-
-  > .main {
-    height: calc(100% - 90px);
-  }
-}
-
-.preview {
-  max-height: 100%;
-  object-fit: cover;
-}
-
-.ha-dialog {
-  padding: 30px;
-
-  &:deep(.dialog-window) {
-    height: 100%;
-  }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/input/HmInputText.vue
-```vue
-<template>
-  <div
-    tag="div"
-    class="hm-input-text"
-  >
-    <label :class="['label', { '-error': error }, { '-small': small }]">
-      <template v-if="counter">
-        <span class="counter">{{ count }}</span>
-      </template>
-      <template v-if="isLazy">
-        <template v-if="isTrim">
-          <HaBaseInput
-            v-model.trim.lazy="text"
-            :type="type"
-            :placeholder="placeholder"
-            :disabled="disabled"
-            :required="required"
-            :min="typeof min === 'boolean' ? undefined : min"
-            class="input"
-            :class="{ '-small': small }"
-            :name="name"
-            :list="list"
-            @keyup.enter="enter"
-          />
-        </template>
-        <template v-else>
-          <HaBaseInput
-            v-model.lazy="text"
-            :type="type"
-            :placeholder="placeholder"
-            :disabled="disabled"
-            :required="required"
-            :min="typeof min === 'boolean' ? undefined : min"
-            class="input"
-            :class="{ '-small': small }"
-            :name="name"
-            :list="list"
-            @keyup.enter="enter"
-          />
-        </template>
-      </template>
-      <template v-else-if="isTrim">
-        <HaBaseInput
-          v-model.trim="text"
-          :type="type"
-          :placeholder="placeholder"
-          :disabled="disabled"
-          :required="required"
-          :min="typeof min === 'boolean' ? undefined : min"
-          class="input"
-          :class="{ '-small': small }"
-          :name="name"
-          :list="list"
-          @keyup.enter="enter"
-        />
-      </template>
-      <template v-else>
-        <HaBaseInput
-          v-model="text"
-          :type="type"
-          :placeholder="placeholder"
-          :disabled="disabled"
-          :required="required"
-          :min="typeof min === 'boolean' ? undefined : min"
-          class="input"
-          :class="{ '-small': small }"
-          :name="name"
-          :list="list"
-          @keyup.enter="enter"
-        />
-      </template>
-    </label>
-    <template v-if="!noValidate">
-      <p :class="['error-container', { '-hide': hideDetails }]">
-        <template v-if="error">
-          <span class="error">{{ error }}</span>
-        </template>
-      </p>
-    </template>
-  </div>
-</template>
-
-<script setup lang="ts">
-import { InputType } from '#base/app/components/ha/base/HaBaseInput.vue'
-import { useField } from 'vee-validate'
-import { ZodEffects, ZodType, ZodTypeDef } from 'zod/v3'
-
-type FieldInput = string | number | null
-
-const props = withDefaults(
-  defineProps<{
-    placeholder?: string
-    type?: InputType
-    validatorName?: string
-    validatorRules?:
-      | ZodType<string, ZodTypeDef, FieldInput>
-      | ZodEffects<ZodType<string, ZodTypeDef, FieldInput>>
-    required?: boolean
-    modelValue?: FieldInput
-    disabled?: boolean
-    counter?: boolean | { max: number }
-    min?: number | boolean
-    keyupEnter?: boolean
-    isLazy?: boolean
-    isTrim?: boolean
-    small?: boolean
-    name?: string | undefined
-    error?: string | undefined
-    hideDetails?: boolean
-    list?: string | undefined
-    keepValueOnUnmount?: boolean
-    validateOnMount?: boolean
-  }>(),
-  {
-    placeholder: 'Input Text',
-    type: 'text',
-    validatorName: 'FileInput',
-    validatorRules: undefined,
-    required: false,
-    modelValue: '',
-    disabled: false,
-    counter: false,
-    min: false,
-    keyupEnter: false,
-    isLazy: false,
-    isTrim: false,
-    small: false,
-    name: undefined,
-    error: undefined,
-    hideDetails: false,
-    list: undefined,
-    keepValueOnUnmount: false,
-    validateOnMount: false,
-  },
-)
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void
-  (e: 'validate', isValid: boolean): void
-  (e: 'enter'): void
-}>()
-
-/**
- * v-if によってフォームが再表示された場合など、
- * レンダリング時にmodelValueがから出ない場合にバリデーションを実行する
- */
-const validateOnMount
-  = props.validateOnMount
-    && typeof props.modelValue?.toString() === 'string'
-    && props.modelValue.toString().length > 0
-
-const { value, errorMessage } = useField(
-  toRef(props, 'validatorName'),
-  props.validatorRules,
-  { initialValue: props.modelValue, validateOnMount },
-)
-
-const text = computed({
-  get(): string {
-    if (value.value === null) return ''
-    return '' + value.value
-  },
-  set(text: string): void {
-    emit('update:modelValue', text)
-    value.value = text
-    emit('validate', !!errorMessage.value)
-  },
-})
-
-/** バリデーションがない場合、エラー領域を出さない */
-const noValidate = computed(
-  () =>
-    props.validatorName === 'FileInput' && props.validatorRules === undefined,
-)
-
-/** 肩に表示する文字数カウント文字列 */
-const count = computed((): string | number => {
-  const inputLength = text.value.length
-  const max = typeof props.counter === 'object' ? props.counter.max : undefined
-  const maxRuleLength = max ?? getMax(props.validatorRules?._def)
-  return maxRuleLength ? `${inputLength}/${maxRuleLength}` : inputLength
-})
-
-/** 外からエラーメッセージを上書きするパターン用エスケープハッチ */
-const error = computed(() => errorMessage.value || props.error)
-
-function enter(): void {
-  if (props.keyupEnter) {
-    emit('enter')
-  }
-}
-</script>
-
-<style lang="scss" scoped>
-@use '#base/app/assets/styles/variables' as v;
-
-.hm-input-text {
-  > .label {
-    position: relative;
-
-    display: block;
-
-    width: 100%;
-    height: 44px;
-    border: 1px solid #d5d5d5;
-    border-radius: 4px;
-
-    background-color: v.$white;
-
-    &:disabled {
-      border-color: rgb(0 0 0 / 12%);
-    }
-
-    &:active,
-    &:focus,
-    &:hover,
-    &:focus-within {
-      border-color: v.$primary-color;
-
-      .hm-input-text {
-        > .input {
-          caret-color: v.$primary-color;
-        }
-      }
-    }
-
-    &.-error {
-      border-color: v.$red;
-
-      .hm-input-text {
-        > .input {
-          caret-color: v.$red;
-        }
-      }
-    }
-
-    &.-small {
-      height: 30px;
-    }
-  }
-
-  > .label > .counter {
-    position: absolute;
-    top: -18px;
-    right: 0;
-
-    display: block;
-
-    font-size: 11px;
-    text-align: right;
-  }
-
-  > .label > .input {
-    width: 100%;
-    padding: 9px 12px 11px;
-
-    font-size: 16px;
-    line-height: 24px;
-    color: v.$black;
-
-    &::placeholder {
-      color: v.$gray-1;
-    }
-
-    &::selection {
-      color: v.$white;
-      background-color: v.$primary-color;
-    }
-
-    &:disabled {
-      height: 100%;
-      padding: 0 12px;
-      background: rgb(0 0 0 / 12.6%);
-    }
-
-    &.-small {
-      padding: 0 11px;
-      font-size: 12px;
-      line-height: 28px;
-    }
-  }
-
-  > .error-container {
-    display: block;
-    min-height: 20px;
-    margin-top: 8px;
-
-    > .error {
-      display: block;
-
-      width: fit-content;
-
-      font-size: 12px;
-      font-weight: 400;
-      color: v.$red;
-    }
-  }
-
-  > .error-container.-hide {
-    display: none;
-    min-height: auto;
-    margin-top: 0;
-  }
-
-  // カタログヘッダー検索窓用設定
-  &.-search {
-    > .label {
-      border-color: v.$gray-2;
-
-      > .input {
-        padding-right: 72px;
-      }
-    }
-  }
-}
-
-// input type=numberの時に出るスピンボタンを消す
-input[type='number']::-webkit-outer-spin-button,
-input[type='number']::-webkit-inner-spin-button {
-  margin: 0;
-  -webkit-appearance: none;
-}
-
-input[type='number'] {
-  -moz-appearance: textfield;
-  appearance: textfield;
+.layout.-default {
+  overflow-x: hidden;
 }
 </style>
 ```

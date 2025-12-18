@@ -11,6 +11,14 @@ Nuxt4プロジェクトにおける標準化されたページコンポーネン
 
 このスキルは、Hikkyプロジェクトの標準化されたページ構造を理解し、適切なパターンを使用してページコンポーネントを生成・リファクタリングするためのガイドラインを提供します。
 
+## API呼び出しの責務
+
+**API呼び出しはPages層でのみ実行します。**
+
+- Pages層でComposable経由のAPI呼び出しを実行
+- コンポーネント層（Ht/Ho/Hm/Ha）ではAPI呼び出し禁止
+- コンポーネントからAPI通信が必要な操作は、emitでPages層に委譲
+
 ## ページの種類
 
 ### 1. Simple Page - シンプルページ
@@ -69,7 +77,7 @@ Nuxt4プロジェクトにおける標準化されたページコンポーネン
 **役割**: データ作成・編集、バリデーション、送信処理
 
 **特徴**:
-- フォームComposable統合（vee-validate + zod）
+- Form Composable統合（vee-validate + zod）
 - 送信処理とエラーハンドリング
 - ローディング状態管理
 - 成功時のリダイレクト
@@ -78,6 +86,7 @@ Nuxt4プロジェクトにおける標準化されたページコンポーネン
 - `account/add.vue` - アカウント登録
 - `my-page/events/create/index.vue` - イベント作成
 - `account/world/compose.vue` - ワールド作成
+- `login.vue` - ログインページ
 
 **使用テンプレート**: `templates/form-page.vue`
 
@@ -122,7 +131,7 @@ useSeoMeta({
 })
 ```
 
-#### 4. Composables統合
+#### 4. Composables統合とprovide
 
 ```typescript
 // 基本
@@ -131,10 +140,19 @@ const toast = useToast()
 const route = useRoute()
 const router = useRouter()
 
-// カスタムComposables
+// カスタムComposables + provide
+// Pages層でprovideすることで、Ht/Ho層でinjectして直接参照可能
 const event = useEvent()
 provide(eventInjectionKey, event)
+
+const loginForm = useLoginForm()
+provide(loginFormInjectionKey, loginForm)
 ```
+
+**provideの効果**:
+- Ht/Ho層でinjectしてComposableのステートを直接参照可能
+- Props/Emitsのバケツリレーを削減できる
+- Hm/Ha層はinject禁止のため、Ho層からPropsで渡す
 
 ### データフェッチパターン
 
@@ -313,7 +331,7 @@ app/pages/
 
 **質問**:
 1. データフェッチが必要ですか？
-2. フォームを含みますか？
+2. フォーム入力を含みますか？
 3. 動的ルートが必要ですか？
 4. 一覧表示が必要ですか？
 
@@ -362,6 +380,7 @@ app/pages/
 - **401エラー処理**: SSR時の認証エラーをクライアント側で再取得
 - **ローディング状態**: isSkeletonLoadingまたはisSubmittingで管理
 - **Composable活用**: provide/injectパターンで状態共有
+- **provideでComposable共有**: Ht/Ho層でinjectして直接参照できるようにする
 - **型安全**: TypeScript型定義を徹底
 - **リダイレクト**: navigateToで適切に遷移
 
@@ -373,6 +392,7 @@ app/pages/
 - **エラー無視**: try-catchブロックを省略
 - **型無し実装**: anyや型定義無しの実装
 - **SEO省略**: useSeoMetaの設定を忘れる
+- **フォーム直接管理**: `ref<FormData>()` でフォームデータを直接管理
 
 ## トラブルシューティング
 

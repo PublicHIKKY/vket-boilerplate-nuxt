@@ -2,6 +2,16 @@
 
 各Atomic Designレベルの詳細な実装パターンとベストプラクティス
 
+## 責務の分離
+
+| 層 | データ参照 | API呼び出し | ルーティング |
+|---|----------|------------|-------------|
+| Pages層 (`pages/*.vue`) | Composable経由 | 可能 | 可能 |
+| Ht/Ho | Composable経由で参照可能 | 禁止 | 禁止 |
+| Hm/Ha | Props経由のみ | 禁止 | 禁止 |
+
+---
+
 ## Ha (Atom) - 原子レベルコンポーネント
 
 ### 設計原則
@@ -9,6 +19,7 @@
 - **単一責任**: 1つの明確な目的のみを持つ
 - **依存なし**: 他のコンポーネントに依存しない
 - **プリミティブ**: HTMLの基本要素をラップする程度
+- **Props/Emit**: データはPropsで受け取り、Emitで通知
 
 ### 実装パターン
 
@@ -91,7 +102,7 @@ const onClick = () => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/custom/variables_new' as v;
+@use '@/assets/styles/variables' as v;
 
 .ha-button {
   padding: v.space(2);
@@ -128,6 +139,7 @@ const onClick = () => {
 - **組み合わせ**: 複数のAtomを組み合わせる
 - **機能単位**: 1つの明確な機能を提供
 - **中規模**: 小さすぎず大きすぎない
+- **Props/Emit**: データはPropsで受け取り、Emitで通知
 
 ### 実装パターン
 
@@ -183,7 +195,7 @@ const onInput = (event: Event) => {
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/styles/custom/variables_new' as v;
+@use '@/assets/styles/variables' as v;
 
 .hm-form-field {
   .label {
@@ -231,7 +243,7 @@ const props = defineProps<Props>()
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/styles/custom/variables_new' as v;
+@use '@/assets/styles/variables' as v;
 
 .hm-card {
   background: v.$base-background-color;
@@ -264,9 +276,9 @@ const props = defineProps<Props>()
 - 適切なイベント発火
 
 ❌ **DON'T**:
-- API呼び出しを含めない
-- グローバルステートに依存しない
-- ページ固有のロジックを含めない
+- API呼び出し（fetch、Composable経由のAPI通信）
+- グローバルステートに依存
+- ページ固有のロジックを含める
 
 ---
 
@@ -274,9 +286,10 @@ const props = defineProps<Props>()
 
 ### 設計原則
 
-- **機能完結**: 独立した機能を提供
-- **ビジネスロジック**: データ操作を含む
-- **Composable活用（推奨）**: 状態管理をComposableに委譲（複雑なロジックの場合）
+- **機能完結**: 独立したUI機能を提供
+- **ローカル状態**: UI表示に関する状態管理のみ
+- **データ参照**: Composable経由でデータ参照可能（API呼び出しは禁止）
+- **Props/Emit**: データはPropsまたはComposableで受け取り、操作はEmitで通知
 
 ### 実装パターン
 
@@ -388,6 +401,13 @@ const onClose = () => {
 #### パターン2: リスト表示
 
 ```vue
+<i18n lang="yaml">
+ja:
+  no_items: アイテムがありません
+en:
+  no_items: No items
+</i18n>
+
 <template>
   <div class="ho-item-list">
     <template v-if="loading">
@@ -423,7 +443,6 @@ const onClose = () => {
 type Item = {
   id: string
   name: string
-  // ... other properties
 }
 
 type Props = {
@@ -479,29 +498,31 @@ const onClickItem = (item: Item) => {
 ### ベストプラクティス
 
 ✅ **DO**:
-- Composableでデータ管理（複雑なロジックの場合は推奨）
-- ローディング・エラー状態を管理
-- 適切なイベントハンドリング
+- ローディング・エラー状態の表示
+- 適切なイベントハンドリング（操作はemitでPages層に委譲）
 - スロットで柔軟性を提供
+- UIに関するローカル状態管理
+- Composable経由でデータを参照（読み取り専用）
 
 ❌ **DON'T**:
-- 直接API呼び出し（複雑な処理はComposable経由を推奨）
+- API呼び出し（fetch、Composable経由のAPI通信）
 - グローバルステートの直接変更
-- ページレベルのルーティング
+- ルーティング（navigateTo）
 
 ---
 
-## Ht (Template) - ページレベルコンポーネント
+## Ht (Template) - テンプレートコンポーネント
 
 ### 設計原則
 
-- **ページ統合**: ページ全体のレイアウト
-- **データ統合**: 複数のComposableを組み合わせ
-- **ルーティング連携**: ページ遷移を管理
+- **UIレイアウト**: ページ全体のUI構成を担当
+- **データ参照**: Composable経由でデータ参照可能（API呼び出しは禁止）
+- **Props/Emit**: データはPropsまたはComposableで受け取り、操作はEmitで通知
+- **UIローカル状態**: フィルター、表示切替などUI表示に関する状態のみ
 
 ### 実装パターン
 
-#### パターン1: 基本ページ
+#### パターン1: 基本テンプレート
 
 ```vue
 <i18n lang="yaml">
@@ -523,24 +544,31 @@ en:
     </div>
 
     <div class="content">
-      <!-- Organism components -->
-      <HoAccountInfoSection />
-      <HoBillingInfoSection />
-      <HoPaymentMethodSection />
+      <HoAccountInfoSection :data="accountInfo" />
+      <HoBillingInfoSection :data="billingInfo" />
+      <HoPaymentMethodSection
+        :data="paymentMethod"
+        @update="$emit('update:payment', $event)"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useFeature } from '@/composables/useFeature'
+type Props = {
+  accountInfo: AccountInfo
+  billingInfo: BillingInfo
+  paymentMethod: PaymentMethod
+}
+
+type Emits = {
+  (e: 'update:payment', value: PaymentMethod): void
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
 
 const i18n = useI18n()
-const { data, updateData } = useFeature()
-
-// Page-level logic
-onMounted(() => {
-  // Initialize page data
-})
 </script>
 
 <style lang="scss" scoped>
@@ -569,9 +597,24 @@ onMounted(() => {
 </style>
 ```
 
-#### パターン2: フィルター付きリストページ
+#### パターン2: フィルター付きリストテンプレート
 
 ```vue
+<i18n lang="yaml">
+ja:
+  title: アセット一覧
+  description: 登録済みのアセットを管理
+  category:
+    title: カテゴリ
+  no_asset: アセットがありません
+en:
+  title: Asset List
+  description: Manage registered assets
+  category:
+    title: Category
+  no_asset: No assets
+</i18n>
+
 <template>
   <div class="ht-asset-list">
     <div class="title-section">
@@ -580,7 +623,6 @@ onMounted(() => {
     </div>
 
     <div class="content">
-      <!-- Filters -->
       <div class="filter-area">
         <div class="filter">
           <div class="title">{{ i18n.t('category.title') }}</div>
@@ -592,7 +634,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- List -->
       <template v-if="filteredItems && filteredItems.length > 0">
         <HoAssetList
           :items="filteredItems"
@@ -609,19 +650,32 @@ onMounted(() => {
 </template>
 
 <script setup lang="ts">
-import { useAssets } from '@/composables/useAssets'
+type Props = {
+  items: Asset[]
+  categoryOptions: CategoryOption[]
+  loading?: boolean
+}
+
+type Emits = {
+  (e: 'click:card', item: Asset): void
+  (e: 'change:filter', filter: { type: string; value: string }): void
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  loading: false,
+})
+const emit = defineEmits<Emits>()
 
 const i18n = useI18n()
-const { assets, loading, fetchAssets } = useAssets()
 
+// UIローカル状態（フィルター表示用）
 const filters = reactive({
   category: 'all',
   price: 'all',
 })
 
 const filteredItems = computed(() => {
-  return assets.value.filter(item => {
-    // Apply filters
+  return props.items.filter(item => {
     if (filters.category !== 'all' && item.category !== filters.category) {
       return false
     }
@@ -631,15 +685,12 @@ const filteredItems = computed(() => {
 
 const onChangeFilter = (value: string, filterType: string) => {
   filters[filterType] = value
+  emit('change:filter', { type: filterType, value })
 }
 
 const onClickCard = (item: Asset) => {
-  navigateTo(`/account/asset/${item.id}`)
+  emit('click:card', item)
 }
-
-onMounted(() => {
-  fetchAssets()
-})
 </script>
 
 <style lang="scss" scoped>
@@ -688,67 +739,185 @@ onMounted(() => {
 </style>
 ```
 
+#### パターン3: フォームテンプレート（defineModel使用）
+
+```vue
+<i18n lang="yaml">
+ja:
+  title: ログイン
+  subtitle: アカウントにログイン
+en:
+  title: Login
+  subtitle: Sign in to your account
+</i18n>
+
+<template>
+  <div class="ht-login">
+    <div class="header">
+      <h1 class="title">{{ i18n.t('title') }}</h1>
+      <p class="subtitle">{{ i18n.t('subtitle') }}</p>
+    </div>
+
+    <form class="form" @submit.prevent="onSubmit">
+      <HmFormField
+        v-model="email"
+        type="email"
+        :label="i18n.t('email')"
+        :placeholder="i18n.t('emailPlaceholder')"
+      />
+      <HmFormField
+        v-model="password"
+        type="password"
+        :label="i18n.t('password')"
+        :placeholder="i18n.t('passwordPlaceholder')"
+      />
+      <HaButton
+        type="submit"
+        :disabled="$props.isLoading"
+      >
+        {{ i18n.t('submit') }}
+      </HaButton>
+    </form>
+  </div>
+</template>
+
+<script setup lang="ts">
+type Props = {
+  isLoading?: boolean
+}
+
+type Emits = {
+  (e: 'submit'): void
+}
+
+withDefaults(defineProps<Props>(), {
+  isLoading: false,
+})
+const emit = defineEmits<Emits>()
+
+// defineModelでv-model対応（冗長なProps/Emitsを避ける）
+const email = defineModel<string>('email', { default: '' })
+const password = defineModel<string>('password', { default: '' })
+
+const i18n = useI18n()
+
+const onSubmit = () => {
+  emit('submit')
+}
+</script>
+
+<style lang="scss" scoped>
+@use '@/assets/styles/variables' as v;
+
+.ht-login {
+  .header {
+    margin-bottom: v.space(6);
+  }
+
+  .title {
+    font-size: v.size-per-vw(32);
+    font-weight: 700;
+  }
+
+  .subtitle {
+    color: v.$secondary-color-3;
+  }
+
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: v.space(4);
+  }
+}
+</style>
+```
+
+**Pages層からの呼び出し例**:
+
+```vue
+<!-- pages/login.vue -->
+<template>
+  <HtLogin
+    v-model:email="formData.email"
+    v-model:password="formData.password"
+    :is-loading="isLoading"
+    @submit="onSubmit"
+  />
+</template>
+
+<script setup lang="ts">
+const { formData, validateForm } = useLoginForm()
+const { login, isLoading } = useAuth()
+
+const onSubmit = async () => {
+  const isValid = await validateForm()
+  if (!isValid) return
+
+  const success = await login({
+    email: formData.email ?? '',
+    password: formData.password ?? '',
+  })
+
+  if (success) {
+    await navigateTo('/dashboard')
+  }
+}
+</script>
+```
+
 ### ベストプラクティス
 
 ✅ **DO**:
-- 複数のComposableを組み合わせる
-- ページレベルのライフサイクル管理
-- ルーティングとの連携
-- Organismコンポーネントを組み合わせる
+- Props/Emitでデータとイベントをやり取り
+- Ho/Hm/Haコンポーネントを組み合わせてUIを構成
+- UIに関するローカルな状態管理（フィルター、表示切替など）
+- 操作イベントをemitでPages層に委譲
+- Composable経由でデータを参照（読み取り専用）
 
 ❌ **DON'T**:
-- ビジネスロジックを直接記述（Composableへ）
-- 複雑なDOM操作
+- API呼び出し（fetch、Composable経由のAPI通信）
+- ルーティング（navigateTo、useRouter）
+- データ取得（useAsyncData、onMountedでのfetch）
 - グローバルステートの直接変更
 
 ---
 
 ## 共通パターン
 
-### エラーハンドリング
-
-```typescript
-const state = reactive({
-  loading: false,
-  error: null as Error | null,
-})
-
-const handleAction = async () => {
-  try {
-    state.loading = true
-    state.error = null
-    await someAsyncOperation()
-  } catch (error) {
-    state.error = error as Error
-    console.error('Error:', error)
-  } finally {
-    state.loading = false
-  }
-}
-```
-
 ### ローディング表示
 
 ```vue
 <template>
   <div class="component">
-    <template v-if="state.loading">
+    <template v-if="loading">
       <div class="loading">
         <HoContentLoading />
       </div>
     </template>
-    <template v-else-if="state.error">
+    <template v-else-if="error">
       <div class="error">
-        {{ state.error.message }}
+        {{ error }}
       </div>
     </template>
     <template v-else>
       <div class="content">
-        <!-- Main content -->
+        <slot />
       </div>
     </template>
   </div>
 </template>
+
+<script setup lang="ts">
+type Props = {
+  loading?: boolean
+  error?: string | null
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  loading: false,
+  error: null,
+})
+</script>
 ```
 
 ### レスポンシブ対応

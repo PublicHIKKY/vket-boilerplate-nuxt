@@ -271,6 +271,375 @@ test('slot', () => {
 })
 ````
 
+## File: layers/base/app/test/components/ha/HaDialogElement.spec.ts
+````typescript
+import HaDialogElement from '#base/app/components/ha/HaDialogElement.vue'
+import { mount, VueWrapper } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { nextTick } from 'vue'
+import { createI18n } from 'vue-i18n'
+
+// HaDialogElementコンポーネントの型定義
+type HaDialogElementExposed = {
+  openDialog: () => void
+  closeDialog: () => void
+  isActive: boolean
+  dialog?: HTMLDialogElement | null
+}
+
+type HaDialogElementWrapper = VueWrapper<HaDialogElementExposed>
+
+const i18n = createI18n({
+  locale: 'ja',
+  messages: {
+    ja: {},
+    en: {},
+  },
+})
+
+describe('HaDialogElement', () => {
+  let wrapper: HaDialogElementWrapper
+  const originalBodyOverflow = document.body.style.overflow
+  const originalDocumentElementOverflow = document.documentElement.style.overflow
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+    // HTMLDialogElementのモック
+    Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
+      value: vi.fn(),
+      writable: true,
+    })
+    Object.defineProperty(HTMLDialogElement.prototype, 'close', {
+      value: vi.fn(),
+      writable: true,
+    })
+    Object.defineProperty(HTMLDialogElement.prototype, 'open', {
+      value: false,
+      writable: true,
+    })
+  })
+
+  afterEach(() => {
+    wrapper?.unmount()
+    document.body.style.overflow = originalBodyOverflow
+    document.documentElement.style.overflow = originalDocumentElementOverflow
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  describe('基本的なレンダリング', () => {
+    beforeEach(() => {
+      wrapper = mount(HaDialogElement, {
+        props: {
+          closedby: 'any',
+        },
+        slots: {
+          inner: '<div>ダイアログ内容</div>',
+          close: '<span>閉じるボタン</span>',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+    })
+
+    it('ダイアログ要素がレンダリングされる', () => {
+      const dialog = wrapper.find('dialog')
+      expect(dialog.exists()).toBe(true)
+    })
+
+    it('初期状態ではダイアログが非表示', () => {
+      expect(wrapper.vm.isActive).toBe(false)
+    })
+
+    it('デフォルトの閉じるボタンHTMLタグがbuttonである', () => {
+      const closeButton = wrapper.find('.close')
+      expect(closeButton.element.tagName).toBe('BUTTON')
+    })
+  })
+
+  describe('プロパティの動作', () => {
+    it('closeButtonHtmlTagプロパティが適用される', async () => {
+      wrapper = mount(HaDialogElement, {
+        props: {
+          closeButtonHtmlTag: 'div',
+          closedby: 'any',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+
+      // ダイアログを開く
+      wrapper.vm.openDialog()
+      await nextTick()
+
+      const closeButton = wrapper.find('.close')
+      expect(closeButton.element.tagName).toBe('DIV')
+    })
+
+    it('closedbyプロパティが設定される', async () => {
+      wrapper = mount(HaDialogElement, {
+        props: {
+          closedby: 'closerequest',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+
+      // ダイアログを開く
+      wrapper.vm.openDialog()
+      await nextTick()
+
+      const dialog = wrapper.find('dialog')
+      if (dialog.exists()) {
+        expect(dialog.attributes('closedby')).toBe('closerequest')
+      }
+    })
+  })
+
+  describe('ダイアログの開閉', () => {
+    beforeEach(() => {
+      wrapper = mount(HaDialogElement, {
+        props: {
+          closedby: 'any',
+        },
+        slots: {
+          inner: '<div>ダイアログ内容</div>',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+    })
+
+    it('openDialogメソッドでダイアログが開く', async () => {
+      wrapper.vm.openDialog()
+      await nextTick()
+
+      expect(wrapper.vm.isActive).toBe(true)
+      const dialog = wrapper.find('dialog')
+      expect(dialog.exists()).toBe(true)
+    })
+
+    it('ダイアログが開くとshowModalが呼ばれる', async () => {
+      const showModalSpy = vi.spyOn(HTMLDialogElement.prototype, 'showModal')
+
+      wrapper.vm.openDialog()
+      await nextTick()
+
+      expect(showModalSpy).toHaveBeenCalled()
+    })
+
+    it('ダイアログが開くとbodyのoverflowが制御される', async () => {
+      wrapper.vm.openDialog()
+      await nextTick()
+
+      expect(document.body.style.overflow).toBe('hidden')
+      expect(document.documentElement.style.overflow).toBe('hidden')
+    })
+
+    it('閉じるボタンをクリックするとダイアログが閉じる', async () => {
+      // ダイアログを開く
+      wrapper.vm.openDialog()
+      await nextTick()
+
+      const closeSpy = vi.spyOn(HTMLDialogElement.prototype, 'close')
+
+      // ダイアログを閉じる
+      const closeButton = wrapper.find('.close')
+      await closeButton.trigger('click')
+
+      expect(closeSpy).toHaveBeenCalled()
+      expect(wrapper.vm.isActive).toBe(false)
+    })
+
+    it('ダイアログが閉じるとbodyのoverflowがリセットされる', async () => {
+      // ダイアログを開く
+      wrapper.vm.openDialog()
+      await nextTick()
+
+      // ダイアログを閉じる
+      await wrapper.find('.close').trigger('click')
+
+      expect(document.body.style.overflow).toBe('')
+      expect(document.documentElement.style.overflow).toBe('')
+    })
+  })
+
+  describe('キーボード操作', () => {
+    beforeEach(async () => {
+      wrapper = mount(HaDialogElement, {
+        props: {
+          closedby: 'any',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+      wrapper.vm.openDialog()
+      await nextTick()
+    })
+
+    it('Escapeキーでダイアログが閉じる', () => {
+      const dialog = wrapper.find('dialog')
+      const dialogElement = dialog.element as HTMLDialogElement
+
+      // openプロパティをtrueに設定
+      Object.defineProperty(dialogElement, 'open', {
+        value: true,
+        writable: true,
+      })
+
+      const closeSpy = vi.spyOn(HTMLDialogElement.prototype, 'close')
+
+      // Escapeキーイベントを発火
+      const keydownEvent = new KeyboardEvent('keydown', { key: 'Escape' })
+      dialogElement.dispatchEvent(keydownEvent)
+
+      expect(closeSpy).toHaveBeenCalled()
+    })
+  })
+
+  describe('フォーカス制御', () => {
+    beforeEach(async () => {
+      wrapper = mount(HaDialogElement, {
+        props: {
+          closedby: 'any',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+      wrapper.vm.openDialog()
+      await nextTick()
+    })
+
+    it('末尾フォーカス要素にフォーカスすると閉じるボタンにフォーカスが移る', async () => {
+      const closeButton = wrapper.find('.close').element as HTMLElement
+      const focusSpy = vi.spyOn(closeButton, 'focus')
+
+      // 末尾のフォーカス要素を見つけてフォーカスイベントを発火
+      const endFocusElement = wrapper.find('[tabindex="0"]:last-child')
+      await endFocusElement.trigger('focus')
+
+      expect(focusSpy).toHaveBeenCalled()
+    })
+  })
+
+  describe('国際化対応', () => {
+    it('日本語の場合のaria-label', () => {
+      wrapper = mount(HaDialogElement, {
+        props: {
+          closedby: 'any',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+
+      const closeButton = wrapper.find('.close')
+      expect(closeButton.attributes('aria-label')).toBe('ダイアログを閉じる')
+    })
+
+    it('英語の場合のaria-label', () => {
+      // i18nのlocaleを英語に変更
+      const enI18n = createI18n({
+        locale: 'en',
+        messages: {
+          ja: {},
+          en: {},
+        },
+      })
+
+      wrapper = mount(HaDialogElement, {
+        props: {
+          closedby: 'any',
+        },
+        global: {
+          plugins: [enI18n],
+        },
+      })
+
+      const closeButton = wrapper.find('.close')
+      expect(closeButton.attributes('aria-label')).toBe('Close the dialog')
+    })
+  })
+
+  describe('公開メソッド', () => {
+    beforeEach(() => {
+      wrapper = mount(HaDialogElement, {
+        props: {
+          closedby: 'any',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+    })
+
+    it('closeDialogメソッドが公開されている', () => {
+      expect(wrapper.vm.closeDialog).toBeDefined()
+      expect(typeof wrapper.vm.closeDialog).toBe('function')
+    })
+
+    it('closeDialogメソッドを直接呼び出すとダイアログが閉じる', async () => {
+      // ダイアログを開く
+      wrapper.vm.openDialog()
+      await nextTick()
+
+      const closeSpy = vi.spyOn(HTMLDialogElement.prototype, 'close')
+
+      // closeDialogメソッドを直接呼び出し
+      wrapper.vm.closeDialog()
+      await nextTick()
+
+      expect(closeSpy).toHaveBeenCalled()
+      expect(wrapper.vm.isActive).toBe(false)
+    })
+  })
+
+  describe('エラーハンドリング', () => {
+    it('dialog要素がnullの場合openDialogでエラーを投げる', () => {
+      wrapper = mount(HaDialogElement, {
+        props: {
+          closedby: 'any',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+
+      // dialog要素を強制的にnullに設定
+      ;(wrapper.vm as HaDialogElementExposed & { dialog: HTMLDialogElement | null }).dialog = null
+
+      expect(() => {
+        wrapper.vm.openDialog()
+      }).toThrow('dialog要素はnull')
+    })
+
+    it('dialog要素がnullの場合closeDialogでエラーを投げる', () => {
+      wrapper = mount(HaDialogElement, {
+        props: {
+          closedby: 'any',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+
+      // dialog要素を強制的にnullに設定
+      ;(wrapper.vm as HaDialogElementExposed & { dialog: HTMLDialogElement | null }).dialog = null
+
+      expect(() => {
+        wrapper.vm.closeDialog()
+      }).toThrow('dialog要素はnull')
+    })
+  })
+})
+````
+
 ## File: layers/base/app/test/components/ha/HaLabel.spec.ts
 ````typescript
 import { mount } from '@vue/test-utils'
@@ -326,6 +695,379 @@ test('mount component', () => {
   const wrapper = mount(HaLoadingIcon)
   expect(wrapper.getCurrentComponent()).toBeTruthy()
   expect(wrapper.html()).toMatchSnapshot()
+})
+````
+
+## File: layers/base/app/test/components/ha/HaModal.spec.ts
+````typescript
+import HaModal from '#base/app/components/ha/HaModal.vue'
+import { AnyVueWrapper } from '#base/app/test/models/vue'
+import { mount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { nextTick } from 'vue'
+import { createI18n } from 'vue-i18n'
+
+type HaModalWrapper = AnyVueWrapper
+
+const i18n = createI18n({
+  locale: 'ja',
+  messages: {
+    ja: {},
+    en: {},
+  },
+})
+
+describe('HaModal', () => {
+  let wrapper: HaModalWrapper
+  const originalBodyOverflow = document.body.style.overflow
+  const originalDocumentElementOverflow = document.documentElement.style.overflow
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    wrapper?.unmount()
+    document.body.style.overflow = originalBodyOverflow
+    document.documentElement.style.overflow = originalDocumentElementOverflow
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  describe('基本的なレンダリング', () => {
+    beforeEach(() => {
+      wrapper = mount(HaModal, {
+        props: {
+          index: 'test-modal',
+        },
+        slots: {
+          button: '<span>開くボタン</span>',
+          inner: '<div>モーダル内容</div>',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+    })
+
+    it('開くボタンがレンダリングされる', () => {
+      const openButton = wrapper.find('.open')
+      expect(openButton.exists()).toBe(true)
+      expect(openButton.text()).toContain('開くボタン')
+    })
+
+    it('モーダルがレンダリングされる', () => {
+      const modal = wrapper.find('.ha-modal')
+      expect(modal.exists()).toBe(true)
+    })
+
+    it('正しいIDとaria-controlsが設定される', () => {
+      const openButton = wrapper.find('.open')
+      const modal = wrapper.find('.ha-modal')
+
+      expect(openButton.attributes('aria-controls')).toBe('popuptest-modal')
+      expect(modal.attributes('id')).toBe('popuptest-modal')
+    })
+
+    it('初期状態ではモーダルが非表示', () => {
+      const modal = wrapper.find('.ha-modal')
+      expect(modal.attributes('aria-hidden')).toBe('true')
+    })
+  })
+
+  describe('モーダルの開閉', () => {
+    beforeEach(() => {
+      wrapper = mount(HaModal, {
+        props: {
+          index: 'test-modal',
+        },
+        slots: {
+          inner: '<div>モーダル内容</div>',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+    })
+
+    it('開くボタンをクリックするとモーダルが開く', async () => {
+      const openButton = wrapper.find('.open')
+      await openButton.trigger('click')
+
+      const modal = wrapper.find('.ha-modal')
+      expect(modal.attributes('aria-hidden')).toBe('false')
+    })
+
+    it('モーダルが開くとbodyのoverflowが制御される', async () => {
+      const openButton = wrapper.find('.open')
+      await openButton.trigger('click')
+
+      expect(document.body.style.overflow).toBe('hidden')
+      expect(document.documentElement.style.overflow).toBe('hidden')
+    })
+
+    it('閉じるボタンをクリックするとモーダルが閉じる', async () => {
+      // モーダルを開く
+      await wrapper.find('.open').trigger('click')
+
+      // モーダルを閉じる
+      const closeButton = wrapper.find('.close')
+      await closeButton.trigger('click')
+
+      const modal = wrapper.find('.ha-modal')
+      expect(modal.attributes('aria-hidden')).toBe('true')
+    })
+
+    it('背景をクリックするとモーダルが閉じる', async () => {
+      // モーダルを開く
+      await wrapper.find('.open').trigger('click')
+
+      // 背景をクリック
+      const background = wrapper.find('.background')
+      await background.trigger('click')
+
+      const modal = wrapper.find('.ha-modal')
+      expect(modal.attributes('aria-hidden')).toBe('true')
+    })
+
+    it('モーダルが閉じるとbodyのoverflowがリセットされる', async () => {
+      // モーダルを開く
+      await wrapper.find('.open').trigger('click')
+
+      // モーダルを閉じる
+      await wrapper.find('.close').trigger('click')
+
+      expect(document.body.style.overflow).toBe('')
+      expect(document.documentElement.style.overflow).toBe('')
+    })
+  })
+
+  describe('キーボード操作', () => {
+    beforeEach(async () => {
+      wrapper = mount(HaModal, {
+        props: {
+          index: 'test-modal',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+
+      // モーダルを開く
+      await wrapper.find('.open').trigger('click')
+    })
+
+    it('Escapeキーでモーダルが閉じる', async () => {
+      // Escapeキーイベントを発火
+      const keydownEvent = new KeyboardEvent('keydown', { key: 'Escape' })
+      window.dispatchEvent(keydownEvent)
+
+      await nextTick()
+
+      const modal = wrapper.find('.ha-modal')
+      expect(modal.attributes('aria-hidden')).toBe('true')
+      expect(document.body.style.overflow).toBe('')
+      expect(document.documentElement.style.overflow).toBe('')
+    })
+
+    it('モーダルが閉じている状態でEscapeキーを押しても何も起こらない', async () => {
+      // モーダルを閉じる
+      await wrapper.find('.close').trigger('click')
+
+      const modal = wrapper.find('.ha-modal')
+      expect(modal.attributes('aria-hidden')).toBe('true')
+
+      // Escapeキーイベントを発火
+      const keydownEvent = new KeyboardEvent('keydown', { key: 'Escape' })
+      window.dispatchEvent(keydownEvent)
+
+      await nextTick()
+
+      // 状態が変わらないことを確認
+      expect(modal.attributes('aria-hidden')).toBe('true')
+    })
+  })
+
+  describe('フォーカス制御', () => {
+    beforeEach(async () => {
+      wrapper = mount(HaModal, {
+        props: {
+          index: 'test-modal',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+
+      // モーダルを開く
+      await wrapper.find('.open').trigger('click')
+    })
+
+    it('末尾フォーカス要素にフォーカスすると閉じるボタンにフォーカスが移る', async () => {
+      const closeButton = wrapper.find('.close').element as HTMLElement
+      const focusSpy = vi.spyOn(closeButton, 'focus')
+
+      // 末尾のフォーカス要素を見つけてフォーカスイベントを発火
+      const endFocusElement = wrapper.find('.modal-end')
+      await endFocusElement.trigger('focus')
+
+      expect(focusSpy).toHaveBeenCalled()
+    })
+
+    it('close要素がnullの場合にエラーを投げる', async () => {
+      // モーダルを開く
+      await wrapper.find('.open').trigger('click')
+      await nextTick()
+
+      // close要素を強制的にnullに設定
+      wrapper.vm.close = null
+
+      // handleEndFocus関数を直接テストする（同期的にエラーをキャッチ）
+      expect(() => {
+        wrapper.vm.handleEndFocus()
+      }).toThrow('close要素はnull')
+    })
+  })
+
+  describe('国際化対応', () => {
+    it('日本語の場合のaria-label', () => {
+      wrapper = mount(HaModal, {
+        props: {
+          index: 'test-modal',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+
+      const closeButton = wrapper.find('.close')
+      expect(closeButton.attributes('aria-label')).toBe('モーダルを閉じる')
+    })
+
+    it('英語の場合のaria-label', () => {
+      // i18nのlocaleを英語に変更
+      const enI18n = createI18n({
+        locale: 'en',
+        messages: {
+          ja: {},
+          en: {},
+        },
+      })
+
+      wrapper = mount(HaModal, {
+        props: {
+          index: 'test-modal',
+        },
+        global: {
+          plugins: [enI18n],
+        },
+      })
+
+      const closeButton = wrapper.find('.close')
+      expect(closeButton.attributes('aria-label')).toBe('Close the dialog')
+    })
+  })
+
+  describe('props', () => {
+    it('必須のindexプロパティが設定される', () => {
+      wrapper = mount(HaModal, {
+        props: {
+          index: 'custom-id',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+
+      const openButton = wrapper.find('.open')
+      const modal = wrapper.find('.ha-modal')
+
+      expect(openButton.attributes('aria-controls')).toBe('popupcustom-id')
+      expect(modal.attributes('id')).toBe('popupcustom-id')
+    })
+  })
+
+  describe('デフォルトスロット', () => {
+    it('デフォルトのボタンテキストが表示される', () => {
+      wrapper = mount(HaModal, {
+        props: {
+          index: 'test-modal',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+
+      const openButton = wrapper.find('.open')
+      expect(openButton.text()).toContain('モーダルを開く')
+    })
+
+    it('デフォルトのモーダル内容が表示される', () => {
+      wrapper = mount(HaModal, {
+        props: {
+          index: 'test-modal',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+
+      const modal = wrapper.find('.modal')
+      expect(modal.text()).toContain('モーダルの中身')
+    })
+  })
+
+  describe('aria属性の制御', () => {
+    beforeEach(() => {
+      wrapper = mount(HaModal, {
+        props: {
+          index: 'test-modal',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+    })
+
+    it('開くボタンのaria-expandedが初期状態でfalse', () => {
+      const openButton = wrapper.find('.open')
+      expect(openButton.attributes('aria-expanded')).toBe('false')
+    })
+
+    it('aria-expandedは常にfalseに設定されている', () => {
+      const openButton = wrapper.find('.open')
+      expect(openButton.attributes('aria-expanded')).toBe('false')
+    })
+  })
+
+  describe('複数モーダルの管理', () => {
+    it('異なるindexを持つ複数モーダルが独立して動作', async () => {
+      const modal1 = mount(HaModal, {
+        props: { index: 'modal-1' },
+        global: {
+          plugins: [i18n],
+        },
+      })
+      const modal2 = mount(HaModal, {
+        props: { index: 'modal-2' },
+        global: {
+          plugins: [i18n],
+        },
+      })
+
+      // modal1を開く
+      await modal1.find('.open').trigger('click')
+      expect(modal1.find('.ha-modal').attributes('aria-hidden')).toBe('false')
+      expect(modal2.find('.ha-modal').attributes('aria-hidden')).toBe('true')
+
+      // modal2を開く
+      await modal2.find('.open').trigger('click')
+      expect(modal2.find('.ha-modal').attributes('aria-hidden')).toBe('false')
+
+      modal1.unmount()
+      modal2.unmount()
+    })
+  })
 })
 ````
 
@@ -776,2588 +1518,6 @@ describe('emits', () => {
 })
 ````
 
-## File: layers/base/app/test/models/vue.ts
-````typescript
-import { VueWrapper } from '@vue/test-utils'
-
-// NOTE: もっといい方法を募集中。
-/**
- * .vmにアクセスするためのVueWrapper。
- *
- * ```typescript
- * const wrapper: AnyVueWrapper = mount(HaLoading)
- * wrapper.vm.start()
- * ```
- *
- * https://stackoverflow.com/questions/74516449/vue-test-utils-typescript-type-for-wrapper-vm
- */
-export type AnyVueWrapper = VueWrapper<any> // eslint-disable-line @typescript-eslint/no-explicit-any
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaDialog.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-3d2a298a="" class="ha-dialog">
-  <div data-v-3d2a298a="" class="dialog-window">no content.</div>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaHamburger.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-360a5fd5="" class="ha-humberger-button">
-  <div data-v-360a5fd5="" class="line"></div>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaLoadingIcon.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<div data-v-1650f499="" class="ha-loading-icon"></div>"`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaSelectBox.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-01e8812b="" class="ha-select-box"><select data-v-01e8812b="" name="" class="select">
-    <option data-v-01e8812b="">---Select---</option>
-  </select>
-  <!--v-if-->
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaSkewBackground.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`HaSkewBackground > mount component 1`] = `
-"<div data-v-bd50d0e7="" class="ha-skew" style="transform: skewX(30deg);">
-  <div data-v-bd50d0e7="" class="content" style="transform: skewX(-30deg);"></div>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaTag.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`HaTag > mount component 1`] = `"<span data-v-ce4254e2="" class="ha-tag -primary" disabled="false"></span>"`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaTextarea.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-f4f8fa4e="" class="ha-textarea"><label data-v-f4f8fa4e="" class="label">
-    <!--v-if--><textarea data-v-f4f8fa4e="" type="text" placeholder="Input Text" rows="5" class="input"></textarea>
-  </label>
-  <p data-v-f4f8fa4e="" class="error-container">
-    <!--v-if-->
-  </p>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaVideo.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`HaVideo > mount component 1`] = `"<video class="ha-video" src="" autoplay="" autopictureinpicture="false" controls="" disablepictureinpicture="false" controlslist="" crossorigin="" disableremoteplayback="false" x-webkit-airplay="false" width="" height="" muted="" playsinline="false" poster="" preload=""></video>"`;
-````
-
-## File: layers/base/app/test/components/ha/base/__snapshots__/HaBaseButton.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<button data-v-44e0d85b="" class="ha-base-button" type="button">button label</button>"`;
-````
-
-## File: layers/base/app/test/components/ha/base/__snapshots__/HaBaseInput.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<input data-v-fc3f65b2="" class="ha-base-input" type="text" value="false">"`;
-````
-
-## File: layers/base/app/test/components/ha/base/HaBaseInput.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { describe, it, test, expect } from 'vitest'
-import HaBaseInput from '#base/app/components/ha/base/HaBaseInput.vue'
-
-test('ref component', () => {
-  expect(HaBaseInput).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HaBaseInput, {
-    props: {
-      type: 'text',
-    },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-describe('props', () => {
-  describe(':type', () => {
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).type).toBe('text')
-    })
-  })
-
-  describe(':accept', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).accept).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          accept: 'image/*',
-        },
-      })
-      expect((wrapper.element as HTMLInputElement).accept).toBe('image/*')
-    })
-  })
-
-  describe(':autocomplete', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).autocomplete).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          autocomplete: 'name',
-        },
-      })
-      expect((wrapper.element as HTMLInputElement).autocomplete).toBe('name')
-    })
-  })
-
-  describe(':autofocus', () => {
-    it('default is false', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).autofocus).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'text', autofocus: true },
-      })
-      expect((wrapper.element as HTMLInputElement).autofocus).toBeTruthy()
-    })
-  })
-
-  describe(':capture', () => {
-    it('default is undefined', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'file' } })
-      expect((wrapper.element as HTMLInputElement).capture).toBeFalsy()
-    })
-    it('pass prop: user', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'file', capture: 'user' },
-      })
-      expect(wrapper.attributes('capture')).toBe('user')
-    })
-    it('pass prop: environment', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'file', capture: 'environment' },
-      })
-      expect(wrapper.attributes('capture')).toBe('environment')
-    })
-  })
-
-  describe(':checked', () => {
-    it('default is false', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'radio' } })
-      expect((wrapper.element as HTMLInputElement).checked).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'radio', checked: true },
-      })
-      expect((wrapper.element as HTMLInputElement).checked).toBeTruthy()
-    })
-  })
-
-  describe(':disabled', () => {
-    it('default is false', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).disabled).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'text', disabled: true },
-      })
-      expect((wrapper.element as HTMLInputElement).disabled).toBeTruthy()
-    })
-  })
-
-  describe(':id', () => {
-    it('default is false', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).id).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'text', id: 'testId' },
-      })
-      expect((wrapper.element as HTMLInputElement).id).toBe('testId')
-    })
-  })
-
-  describe(':list', () => {
-    it('default is false', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).list).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'text', list: 'testDataListId' },
-      })
-      expect(wrapper.attributes('list')).toBe('testDataListId')
-    })
-  })
-
-  describe(':max', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).max).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          max: 10,
-        },
-      })
-      expect((wrapper.element as HTMLInputElement).max).toBe('10')
-    })
-  })
-
-  describe(':maxLength', () => {
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          maxLength: 10,
-        },
-      })
-      expect((wrapper.element as HTMLInputElement).maxLength).toBe(10)
-    })
-  })
-
-  describe(':min', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).min).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          min: 10,
-        },
-      })
-      expect((wrapper.element as HTMLInputElement).min).toBe('10')
-    })
-  })
-
-  describe(':minLength', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).minLength).toBe(-1)
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          minLength: 10,
-        },
-      })
-      expect((wrapper.element as HTMLInputElement).minLength).toBe(10)
-    })
-  })
-
-  describe(':multiple', () => {
-    it('default is false', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).multiple).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'text', multiple: true },
-      })
-      expect((wrapper.element as HTMLInputElement).multiple).toBeTruthy()
-    })
-  })
-
-  describe(':name', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).name).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          name: 'sample',
-        },
-      })
-      expect((wrapper.element as HTMLInputElement).name).toBe('sample')
-    })
-  })
-
-  describe(':placeholder', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).placeholder).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          placeholder: 'sample',
-        },
-      })
-      expect((wrapper.element as HTMLInputElement).placeholder).toBe('sample')
-    })
-  })
-
-  describe(':readonly', () => {
-    it('default is false', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).readOnly).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'text', readonly: true },
-      })
-      expect((wrapper.element as HTMLInputElement).readOnly).toBeTruthy()
-    })
-  })
-
-  describe(':required', () => {
-    it('default is false', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).required).toBeFalsy()
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: { type: 'text', required: true },
-      })
-      expect((wrapper.element as HTMLInputElement).required).toBeTruthy()
-    })
-  })
-
-  describe(':size', () => {
-    it('default is 20', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect((wrapper.element as HTMLInputElement).size).toBe(20)
-    })
-
-    it('pass prop', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          size: 10,
-        },
-      })
-      expect((wrapper.element as HTMLInputElement).size).toBe(10)
-    })
-  })
-
-  describe(':value', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect(wrapper.props('value')).toBeFalsy()
-    })
-
-    it('pass prop: string', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          value: 'string test',
-        },
-      })
-      expect(wrapper.props('value')).toBe('string test')
-    })
-
-    it('pass prop: number', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          value: 1,
-        },
-      })
-      expect(wrapper.props('value')).toBe(1)
-    })
-
-    it('pass prop: boolean', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          value: true,
-        },
-      })
-      expect(wrapper.props('value')).toBe(true)
-    })
-  })
-  describe(':modelValue', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect(wrapper.props('modelValue')).toBeFalsy()
-    })
-
-    it('pass prop: string', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          modelValue: 'string test',
-        },
-      })
-      expect(wrapper.props('modelValue')).toBe('string test')
-    })
-
-    it('pass prop: number', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          modelValue: 1,
-        },
-      })
-      expect(wrapper.props('modelValue')).toBe(1)
-    })
-
-    it('pass prop: boolean', () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-          modelValue: true,
-        },
-      })
-      expect(wrapper.props('modelValue')).toBe(true)
-    })
-  })
-  describe(':files', () => {
-    it('default is undefined (for safe)', () => {
-      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
-      expect(wrapper.attributes('files')).toBeFalsy()
-    })
-
-    // TODO: propsのfilelistが正しくセットされるかテストを行うが下記問題でコメントアウト中
-    it('pass prop', () => {
-      // 下準備としてFileList型のダミーを作成する
-      const _createDummyFileList = (files: File[]) => {
-        return {
-          length: files.length,
-          item(index: number) {
-            return files[index] || null
-          },
-        }
-      }
-      const _file = new File([''], 'test.png')
-      const _file2 = new File([''], 'test2.png')
-      /*
-       * TODO: fileListは使用されておらず、ESlintのErrorに引っかかったのでコメントアウトしてます。 by saga
-       * const fileList: FileList = createDummyFileList([file, file2])
-       * FileListダミー作成ここまで
-       */
-
-      /*
-       * NOTE: 問題点、上記で作成したfileListをセットするとテストも通り、yarn devやvs codeでエラーも出ないが、yarn test:watchを表示しているターミナルで
-       * [Vue warn]: Failed setting prop "files" on <input>: value [object Object] is invalid. TypeError: Failed to set the 'files' property on 'HTMLInputElement': The provided value is not of type 'FileList'.
-       * が白文字で表示されるのでコメントアウトなどを以下の一部の行で行っている。
-       */
-
-      const _wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'file',
-          multiple: true,
-          /*
-           * NOTE: 下記にてfilesにfilelistを設定すると、テストはとおるが[Vue warn]が表示される
-           * files: fileList,
-           */
-        },
-      })
-      /*
-       * NOTE: 上記mount時ではなく、下記にてfilesにfilelistを設定すると、テストはとおるが[Vue warn]が表示される
-       * await wrapper.setProps({ files: fileList })
-       */
-
-      /*
-       * NOTE: 下記にてfilesにfilelistを設定すると、セットされないのかテストに落ちる。
-       * Object.defineProperty(wrapper, 'files', {
-       *   value: fileList,
-       * })
-       * https://blog.unsweets.net/entries/set-filelist-to-htmlinputelement-files/
-       * 上記参照サイトでObject.definePropertyを使うことで
-       * 「TypeError: Failed to set the 'files' property on 'HTMLInputElement': The provided value is not of type 'FileList
-       * が発生しないと記載されているが、本件ではfileListがセットされずそもそも通らない
-       */
-
-      /*
-       * NOTE: fileListをセットしてテストすると下記が通るが、[Vue warn]がターミナルに白文字で出るのでコメントアウト。
-       * expect(wrapper.props('files')).toStrictEqual(fileList)
-       */
-    })
-  })
-})
-describe('emits', () => {
-  it(':update:modelValue', async () => {
-    const wrapper = mount(HaBaseInput, {
-      props: {
-        type: 'text',
-      },
-    })
-    await wrapper.setValue('test', 'modelValue')
-    expect(wrapper.emitted()).toHaveProperty('update:modelValue')
-    expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
-    expect(wrapper.emitted()['update:modelValue']).toEqual([['test']])
-  })
-  it(':update:value', async () => {
-    const wrapper = mount(HaBaseInput, {
-      props: {
-        type: 'text',
-      },
-    })
-    await wrapper.setValue('test', 'value')
-    expect(wrapper.emitted()['update:value']).toBeTruthy()
-    expect(wrapper.emitted()).toHaveProperty('update:value')
-    expect(wrapper.emitted()['update:value']).toHaveLength(1)
-    expect(wrapper.emitted()['update:value']).toEqual([['test']])
-  })
-  it(':input', async () => {
-    const wrapper = mount(HaBaseInput, {
-      props: {
-        type: 'text',
-      },
-    })
-    // onInput発火
-    await wrapper.trigger('input')
-    expect(wrapper.emitted()).toHaveProperty('input')
-    expect(wrapper.emitted()['input']).toHaveLength(1)
-  })
-  it(':change', async () => {
-    const wrapper = mount(HaBaseInput, {
-      props: {
-        type: 'text',
-      },
-    })
-    // onChange発火
-    await wrapper.trigger('change')
-    expect(wrapper.emitted()).toHaveProperty('change')
-    expect(wrapper.emitted()['change']).toHaveLength(1)
-  })
-  describe(':input[type]', () => {
-    it(':input[type:text]', async () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'text',
-        },
-      })
-      /*
-       * NOTE: setValueではupdate:modelValueのみ更新されupdate:valueにfalseが入るので、文字列をupdate:valueでもテストしたいのであれば、setPropsしtriggerで発火する
-       * await wrapper.setValue('test')
-       */
-      await wrapper.setProps({ modelValue: 'test' })
-      // onInput発火
-      await wrapper.trigger('input')
-      // TEST: update:modelValue
-      expect(wrapper.emitted()).toHaveProperty('update:modelValue')
-      expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
-      expect(wrapper.emitted()['update:modelValue']).toEqual([['test']])
-      // TEST: update:value
-      expect(wrapper.emitted()['update:value']).toBeTruthy()
-      expect(wrapper.emitted()).toHaveProperty('update:value')
-      expect(wrapper.emitted()['update:value']).toHaveLength(1)
-      expect(wrapper.emitted()['update:value']).toEqual([['test']])
-      // TEST: input
-      expect(wrapper.emitted()).toHaveProperty('input')
-      expect(wrapper.emitted()['input']).toHaveLength(1)
-    })
-    it(':input[type:checkbox]', async () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'checkbox',
-          checked: false,
-        },
-      })
-      // チェックボックスをクリックすることでChaekedにする
-      await wrapper.trigger('click')
-      // onInput発火
-      await wrapper.trigger('input')
-      // TEST: update:modelValue
-      expect(wrapper.emitted()).toHaveProperty('update:modelValue')
-      expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
-      expect(wrapper.emitted()['update:modelValue']).toEqual([[true]])
-      // TEST: update:value
-      expect(wrapper.emitted()['update:value']).toBeTruthy()
-      expect(wrapper.emitted()).toHaveProperty('update:value')
-      expect(wrapper.emitted()['update:value']).toHaveLength(1)
-      expect(wrapper.emitted()['update:value']).toEqual([[true]])
-      // TEST: input
-      expect(wrapper.emitted()).toHaveProperty('input')
-      expect(wrapper.emitted()['input']).toHaveLength(1)
-    })
-    it(':input[type:radio]', async () => {
-      const wrapper = mount(HaBaseInput, {
-        props: {
-          type: 'radio',
-          value: 1,
-          checked: false,
-        },
-      })
-      // 単一のチェックボックスト違い、ラジオボタンなのでラジオボタンのグループのmodelValueを設定する。
-      await wrapper.setProps({ modelValue: 1 })
-      // onInput発火
-      await wrapper.trigger('input')
-      // TEST: update:modelValue
-      expect(wrapper.emitted()).toHaveProperty('update:modelValue')
-      expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
-      expect(wrapper.emitted()['update:modelValue']).toEqual([[1]])
-      // TEST: update:value
-      expect(wrapper.emitted()['update:value']).toBeTruthy()
-      expect(wrapper.emitted()).toHaveProperty('update:value')
-      expect(wrapper.emitted()['update:value']).toHaveLength(1)
-      expect(wrapper.emitted()['update:value']).toEqual([[1]])
-      // TEST: input
-      expect(wrapper.emitted()).toHaveProperty('input')
-      expect(wrapper.emitted()['input']).toHaveLength(1)
-    })
-  })
-})
-````
-
-## File: layers/base/app/test/components/ha/HaDialog.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { describe, it, expect, test } from 'vitest'
-import HaDialog from '#base/app/components/ha/HaDialog.vue'
-
-test('ref component', () => {
-  expect(HaDialog).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HaDialog, {})
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-test('slot', () => {
-  const wrapper = mount(HaDialog, {
-    slots: {
-      default: '<div>slot content.</div>',
-    },
-  })
-  expect(wrapper.text()).toContain('slot content.')
-})
-
-describe('event', () => {
-  it('click backdrop emits close-dialog event', async () => {
-    const wrapper = mount(HaDialog)
-    await wrapper.get('.ha-dialog').trigger('click')
-    expect(wrapper.emitted('close')).toBeTruthy()
-  })
-})
-````
-
-## File: layers/base/app/test/components/ha/HaDialogElement.spec.ts
-````typescript
-import HaDialogElement from '#base/app/components/ha/HaDialogElement.vue'
-import { mount, VueWrapper } from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { nextTick } from 'vue'
-import { createI18n } from 'vue-i18n'
-
-// HaDialogElementコンポーネントの型定義
-type HaDialogElementExposed = {
-  openDialog: () => void
-  closeDialog: () => void
-  isActive: boolean
-  dialog?: HTMLDialogElement | null
-}
-
-type HaDialogElementWrapper = VueWrapper<HaDialogElementExposed>
-
-const i18n = createI18n({
-  locale: 'ja',
-  messages: {
-    ja: {},
-    en: {},
-  },
-})
-
-describe('HaDialogElement', () => {
-  let wrapper: HaDialogElementWrapper
-  const originalBodyOverflow = document.body.style.overflow
-  const originalDocumentElementOverflow = document.documentElement.style.overflow
-
-  beforeEach(() => {
-    vi.useFakeTimers()
-    // HTMLDialogElementのモック
-    Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
-      value: vi.fn(),
-      writable: true,
-    })
-    Object.defineProperty(HTMLDialogElement.prototype, 'close', {
-      value: vi.fn(),
-      writable: true,
-    })
-    Object.defineProperty(HTMLDialogElement.prototype, 'open', {
-      value: false,
-      writable: true,
-    })
-  })
-
-  afterEach(() => {
-    wrapper?.unmount()
-    document.body.style.overflow = originalBodyOverflow
-    document.documentElement.style.overflow = originalDocumentElementOverflow
-    vi.useRealTimers()
-    vi.restoreAllMocks()
-  })
-
-  describe('基本的なレンダリング', () => {
-    beforeEach(() => {
-      wrapper = mount(HaDialogElement, {
-        props: {
-          closedby: 'any',
-        },
-        slots: {
-          inner: '<div>ダイアログ内容</div>',
-          close: '<span>閉じるボタン</span>',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-    })
-
-    it('ダイアログ要素がレンダリングされる', () => {
-      const dialog = wrapper.find('dialog')
-      expect(dialog.exists()).toBe(true)
-    })
-
-    it('初期状態ではダイアログが非表示', () => {
-      expect(wrapper.vm.isActive).toBe(false)
-    })
-
-    it('デフォルトの閉じるボタンHTMLタグがbuttonである', () => {
-      const closeButton = wrapper.find('.close')
-      expect(closeButton.element.tagName).toBe('BUTTON')
-    })
-  })
-
-  describe('プロパティの動作', () => {
-    it('closeButtonHtmlTagプロパティが適用される', async () => {
-      wrapper = mount(HaDialogElement, {
-        props: {
-          closeButtonHtmlTag: 'div',
-          closedby: 'any',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-
-      // ダイアログを開く
-      wrapper.vm.openDialog()
-      await nextTick()
-
-      const closeButton = wrapper.find('.close')
-      expect(closeButton.element.tagName).toBe('DIV')
-    })
-
-    it('closedbyプロパティが設定される', async () => {
-      wrapper = mount(HaDialogElement, {
-        props: {
-          closedby: 'closerequest',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-
-      // ダイアログを開く
-      wrapper.vm.openDialog()
-      await nextTick()
-
-      const dialog = wrapper.find('dialog')
-      if (dialog.exists()) {
-        expect(dialog.attributes('closedby')).toBe('closerequest')
-      }
-    })
-  })
-
-  describe('ダイアログの開閉', () => {
-    beforeEach(() => {
-      wrapper = mount(HaDialogElement, {
-        props: {
-          closedby: 'any',
-        },
-        slots: {
-          inner: '<div>ダイアログ内容</div>',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-    })
-
-    it('openDialogメソッドでダイアログが開く', async () => {
-      wrapper.vm.openDialog()
-      await nextTick()
-
-      expect(wrapper.vm.isActive).toBe(true)
-      const dialog = wrapper.find('dialog')
-      expect(dialog.exists()).toBe(true)
-    })
-
-    it('ダイアログが開くとshowModalが呼ばれる', async () => {
-      const showModalSpy = vi.spyOn(HTMLDialogElement.prototype, 'showModal')
-
-      wrapper.vm.openDialog()
-      await nextTick()
-
-      expect(showModalSpy).toHaveBeenCalled()
-    })
-
-    it('ダイアログが開くとbodyのoverflowが制御される', async () => {
-      wrapper.vm.openDialog()
-      await nextTick()
-
-      expect(document.body.style.overflow).toBe('hidden')
-      expect(document.documentElement.style.overflow).toBe('hidden')
-    })
-
-    it('閉じるボタンをクリックするとダイアログが閉じる', async () => {
-      // ダイアログを開く
-      wrapper.vm.openDialog()
-      await nextTick()
-
-      const closeSpy = vi.spyOn(HTMLDialogElement.prototype, 'close')
-
-      // ダイアログを閉じる
-      const closeButton = wrapper.find('.close')
-      await closeButton.trigger('click')
-
-      expect(closeSpy).toHaveBeenCalled()
-      expect(wrapper.vm.isActive).toBe(false)
-    })
-
-    it('ダイアログが閉じるとbodyのoverflowがリセットされる', async () => {
-      // ダイアログを開く
-      wrapper.vm.openDialog()
-      await nextTick()
-
-      // ダイアログを閉じる
-      await wrapper.find('.close').trigger('click')
-
-      expect(document.body.style.overflow).toBe('')
-      expect(document.documentElement.style.overflow).toBe('')
-    })
-  })
-
-  describe('キーボード操作', () => {
-    beforeEach(async () => {
-      wrapper = mount(HaDialogElement, {
-        props: {
-          closedby: 'any',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-      wrapper.vm.openDialog()
-      await nextTick()
-    })
-
-    it('Escapeキーでダイアログが閉じる', () => {
-      const dialog = wrapper.find('dialog')
-      const dialogElement = dialog.element as HTMLDialogElement
-
-      // openプロパティをtrueに設定
-      Object.defineProperty(dialogElement, 'open', {
-        value: true,
-        writable: true,
-      })
-
-      const closeSpy = vi.spyOn(HTMLDialogElement.prototype, 'close')
-
-      // Escapeキーイベントを発火
-      const keydownEvent = new KeyboardEvent('keydown', { key: 'Escape' })
-      dialogElement.dispatchEvent(keydownEvent)
-
-      expect(closeSpy).toHaveBeenCalled()
-    })
-  })
-
-  describe('フォーカス制御', () => {
-    beforeEach(async () => {
-      wrapper = mount(HaDialogElement, {
-        props: {
-          closedby: 'any',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-      wrapper.vm.openDialog()
-      await nextTick()
-    })
-
-    it('末尾フォーカス要素にフォーカスすると閉じるボタンにフォーカスが移る', async () => {
-      const closeButton = wrapper.find('.close').element as HTMLElement
-      const focusSpy = vi.spyOn(closeButton, 'focus')
-
-      // 末尾のフォーカス要素を見つけてフォーカスイベントを発火
-      const endFocusElement = wrapper.find('[tabindex="0"]:last-child')
-      await endFocusElement.trigger('focus')
-
-      expect(focusSpy).toHaveBeenCalled()
-    })
-  })
-
-  describe('国際化対応', () => {
-    it('日本語の場合のaria-label', () => {
-      wrapper = mount(HaDialogElement, {
-        props: {
-          closedby: 'any',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-
-      const closeButton = wrapper.find('.close')
-      expect(closeButton.attributes('aria-label')).toBe('ダイアログを閉じる')
-    })
-
-    it('英語の場合のaria-label', () => {
-      // i18nのlocaleを英語に変更
-      const enI18n = createI18n({
-        locale: 'en',
-        messages: {
-          ja: {},
-          en: {},
-        },
-      })
-
-      wrapper = mount(HaDialogElement, {
-        props: {
-          closedby: 'any',
-        },
-        global: {
-          plugins: [enI18n],
-        },
-      })
-
-      const closeButton = wrapper.find('.close')
-      expect(closeButton.attributes('aria-label')).toBe('Close the dialog')
-    })
-  })
-
-  describe('公開メソッド', () => {
-    beforeEach(() => {
-      wrapper = mount(HaDialogElement, {
-        props: {
-          closedby: 'any',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-    })
-
-    it('closeDialogメソッドが公開されている', () => {
-      expect(wrapper.vm.closeDialog).toBeDefined()
-      expect(typeof wrapper.vm.closeDialog).toBe('function')
-    })
-
-    it('closeDialogメソッドを直接呼び出すとダイアログが閉じる', async () => {
-      // ダイアログを開く
-      wrapper.vm.openDialog()
-      await nextTick()
-
-      const closeSpy = vi.spyOn(HTMLDialogElement.prototype, 'close')
-
-      // closeDialogメソッドを直接呼び出し
-      wrapper.vm.closeDialog()
-      await nextTick()
-
-      expect(closeSpy).toHaveBeenCalled()
-      expect(wrapper.vm.isActive).toBe(false)
-    })
-  })
-
-  describe('エラーハンドリング', () => {
-    it('dialog要素がnullの場合openDialogでエラーを投げる', () => {
-      wrapper = mount(HaDialogElement, {
-        props: {
-          closedby: 'any',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-
-      // dialog要素を強制的にnullに設定
-      ;(wrapper.vm as HaDialogElementExposed & { dialog: HTMLDialogElement | null }).dialog = null
-
-      expect(() => {
-        wrapper.vm.openDialog()
-      }).toThrow('dialog要素はnull')
-    })
-
-    it('dialog要素がnullの場合closeDialogでエラーを投げる', () => {
-      wrapper = mount(HaDialogElement, {
-        props: {
-          closedby: 'any',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-
-      // dialog要素を強制的にnullに設定
-      ;(wrapper.vm as HaDialogElementExposed & { dialog: HTMLDialogElement | null }).dialog = null
-
-      expect(() => {
-        wrapper.vm.closeDialog()
-      }).toThrow('dialog要素はnull')
-    })
-  })
-})
-````
-
-## File: layers/base/app/test/components/ha/HaHamburger.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { describe, it, test, expect } from 'vitest'
-import HaHamburger from '#base/app/components/ha/HaHamburger.vue'
-
-test('ref component', () => {
-  expect(HaHamburger).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HaHamburger, {
-    props: {
-      isOpen: false,
-    },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-describe('props', () => {
-  it(':isOpen:true', () => {
-    const wrapper = mount(HaHamburger, {
-      props: {
-        isOpen: true,
-      },
-    })
-    expect(wrapper.attributes('class')).toBe('ha-humberger-button -open')
-  })
-  it(':isOpen:false', () => {
-    const wrapper = mount(HaHamburger, {
-      props: {
-        isOpen: false,
-      },
-    })
-    expect(wrapper.attributes('class')).toBe('ha-humberger-button')
-  })
-})
-
-describe('emit', () => {
-  it(':update:modelValue', async () => {
-    const wrapper = mount(HaHamburger, {
-      props: {
-        isOpen: false,
-      },
-    })
-    await wrapper.trigger('click')
-    expect(wrapper.emitted()).toHaveProperty('click')
-    expect(wrapper.emitted()['click']).toHaveLength(1)
-    // NOTE: voidなので[[]]
-    expect(wrapper.emitted()['click']).toEqual([[]])
-  })
-})
-````
-
-## File: layers/base/app/test/components/ha/HaImage.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { describe, expect, it, test } from 'vitest'
-import HaImage from '#base/app/components/ha/HaImage.vue'
-
-/**
- * @see vitest.config.mtsのalias
- */
-const defaultNoImage = '/images/no-image.png'
-
-const customNoImage = '/images/no-image-custom.png'
-
-test('ref component', () => {
-  expect(HaImage).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HaImage, {
-    props: { src: 'img.png', alt: 'a great img' },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-describe('props', () => {
-  it(':src', () => {
-    const wrapper = mount(HaImage, { props: { src: '/image.png' } })
-    expect(wrapper.get('img').attributes('src')).toBe('/image.png')
-  })
-
-  describe(':alt', () => {
-    it('is not set (alt="")', () => {
-      const wrapper = mount(HaImage)
-      expect(wrapper.get('img').attributes('alt')).toBe('')
-    })
-
-    it('is string', () => {
-      const wrapper = mount(HaImage, { props: { alt: 'alt string' } })
-      expect(wrapper.get('img').attributes('alt')).toBe('alt string')
-    })
-  })
-
-  describe('size', () => {
-    it('no width / height', () => {
-      const wrapper = mount(HaImage)
-      expect(wrapper.get('img').attributes('width')).toBeFalsy()
-      expect(wrapper.get('img').attributes('height')).toBeFalsy()
-    })
-
-    it('set size', () => {
-      const wrapper = mount(HaImage, { props: { width: 120, height: 80 } })
-      expect(wrapper.get('img').attributes('width')).toBe('120')
-      expect(wrapper.get('img').attributes('height')).toBe('80')
-    })
-  })
-})
-
-describe('lazy loading', () => {
-  it('default is eager', () => {
-    const wrapper = mount(HaImage)
-    expect(wrapper.get('img').attributes('loading')).toBe('eager')
-  })
-
-  it(':is-lazy="true" works', () => {
-    const wrapper = mount(HaImage, { props: { isLazy: true } })
-    expect(wrapper.get('img').attributes('loading')).toBe('lazy')
-  })
-
-  it(':is-lazy="false" works', () => {
-    const wrapper = mount(HaImage, { props: { isLazy: false } })
-    expect(wrapper.get('img').attributes('loading')).toBe('eager')
-  })
-})
-
-describe('fallback images', () => {
-  it('no src loads "no-image.png"', () => {
-    const wrapper = mount(HaImage)
-    expect(wrapper.get('img').attributes('src')).toContain(defaultNoImage)
-  })
-
-  it('on error loads "no-image.png"', async () => {
-    const wrapper = mount(HaImage, { props: { src: '/foo-not-found.jpg' } })
-    await wrapper.get('img').trigger('error')
-    expect(wrapper.get('img').attributes('src')).toContain(defaultNoImage)
-  })
-
-  it('custom on-error image', async () => {
-    const wrapper = mount(HaImage, {
-      props: {
-        src: '/foo-not-found.jpg',
-        noImage: customNoImage,
-      },
-    })
-    await wrapper.get('img').trigger('error')
-    expect(wrapper.get('img').attributes('src')).toContain(customNoImage)
-  })
-})
-````
-
-## File: layers/base/app/test/components/ha/HaLink.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { beforeEach, afterEach, describe, it, expect, test, vi } from 'vitest'
-import HaLink from '#base/app/components/ha/HaLink.vue'
-
-import { isNuxtEnvironment } from '#base/app/utils/environment'
-
-// useLocalePath のモック関数をトップレベルで定義
-vi.mock('#i18n', () => ({
-  useLocalePath: vi.fn(
-    () => vi.fn(() => `/mocked-path`), // path: string, query: LocationQuery, hash: string 引数削除 (使う時だけ入れないとreviewdogに怒られる)
-  ),
-}))
-
-beforeEach(() => {
-  vi.clearAllMocks()
-})
-
-afterEach(() => {
-  vi.restoreAllMocks()
-})
-
-test('ref component', () => {
-  expect(HaLink).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HaLink, {
-    props: {
-      to: 'https://example.com',
-    },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-describe(':to', () => {
-  // 外部サイトリンクのテスト
-  it('set external path', () => {
-    const wrapper = mount(HaLink, {
-      props: { to: 'https://example.com' },
-    })
-    expect(wrapper.find('a').attributes('href')).toBe('https://example.com')
-  })
-
-  // 内部リンクテスト (aタグ)
-  it('set internal path', () => {
-    const wrapper = mount(HaLink, {
-      props: { to: '/internal-path' },
-      // nuxt-linkはwarnとなるので、下記でaタグに置き換える。RouterLinkStubはtoを引き継げなくなるので使わない。
-      global: {
-        stubs: {
-          'nuxt-link': {
-            template: '<a><slot /></a>',
-          },
-        },
-      },
-    })
-    // toで入力したpathをi18nのuseLocalPathで色々変更してpathを吐き出すので、ここではmockのuseLocalPath値が検出されればOK
-    expect(wrapper.find('a').attributes('to')).toBe('/mocked-path')
-  })
-})
-
-describe(':blank', () => {
-  it('not set', () => {
-    const wrapper = mount(HaLink, {
-      props: { to: '' },
-      global: {
-        stubs: {
-          'nuxt-link': {
-            template: '<a><slot /></a>',
-          },
-        },
-      },
-    })
-    expect(wrapper.find('a').attributes('target')).toBeFalsy()
-  })
-
-  it('set true', () => {
-    const wrapper = mount(HaLink, {
-      props: { to: 'https://example.com', blank: true },
-    })
-    expect(wrapper.find('a').attributes('target')).toBe('_blank')
-  })
-
-  // <HaLink blank> って書けてほしい
-  it('set `blank` with no value set target="_blank"', () => {
-    const wrapper = mount(
-      {
-        template: '<HaLink to="https://example.com" blank></HaLink>',
-        components: { HaLink },
-      },
-      {},
-    )
-    expect(wrapper.get('a').attributes('target')).toBe('_blank')
-  })
-})
-
-describe(':rel', () => {
-  it('set rel', () => {
-    const wrapper = mount(HaLink, {
-      props: {
-        to: 'https://example.com',
-        rel: 'noreferrer',
-      },
-    })
-    expect(wrapper.get('a').attributes('rel')).toBe('noreferrer')
-  })
-})
-
-describe(':forceAnchorLink', () => {
-  it('set true', () => {
-    const wrapper = mount(HaLink, {
-      props: { to: '/internal', forceAnchorLink: true },
-    })
-    expect(wrapper.find('a').exists()).toBe(true)
-  })
-})
-
-describe('slot', () => {
-  it('set simple text', () => {
-    const wrapper = mount(HaLink, {
-      props: {
-        to: 'https://example.com',
-      },
-      slots: {
-        default: 'link label',
-      },
-    })
-    // slot入れたらリンク消えたりしない？
-    expect(wrapper.html()).toContain('https://example.com')
-    // slotの中身はきちんと描画されてる？
-    expect(wrapper.text()).toContain('link label')
-  })
-})
-
-// 以下、NuxtLink系のテスト
-vi.mock('#base/app/utils/environment')
-
-/*
- * TODO: Nuxt依存部分のtoLocalePathをモックしている関係で、戻り値がmocked-pathにしかならずqueryのテストが出来ない
- * describe(':query', () => {
- *   it('appends query parameters to internal links', async () => {
- *     // 環境をNuxtとしてモック
- *     vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
- */
-
-/*
- *     const wrapper = mount(HaLink, {
- *       props: { to: '/intenal', query: { id: '123' } },
- *     })
- */
-
-/*
- *     await nextTick()
- *     // NuxtLinkを探す
- *     const nuxtLink = wrapper.find('nuxt-link');
- *     expect(nuxtLink.exists()).toBe(true);
- *     // NuxtLinkがクエリパラメータを含む適切なパスでレンダリングされているか検証
- *     expect(nuxtLink.attributes('to')).toBe('/internal?id=123');
- *     // モック関数が正しく呼び出されたことを確認
- *     expect(useLocalePath).toHaveBeenCalled()
- *   })
- * })
- */
-
-/*
- * TODO: Nuxt依存部分のtoLocalePathをモックしている関係で、戻り値がmocked-pathにしかならずhashのテストが出来ない
- * describe(':hash', () => {
- *   it('appends hash parameters to internal links', async () => {
- *     // 環境をNuxtとしてモック
- *     vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
- */
-
-/*
- *     const wrapper = mount(HaLink, {
- *       props: { to: '/intenal', hash: '#hash'},
- *     })
- */
-
-/*
- *     await nextTick()
- *     // NuxtLinkを探す
- *     const nuxtLink = wrapper.find('nuxt-link');
- *     expect(nuxtLink.exists()).toBe(true);
- *     // NuxtLinkがクエリパラメータを含む適切なパスでレンダリングされているか検証
- *     expect(nuxtLink.attributes('to')).toBe('/internal#hash');
- *     // モック関数が正しく呼び出されたことを確認
- *     expect(useLocalePath).toHaveBeenCalled()
- *   })
- * })
- */
-
-describe('<nuxt-link>', () => {
-  /*
-   * TODO : テスト自体は通るが[Vue warn]: Failed to resolve component: nuxt-link のWARNが出るのでコメントアウト
-   * it('use router-link', async () => {
-   *   vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
-   *   const wrapper = mount(HaLink, {
-   *     props: {
-   *       to: '/link',
-   *     },
-   *   })
-   *   const nuxtLink = wrapper.find('nuxt-link')
-   *   expect(nuxtLink.exists()).toBe(true)
-   * })
-   */
-  it('external link must be <a>', () => {
-    vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
-    const wrapper = mount(HaLink, {
-      props: {
-        to: 'https://example.com',
-      },
-    })
-    expect(wrapper.find('a').exists()).toBeTruthy()
-  })
-  it('force <a> link', () => {
-    vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
-    const wrapper = mount(HaLink, {
-      props: {
-        to: '/link',
-        forceAnchorLink: true,
-      },
-    })
-    expect(wrapper.find('a').exists()).toBeTruthy()
-  })
-})
-````
-
-## File: layers/base/app/test/components/ha/HaLoading.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { describe, it, expect, test } from 'vitest'
-import HaLoading from '#base/app/components/ha/HaLoading.vue'
-
-test('ref component', () => {
-  expect(HaLoading).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HaLoading)
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-describe(':manual', () => {
-  it('no :manual make no component on mount', () => {
-    const wrapper = mount(HaLoading)
-    expect(wrapper.isVisible()).toBeFalsy()
-  })
-  it(':manual="true" make spinner', () => {
-    const wrapper = mount(HaLoading, {
-      props: {
-        manual: true,
-      },
-    })
-    expect(wrapper.isVisible()).toBeTruthy()
-    expect(wrapper.find('.spinner').exists()).toBeTruthy()
-  })
-})
-
-describe(':cover', () => {
-  it(':cover make <div class="cover">', () => {
-    const wrapper = mount(HaLoading, {
-      props: {
-        manual: true,
-        cover: true,
-      },
-    })
-    expect(wrapper.find('.cover').exists()).toBeTruthy()
-  })
-})
-````
-
-## File: layers/base/app/test/components/ha/HaModal.spec.ts
-````typescript
-import HaModal from '#base/app/components/ha/HaModal.vue'
-import { AnyVueWrapper } from '#base/app/test/models/vue'
-import { mount } from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { nextTick } from 'vue'
-import { createI18n } from 'vue-i18n'
-
-type HaModalWrapper = AnyVueWrapper
-
-const i18n = createI18n({
-  locale: 'ja',
-  messages: {
-    ja: {},
-    en: {},
-  },
-})
-
-describe('HaModal', () => {
-  let wrapper: HaModalWrapper
-  const originalBodyOverflow = document.body.style.overflow
-  const originalDocumentElementOverflow = document.documentElement.style.overflow
-
-  beforeEach(() => {
-    vi.useFakeTimers()
-  })
-
-  afterEach(() => {
-    wrapper?.unmount()
-    document.body.style.overflow = originalBodyOverflow
-    document.documentElement.style.overflow = originalDocumentElementOverflow
-    vi.useRealTimers()
-    vi.restoreAllMocks()
-  })
-
-  describe('基本的なレンダリング', () => {
-    beforeEach(() => {
-      wrapper = mount(HaModal, {
-        props: {
-          index: 'test-modal',
-        },
-        slots: {
-          button: '<span>開くボタン</span>',
-          inner: '<div>モーダル内容</div>',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-    })
-
-    it('開くボタンがレンダリングされる', () => {
-      const openButton = wrapper.find('.open')
-      expect(openButton.exists()).toBe(true)
-      expect(openButton.text()).toContain('開くボタン')
-    })
-
-    it('モーダルがレンダリングされる', () => {
-      const modal = wrapper.find('.ha-modal')
-      expect(modal.exists()).toBe(true)
-    })
-
-    it('正しいIDとaria-controlsが設定される', () => {
-      const openButton = wrapper.find('.open')
-      const modal = wrapper.find('.ha-modal')
-
-      expect(openButton.attributes('aria-controls')).toBe('popuptest-modal')
-      expect(modal.attributes('id')).toBe('popuptest-modal')
-    })
-
-    it('初期状態ではモーダルが非表示', () => {
-      const modal = wrapper.find('.ha-modal')
-      expect(modal.attributes('aria-hidden')).toBe('true')
-    })
-  })
-
-  describe('モーダルの開閉', () => {
-    beforeEach(() => {
-      wrapper = mount(HaModal, {
-        props: {
-          index: 'test-modal',
-        },
-        slots: {
-          inner: '<div>モーダル内容</div>',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-    })
-
-    it('開くボタンをクリックするとモーダルが開く', async () => {
-      const openButton = wrapper.find('.open')
-      await openButton.trigger('click')
-
-      const modal = wrapper.find('.ha-modal')
-      expect(modal.attributes('aria-hidden')).toBe('false')
-    })
-
-    it('モーダルが開くとbodyのoverflowが制御される', async () => {
-      const openButton = wrapper.find('.open')
-      await openButton.trigger('click')
-
-      expect(document.body.style.overflow).toBe('hidden')
-      expect(document.documentElement.style.overflow).toBe('hidden')
-    })
-
-    it('閉じるボタンをクリックするとモーダルが閉じる', async () => {
-      // モーダルを開く
-      await wrapper.find('.open').trigger('click')
-
-      // モーダルを閉じる
-      const closeButton = wrapper.find('.close')
-      await closeButton.trigger('click')
-
-      const modal = wrapper.find('.ha-modal')
-      expect(modal.attributes('aria-hidden')).toBe('true')
-    })
-
-    it('背景をクリックするとモーダルが閉じる', async () => {
-      // モーダルを開く
-      await wrapper.find('.open').trigger('click')
-
-      // 背景をクリック
-      const background = wrapper.find('.background')
-      await background.trigger('click')
-
-      const modal = wrapper.find('.ha-modal')
-      expect(modal.attributes('aria-hidden')).toBe('true')
-    })
-
-    it('モーダルが閉じるとbodyのoverflowがリセットされる', async () => {
-      // モーダルを開く
-      await wrapper.find('.open').trigger('click')
-
-      // モーダルを閉じる
-      await wrapper.find('.close').trigger('click')
-
-      expect(document.body.style.overflow).toBe('')
-      expect(document.documentElement.style.overflow).toBe('')
-    })
-  })
-
-  describe('キーボード操作', () => {
-    beforeEach(async () => {
-      wrapper = mount(HaModal, {
-        props: {
-          index: 'test-modal',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-
-      // モーダルを開く
-      await wrapper.find('.open').trigger('click')
-    })
-
-    it('Escapeキーでモーダルが閉じる', async () => {
-      // Escapeキーイベントを発火
-      const keydownEvent = new KeyboardEvent('keydown', { key: 'Escape' })
-      window.dispatchEvent(keydownEvent)
-
-      await nextTick()
-
-      const modal = wrapper.find('.ha-modal')
-      expect(modal.attributes('aria-hidden')).toBe('true')
-      expect(document.body.style.overflow).toBe('')
-      expect(document.documentElement.style.overflow).toBe('')
-    })
-
-    it('モーダルが閉じている状態でEscapeキーを押しても何も起こらない', async () => {
-      // モーダルを閉じる
-      await wrapper.find('.close').trigger('click')
-
-      const modal = wrapper.find('.ha-modal')
-      expect(modal.attributes('aria-hidden')).toBe('true')
-
-      // Escapeキーイベントを発火
-      const keydownEvent = new KeyboardEvent('keydown', { key: 'Escape' })
-      window.dispatchEvent(keydownEvent)
-
-      await nextTick()
-
-      // 状態が変わらないことを確認
-      expect(modal.attributes('aria-hidden')).toBe('true')
-    })
-  })
-
-  describe('フォーカス制御', () => {
-    beforeEach(async () => {
-      wrapper = mount(HaModal, {
-        props: {
-          index: 'test-modal',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-
-      // モーダルを開く
-      await wrapper.find('.open').trigger('click')
-    })
-
-    it('末尾フォーカス要素にフォーカスすると閉じるボタンにフォーカスが移る', async () => {
-      const closeButton = wrapper.find('.close').element as HTMLElement
-      const focusSpy = vi.spyOn(closeButton, 'focus')
-
-      // 末尾のフォーカス要素を見つけてフォーカスイベントを発火
-      const endFocusElement = wrapper.find('.modal-end')
-      await endFocusElement.trigger('focus')
-
-      expect(focusSpy).toHaveBeenCalled()
-    })
-
-    it('close要素がnullの場合にエラーを投げる', async () => {
-      // モーダルを開く
-      await wrapper.find('.open').trigger('click')
-      await nextTick()
-
-      // close要素を強制的にnullに設定
-      wrapper.vm.close = null
-
-      // handleEndFocus関数を直接テストする（同期的にエラーをキャッチ）
-      expect(() => {
-        wrapper.vm.handleEndFocus()
-      }).toThrow('close要素はnull')
-    })
-  })
-
-  describe('国際化対応', () => {
-    it('日本語の場合のaria-label', () => {
-      wrapper = mount(HaModal, {
-        props: {
-          index: 'test-modal',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-
-      const closeButton = wrapper.find('.close')
-      expect(closeButton.attributes('aria-label')).toBe('モーダルを閉じる')
-    })
-
-    it('英語の場合のaria-label', () => {
-      // i18nのlocaleを英語に変更
-      const enI18n = createI18n({
-        locale: 'en',
-        messages: {
-          ja: {},
-          en: {},
-        },
-      })
-
-      wrapper = mount(HaModal, {
-        props: {
-          index: 'test-modal',
-        },
-        global: {
-          plugins: [enI18n],
-        },
-      })
-
-      const closeButton = wrapper.find('.close')
-      expect(closeButton.attributes('aria-label')).toBe('Close the dialog')
-    })
-  })
-
-  describe('props', () => {
-    it('必須のindexプロパティが設定される', () => {
-      wrapper = mount(HaModal, {
-        props: {
-          index: 'custom-id',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-
-      const openButton = wrapper.find('.open')
-      const modal = wrapper.find('.ha-modal')
-
-      expect(openButton.attributes('aria-controls')).toBe('popupcustom-id')
-      expect(modal.attributes('id')).toBe('popupcustom-id')
-    })
-  })
-
-  describe('デフォルトスロット', () => {
-    it('デフォルトのボタンテキストが表示される', () => {
-      wrapper = mount(HaModal, {
-        props: {
-          index: 'test-modal',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-
-      const openButton = wrapper.find('.open')
-      expect(openButton.text()).toContain('モーダルを開く')
-    })
-
-    it('デフォルトのモーダル内容が表示される', () => {
-      wrapper = mount(HaModal, {
-        props: {
-          index: 'test-modal',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-
-      const modal = wrapper.find('.modal')
-      expect(modal.text()).toContain('モーダルの中身')
-    })
-  })
-
-  describe('aria属性の制御', () => {
-    beforeEach(() => {
-      wrapper = mount(HaModal, {
-        props: {
-          index: 'test-modal',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-    })
-
-    it('開くボタンのaria-expandedが初期状態でfalse', () => {
-      const openButton = wrapper.find('.open')
-      expect(openButton.attributes('aria-expanded')).toBe('false')
-    })
-
-    it('aria-expandedは常にfalseに設定されている', () => {
-      const openButton = wrapper.find('.open')
-      expect(openButton.attributes('aria-expanded')).toBe('false')
-    })
-  })
-
-  describe('複数モーダルの管理', () => {
-    it('異なるindexを持つ複数モーダルが独立して動作', async () => {
-      const modal1 = mount(HaModal, {
-        props: { index: 'modal-1' },
-        global: {
-          plugins: [i18n],
-        },
-      })
-      const modal2 = mount(HaModal, {
-        props: { index: 'modal-2' },
-        global: {
-          plugins: [i18n],
-        },
-      })
-
-      // modal1を開く
-      await modal1.find('.open').trigger('click')
-      expect(modal1.find('.ha-modal').attributes('aria-hidden')).toBe('false')
-      expect(modal2.find('.ha-modal').attributes('aria-hidden')).toBe('true')
-
-      // modal2を開く
-      await modal2.find('.open').trigger('click')
-      expect(modal2.find('.ha-modal').attributes('aria-hidden')).toBe('false')
-
-      modal1.unmount()
-      modal2.unmount()
-    })
-  })
-})
-````
-
-## File: layers/base/app/test/components/ha/HaVideo.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { describe, expect, test, vi } from 'vitest'
-import HaVideo from '#base/app/components/ha/HaVideo.vue'
-
-describe('HaVideo', () => {
-  test('ref component', () => {
-    expect(HaVideo).toBeTruthy()
-  })
-
-  test('mount component', () => {
-    const wrapper = mount(HaVideo, {
-      props: {
-        src: '',
-        height: '',
-        width: '',
-        play: false,
-        autoplay: true,
-        controls: true,
-        muted: true,
-        playsinline: false,
-        preload: '',
-      },
-    })
-
-    expect(wrapper.find('video').exists()).toBe(true)
-    expect(wrapper.getCurrentComponent()).toBeTruthy()
-    expect(wrapper.html()).toMatchSnapshot()
-  })
-
-  test('renders video with default props', () => {
-    const wrapper = mount(HaVideo, {
-      props: {
-        src: 'test.mp4',
-        height: '400px',
-        width: '600px',
-        play: false,
-        autoplay: false,
-        autopictureinpicture: false,
-        controls: true,
-        disablepictureinpicture: false,
-        disableremoteplayback: true,
-        loop: false,
-        muted: false,
-        playsinline: false,
-        poster: 'poster.jpg',
-        controlslist: 'nofullscreen',
-        crossorigin: 'anonymous',
-        preload: 'auto',
-      },
-    })
-
-    const videoElement = wrapper.find('video').element
-    expect(videoElement).toBeTruthy()
-    expect(videoElement.src).toContain('test.mp4')
-    expect(wrapper.props('height')).toBe('400px')
-    expect(wrapper.props('width')).toBe('600px')
-    expect(wrapper.props('play')).toBe(false)
-    expect(videoElement.autoplay).toBe(false)
-    expect(wrapper.props('autopictureinpicture')).toBe(false)
-    expect(videoElement.controls).toBe(true)
-    expect(wrapper.props('disablepictureinpicture')).toBe(false)
-    expect(wrapper.props('disableremoteplayback')).toBe(true)
-    expect(wrapper.get('video').attributes('x-webkit-airplay')).toBe('deny')
-    expect(videoElement.loop).toBe(false)
-    expect(videoElement.muted).toBe(false)
-    expect(wrapper.props('playsinline')).toBe(false)
-    expect(wrapper.get('video').attributes('poster')).toContain('poster.jpg')
-    expect(wrapper.get('video').attributes('controlslist')).toContain('nofullscreen')
-    expect(wrapper.props('crossorigin')).toBe('anonymous')
-    expect(wrapper.props('preload')).toBe('auto')
-  })
-
-  test('emit', async () => {
-    const wrapper = mount(HaVideo, {
-      props: {
-        src: '',
-        height: '',
-        width: '',
-        play: false,
-        autoplay: true,
-        controls: true,
-        muted: true,
-        playsinline: false,
-        preload: '',
-      },
-    })
-
-    const videoElement = wrapper.find('video')
-
-    // Trigger video events
-    await videoElement.trigger('progress')
-    await videoElement.trigger('suspend')
-    await videoElement.trigger('durationchange')
-    await videoElement.trigger('loadedmetadata')
-    await videoElement.trigger('loadeddata')
-    await videoElement.trigger('canplay')
-    await videoElement.trigger('playing')
-    await videoElement.trigger('pause')
-    await videoElement.trigger('ended')
-    await videoElement.trigger('seeking')
-    await videoElement.trigger('timeupdate')
-    await videoElement.trigger('volumechange')
-    await videoElement.trigger('ratechange')
-    await videoElement.trigger('waiting')
-
-    // Assuming your component emits custom event
-    expect(wrapper.emitted().progress).toBeTruthy()
-    expect(wrapper.emitted().suspend).toBeTruthy()
-    expect(wrapper.emitted().durationchange).toBeTruthy()
-    expect(wrapper.emitted().loadedmetadata).toBeTruthy()
-    expect(wrapper.emitted().loadeddata).toBeTruthy()
-    expect(wrapper.emitted().canplay).toBeTruthy()
-    expect(wrapper.emitted().playing).toBeTruthy()
-    expect(wrapper.emitted().pause).toBeTruthy()
-    expect(wrapper.emitted().ended).toBeTruthy()
-    expect(wrapper.emitted().seeking).toBeTruthy()
-    expect(wrapper.emitted().timeupdate).toBeTruthy()
-    expect(wrapper.emitted().volumechange).toBeTruthy()
-    expect(wrapper.emitted().ratechange).toBeTruthy()
-    expect(wrapper.emitted().waiting).toBeTruthy()
-    // check the number of times each event was emitted
-    expect(wrapper.emitted().progress).toHaveLength(1)
-    expect(wrapper.emitted().suspend).toHaveLength(1)
-    expect(wrapper.emitted().durationchange).toHaveLength(1)
-    expect(wrapper.emitted().loadedmetadata).toHaveLength(1)
-    expect(wrapper.emitted().loadeddata).toHaveLength(1)
-    expect(wrapper.emitted().canplay).toHaveLength(1)
-    expect(wrapper.emitted().playing).toHaveLength(1)
-    expect(wrapper.emitted().pause).toHaveLength(1)
-    expect(wrapper.emitted().ended).toHaveLength(1)
-    expect(wrapper.emitted().seeking).toHaveLength(1)
-    expect(wrapper.emitted().timeupdate).toHaveLength(1)
-    expect(wrapper.emitted().volumechange).toHaveLength(1)
-    expect(wrapper.emitted().ratechange).toHaveLength(1)
-    expect(wrapper.emitted().waiting).toHaveLength(1)
-  })
-
-  test('watches for changes in play prop and plays or pauses the video accordingly', async () => {
-    // Mock play and pause method before running the tests
-    HTMLMediaElement.prototype.play = vi.fn()
-    HTMLMediaElement.prototype.pause = vi.fn()
-
-    const wrapper = mount(HaVideo, {
-      props: {
-        src: '',
-        height: '',
-        width: '',
-        play: false,
-        autoplay: true,
-        controls: true,
-        muted: true,
-        playsinline: false,
-        preload: '',
-      },
-    })
-
-    await wrapper.setProps({ play: true })
-    // Check if the play method was called
-    expect(HTMLMediaElement.prototype.play).toHaveBeenCalled()
-
-    await wrapper.setProps({ play: false })
-    // Check if the pause method was called
-    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled()
-  })
-})
-````
-
-## File: layers/base/app/test/components/hm/__snapshots__/HmMenuExample.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<section data-v-9543fff9="" class="hm-menu-example">
-  <div data-v-9543fff9="" data-headlessui-state="" class="menu-container"><button data-v-9543fff9="" id="headlessui-menu-button-v-0" type="button" aria-haspopup="menu" aria-expanded="false" data-headlessui-state="" class="button"> Menu </button>
-    <!---->
-  </div>
-</section>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/__snapshots__/HmNoteList.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<ul data-v-aad17c23="" class="hm-note-list"></ul>"`;
-````
-
-## File: layers/base/app/test/components/hm/__snapshots__/HmPopup.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-3d2a298a="" data-v-f2c20222="" class="ha-dialog hm-popup">
-  <div data-v-3d2a298a="" class="dialog-window"><span data-v-f2c20222="" class="hm-popup-title">title</span>
-    <p data-v-f2c20222="" class="hm-popup-description">description</p>
-    <div data-v-f2c20222="" class="hm-popup-wrapper">
-      <div data-v-f2c20222="" class="hm-popup-button"><button data-v-44e0d85b="" data-v-83b235bf="" data-v-f2c20222="" class="ha-base-button hm-button -warning -md item" type="button">cancel</button></div>
-      <div data-v-f2c20222="" class="hm-popup-button"><button data-v-44e0d85b="" data-v-83b235bf="" data-v-f2c20222="" class="ha-base-button hm-button -primary -md item" type="button">confirm</button></div>
-    </div>
-  </div>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/__snapshots__/HmSkeletonScreen.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`HmSkeletonScreen > mount component 1`] = `
-"<div data-v-32855445="" class="hm-skeleton-screen">
-  <div data-v-32855445="" class="skeleton-screen">
-    <!-- NOTE: brタグはテキスト1行分の高さを確保している --><br data-v-32855445="">
-  </div>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/button/__snapshots__/HmButton.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<button data-v-44e0d85b="" data-v-83b235bf="" class="ha-base-button hm-button -primary -md" type="button">button label</button>"`;
-````
-
-## File: layers/base/app/test/components/hm/button/__snapshots__/HmButtonClose.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<button data-v-44e0d85b="" data-v-a944fd4b="" class="ha-base-button hm-button-close" type="button"><svg data-v-a944fd4b="" xmlns="http://www.w3.org/2000/svg" width="24.121" height="24.121" viewBox="0 0 24.121 24.121" style="width: 20px; height: 20px;">
-    <g transform="translate(-953.439 -212.439)">
-      <line x2="22" y2="22" transform="translate(954.5 213.5)" fill="none" stroke="#fff" stroke-width="3"></line>
-      <line x1="22" y2="22" transform="translate(954.5 213.5)" fill="none" stroke="#fff" stroke-width="3"></line>
-    </g>
-  </svg></button>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/button/__snapshots__/HmButtonFavorite.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-a38d8311="" class="hm-button-favorite">
-  <div data-v-a38d8311="" class="button"><svg data-v-a38d8311="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31.02 27.03" class="favorite-icon -active">
-      <defs>
-        <style>
-          .body {
-            fill: none;
-          }
-
-          .border {
-            fill: #757575;
-          }
-        </style>
-      </defs>
-      <g class="body">
-        <path d="M28.63,2.41c-3.19-3.18-8.35-3.18-11.54,0l-1.57,1.57-1.57-1.57c-3.17-3.2-8.33-3.22-11.53-.05-3.2,3.17-3.22,8.33-.05,11.53,.01,.01,.03,.03,.04,.04l1.57,1.57,11.54,11.52,11.54-11.52,1.57-1.57c3.18-3.17,3.19-8.33,.01-11.51,0,0,0,0-.01-.01Z"></path>
-      </g>
-      <g class="border">
-        <path d="M22.86,2.03c-1.65,0-3.19,.64-4.36,1.8l-1.57,1.57c-.78,.78-2.05,.78-2.83,0l-1.57-1.57c-1.16-1.16-2.71-1.8-4.36-1.8s-3.19,.64-4.36,1.8c-1.16,1.16-1.8,2.7-1.8,4.35s.64,3.18,1.8,4.35l11.7,11.68,11.7-11.68c1.16-1.16,1.8-2.7,1.8-4.35s-.64-3.18-1.8-4.35c-1.16-1.16-2.71-1.8-4.36-1.8m0-2c2.09,0,4.18,.8,5.77,2.39h0c3.19,3.18,3.19,8.34,0,11.52l-13.11,13.09L2.41,13.94C-.78,10.75-.78,5.6,2.41,2.41,5.59-.77,10.76-.77,13.94,2.41l1.57,1.57,1.57-1.57C18.68,.82,20.77,.03,22.86,.03Z"></path>
-      </g>
-    </svg></div>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/icon/__snapshots__/HmIconUser.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<span data-v-1d2a94ab="" class="hm-icon-user"><img data-v-1d2a94ab="" class="ha-image image" loading="eager" fetchpriority="low" src="/image.png" alt="" role="presentation" decoding="auto" draggable="false"></span>"`;
-````
-
-## File: layers/base/app/test/components/hm/icon/HmIconUser.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { describe, it, test, expect } from 'vitest'
-import HmIconUser from '#base/app/components/hm/icon/HmIconUser.vue'
-
-/**
- * @see vitest.config.mtsのalias
- */
-const defaultNoImage = '/images/no-image.png'
-
-test('ref component', () => {
-  expect(HmIconUser).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HmIconUser, {
-    props: {
-      src: '/image.png',
-    },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-// propsのsrcが指定されている場合、その値が設定される
-describe('props', () => {
-  it(':src', () => {
-    const wrapper = mount(HmIconUser, {
-      props: {
-        src: '/image.png',
-      },
-    })
-    expect(wrapper.get('img').attributes('src')).toBe('/image.png')
-  })
-})
-
-// propsのsrcが空文字の場合、no image画像が設定される
-describe('if src empty, set no image', () => {
-  it(':src', () => {
-    const wrapper = mount(HmIconUser, {
-      props: {
-        src: '',
-      },
-    })
-    expect(wrapper.get('img').attributes('src')).toContain(defaultNoImage)
-  })
-})
-
-// propsのsrcに指定した画像でエラーが発生した場合、placeholder画像が設定される
-describe('if src error, set placeholder image', () => {
-  it(':src error', async () => {
-    const wrapper = mount(HmIconUser, {
-      props: {
-        src: '/foo-not-found.jpg',
-      },
-    })
-    await wrapper.get('img').trigger('error')
-    expect(wrapper.get('img').attributes('src')).toContain(
-      '/public/images/no-image_1x1.jpg',
-    )
-  })
-})
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputCheckbox.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<label data-v-8afc310c="" class="hm-input-checkbox"><input data-v-fc3f65b2="" data-v-8afc310c="" class="ha-base-input button" type="checkbox" name="test name" value="false">
-  <div data-v-8afc310c="" class="content"></div>
-  <!--v-if-->
-</label>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputDatetime.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-a31daa3a="" name="dateLocal" class="hm-input-datetime"><label data-v-a31daa3a="" class="hm-input-datetime__label"><input data-v-fc3f65b2="" data-v-a31daa3a="" class="ha-base-input hm-input-datetime__input" type="datetime-local" value="Invalid Date"></label>
-  <p data-v-a31daa3a="" class="error-container">
-    <!--v-if-->
-  </p>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputFile.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<!-- TODO: エラーメッセージの表示をする際に、必要に応じてHmInputTextBase.vue同様の修正(DOM構造とエラーmsgのstyle)を行う -->
-<label data-v-f233eea7="" class="hm-input-file"><input data-v-fc3f65b2="" data-v-f233eea7="" class="ha-base-input input" type="file" accept="" name="file">
-  <div data-v-f233eea7="" class="image-box">
-    <div data-v-f233eea7="" class="inner"><span data-v-f233eea7="" class="text"> Select file or drag it! </span></div>
-  </div>
-</label>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadio.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<label data-v-3deb71fa="" class="hm-input-radio"><input data-v-fc3f65b2="" data-v-3deb71fa="" class="ha-base-input button" type="radio" name="test name" value="1">
-  <div data-v-3deb71fa="" class="content"></div>
-</label>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputSingleImage.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-e7598008="" class="hm-input-single-image">
-  <div data-v-e7598008="" class="wrapper">
-    <!-- TODO: エラーメッセージの表示をする際に、必要に応じてHmInputTextBase.vue同様の修正(DOM構造とエラーmsgのstyle)を行う --><label data-v-f233eea7="" data-v-e7598008="" class="hm-input-file hm-single-image-uploader"><input data-v-fc3f65b2="" data-v-f233eea7="" class="ha-base-input input" type="file" accept="image/png,image/jpeg" name="file" required="">
-      <div data-v-f233eea7="" class="image-box">
-        <div data-v-f233eea7="" class="inner"><span data-v-f233eea7="" class="text"> Select file or drag it! </span></div>
-      </div>
-    </label>
-  </div>
-  <p data-v-e7598008="" class="error-container">
-    <!--v-if-->
-  </p>
-  <!--v-if-->
-  <!--v-if-->
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputText.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-335fcd27="" tag="div" class="hm-input-text"><label data-v-335fcd27="" class="label">
-    <!--v-if--><input data-v-fc3f65b2="" data-v-335fcd27="" class="ha-base-input input" type="text" placeholder="Input Text" value="">
-  </label>
-  <!--v-if-->
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/HmInputRadio.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { describe, it, test, expect } from 'vitest'
-import HmInputRadio from '#base/app/components/hm/input/HmInputRadio.vue'
-
-test('ref component', () => {
-  expect(HmInputRadio).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HmInputRadio, {
-    props: {
-      name: 'test name',
-      value: 1,
-    },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-describe('props', () => {
-  it(':name', () => {
-    const wrapper = mount(HmInputRadio, {
-      props: {
-        name: 'test name',
-        value: 1,
-      },
-    })
-    expect(wrapper.get('input[type="radio"]').attributes('name')).toBe(
-      'test name',
-    )
-  })
-  it(':value', async () => {
-    const wrapper = mount(HmInputRadio, {
-      props: {
-        name: 'test name',
-        value: 1,
-      },
-    })
-    await wrapper.vm.$nextTick()
-    expect(wrapper.props('value')).toBe(1)
-    /*
-     * NOTE: NG例。propsではなくvalueで取得しようとすると、レンダリングされたDOMのvalueがfalseとなっているので、テスト結果にfalseが返ってくるので取得不可。下記取れそうで取れない例
-     * NOTE: NG例1
-     * expect(
-     *   (wrapper.find('input[type="radio"]').element as HTMLInputElement).value
-     * ).toBe('1')
-     * NOTE: NG例2
-     * expect(wrapper.find('input[type="radio"]').attributes('value')).toBe('1')
-     */
-  })
-  it(':checked', () => {
-    const wrapper = mount(HmInputRadio, {
-      props: {
-        name: 'test name',
-        value: 1,
-        checked: true,
-      },
-    })
-    expect(
-      (wrapper.get('input[type="radio"]').element as HTMLInputElement).checked,
-    ).toBeTruthy()
-  })
-})
-describe('emits', () => {
-  it(':change', async () => {
-    const wrapper = mount(HmInputRadio, {
-      props: {
-        name: 'test name',
-        value: 1,
-      },
-    })
-    await wrapper.setProps({ value: 2 })
-    await wrapper.get('input[type="radio"]').trigger('change')
-    setTimeout(() => {
-      expect(wrapper.emitted()).toHaveProperty('change')
-      expect(wrapper.emitted()['change']).toHaveLength(1)
-      /*
-       * TODO: Zodのエラーメッセージを二重否定で真偽値をemitする際と同様に、emitは行われているが値の変更が正しくテストできず、NaNが検出する。
-       * expect(wrapper.emitted()['change']).toEqual([[2]])
-       */
-    }, 1)
-  })
-})
-````
-
-## File: layers/base/app/test/components/hm/input/HmInputRadioChangeable.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { describe, it, test, expect } from 'vitest'
-import HmInputRadioChangeable from '#base/app/components/hm/input/HmInputRadioChangeable.vue'
-
-test('ref component', () => {
-  expect(HmInputRadioChangeable).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HmInputRadioChangeable, {
-    props: {
-      name: 'testName',
-      options: [
-        {
-          label: 'testLabel',
-          value: 'testValue',
-        },
-      ],
-    },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-describe('props', () => {
-  it(':name, :value', () => {
-    const wrapper = mount(HmInputRadioChangeable, {
-      props: {
-        name: 'testName',
-        options: [
-          {
-            label: 'testLabel',
-            value: 'testValue',
-          },
-        ],
-      },
-    })
-    expect(wrapper.find('input[type="radio"]').attributes('name')).toBe(
-      'testName',
-    )
-    expect(wrapper.find('label.label').attributes('for')).toBe(
-      'testValue',
-    )
-    expect(wrapper.find('label.label').text()).toBe('testLabel')
-  })
-
-  it(':checked', () => {
-    const wrapper = mount(HmInputRadioChangeable, {
-      props: {
-        name: 'testName',
-        options: [
-          {
-            label: 'testLabel',
-            value: 'testValue',
-            checked: true,
-          },
-        ],
-      },
-    })
-    expect(
-      (wrapper.find('input[type="radio"]').element as HTMLInputElement).checked,
-    ).toBeTruthy()
-  })
-
-  it(':disabled', () => {
-    const wrapper = mount(HmInputRadioChangeable, {
-      props: {
-        name: 'testName',
-        options: [
-          {
-            label: 'testLabel',
-            value: 'testValue',
-            checked: true,
-            disabled: true,
-          },
-        ],
-      },
-    })
-    expect(
-      (wrapper.find('input[type="radio"]').element as HTMLInputElement).disabled,
-    ).toBeTruthy()
-  })
-})
-
-describe('emits', () => {
-  it(':change', async () => {
-    const wrapper = mount(HmInputRadioChangeable, {
-      props: {
-        name: 'testName',
-        options: [
-          {
-            label: 'testLabel',
-            value: 'testValue',
-            checked: true,
-          },
-        ],
-      },
-    })
-    await wrapper.find('input[type="radio"]').trigger('change')
-    setTimeout(() => {
-      expect(wrapper.emitted()).toHaveProperty('change')
-      expect(wrapper.emitted()['change']).toHaveLength(1)
-      expect(wrapper.emitted()['change']).toEqual([['testValue']])
-    }, 1)
-  })
-})
-
-// NOTE: 「props.optionsを監視し、親コンポーネントでの変更をラジオボタンに反映する」というコンポーネント内のwatchの動作をテスト
-describe('DOM check', () => {
-  it(':Change radio button based on parent props', async () => {
-    const wrapper = mount(HmInputRadioChangeable, {
-      props: {
-        name: 'testName',
-        options: [
-          {
-            label: 'testLabel1',
-            value: 'testValue1',
-            checked: true,
-          },
-          {
-            label: 'testLabel2',
-            value: 'testValue2',
-            checked: false,
-          },
-          {
-            label: 'testLabel3',
-            value: 'testValue3',
-            checked: false,
-          },
-        ],
-      },
-    })
-    expect(
-      (wrapper.find('input[id="testValue1"]').element as HTMLInputElement)
-        .checked,
-    ).toBeTruthy()
-    expect(
-      (wrapper.find('input[id="testValue2"]').element as HTMLInputElement)
-        .checked,
-    ).toBeFalsy()
-    expect(
-      (wrapper.find('input[id="testValue3"]').element as HTMLInputElement)
-        .checked,
-    ).toBeFalsy()
-    // NOTE: props,optionsを変えてcheckedを再確認
-    await wrapper.setProps({
-      options: [
-        {
-          label: 'testLabel1',
-          value: 'testValue1',
-          checked: false,
-        },
-        {
-          label: 'testLabel2',
-          value: 'testValue2',
-          checked: true,
-        },
-        {
-          label: 'testLabel3',
-          value: 'testValue3',
-          checked: false,
-        },
-      ],
-    })
-    expect(
-      (wrapper.find('input[id="testValue1"]').element as HTMLInputElement)
-        .checked,
-    ).toBeFalsy()
-    expect(
-      (wrapper.find('input[id="testValue2"]').element as HTMLInputElement)
-        .checked,
-    ).toBeTruthy()
-    expect(
-      (wrapper.find('input[id="testValue3"]').element as HTMLInputElement)
-        .checked,
-    ).toBeFalsy()
-  })
-})
-````
-
 ## File: layers/base/app/test/components/hm/HmAccordion.spec.ts
 ````typescript
 import { AnyVueWrapper } from '#base/app/test/models/vue'
@@ -3642,97 +1802,6 @@ describe('HmAutoCarousel', () => {
 })
 ````
 
-## File: layers/base/app/test/components/hm/HmClipping.spec.ts
-````typescript
-import { mount, shallowMount } from '@vue/test-utils'
-import { describe, it, test, expect } from 'vitest'
-import HmClipping from '#base/app/components/hm/HmClipping.vue'
-
-test('ref component', () => {
-  expect(HmClipping).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HmClipping, {
-    props: {
-      src: '',
-    },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-test('props', () => {
-  const wrapper = mount(HmClipping, {
-    props: {
-      src: '',
-      width: 256,
-      height: 256,
-      cropperAreaHeight: 0,
-      doResize: true,
-      stencil: 'RectangleStencil',
-      imageRestriction: 'stencil',
-      autoZoom: false,
-      ext: 'jpeg',
-    },
-  })
-  expect(wrapper.props('src')).toStrictEqual('')
-  expect(wrapper.props('width')).toStrictEqual(256)
-  expect(wrapper.props('height')).toStrictEqual(256)
-  expect(wrapper.props('cropperAreaHeight')).toStrictEqual(0)
-  expect(wrapper.props('doResize')).toStrictEqual(true)
-  expect(wrapper.props('stencil')).toStrictEqual('RectangleStencil')
-  expect(wrapper.props('imageRestriction')).toStrictEqual('stencil')
-  expect(wrapper.props('autoZoom')).toStrictEqual(false)
-  expect(wrapper.props('ext')).toStrictEqual('jpeg')
-})
-
-describe('events', () => {
-  it(':button click to emit clipped', async () => {
-    // NOTE: mountしてcomponentを展開すると、「Error: connect ECONNREFUSED」になる
-    const wrapper = shallowMount(HmClipping, {
-      props: {
-        src: '/dummy',
-        width: 256,
-        height: 256,
-        cropperAreaHeight: 0,
-        doResize: true,
-        stencil: 'RectangleStencil',
-        imageRestriction: 'stencil',
-        autoZoom: false,
-        ext: 'jpeg',
-      },
-    })
-    await wrapper.find('ha-base-button-stub').trigger('click')
-    expect(wrapper.emitted()).toHaveProperty('clipped')
-    expect(wrapper.emitted()['clipped']).toHaveLength(1)
-    expect(wrapper.emitted()['clipped']).toEqual([[[]]])
-  })
-
-  // TODO: Cropperのchangeのテスト
-  it(':Cropper change', () => {
-    // NOTE: mountしてcomponentを展開すると、「Error: connect ECONNREFUSED」になる
-    const _wrapper = shallowMount(HmClipping, {
-      props: {
-        src: '/dummy',
-        width: 256,
-        height: 256,
-        cropperAreaHeight: 0,
-        doResize: true,
-        stencil: 'RectangleStencil',
-        imageRestriction: 'stencil',
-        autoZoom: false,
-        ext: 'jpeg',
-      },
-    })
-    /*
-     * ERROR: 発火はできるが、canvas.toDataURLが読めず、vi.importActualにてcanvas.toDataURLのみを偽装してもエラーとなったのでコメントアウトする
-     * await wrapper.find('cropper-stub').trigger('change')
-     */
-  })
-})
-````
-
 ## File: layers/base/app/test/components/hm/HmDialogElement.spec.ts
 ````typescript
 import HmDialogElement from '#base/app/components/hm/HmDialogElement.vue'
@@ -3919,78 +1988,6 @@ describe('HmDialogElement', () => {
       // isActiveはrefオブジェクトとして公開されるが、VMからの直接アクセスでは動作の確認に留める
       expect(vm.isActive !== undefined).toBe(true)
     })
-  })
-})
-````
-
-## File: layers/base/app/test/components/hm/HmMenuExample.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { describe, it, test, expect } from 'vitest'
-import HmMenuExample from '#base/app/components/hm/HmMenuExample.vue'
-
-test('ref component', () => {
-  expect(HmMenuExample).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HmMenuExample)
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-describe('rendering test', () => {
-  it(':menu', () => {
-    const wrapper = mount(HmMenuExample)
-    expect(wrapper.find('div[class="menu-container"]').exists()).toBe(true)
-  })
-  it(':button (open close button)', () => {
-    const wrapper = mount(HmMenuExample)
-    expect(wrapper.find('button[class="button"]').exists()).toBe(true)
-    expect(wrapper.find('button[class="button"]').text()).toBe('Menu')
-  })
-  it(':menu-items', async () => {
-    const wrapper = mount(HmMenuExample)
-
-    // NOTE: クリックするとmenu-listが開かれ出現すること
-    await wrapper.get('button[class="button"]').trigger('click')
-    expect(wrapper.find('div[class="menu-items"]').exists()).toBe(true)
-
-    // NOTE: 開いたあとにクリックするとmenu-listが閉じて消えること
-    await wrapper.get('button[class="button"]').trigger('click')
-    expect(wrapper.find('div[class="menu-items"]').exists()).toBe(false)
-  })
-  it(':item', async () => {
-    const wrapper = mount(HmMenuExample)
-
-    // NOTE: クリックするとmenu-listが開かれ出現すること
-    await wrapper.get('button[class="button"]').trigger('click')
-    expect(wrapper.find('span[class="span item"]').exists()).toBe(true)
-
-    expect(wrapper.find('span[class="span item"]:nth-child(1)').text()).toBe(
-      'Hello',
-    )
-    // NOTE: 上記は下記でもいい（at(n)）
-    expect(wrapper.findAll('span[class="span item"]').at(0)?.text()).toBe(
-      'Hello',
-    )
-    // NOTE: 上記は下記でもいい2（配列のn番目インデックス）
-    expect(wrapper.findAll('span[class="span item"]')[0]?.text()).toBe('Hello')
-    expect(wrapper.find('span[class="span item"]:nth-child(2)').text()).toBe(
-      'Howdy!',
-    )
-
-    expect(wrapper.find('span[class="span item"]:nth-child(3)').text()).toBe(
-      'Yo!',
-    )
-    expect(
-      wrapper.find('span[class="item -disable"]:nth-child(4)').text(),
-    ).toBe(':D')
-
-    // NOTE: 開いたあとに子要素をクリックするとmenu-listが閉じて子要素も消えること
-    await wrapper.get('button[class="button"]').trigger('click')
-    expect(wrapper.find('div[class="menu-items"]').exists()).toBe(false)
-    expect(wrapper.find('span[class="span item"]').exists()).toBe(false)
   })
 })
 ````
@@ -5691,193 +3688,6 @@ describe('use-strict-i18n.ts', () => {
 })
 ````
 
-## File: layers/base/app/test/composables/useDefaultApi.spec.ts
-````typescript
-// NOTE: そもそももっといいテストあれば是非
-import { test, expect, vi } from 'vitest'
-import { UseFetchOptions } from 'nuxt/app'
-import { FetchOptions } from 'ofetch'
-import useDefaultApi, { defaultFetcher } from '#base/app/composables/useDefaultApi'
-
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-  useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
-    return { path, options }
-  }),
-}))
-
-test('useDefaultApi', () => {
-  // NOTE: useDefaultApiで使用できるRepositoryKeyを入れた際にオブジェクトが返ってくること。この場合useDefaultApi('hoge')など存在しない場合はテストが落ちる
-  const useApiExample = useDefaultApi('example').repository.value
-  const expectObj = { get: {} }
-  expect(useApiExample).toMatchObject(expectObj)
-})
-
-test('defaultFetcher', () => {
-  const path = '/example'
-  const options = {}
-  // useFetchが発火することを確認。戻り値はmockの戻り値とする
-  expect(defaultFetcher(path, options)).toStrictEqual({ path, options })
-})
-````
-
-## File: layers/base/app/test/composables/useExample.spec.ts
-````typescript
-import { describe, it, expect, vi } from 'vitest'
-import type { NitroFetchRequest } from 'nitropack'
-import { useExample } from '#base/app/composables/useExample'
-
-// Nuxtのpayloadの一部をmockする
-const useStateState: Record<string, any> = {} // eslint-disable-line @typescript-eslint/no-explicit-any
-
-vi.mock('#app', () => ({
-  defineNuxtPlugin: vi.fn(),
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useState: vi.fn((key: string, init?: () => any) => {
-    useStateState[key] = { value: init?.() }
-    return useStateState[key]
-  }),
-
-  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-  useFetch: vi.fn(() => ({
-    status: 'ok',
-    data: {
-      todos: [
-        {
-          userId: 0,
-          id: 0,
-          title: 'Do something!',
-          completed: true,
-        },
-        {
-          userId: '1',
-          id: '1',
-          title: 'Say hello',
-          completed: false,
-        },
-      ],
-    },
-  })),
-}))
-
-vi.mock('#base/app/plugins/runtimeConfig', () => ({
-  requireRuntimeConfig: vi.fn(() => ({
-    public: {
-      baseUrl: 'http://localhost:3000',
-      apiPrefix: '/mock',
-    },
-  })),
-}))
-
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、fetchをすげ替えたいのでダミーとなるmock作成
-vi.mock('#base/app/plugins/fetch', () => {
-  return {
-    pluginFetchApi: vi.fn((_path: string, _options: NitroFetchRequest) => {
-      return {
-        status: 'ok',
-        data: {
-          todos: [
-            {
-              userId: 0,
-              id: 0,
-              title: 'Do something!',
-              completed: true,
-            },
-            {
-              userId: '1',
-              id: '1',
-              title: 'Say hello',
-              completed: false,
-            },
-          ],
-        },
-      }
-    }),
-  }
-})
-
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、 ofetch をすげ替えたいのでダミーとなるmock作成
-vi.mock('ofetch', () => {
-  return {
-    $fetch: vi.fn((_path: string, _options: NitroFetchRequest) => {
-      return {
-        status: 'ok',
-        data: {
-          todos: [
-            {
-              userId: 0,
-              id: 0,
-              title: 'Do something!',
-              completed: true,
-            },
-            {
-              userId: '1',
-              id: '1',
-              title: 'Say hello',
-              completed: false,
-            },
-          ],
-        },
-      }
-    }),
-  }
-})
-
-describe('useExample', () => {
-  it('should be able to get example', () => {
-    const { exampleRef, exampleState } = useExample()
-    expect(exampleRef.value).toEqual(undefined)
-    expect(exampleState.value).toEqual(undefined)
-  })
-
-  it('should be able to change example', async () => {
-    const { exampleRef, exampleState, getExample } = useExample()
-    const result = await getExample()
-    const checkObject = [
-      {
-        userId: 0,
-        id: 0,
-        title: 'Do something!',
-        completed: true,
-      },
-      {
-        userId: '1',
-        id: '1',
-        title: 'Say hello',
-        completed: false,
-      },
-    ]
-    expect(result).toEqual(checkObject)
-    expect(exampleState.value).toEqual(checkObject)
-    expect(exampleRef.value).toEqual(checkObject)
-  })
-
-  /*
-   * TODO: このテストはしたいけど、現状はuseStateモックのテストになってしまっているので、コメントアウトしておく。うまい方法があればコメントアウトを解除して、実装して、このコメントを削除してください
-   * it("should share example's latest state", () => {
-   *   const { example } = useExample()
-   *   expect(example.value).toEqual([
-   *     {
-   *       userId: 0,
-   *       id: 0,
-   *       title: 'Do something!',
-   *       completed: true,
-   *     },
-   *     {
-   *       userId: '1',
-   *       id: '1',
-   *       title: 'Say hello',
-   *       completed: false,
-   *     },
-   *   ])
-   * })
-   */
-})
-````
-
 ## File: layers/base/app/test/mock-icons/ri/close-line.js
 ````javascript
 export default {
@@ -6553,6 +4363,24 @@ describe('json', () => {
     })
   })
 })
+````
+
+## File: layers/base/app/test/models/vue.ts
+````typescript
+import { VueWrapper } from '@vue/test-utils'
+
+// NOTE: もっといい方法を募集中。
+/**
+ * .vmにアクセスするためのVueWrapper。
+ *
+ * ```typescript
+ * const wrapper: AnyVueWrapper = mount(HaLoading)
+ * wrapper.vm.start()
+ * ```
+ *
+ * https://stackoverflow.com/questions/74516449/vue-test-utils-typescript-type-for-wrapper-vm
+ */
+export type AnyVueWrapper = VueWrapper<any> // eslint-disable-line @typescript-eslint/no-explicit-any
 ````
 
 ## File: layers/base/app/test/utils/console.spec.ts
@@ -7258,35 +5086,6 @@ describe('environment.ts', () => {
      */
   })
 })
-````
-
-## File: layers/base/app/test/utils/error.spec.ts
-````typescript
-import { test, expect } from 'vitest'
-import { unreachable } from '#base/app/utils/error'
-
-test('unreachable', () => {
-  const x: number = 10
-  if (typeof x === 'number') {
-    // ここにしか来ない
-  } else {
-    unreachable(x)
-  }
-})
-
-test('raiseError', () => {
-  const xs: number[] = []
-  expect(() => {
-    const _ = xs[0] ?? raiseError('0th element is nothing')
-  }).toThrow()
-})
-````
-
-## File: layers/base/app/test/utils/i18n.spec.ts
-````typescript
-import { test } from 'vitest'
-
-test('関数のexportがないので、#base/app/utils/i18nモジュールへのテストはなし', () => {})
 ````
 
 ## File: layers/base/app/test/utils/image.spec.ts
@@ -8017,6 +5816,1134 @@ if (!global.HTMLDialogElement) {
 }
 ````
 
+## File: layers/base/app/test/components/ha/__snapshots__/HaDialog.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-3d2a298a="" class="ha-dialog">
+  <div data-v-3d2a298a="" class="dialog-window">no content.</div>
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/ha/__snapshots__/HaHamburger.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-360a5fd5="" class="ha-humberger-button">
+  <div data-v-360a5fd5="" class="line"></div>
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/ha/__snapshots__/HaLoadingIcon.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `"<div data-v-1650f499="" class="ha-loading-icon"></div>"`;
+````
+
+## File: layers/base/app/test/components/ha/__snapshots__/HaSelectBox.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-01e8812b="" class="ha-select-box"><select data-v-01e8812b="" name="" class="select">
+    <option data-v-01e8812b="">---Select---</option>
+  </select>
+  <!--v-if-->
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/ha/__snapshots__/HaSkewBackground.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HaSkewBackground > mount component 1`] = `
+"<div data-v-bd50d0e7="" class="ha-skew" style="transform: skewX(30deg);">
+  <div data-v-bd50d0e7="" class="content" style="transform: skewX(-30deg);"></div>
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/ha/__snapshots__/HaTag.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HaTag > mount component 1`] = `"<span data-v-ce4254e2="" class="ha-tag -primary" disabled="false"></span>"`;
+````
+
+## File: layers/base/app/test/components/ha/__snapshots__/HaTextarea.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-f4f8fa4e="" class="ha-textarea"><label data-v-f4f8fa4e="" class="label">
+    <!--v-if--><textarea data-v-f4f8fa4e="" type="text" placeholder="Input Text" rows="5" class="input"></textarea>
+  </label>
+  <p data-v-f4f8fa4e="" class="error-container">
+    <!--v-if-->
+  </p>
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/ha/__snapshots__/HaVideo.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HaVideo > mount component 1`] = `"<video class="ha-video" src="" autoplay="" autopictureinpicture="false" controls="" disablepictureinpicture="false" controlslist="" crossorigin="" disableremoteplayback="false" x-webkit-airplay="false" width="" height="" muted="" playsinline="false" poster="" preload=""></video>"`;
+````
+
+## File: layers/base/app/test/components/ha/base/__snapshots__/HaBaseButton.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `"<button data-v-44e0d85b="" class="ha-base-button" type="button">button label</button>"`;
+````
+
+## File: layers/base/app/test/components/ha/base/__snapshots__/HaBaseInput.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `"<input data-v-fc3f65b2="" class="ha-base-input" type="text" value="false">"`;
+````
+
+## File: layers/base/app/test/components/ha/base/HaBaseInput.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { describe, it, test, expect } from 'vitest'
+import HaBaseInput from '#base/app/components/ha/base/HaBaseInput.vue'
+
+test('ref component', () => {
+  expect(HaBaseInput).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HaBaseInput, {
+    props: {
+      type: 'text',
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+describe('props', () => {
+  describe(':type', () => {
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).type).toBe('text')
+    })
+  })
+
+  describe(':accept', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).accept).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          accept: 'image/*',
+        },
+      })
+      expect((wrapper.element as HTMLInputElement).accept).toBe('image/*')
+    })
+  })
+
+  describe(':autocomplete', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).autocomplete).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          autocomplete: 'name',
+        },
+      })
+      expect((wrapper.element as HTMLInputElement).autocomplete).toBe('name')
+    })
+  })
+
+  describe(':autofocus', () => {
+    it('default is false', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).autofocus).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'text', autofocus: true },
+      })
+      expect((wrapper.element as HTMLInputElement).autofocus).toBeTruthy()
+    })
+  })
+
+  describe(':capture', () => {
+    it('default is undefined', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'file' } })
+      expect((wrapper.element as HTMLInputElement).capture).toBeFalsy()
+    })
+    it('pass prop: user', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'file', capture: 'user' },
+      })
+      expect(wrapper.attributes('capture')).toBe('user')
+    })
+    it('pass prop: environment', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'file', capture: 'environment' },
+      })
+      expect(wrapper.attributes('capture')).toBe('environment')
+    })
+  })
+
+  describe(':checked', () => {
+    it('default is false', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'radio' } })
+      expect((wrapper.element as HTMLInputElement).checked).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'radio', checked: true },
+      })
+      expect((wrapper.element as HTMLInputElement).checked).toBeTruthy()
+    })
+  })
+
+  describe(':disabled', () => {
+    it('default is false', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).disabled).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'text', disabled: true },
+      })
+      expect((wrapper.element as HTMLInputElement).disabled).toBeTruthy()
+    })
+  })
+
+  describe(':id', () => {
+    it('default is false', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).id).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'text', id: 'testId' },
+      })
+      expect((wrapper.element as HTMLInputElement).id).toBe('testId')
+    })
+  })
+
+  describe(':list', () => {
+    it('default is false', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).list).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'text', list: 'testDataListId' },
+      })
+      expect(wrapper.attributes('list')).toBe('testDataListId')
+    })
+  })
+
+  describe(':max', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).max).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          max: 10,
+        },
+      })
+      expect((wrapper.element as HTMLInputElement).max).toBe('10')
+    })
+  })
+
+  describe(':maxLength', () => {
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          maxLength: 10,
+        },
+      })
+      expect((wrapper.element as HTMLInputElement).maxLength).toBe(10)
+    })
+  })
+
+  describe(':min', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).min).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          min: 10,
+        },
+      })
+      expect((wrapper.element as HTMLInputElement).min).toBe('10')
+    })
+  })
+
+  describe(':minLength', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).minLength).toBe(-1)
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          minLength: 10,
+        },
+      })
+      expect((wrapper.element as HTMLInputElement).minLength).toBe(10)
+    })
+  })
+
+  describe(':multiple', () => {
+    it('default is false', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).multiple).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'text', multiple: true },
+      })
+      expect((wrapper.element as HTMLInputElement).multiple).toBeTruthy()
+    })
+  })
+
+  describe(':name', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).name).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          name: 'sample',
+        },
+      })
+      expect((wrapper.element as HTMLInputElement).name).toBe('sample')
+    })
+  })
+
+  describe(':placeholder', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).placeholder).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          placeholder: 'sample',
+        },
+      })
+      expect((wrapper.element as HTMLInputElement).placeholder).toBe('sample')
+    })
+  })
+
+  describe(':readonly', () => {
+    it('default is false', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).readOnly).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'text', readonly: true },
+      })
+      expect((wrapper.element as HTMLInputElement).readOnly).toBeTruthy()
+    })
+  })
+
+  describe(':required', () => {
+    it('default is false', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).required).toBeFalsy()
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'text', required: true },
+      })
+      expect((wrapper.element as HTMLInputElement).required).toBeTruthy()
+    })
+  })
+
+  describe(':size', () => {
+    it('default is 20', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect((wrapper.element as HTMLInputElement).size).toBe(20)
+    })
+
+    it('pass prop', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          size: 10,
+        },
+      })
+      expect((wrapper.element as HTMLInputElement).size).toBe(10)
+    })
+  })
+
+  describe(':value', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect(wrapper.props('value')).toBeFalsy()
+    })
+
+    it('pass prop: string', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          value: 'string test',
+        },
+      })
+      expect(wrapper.props('value')).toBe('string test')
+    })
+
+    it('pass prop: number', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          value: 1,
+        },
+      })
+      expect(wrapper.props('value')).toBe(1)
+    })
+
+    it('pass prop: boolean', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          value: true,
+        },
+      })
+      expect(wrapper.props('value')).toBe(true)
+    })
+  })
+  describe(':modelValue', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect(wrapper.props('modelValue')).toBeFalsy()
+    })
+
+    it('pass prop: string', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          modelValue: 'string test',
+        },
+      })
+      expect(wrapper.props('modelValue')).toBe('string test')
+    })
+
+    it('pass prop: number', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          modelValue: 1,
+        },
+      })
+      expect(wrapper.props('modelValue')).toBe(1)
+    })
+
+    it('pass prop: boolean', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          modelValue: true,
+        },
+      })
+      expect(wrapper.props('modelValue')).toBe(true)
+    })
+  })
+  describe(':files', () => {
+    it('default is undefined (for safe)', () => {
+      const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+      expect(wrapper.attributes('files')).toBeFalsy()
+    })
+
+    // TODO: propsのfilelistが正しくセットされるかテストを行うが下記問題でコメントアウト中
+    it('pass prop', () => {
+      // 下準備としてFileList型のダミーを作成する
+      const _createDummyFileList = (files: File[]) => {
+        return {
+          length: files.length,
+          item(index: number) {
+            return files[index] || null
+          },
+        }
+      }
+      const _file = new File([''], 'test.png')
+      const _file2 = new File([''], 'test2.png')
+      /*
+       * TODO: fileListは使用されておらず、ESlintのErrorに引っかかったのでコメントアウトしてます。 by saga
+       * const fileList: FileList = createDummyFileList([file, file2])
+       * FileListダミー作成ここまで
+       */
+
+      /*
+       * NOTE: 問題点、上記で作成したfileListをセットするとテストも通り、yarn devやvs codeでエラーも出ないが、yarn test:watchを表示しているターミナルで
+       * [Vue warn]: Failed setting prop "files" on <input>: value [object Object] is invalid. TypeError: Failed to set the 'files' property on 'HTMLInputElement': The provided value is not of type 'FileList'.
+       * が白文字で表示されるのでコメントアウトなどを以下の一部の行で行っている。
+       */
+
+      const _wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'file',
+          multiple: true,
+          /*
+           * NOTE: 下記にてfilesにfilelistを設定すると、テストはとおるが[Vue warn]が表示される
+           * files: fileList,
+           */
+        },
+      })
+      /*
+       * NOTE: 上記mount時ではなく、下記にてfilesにfilelistを設定すると、テストはとおるが[Vue warn]が表示される
+       * await wrapper.setProps({ files: fileList })
+       */
+
+      /*
+       * NOTE: 下記にてfilesにfilelistを設定すると、セットされないのかテストに落ちる。
+       * Object.defineProperty(wrapper, 'files', {
+       *   value: fileList,
+       * })
+       * https://blog.unsweets.net/entries/set-filelist-to-htmlinputelement-files/
+       * 上記参照サイトでObject.definePropertyを使うことで
+       * 「TypeError: Failed to set the 'files' property on 'HTMLInputElement': The provided value is not of type 'FileList
+       * が発生しないと記載されているが、本件ではfileListがセットされずそもそも通らない
+       */
+
+      /*
+       * NOTE: fileListをセットしてテストすると下記が通るが、[Vue warn]がターミナルに白文字で出るのでコメントアウト。
+       * expect(wrapper.props('files')).toStrictEqual(fileList)
+       */
+    })
+  })
+})
+describe('emits', () => {
+  it(':update:modelValue', async () => {
+    const wrapper = mount(HaBaseInput, {
+      props: {
+        type: 'text',
+      },
+    })
+    await wrapper.setValue('test', 'modelValue')
+    expect(wrapper.emitted()).toHaveProperty('update:modelValue')
+    expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
+    expect(wrapper.emitted()['update:modelValue']).toEqual([['test']])
+  })
+  it(':update:value', async () => {
+    const wrapper = mount(HaBaseInput, {
+      props: {
+        type: 'text',
+      },
+    })
+    await wrapper.setValue('test', 'value')
+    expect(wrapper.emitted()['update:value']).toBeTruthy()
+    expect(wrapper.emitted()).toHaveProperty('update:value')
+    expect(wrapper.emitted()['update:value']).toHaveLength(1)
+    expect(wrapper.emitted()['update:value']).toEqual([['test']])
+  })
+  it(':input', async () => {
+    const wrapper = mount(HaBaseInput, {
+      props: {
+        type: 'text',
+      },
+    })
+    // onInput発火
+    await wrapper.trigger('input')
+    expect(wrapper.emitted()).toHaveProperty('input')
+    expect(wrapper.emitted()['input']).toHaveLength(1)
+  })
+  it(':change', async () => {
+    const wrapper = mount(HaBaseInput, {
+      props: {
+        type: 'text',
+      },
+    })
+    // onChange発火
+    await wrapper.trigger('change')
+    expect(wrapper.emitted()).toHaveProperty('change')
+    expect(wrapper.emitted()['change']).toHaveLength(1)
+  })
+  describe(':input[type]', () => {
+    it(':input[type:text]', async () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+        },
+      })
+      /*
+       * NOTE: setValueではupdate:modelValueのみ更新されupdate:valueにfalseが入るので、文字列をupdate:valueでもテストしたいのであれば、setPropsしtriggerで発火する
+       * await wrapper.setValue('test')
+       */
+      await wrapper.setProps({ modelValue: 'test' })
+      // onInput発火
+      await wrapper.trigger('input')
+      // TEST: update:modelValue
+      expect(wrapper.emitted()).toHaveProperty('update:modelValue')
+      expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
+      expect(wrapper.emitted()['update:modelValue']).toEqual([['test']])
+      // TEST: update:value
+      expect(wrapper.emitted()['update:value']).toBeTruthy()
+      expect(wrapper.emitted()).toHaveProperty('update:value')
+      expect(wrapper.emitted()['update:value']).toHaveLength(1)
+      expect(wrapper.emitted()['update:value']).toEqual([['test']])
+      // TEST: input
+      expect(wrapper.emitted()).toHaveProperty('input')
+      expect(wrapper.emitted()['input']).toHaveLength(1)
+    })
+    it(':input[type:checkbox]', async () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'checkbox',
+          checked: false,
+        },
+      })
+      // チェックボックスをクリックすることでChaekedにする
+      await wrapper.trigger('click')
+      // onInput発火
+      await wrapper.trigger('input')
+      // TEST: update:modelValue
+      expect(wrapper.emitted()).toHaveProperty('update:modelValue')
+      expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
+      expect(wrapper.emitted()['update:modelValue']).toEqual([[true]])
+      // TEST: update:value
+      expect(wrapper.emitted()['update:value']).toBeTruthy()
+      expect(wrapper.emitted()).toHaveProperty('update:value')
+      expect(wrapper.emitted()['update:value']).toHaveLength(1)
+      expect(wrapper.emitted()['update:value']).toEqual([[true]])
+      // TEST: input
+      expect(wrapper.emitted()).toHaveProperty('input')
+      expect(wrapper.emitted()['input']).toHaveLength(1)
+    })
+    it(':input[type:radio]', async () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'radio',
+          value: 1,
+          checked: false,
+        },
+      })
+      // 単一のチェックボックスト違い、ラジオボタンなのでラジオボタンのグループのmodelValueを設定する。
+      await wrapper.setProps({ modelValue: 1 })
+      // onInput発火
+      await wrapper.trigger('input')
+      // TEST: update:modelValue
+      expect(wrapper.emitted()).toHaveProperty('update:modelValue')
+      expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
+      expect(wrapper.emitted()['update:modelValue']).toEqual([[1]])
+      // TEST: update:value
+      expect(wrapper.emitted()['update:value']).toBeTruthy()
+      expect(wrapper.emitted()).toHaveProperty('update:value')
+      expect(wrapper.emitted()['update:value']).toHaveLength(1)
+      expect(wrapper.emitted()['update:value']).toEqual([[1]])
+      // TEST: input
+      expect(wrapper.emitted()).toHaveProperty('input')
+      expect(wrapper.emitted()['input']).toHaveLength(1)
+    })
+  })
+})
+````
+
+## File: layers/base/app/test/components/ha/HaDialog.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { describe, it, expect, test } from 'vitest'
+import HaDialog from '#base/app/components/ha/HaDialog.vue'
+
+test('ref component', () => {
+  expect(HaDialog).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HaDialog, {})
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+test('slot', () => {
+  const wrapper = mount(HaDialog, {
+    slots: {
+      default: '<div>slot content.</div>',
+    },
+  })
+  expect(wrapper.text()).toContain('slot content.')
+})
+
+describe('event', () => {
+  it('click backdrop emits close-dialog event', async () => {
+    const wrapper = mount(HaDialog)
+    await wrapper.get('.ha-dialog').trigger('click')
+    expect(wrapper.emitted('close')).toBeTruthy()
+  })
+})
+````
+
+## File: layers/base/app/test/components/ha/HaHamburger.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { describe, it, test, expect } from 'vitest'
+import HaHamburger from '#base/app/components/ha/HaHamburger.vue'
+
+test('ref component', () => {
+  expect(HaHamburger).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HaHamburger, {
+    props: {
+      isOpen: false,
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+describe('props', () => {
+  it(':isOpen:true', () => {
+    const wrapper = mount(HaHamburger, {
+      props: {
+        isOpen: true,
+      },
+    })
+    expect(wrapper.attributes('class')).toBe('ha-humberger-button -open')
+  })
+  it(':isOpen:false', () => {
+    const wrapper = mount(HaHamburger, {
+      props: {
+        isOpen: false,
+      },
+    })
+    expect(wrapper.attributes('class')).toBe('ha-humberger-button')
+  })
+})
+
+describe('emit', () => {
+  it(':update:modelValue', async () => {
+    const wrapper = mount(HaHamburger, {
+      props: {
+        isOpen: false,
+      },
+    })
+    await wrapper.trigger('click')
+    expect(wrapper.emitted()).toHaveProperty('click')
+    expect(wrapper.emitted()['click']).toHaveLength(1)
+    // NOTE: voidなので[[]]
+    expect(wrapper.emitted()['click']).toEqual([[]])
+  })
+})
+````
+
+## File: layers/base/app/test/components/ha/HaImage.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { describe, expect, it, test } from 'vitest'
+import HaImage from '#base/app/components/ha/HaImage.vue'
+
+/**
+ * @see vitest.config.mtsのalias
+ */
+const defaultNoImage = '/images/no-image.png'
+
+const customNoImage = '/images/no-image-custom.png'
+
+test('ref component', () => {
+  expect(HaImage).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HaImage, {
+    props: { src: 'img.png', alt: 'a great img' },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+describe('props', () => {
+  it(':src', () => {
+    const wrapper = mount(HaImage, { props: { src: '/image.png' } })
+    expect(wrapper.get('img').attributes('src')).toBe('/image.png')
+  })
+
+  describe(':alt', () => {
+    it('is not set (alt="")', () => {
+      const wrapper = mount(HaImage)
+      expect(wrapper.get('img').attributes('alt')).toBe('')
+    })
+
+    it('is string', () => {
+      const wrapper = mount(HaImage, { props: { alt: 'alt string' } })
+      expect(wrapper.get('img').attributes('alt')).toBe('alt string')
+    })
+  })
+
+  describe('size', () => {
+    it('no width / height', () => {
+      const wrapper = mount(HaImage)
+      expect(wrapper.get('img').attributes('width')).toBeFalsy()
+      expect(wrapper.get('img').attributes('height')).toBeFalsy()
+    })
+
+    it('set size', () => {
+      const wrapper = mount(HaImage, { props: { width: 120, height: 80 } })
+      expect(wrapper.get('img').attributes('width')).toBe('120')
+      expect(wrapper.get('img').attributes('height')).toBe('80')
+    })
+  })
+})
+
+describe('lazy loading', () => {
+  it('default is eager', () => {
+    const wrapper = mount(HaImage)
+    expect(wrapper.get('img').attributes('loading')).toBe('eager')
+  })
+
+  it(':is-lazy="true" works', () => {
+    const wrapper = mount(HaImage, { props: { isLazy: true } })
+    expect(wrapper.get('img').attributes('loading')).toBe('lazy')
+  })
+
+  it(':is-lazy="false" works', () => {
+    const wrapper = mount(HaImage, { props: { isLazy: false } })
+    expect(wrapper.get('img').attributes('loading')).toBe('eager')
+  })
+})
+
+describe('fallback images', () => {
+  it('no src loads "no-image.png"', () => {
+    const wrapper = mount(HaImage)
+    expect(wrapper.get('img').attributes('src')).toContain(defaultNoImage)
+  })
+
+  it('on error loads "no-image.png"', async () => {
+    const wrapper = mount(HaImage, { props: { src: '/foo-not-found.jpg' } })
+    await wrapper.get('img').trigger('error')
+    expect(wrapper.get('img').attributes('src')).toContain(defaultNoImage)
+  })
+
+  it('custom on-error image', async () => {
+    const wrapper = mount(HaImage, {
+      props: {
+        src: '/foo-not-found.jpg',
+        noImage: customNoImage,
+      },
+    })
+    await wrapper.get('img').trigger('error')
+    expect(wrapper.get('img').attributes('src')).toContain(customNoImage)
+  })
+})
+````
+
+## File: layers/base/app/test/components/ha/HaLink.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { beforeEach, afterEach, describe, it, expect, test, vi } from 'vitest'
+import HaLink from '#base/app/components/ha/HaLink.vue'
+
+import { isNuxtEnvironment } from '#base/app/utils/environment'
+
+// useLocalePath のモック関数をトップレベルで定義
+vi.mock('#i18n', () => ({
+  useLocalePath: vi.fn(
+    () => vi.fn(() => `/mocked-path`), // path: string, query: LocationQuery, hash: string 引数削除 (使う時だけ入れないとreviewdogに怒られる)
+  ),
+}))
+
+beforeEach(() => {
+  vi.clearAllMocks()
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
+test('ref component', () => {
+  expect(HaLink).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HaLink, {
+    props: {
+      to: 'https://example.com',
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+describe(':to', () => {
+  // 外部サイトリンクのテスト
+  it('set external path', () => {
+    const wrapper = mount(HaLink, {
+      props: { to: 'https://example.com' },
+    })
+    expect(wrapper.find('a').attributes('href')).toBe('https://example.com')
+  })
+
+  // 内部リンクテスト (aタグ)
+  it('set internal path', () => {
+    const wrapper = mount(HaLink, {
+      props: { to: '/internal-path' },
+      // nuxt-linkはwarnとなるので、下記でaタグに置き換える。RouterLinkStubはtoを引き継げなくなるので使わない。
+      global: {
+        stubs: {
+          'nuxt-link': {
+            template: '<a><slot /></a>',
+          },
+        },
+      },
+    })
+    // toで入力したpathをi18nのuseLocalPathで色々変更してpathを吐き出すので、ここではmockのuseLocalPath値が検出されればOK
+    expect(wrapper.find('a').attributes('to')).toBe('/mocked-path')
+  })
+})
+
+describe(':blank', () => {
+  it('not set', () => {
+    const wrapper = mount(HaLink, {
+      props: { to: '' },
+      global: {
+        stubs: {
+          'nuxt-link': {
+            template: '<a><slot /></a>',
+          },
+        },
+      },
+    })
+    expect(wrapper.find('a').attributes('target')).toBeFalsy()
+  })
+
+  it('set true', () => {
+    const wrapper = mount(HaLink, {
+      props: { to: 'https://example.com', blank: true },
+    })
+    expect(wrapper.find('a').attributes('target')).toBe('_blank')
+  })
+
+  // <HaLink blank> って書けてほしい
+  it('set `blank` with no value set target="_blank"', () => {
+    const wrapper = mount(
+      {
+        template: '<HaLink to="https://example.com" blank></HaLink>',
+        components: { HaLink },
+      },
+      {},
+    )
+    expect(wrapper.get('a').attributes('target')).toBe('_blank')
+  })
+})
+
+describe(':rel', () => {
+  it('set rel', () => {
+    const wrapper = mount(HaLink, {
+      props: {
+        to: 'https://example.com',
+        rel: 'noreferrer',
+      },
+    })
+    expect(wrapper.get('a').attributes('rel')).toBe('noreferrer')
+  })
+})
+
+describe(':forceAnchorLink', () => {
+  it('set true', () => {
+    const wrapper = mount(HaLink, {
+      props: { to: '/internal', forceAnchorLink: true },
+    })
+    expect(wrapper.find('a').exists()).toBe(true)
+  })
+})
+
+describe('slot', () => {
+  it('set simple text', () => {
+    const wrapper = mount(HaLink, {
+      props: {
+        to: 'https://example.com',
+      },
+      slots: {
+        default: 'link label',
+      },
+    })
+    // slot入れたらリンク消えたりしない？
+    expect(wrapper.html()).toContain('https://example.com')
+    // slotの中身はきちんと描画されてる？
+    expect(wrapper.text()).toContain('link label')
+  })
+})
+
+// 以下、NuxtLink系のテスト
+vi.mock('#base/app/utils/environment')
+
+/*
+ * TODO: Nuxt依存部分のtoLocalePathをモックしている関係で、戻り値がmocked-pathにしかならずqueryのテストが出来ない
+ * describe(':query', () => {
+ *   it('appends query parameters to internal links', async () => {
+ *     // 環境をNuxtとしてモック
+ *     vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+ */
+
+/*
+ *     const wrapper = mount(HaLink, {
+ *       props: { to: '/intenal', query: { id: '123' } },
+ *     })
+ */
+
+/*
+ *     await nextTick()
+ *     // NuxtLinkを探す
+ *     const nuxtLink = wrapper.find('nuxt-link');
+ *     expect(nuxtLink.exists()).toBe(true);
+ *     // NuxtLinkがクエリパラメータを含む適切なパスでレンダリングされているか検証
+ *     expect(nuxtLink.attributes('to')).toBe('/internal?id=123');
+ *     // モック関数が正しく呼び出されたことを確認
+ *     expect(useLocalePath).toHaveBeenCalled()
+ *   })
+ * })
+ */
+
+/*
+ * TODO: Nuxt依存部分のtoLocalePathをモックしている関係で、戻り値がmocked-pathにしかならずhashのテストが出来ない
+ * describe(':hash', () => {
+ *   it('appends hash parameters to internal links', async () => {
+ *     // 環境をNuxtとしてモック
+ *     vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+ */
+
+/*
+ *     const wrapper = mount(HaLink, {
+ *       props: { to: '/intenal', hash: '#hash'},
+ *     })
+ */
+
+/*
+ *     await nextTick()
+ *     // NuxtLinkを探す
+ *     const nuxtLink = wrapper.find('nuxt-link');
+ *     expect(nuxtLink.exists()).toBe(true);
+ *     // NuxtLinkがクエリパラメータを含む適切なパスでレンダリングされているか検証
+ *     expect(nuxtLink.attributes('to')).toBe('/internal#hash');
+ *     // モック関数が正しく呼び出されたことを確認
+ *     expect(useLocalePath).toHaveBeenCalled()
+ *   })
+ * })
+ */
+
+describe('<nuxt-link>', () => {
+  /*
+   * TODO : テスト自体は通るが[Vue warn]: Failed to resolve component: nuxt-link のWARNが出るのでコメントアウト
+   * it('use router-link', async () => {
+   *   vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+   *   const wrapper = mount(HaLink, {
+   *     props: {
+   *       to: '/link',
+   *     },
+   *   })
+   *   const nuxtLink = wrapper.find('nuxt-link')
+   *   expect(nuxtLink.exists()).toBe(true)
+   * })
+   */
+  it('external link must be <a>', () => {
+    vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+    const wrapper = mount(HaLink, {
+      props: {
+        to: 'https://example.com',
+      },
+    })
+    expect(wrapper.find('a').exists()).toBeTruthy()
+  })
+  it('force <a> link', () => {
+    vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+    const wrapper = mount(HaLink, {
+      props: {
+        to: '/link',
+        forceAnchorLink: true,
+      },
+    })
+    expect(wrapper.find('a').exists()).toBeTruthy()
+  })
+})
+````
+
+## File: layers/base/app/test/components/ha/HaLoading.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { describe, it, expect, test } from 'vitest'
+import HaLoading from '#base/app/components/ha/HaLoading.vue'
+
+test('ref component', () => {
+  expect(HaLoading).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HaLoading)
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+describe(':manual', () => {
+  it('no :manual make no component on mount', () => {
+    const wrapper = mount(HaLoading)
+    expect(wrapper.isVisible()).toBeFalsy()
+  })
+  it(':manual="true" make spinner', () => {
+    const wrapper = mount(HaLoading, {
+      props: {
+        manual: true,
+      },
+    })
+    expect(wrapper.isVisible()).toBeTruthy()
+    expect(wrapper.find('.spinner').exists()).toBeTruthy()
+  })
+})
+
+describe(':cover', () => {
+  it(':cover make <div class="cover">', () => {
+    const wrapper = mount(HaLoading, {
+      props: {
+        manual: true,
+        cover: true,
+      },
+    })
+    expect(wrapper.find('.cover').exists()).toBeTruthy()
+  })
+})
+````
+
 ## File: layers/base/app/test/components/ha/HaSelectBox.spec.ts
 ````typescript
 import { mount } from '@vue/test-utils'
@@ -8572,6 +7499,175 @@ test('error display', async () => {
 })
 ````
 
+## File: layers/base/app/test/components/ha/HaVideo.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { describe, expect, test, vi } from 'vitest'
+import HaVideo from '#base/app/components/ha/HaVideo.vue'
+
+describe('HaVideo', () => {
+  test('ref component', () => {
+    expect(HaVideo).toBeTruthy()
+  })
+
+  test('mount component', () => {
+    const wrapper = mount(HaVideo, {
+      props: {
+        src: '',
+        height: '',
+        width: '',
+        play: false,
+        autoplay: true,
+        controls: true,
+        muted: true,
+        playsinline: false,
+        preload: '',
+      },
+    })
+
+    expect(wrapper.find('video').exists()).toBe(true)
+    expect(wrapper.getCurrentComponent()).toBeTruthy()
+    expect(wrapper.html()).toMatchSnapshot()
+  })
+
+  test('renders video with default props', () => {
+    const wrapper = mount(HaVideo, {
+      props: {
+        src: 'test.mp4',
+        height: '400px',
+        width: '600px',
+        play: false,
+        autoplay: false,
+        autopictureinpicture: false,
+        controls: true,
+        disablepictureinpicture: false,
+        disableremoteplayback: true,
+        loop: false,
+        muted: false,
+        playsinline: false,
+        poster: 'poster.jpg',
+        controlslist: 'nofullscreen',
+        crossorigin: 'anonymous',
+        preload: 'auto',
+      },
+    })
+
+    const videoElement = wrapper.find('video').element
+    expect(videoElement).toBeTruthy()
+    expect(videoElement.src).toContain('test.mp4')
+    expect(wrapper.props('height')).toBe('400px')
+    expect(wrapper.props('width')).toBe('600px')
+    expect(wrapper.props('play')).toBe(false)
+    expect(videoElement.autoplay).toBe(false)
+    expect(wrapper.props('autopictureinpicture')).toBe(false)
+    expect(videoElement.controls).toBe(true)
+    expect(wrapper.props('disablepictureinpicture')).toBe(false)
+    expect(wrapper.props('disableremoteplayback')).toBe(true)
+    expect(wrapper.get('video').attributes('x-webkit-airplay')).toBe('deny')
+    expect(videoElement.loop).toBe(false)
+    expect(videoElement.muted).toBe(false)
+    expect(wrapper.props('playsinline')).toBe(false)
+    expect(wrapper.get('video').attributes('poster')).toContain('poster.jpg')
+    expect(wrapper.get('video').attributes('controlslist')).toContain('nofullscreen')
+    expect(wrapper.props('crossorigin')).toBe('anonymous')
+    expect(wrapper.props('preload')).toBe('auto')
+  })
+
+  test('emit', async () => {
+    const wrapper = mount(HaVideo, {
+      props: {
+        src: '',
+        height: '',
+        width: '',
+        play: false,
+        autoplay: true,
+        controls: true,
+        muted: true,
+        playsinline: false,
+        preload: '',
+      },
+    })
+
+    const videoElement = wrapper.find('video')
+
+    // Trigger video events
+    await videoElement.trigger('progress')
+    await videoElement.trigger('suspend')
+    await videoElement.trigger('durationchange')
+    await videoElement.trigger('loadedmetadata')
+    await videoElement.trigger('loadeddata')
+    await videoElement.trigger('canplay')
+    await videoElement.trigger('playing')
+    await videoElement.trigger('pause')
+    await videoElement.trigger('ended')
+    await videoElement.trigger('seeking')
+    await videoElement.trigger('timeupdate')
+    await videoElement.trigger('volumechange')
+    await videoElement.trigger('ratechange')
+    await videoElement.trigger('waiting')
+
+    // Assuming your component emits custom event
+    expect(wrapper.emitted().progress).toBeTruthy()
+    expect(wrapper.emitted().suspend).toBeTruthy()
+    expect(wrapper.emitted().durationchange).toBeTruthy()
+    expect(wrapper.emitted().loadedmetadata).toBeTruthy()
+    expect(wrapper.emitted().loadeddata).toBeTruthy()
+    expect(wrapper.emitted().canplay).toBeTruthy()
+    expect(wrapper.emitted().playing).toBeTruthy()
+    expect(wrapper.emitted().pause).toBeTruthy()
+    expect(wrapper.emitted().ended).toBeTruthy()
+    expect(wrapper.emitted().seeking).toBeTruthy()
+    expect(wrapper.emitted().timeupdate).toBeTruthy()
+    expect(wrapper.emitted().volumechange).toBeTruthy()
+    expect(wrapper.emitted().ratechange).toBeTruthy()
+    expect(wrapper.emitted().waiting).toBeTruthy()
+    // check the number of times each event was emitted
+    expect(wrapper.emitted().progress).toHaveLength(1)
+    expect(wrapper.emitted().suspend).toHaveLength(1)
+    expect(wrapper.emitted().durationchange).toHaveLength(1)
+    expect(wrapper.emitted().loadedmetadata).toHaveLength(1)
+    expect(wrapper.emitted().loadeddata).toHaveLength(1)
+    expect(wrapper.emitted().canplay).toHaveLength(1)
+    expect(wrapper.emitted().playing).toHaveLength(1)
+    expect(wrapper.emitted().pause).toHaveLength(1)
+    expect(wrapper.emitted().ended).toHaveLength(1)
+    expect(wrapper.emitted().seeking).toHaveLength(1)
+    expect(wrapper.emitted().timeupdate).toHaveLength(1)
+    expect(wrapper.emitted().volumechange).toHaveLength(1)
+    expect(wrapper.emitted().ratechange).toHaveLength(1)
+    expect(wrapper.emitted().waiting).toHaveLength(1)
+  })
+
+  test('watches for changes in play prop and plays or pauses the video accordingly', async () => {
+    // Mock play and pause method before running the tests
+    HTMLMediaElement.prototype.play = vi.fn()
+    HTMLMediaElement.prototype.pause = vi.fn()
+
+    const wrapper = mount(HaVideo, {
+      props: {
+        src: '',
+        height: '',
+        width: '',
+        play: false,
+        autoplay: true,
+        controls: true,
+        muted: true,
+        playsinline: false,
+        preload: '',
+      },
+    })
+
+    await wrapper.setProps({ play: true })
+    // Check if the play method was called
+    expect(HTMLMediaElement.prototype.play).toHaveBeenCalled()
+
+    await wrapper.setProps({ play: false })
+    // Check if the pause method was called
+    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled()
+  })
+})
+````
+
 ## File: layers/base/app/test/components/hm/__snapshots__/HmClipping.spec.ts.snap
 ````
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
@@ -8675,6 +7771,228 @@ exports[`mount component 1`] = `
 `;
 ````
 
+## File: layers/base/app/test/components/hm/__snapshots__/HmMenuExample.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<section data-v-9543fff9="" class="hm-menu-example">
+  <div data-v-9543fff9="" data-headlessui-state="" class="menu-container"><button data-v-9543fff9="" id="headlessui-menu-button-v-0" type="button" aria-haspopup="menu" aria-expanded="false" data-headlessui-state="" class="button"> Menu </button>
+    <!---->
+  </div>
+</section>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/__snapshots__/HmNoteList.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `"<ul data-v-aad17c23="" class="hm-note-list"></ul>"`;
+````
+
+## File: layers/base/app/test/components/hm/__snapshots__/HmPopup.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-3d2a298a="" data-v-f2c20222="" class="ha-dialog hm-popup">
+  <div data-v-3d2a298a="" class="dialog-window"><span data-v-f2c20222="" class="hm-popup-title">title</span>
+    <p data-v-f2c20222="" class="hm-popup-description">description</p>
+    <div data-v-f2c20222="" class="hm-popup-wrapper">
+      <div data-v-f2c20222="" class="hm-popup-button"><button data-v-44e0d85b="" data-v-83b235bf="" data-v-f2c20222="" class="ha-base-button hm-button -warning -md item" type="button">cancel</button></div>
+      <div data-v-f2c20222="" class="hm-popup-button"><button data-v-44e0d85b="" data-v-83b235bf="" data-v-f2c20222="" class="ha-base-button hm-button -primary -md item" type="button">confirm</button></div>
+    </div>
+  </div>
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/__snapshots__/HmSkeletonScreen.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HmSkeletonScreen > mount component 1`] = `
+"<div data-v-32855445="" class="hm-skeleton-screen">
+  <div data-v-32855445="" class="skeleton-screen">
+    <!-- NOTE: brタグはテキスト1行分の高さを確保している --><br data-v-32855445="">
+  </div>
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/button/__snapshots__/HmButton.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `"<button data-v-44e0d85b="" data-v-83b235bf="" class="ha-base-button hm-button -primary -md" type="button">button label</button>"`;
+````
+
+## File: layers/base/app/test/components/hm/button/__snapshots__/HmButtonClose.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<button data-v-44e0d85b="" data-v-a944fd4b="" class="ha-base-button hm-button-close" type="button"><svg data-v-a944fd4b="" xmlns="http://www.w3.org/2000/svg" width="24.121" height="24.121" viewBox="0 0 24.121 24.121" style="width: 20px; height: 20px;">
+    <g transform="translate(-953.439 -212.439)">
+      <line x2="22" y2="22" transform="translate(954.5 213.5)" fill="none" stroke="#fff" stroke-width="3"></line>
+      <line x1="22" y2="22" transform="translate(954.5 213.5)" fill="none" stroke="#fff" stroke-width="3"></line>
+    </g>
+  </svg></button>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/button/__snapshots__/HmButtonFavorite.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-a38d8311="" class="hm-button-favorite">
+  <div data-v-a38d8311="" class="button"><svg data-v-a38d8311="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31.02 27.03" class="favorite-icon -active">
+      <defs>
+        <style>
+          .body {
+            fill: none;
+          }
+
+          .border {
+            fill: #757575;
+          }
+        </style>
+      </defs>
+      <g class="body">
+        <path d="M28.63,2.41c-3.19-3.18-8.35-3.18-11.54,0l-1.57,1.57-1.57-1.57c-3.17-3.2-8.33-3.22-11.53-.05-3.2,3.17-3.22,8.33-.05,11.53,.01,.01,.03,.03,.04,.04l1.57,1.57,11.54,11.52,11.54-11.52,1.57-1.57c3.18-3.17,3.19-8.33,.01-11.51,0,0,0,0-.01-.01Z"></path>
+      </g>
+      <g class="border">
+        <path d="M22.86,2.03c-1.65,0-3.19,.64-4.36,1.8l-1.57,1.57c-.78,.78-2.05,.78-2.83,0l-1.57-1.57c-1.16-1.16-2.71-1.8-4.36-1.8s-3.19,.64-4.36,1.8c-1.16,1.16-1.8,2.7-1.8,4.35s.64,3.18,1.8,4.35l11.7,11.68,11.7-11.68c1.16-1.16,1.8-2.7,1.8-4.35s-.64-3.18-1.8-4.35c-1.16-1.16-2.71-1.8-4.36-1.8m0-2c2.09,0,4.18,.8,5.77,2.39h0c3.19,3.18,3.19,8.34,0,11.52l-13.11,13.09L2.41,13.94C-.78,10.75-.78,5.6,2.41,2.41,5.59-.77,10.76-.77,13.94,2.41l1.57,1.57,1.57-1.57C18.68,.82,20.77,.03,22.86,.03Z"></path>
+      </g>
+    </svg></div>
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/icon/__snapshots__/HmIconUser.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `"<span data-v-1d2a94ab="" class="hm-icon-user"><img data-v-1d2a94ab="" class="ha-image image" loading="eager" fetchpriority="low" src="/image.png" alt="" role="presentation" decoding="auto" draggable="false"></span>"`;
+````
+
+## File: layers/base/app/test/components/hm/icon/HmIconUser.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { describe, it, test, expect } from 'vitest'
+import HmIconUser from '#base/app/components/hm/icon/HmIconUser.vue'
+
+/**
+ * @see vitest.config.mtsのalias
+ */
+const defaultNoImage = '/images/no-image.png'
+
+test('ref component', () => {
+  expect(HmIconUser).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HmIconUser, {
+    props: {
+      src: '/image.png',
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+// propsのsrcが指定されている場合、その値が設定される
+describe('props', () => {
+  it(':src', () => {
+    const wrapper = mount(HmIconUser, {
+      props: {
+        src: '/image.png',
+      },
+    })
+    expect(wrapper.get('img').attributes('src')).toBe('/image.png')
+  })
+})
+
+// propsのsrcが空文字の場合、no image画像が設定される
+describe('if src empty, set no image', () => {
+  it(':src', () => {
+    const wrapper = mount(HmIconUser, {
+      props: {
+        src: '',
+      },
+    })
+    expect(wrapper.get('img').attributes('src')).toContain(defaultNoImage)
+  })
+})
+
+// propsのsrcに指定した画像でエラーが発生した場合、placeholder画像が設定される
+describe('if src error, set placeholder image', () => {
+  it(':src error', async () => {
+    const wrapper = mount(HmIconUser, {
+      props: {
+        src: '/foo-not-found.jpg',
+      },
+    })
+    await wrapper.get('img').trigger('error')
+    expect(wrapper.get('img').attributes('src')).toContain(
+      '/public/images/no-image_1x1.jpg',
+    )
+  })
+})
+````
+
+## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputCheckbox.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<label data-v-8afc310c="" class="hm-input-checkbox"><input data-v-fc3f65b2="" data-v-8afc310c="" class="ha-base-input button" type="checkbox" name="test name" value="false">
+  <div data-v-8afc310c="" class="content"></div>
+  <!--v-if-->
+</label>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputDatetime.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-a31daa3a="" name="dateLocal" class="hm-input-datetime"><label data-v-a31daa3a="" class="hm-input-datetime__label"><input data-v-fc3f65b2="" data-v-a31daa3a="" class="ha-base-input hm-input-datetime__input" type="datetime-local" value="Invalid Date"></label>
+  <p data-v-a31daa3a="" class="error-container">
+    <!--v-if-->
+  </p>
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputFile.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<!-- TODO: エラーメッセージの表示をする際に、必要に応じてHmInputTextBase.vue同様の修正(DOM構造とエラーmsgのstyle)を行う -->
+<label data-v-f233eea7="" class="hm-input-file"><input data-v-fc3f65b2="" data-v-f233eea7="" class="ha-base-input input" type="file" accept="" name="file">
+  <div data-v-f233eea7="" class="image-box">
+    <div data-v-f233eea7="" class="inner"><span data-v-f233eea7="" class="text"> Select file or drag it! </span></div>
+  </div>
+</label>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadio.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<label data-v-3deb71fa="" class="hm-input-radio"><input data-v-fc3f65b2="" data-v-3deb71fa="" class="ha-base-input button" type="radio" name="test name" value="1">
+  <div data-v-3deb71fa="" class="content"></div>
+</label>"
+`;
+````
+
 ## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadioChangeable.spec.ts.snap
 ````
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
@@ -8685,6 +8003,41 @@ exports[`mount component 1`] = `
       <!--v-if--> testLabel
       <!--v-if-->
     </label></div>
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputSingleImage.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-e7598008="" class="hm-input-single-image">
+  <div data-v-e7598008="" class="wrapper">
+    <!-- TODO: エラーメッセージの表示をする際に、必要に応じてHmInputTextBase.vue同様の修正(DOM構造とエラーmsgのstyle)を行う --><label data-v-f233eea7="" data-v-e7598008="" class="hm-input-file hm-single-image-uploader"><input data-v-fc3f65b2="" data-v-f233eea7="" class="ha-base-input input" type="file" accept="image/png,image/jpeg" name="file" required="">
+      <div data-v-f233eea7="" class="image-box">
+        <div data-v-f233eea7="" class="inner"><span data-v-f233eea7="" class="text"> Select file or drag it! </span></div>
+      </div>
+    </label>
+  </div>
+  <p data-v-e7598008="" class="error-container">
+    <!--v-if-->
+  </p>
+  <!--v-if-->
+  <!--v-if-->
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputText.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-335fcd27="" tag="div" class="hm-input-text"><label data-v-335fcd27="" class="label">
+    <!--v-if--><input data-v-fc3f65b2="" data-v-335fcd27="" class="ha-base-input input" type="text" placeholder="Input Text" value="">
+  </label>
+  <!--v-if-->
 </div>"
 `;
 ````
@@ -9134,6 +8487,653 @@ test('DOM check for error display', async () => {
 })
 ````
 
+## File: layers/base/app/test/components/hm/input/HmInputRadio.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { describe, it, test, expect } from 'vitest'
+import HmInputRadio from '#base/app/components/hm/input/HmInputRadio.vue'
+
+test('ref component', () => {
+  expect(HmInputRadio).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HmInputRadio, {
+    props: {
+      name: 'test name',
+      value: 1,
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+describe('props', () => {
+  it(':name', () => {
+    const wrapper = mount(HmInputRadio, {
+      props: {
+        name: 'test name',
+        value: 1,
+      },
+    })
+    expect(wrapper.get('input[type="radio"]').attributes('name')).toBe(
+      'test name',
+    )
+  })
+  it(':value', async () => {
+    const wrapper = mount(HmInputRadio, {
+      props: {
+        name: 'test name',
+        value: 1,
+      },
+    })
+    await wrapper.vm.$nextTick()
+    expect(wrapper.props('value')).toBe(1)
+    /*
+     * NOTE: NG例。propsではなくvalueで取得しようとすると、レンダリングされたDOMのvalueがfalseとなっているので、テスト結果にfalseが返ってくるので取得不可。下記取れそうで取れない例
+     * NOTE: NG例1
+     * expect(
+     *   (wrapper.find('input[type="radio"]').element as HTMLInputElement).value
+     * ).toBe('1')
+     * NOTE: NG例2
+     * expect(wrapper.find('input[type="radio"]').attributes('value')).toBe('1')
+     */
+  })
+  it(':checked', () => {
+    const wrapper = mount(HmInputRadio, {
+      props: {
+        name: 'test name',
+        value: 1,
+        checked: true,
+      },
+    })
+    expect(
+      (wrapper.get('input[type="radio"]').element as HTMLInputElement).checked,
+    ).toBeTruthy()
+  })
+})
+describe('emits', () => {
+  it(':change', async () => {
+    const wrapper = mount(HmInputRadio, {
+      props: {
+        name: 'test name',
+        value: 1,
+      },
+    })
+    await wrapper.setProps({ value: 2 })
+    await wrapper.get('input[type="radio"]').trigger('change')
+    setTimeout(() => {
+      expect(wrapper.emitted()).toHaveProperty('change')
+      expect(wrapper.emitted()['change']).toHaveLength(1)
+      /*
+       * TODO: Zodのエラーメッセージを二重否定で真偽値をemitする際と同様に、emitは行われているが値の変更が正しくテストできず、NaNが検出する。
+       * expect(wrapper.emitted()['change']).toEqual([[2]])
+       */
+    }, 1)
+  })
+})
+````
+
+## File: layers/base/app/test/components/hm/input/HmInputRadioChangeable.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { describe, it, test, expect } from 'vitest'
+import HmInputRadioChangeable from '#base/app/components/hm/input/HmInputRadioChangeable.vue'
+
+test('ref component', () => {
+  expect(HmInputRadioChangeable).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HmInputRadioChangeable, {
+    props: {
+      name: 'testName',
+      options: [
+        {
+          label: 'testLabel',
+          value: 'testValue',
+        },
+      ],
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+describe('props', () => {
+  it(':name, :value', () => {
+    const wrapper = mount(HmInputRadioChangeable, {
+      props: {
+        name: 'testName',
+        options: [
+          {
+            label: 'testLabel',
+            value: 'testValue',
+          },
+        ],
+      },
+    })
+    expect(wrapper.find('input[type="radio"]').attributes('name')).toBe(
+      'testName',
+    )
+    expect(wrapper.find('label.label').attributes('for')).toBe(
+      'testValue',
+    )
+    expect(wrapper.find('label.label').text()).toBe('testLabel')
+  })
+
+  it(':checked', () => {
+    const wrapper = mount(HmInputRadioChangeable, {
+      props: {
+        name: 'testName',
+        options: [
+          {
+            label: 'testLabel',
+            value: 'testValue',
+            checked: true,
+          },
+        ],
+      },
+    })
+    expect(
+      (wrapper.find('input[type="radio"]').element as HTMLInputElement).checked,
+    ).toBeTruthy()
+  })
+
+  it(':disabled', () => {
+    const wrapper = mount(HmInputRadioChangeable, {
+      props: {
+        name: 'testName',
+        options: [
+          {
+            label: 'testLabel',
+            value: 'testValue',
+            checked: true,
+            disabled: true,
+          },
+        ],
+      },
+    })
+    expect(
+      (wrapper.find('input[type="radio"]').element as HTMLInputElement).disabled,
+    ).toBeTruthy()
+  })
+})
+
+describe('emits', () => {
+  it(':change', async () => {
+    const wrapper = mount(HmInputRadioChangeable, {
+      props: {
+        name: 'testName',
+        options: [
+          {
+            label: 'testLabel',
+            value: 'testValue',
+            checked: true,
+          },
+        ],
+      },
+    })
+    await wrapper.find('input[type="radio"]').trigger('change')
+    setTimeout(() => {
+      expect(wrapper.emitted()).toHaveProperty('change')
+      expect(wrapper.emitted()['change']).toHaveLength(1)
+      expect(wrapper.emitted()['change']).toEqual([['testValue']])
+    }, 1)
+  })
+})
+
+// NOTE: 「props.optionsを監視し、親コンポーネントでの変更をラジオボタンに反映する」というコンポーネント内のwatchの動作をテスト
+describe('DOM check', () => {
+  it(':Change radio button based on parent props', async () => {
+    const wrapper = mount(HmInputRadioChangeable, {
+      props: {
+        name: 'testName',
+        options: [
+          {
+            label: 'testLabel1',
+            value: 'testValue1',
+            checked: true,
+          },
+          {
+            label: 'testLabel2',
+            value: 'testValue2',
+            checked: false,
+          },
+          {
+            label: 'testLabel3',
+            value: 'testValue3',
+            checked: false,
+          },
+        ],
+      },
+    })
+    expect(
+      (wrapper.find('input[id="testValue1"]').element as HTMLInputElement)
+        .checked,
+    ).toBeTruthy()
+    expect(
+      (wrapper.find('input[id="testValue2"]').element as HTMLInputElement)
+        .checked,
+    ).toBeFalsy()
+    expect(
+      (wrapper.find('input[id="testValue3"]').element as HTMLInputElement)
+        .checked,
+    ).toBeFalsy()
+    // NOTE: props,optionsを変えてcheckedを再確認
+    await wrapper.setProps({
+      options: [
+        {
+          label: 'testLabel1',
+          value: 'testValue1',
+          checked: false,
+        },
+        {
+          label: 'testLabel2',
+          value: 'testValue2',
+          checked: true,
+        },
+        {
+          label: 'testLabel3',
+          value: 'testValue3',
+          checked: false,
+        },
+      ],
+    })
+    expect(
+      (wrapper.find('input[id="testValue1"]').element as HTMLInputElement)
+        .checked,
+    ).toBeFalsy()
+    expect(
+      (wrapper.find('input[id="testValue2"]').element as HTMLInputElement)
+        .checked,
+    ).toBeTruthy()
+    expect(
+      (wrapper.find('input[id="testValue3"]').element as HTMLInputElement)
+        .checked,
+    ).toBeFalsy()
+  })
+})
+````
+
+## File: layers/base/app/test/components/hm/HmClipping.spec.ts
+````typescript
+import { mount, shallowMount } from '@vue/test-utils'
+import { describe, it, test, expect } from 'vitest'
+import HmClipping from '#base/app/components/hm/HmClipping.vue'
+
+test('ref component', () => {
+  expect(HmClipping).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HmClipping, {
+    props: {
+      src: '',
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+test('props', () => {
+  const wrapper = mount(HmClipping, {
+    props: {
+      src: '',
+      width: 256,
+      height: 256,
+      cropperAreaHeight: 0,
+      doResize: true,
+      stencil: 'RectangleStencil',
+      imageRestriction: 'stencil',
+      autoZoom: false,
+      ext: 'jpeg',
+    },
+  })
+  expect(wrapper.props('src')).toStrictEqual('')
+  expect(wrapper.props('width')).toStrictEqual(256)
+  expect(wrapper.props('height')).toStrictEqual(256)
+  expect(wrapper.props('cropperAreaHeight')).toStrictEqual(0)
+  expect(wrapper.props('doResize')).toStrictEqual(true)
+  expect(wrapper.props('stencil')).toStrictEqual('RectangleStencil')
+  expect(wrapper.props('imageRestriction')).toStrictEqual('stencil')
+  expect(wrapper.props('autoZoom')).toStrictEqual(false)
+  expect(wrapper.props('ext')).toStrictEqual('jpeg')
+})
+
+describe('events', () => {
+  it(':button click to emit clipped', async () => {
+    // NOTE: mountしてcomponentを展開すると、「Error: connect ECONNREFUSED」になる
+    const wrapper = shallowMount(HmClipping, {
+      props: {
+        src: '/dummy',
+        width: 256,
+        height: 256,
+        cropperAreaHeight: 0,
+        doResize: true,
+        stencil: 'RectangleStencil',
+        imageRestriction: 'stencil',
+        autoZoom: false,
+        ext: 'jpeg',
+      },
+    })
+    await wrapper.find('ha-base-button-stub').trigger('click')
+    expect(wrapper.emitted()).toHaveProperty('clipped')
+    expect(wrapper.emitted()['clipped']).toHaveLength(1)
+    expect(wrapper.emitted()['clipped']).toEqual([[[]]])
+  })
+
+  // TODO: Cropperのchangeのテスト
+  it(':Cropper change', () => {
+    // NOTE: mountしてcomponentを展開すると、「Error: connect ECONNREFUSED」になる
+    const _wrapper = shallowMount(HmClipping, {
+      props: {
+        src: '/dummy',
+        width: 256,
+        height: 256,
+        cropperAreaHeight: 0,
+        doResize: true,
+        stencil: 'RectangleStencil',
+        imageRestriction: 'stencil',
+        autoZoom: false,
+        ext: 'jpeg',
+      },
+    })
+    /*
+     * ERROR: 発火はできるが、canvas.toDataURLが読めず、vi.importActualにてcanvas.toDataURLのみを偽装してもエラーとなったのでコメントアウトする
+     * await wrapper.find('cropper-stub').trigger('change')
+     */
+  })
+})
+````
+
+## File: layers/base/app/test/components/hm/HmMenuExample.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { describe, it, test, expect } from 'vitest'
+import HmMenuExample from '#base/app/components/hm/HmMenuExample.vue'
+
+test('ref component', () => {
+  expect(HmMenuExample).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HmMenuExample)
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+describe('rendering test', () => {
+  it(':menu', () => {
+    const wrapper = mount(HmMenuExample)
+    expect(wrapper.find('div[class="menu-container"]').exists()).toBe(true)
+  })
+  it(':button (open close button)', () => {
+    const wrapper = mount(HmMenuExample)
+    expect(wrapper.find('button[class="button"]').exists()).toBe(true)
+    expect(wrapper.find('button[class="button"]').text()).toBe('Menu')
+  })
+  it(':menu-items', async () => {
+    const wrapper = mount(HmMenuExample)
+
+    // NOTE: クリックするとmenu-listが開かれ出現すること
+    await wrapper.get('button[class="button"]').trigger('click')
+    expect(wrapper.find('div[class="menu-items"]').exists()).toBe(true)
+
+    // NOTE: 開いたあとにクリックするとmenu-listが閉じて消えること
+    await wrapper.get('button[class="button"]').trigger('click')
+    expect(wrapper.find('div[class="menu-items"]').exists()).toBe(false)
+  })
+  it(':item', async () => {
+    const wrapper = mount(HmMenuExample)
+
+    // NOTE: クリックするとmenu-listが開かれ出現すること
+    await wrapper.get('button[class="button"]').trigger('click')
+    expect(wrapper.find('span[class="span item"]').exists()).toBe(true)
+
+    expect(wrapper.find('span[class="span item"]:nth-child(1)').text()).toBe(
+      'Hello',
+    )
+    // NOTE: 上記は下記でもいい（at(n)）
+    expect(wrapper.findAll('span[class="span item"]').at(0)?.text()).toBe(
+      'Hello',
+    )
+    // NOTE: 上記は下記でもいい2（配列のn番目インデックス）
+    expect(wrapper.findAll('span[class="span item"]')[0]?.text()).toBe('Hello')
+    expect(wrapper.find('span[class="span item"]:nth-child(2)').text()).toBe(
+      'Howdy!',
+    )
+
+    expect(wrapper.find('span[class="span item"]:nth-child(3)').text()).toBe(
+      'Yo!',
+    )
+    expect(
+      wrapper.find('span[class="item -disable"]:nth-child(4)').text(),
+    ).toBe(':D')
+
+    // NOTE: 開いたあとに子要素をクリックするとmenu-listが閉じて子要素も消えること
+    await wrapper.get('button[class="button"]').trigger('click')
+    expect(wrapper.find('div[class="menu-items"]').exists()).toBe(false)
+    expect(wrapper.find('span[class="span item"]').exists()).toBe(false)
+  })
+})
+````
+
+## File: layers/base/app/test/composables/useDefaultApi.spec.ts
+````typescript
+// NOTE: そもそももっといいテストあれば是非
+import { test, expect, vi } from 'vitest'
+import { UseFetchOptions } from 'nuxt/app'
+import { FetchOptions } from 'ofetch'
+import useDefaultApi, { defaultFetcher } from '#base/app/composables/useDefaultApi'
+
+vi.mock('#app', () => ({
+  // NOTE:  defineNuxtPluginでエラーが出るので設置
+  defineNuxtPlugin: vi.fn(),
+  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+  useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
+    return { path, options }
+  }),
+}))
+
+test('useDefaultApi', () => {
+  // NOTE: useDefaultApiで使用できるRepositoryKeyを入れた際にオブジェクトが返ってくること。この場合useDefaultApi('hoge')など存在しない場合はテストが落ちる
+  const useApiExample = useDefaultApi('example').repository.value
+  const expectObj = { get: {} }
+  expect(useApiExample).toMatchObject(expectObj)
+})
+
+test('defaultFetcher', () => {
+  const path = '/example'
+  const options = {}
+  // useFetchが発火することを確認。戻り値はmockの戻り値とする
+  expect(defaultFetcher(path, options)).toStrictEqual({ path, options })
+})
+````
+
+## File: layers/base/app/test/composables/useExample.spec.ts
+````typescript
+import { describe, it, expect, vi } from 'vitest'
+import type { NitroFetchRequest } from 'nitropack'
+import { useExample } from '#base/app/composables/useExample'
+
+// Nuxtのpayloadの一部をmockする
+const useStateState: Record<string, any> = {} // eslint-disable-line @typescript-eslint/no-explicit-any
+
+vi.mock('#app', () => ({
+  defineNuxtPlugin: vi.fn(),
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  useState: vi.fn((key: string, init?: () => any) => {
+    useStateState[key] = { value: init?.() }
+    return useStateState[key]
+  }),
+
+  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+  useFetch: vi.fn(() => ({
+    status: 'ok',
+    data: {
+      todos: [
+        {
+          userId: 0,
+          id: 0,
+          title: 'Do something!',
+          completed: true,
+        },
+        {
+          userId: '1',
+          id: '1',
+          title: 'Say hello',
+          completed: false,
+        },
+      ],
+    },
+  })),
+}))
+
+vi.mock('#base/app/plugins/runtimeConfig', () => ({
+  requireRuntimeConfig: vi.fn(() => ({
+    public: {
+      baseUrl: 'http://localhost:3000',
+      apiPrefix: '/mock',
+    },
+  })),
+}))
+
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、fetchをすげ替えたいのでダミーとなるmock作成
+vi.mock('#base/app/plugins/fetch', () => {
+  return {
+    pluginFetchApi: vi.fn((_path: string, _options: NitroFetchRequest) => {
+      return {
+        status: 'ok',
+        data: {
+          todos: [
+            {
+              userId: 0,
+              id: 0,
+              title: 'Do something!',
+              completed: true,
+            },
+            {
+              userId: '1',
+              id: '1',
+              title: 'Say hello',
+              completed: false,
+            },
+          ],
+        },
+      }
+    }),
+  }
+})
+
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、 ofetch をすげ替えたいのでダミーとなるmock作成
+vi.mock('ofetch', () => {
+  return {
+    $fetch: vi.fn((_path: string, _options: NitroFetchRequest) => {
+      return {
+        status: 'ok',
+        data: {
+          todos: [
+            {
+              userId: 0,
+              id: 0,
+              title: 'Do something!',
+              completed: true,
+            },
+            {
+              userId: '1',
+              id: '1',
+              title: 'Say hello',
+              completed: false,
+            },
+          ],
+        },
+      }
+    }),
+  }
+})
+
+describe('useExample', () => {
+  it('should be able to get example', () => {
+    const { exampleRef, exampleState } = useExample()
+    expect(exampleRef.value).toEqual(undefined)
+    expect(exampleState.value).toEqual(undefined)
+  })
+
+  it('should be able to change example', async () => {
+    const { exampleRef, exampleState, getExample } = useExample()
+    const result = await getExample()
+    const checkObject = [
+      {
+        userId: 0,
+        id: 0,
+        title: 'Do something!',
+        completed: true,
+      },
+      {
+        userId: '1',
+        id: '1',
+        title: 'Say hello',
+        completed: false,
+      },
+    ]
+    expect(result).toEqual(checkObject)
+    expect(exampleState.value).toEqual(checkObject)
+    expect(exampleRef.value).toEqual(checkObject)
+  })
+
+  /*
+   * TODO: このテストはしたいけど、現状はuseStateモックのテストになってしまっているので、コメントアウトしておく。うまい方法があればコメントアウトを解除して、実装して、このコメントを削除してください
+   * it("should share example's latest state", () => {
+   *   const { example } = useExample()
+   *   expect(example.value).toEqual([
+   *     {
+   *       userId: 0,
+   *       id: 0,
+   *       title: 'Do something!',
+   *       completed: true,
+   *     },
+   *     {
+   *       userId: '1',
+   *       id: '1',
+   *       title: 'Say hello',
+   *       completed: false,
+   *     },
+   *   ])
+   * })
+   */
+})
+````
+
+## File: layers/base/app/test/utils/error.spec.ts
+````typescript
+import { test, expect } from 'vitest'
+import { unreachable } from '#base/app/utils/error'
+
+test('unreachable', () => {
+  const x: number = 10
+  if (typeof x === 'number') {
+    // ここにしか来ない
+  } else {
+    unreachable(x)
+  }
+})
+
+test('raiseError', () => {
+  const xs: number[] = []
+  expect(() => {
+    const _ = xs[0] ?? raiseError('0th element is nothing')
+  }).toThrow()
+})
+````
+
+## File: layers/base/app/test/utils/i18n.spec.ts
+````typescript
+import { test } from 'vitest'
+
+test('関数のexportがないので、#base/app/utils/i18nモジュールへのテストはなし', () => {})
+````
+
 ## File: layers/base/app/test/components/hm/input/HmInputFile.spec.ts
 ````typescript
 import { mount } from '@vue/test-utils'
@@ -9331,6 +9331,435 @@ describe('event test', () => {
 })
 ````
 
+## File: layers/base/app/test/components/hm/input/HmInputText.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { beforeEach, afterEach, describe, it, test, expect, vi } from 'vitest'
+import z from 'zod/v3'
+import HmInputText from '#base/app/components/hm/input/HmInputText.vue'
+import useValidationRules from '#base/app/composables/useValidationRules'
+import { waitEffect } from '#base/app/utils/sleep'
+
+// vue-i18nのモックはファイルトップレベルで定義
+vi.mock('vue-i18n', () => ({
+  useI18n: vi.fn(() => ({
+    local: {
+      value: 'ja',
+    },
+    locale: {
+      value: 'ja',
+    },
+    t: (key: string, ..._args: unknown[]) => `dummy-${key}`,
+  })),
+}))
+
+const rules = useValidationRules()
+
+beforeEach(() => {
+  vi.clearAllMocks()
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
+test('ref component', () => {
+  expect(HmInputText).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HmInputText)
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+describe('props', () => {
+  it(':placeholder', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        placeholder: 'placeholder text',
+      },
+    })
+    expect(wrapper.get('input[type="text"]').attributes('placeholder')).toBe(
+      'placeholder text',
+    )
+  })
+
+  it(':type', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+      },
+    })
+    expect(wrapper.get('input[type="text"]').attributes('type')).toBe('text')
+  })
+
+  it(':validatorName', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        validatorName: 'testValidatorName',
+      },
+    })
+    expect(wrapper.props('validatorName' as never)).toBe('testValidatorName')
+  })
+
+  it(':validatorRules', () => {
+    const testValidatorRules = rules.required
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        validatorName: 'testValidatorName',
+        validatorRules: testValidatorRules,
+      },
+    })
+    expect(wrapper.props('validatorRules' as never)).toStrictEqual(
+      testValidatorRules,
+    )
+  })
+
+  it(':required', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        required: true,
+      },
+    })
+    expect(wrapper.get('input[type="text"]').attributes('required')).toBe('')
+  })
+
+  it(':modelValue', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        modelValue: 'modelValue text',
+      },
+    })
+    expect(wrapper.props('modelValue' as never)).toBe('modelValue text')
+  })
+
+  it(':disabled', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        disabled: true,
+      },
+    })
+    expect(wrapper.get('input[type="text"]').attributes('disabled')).toBe('')
+  })
+
+  it(':counter:length display', async () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        counter: true,
+      },
+    })
+    await wrapper.get('input[type="text"]').setValue('1234567890')
+    await waitEffect()
+    expect(wrapper.get('span[class="counter"]').text()).toBe('10')
+  })
+
+  it(':counter:length/max display', async () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        counter: { max: 50 },
+      },
+    })
+    await wrapper.get('input[type="text"]').setValue('1234567890')
+    await waitEffect()
+    expect(wrapper.get('span[class="counter"]').text()).toBe('10/50')
+  })
+
+  it(':min', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        min: 3,
+      },
+    })
+    expect(wrapper.get('input[type="text"]').attributes('min')).toBe('3')
+  })
+
+  it(':keyupEnter', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        keyupEnter: true,
+      },
+    })
+    expect(wrapper.props('keyupEnter' as never)).toBe(true)
+  })
+
+  it(':isLazy', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        isLazy: true,
+      },
+    })
+    expect(wrapper.props('isLazy' as never)).toBe(true)
+  })
+
+  it(':isTrim', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        isTrim: true,
+      },
+    })
+    expect(wrapper.props('isTrim' as never)).toBe(true)
+  })
+
+  it(':small', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        small: true,
+      },
+    })
+    expect(wrapper.get('input[type="text"]').attributes('class')).toBe(
+      'ha-base-input input -small',
+    )
+  })
+
+  it(':name', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        name: 'testName',
+      },
+    })
+    expect(wrapper.get('input[type="text"]').attributes('name')).toBe(
+      'testName',
+    )
+  })
+
+  it(':error', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        error: 'testError',
+      },
+    })
+    expect(wrapper.props('error')).toBe('testError')
+  })
+
+  it(':hideDetails', () => {
+    // -hide classを確認するためには、validatorRulesが必要
+    const testValidatorRules = rules.required
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        hideDetails: true,
+        validatorRules: testValidatorRules,
+      },
+    })
+    expect(wrapper.props('hideDetails')).toBe(true)
+    // -hide classが付与されていることを確認
+    expect(wrapper.get('p').attributes('class')).toBe('error-container -hide')
+  })
+
+  it(':list', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        list: 'testList',
+      },
+    })
+    expect(wrapper.get('input[type="text"]').attributes('list')).toBe(
+      'testList',
+    )
+  })
+
+  it(':keepValueOnUnmount', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        keepValueOnUnmount: true,
+      },
+    })
+    expect(wrapper.props().keepValueOnUnmount).toBe(true)
+  })
+
+  it(':validateOnMount', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        validateOnMount: true,
+      },
+    })
+    expect(wrapper.props().validateOnMount).toBe(true)
+  })
+})
+
+describe('emits', () => {
+  it(':update:modelValue', async () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+      },
+    })
+    await wrapper.setValue('test', 'modelValue')
+    expect(wrapper.emitted()).toHaveProperty('update:modelValue')
+    expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
+    expect(wrapper.emitted()['update:modelValue']).toEqual([['test']])
+  })
+
+  it(':validate', async () => {
+    // NOTE: 最大10文字。超えたらエラーを出す
+    const maxRule = (maximum: number) => {
+      return rules.max(maximum)
+    }
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        validatorRules: maxRule(10),
+        modelValue: 'test',
+      },
+    })
+    // NOTE: 最大10文字なので11文字入れてエラーを出す
+    await wrapper.get('input[type="text"]').setValue('12345678901')
+    await waitEffect()
+    expect(wrapper.emitted()).toHaveProperty('validate')
+    expect(wrapper.emitted()['validate']).toHaveLength(1)
+    /*
+     * TODO: バリデーションエラー時にZodエラーメッセージを二重否定の真偽値として送信するが、正しい値を送信しないのでコメントアウト
+     * expect(wrapper.emitted()['validate']).toStrictEqual([[true]])
+     */
+  })
+
+  it(':keyupEnter', async () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        keyupEnter: true,
+      },
+    })
+    await wrapper.get('input[type="text"]').trigger('keyup.enter')
+    expect(wrapper.emitted()).toHaveProperty('enter')
+    expect(wrapper.emitted()['enter']).toHaveLength(1)
+  })
+})
+
+describe('DOM check for error display', () => {
+  // NOTE: validatorName有りかつvalidatorRule無しをテスト
+  it(':validatorName', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        validatorName: 'testValidatorName',
+      },
+    })
+    // NOTE: <p class="error-container">が存在する確認
+    expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
+    // NOTE: <p class="error-container">の中の<span class="error">は存在しないことを確認
+    expect(
+      wrapper
+        .get('p[class="error-container"]')
+        .find('span[class="error"]')
+        .exists(),
+    ).toBe(false)
+  })
+
+  it(':validatorRules:max 10 strings', async () => {
+    const maxRule = (maximum: number) => {
+      return z.coerce.string().max(maximum, {
+        message: 'error max ' + maximum + ' strings',
+      })
+    }
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        validatorName: 'testValidatorName',
+        validatorRules: maxRule(10),
+      },
+    })
+    // NOTE: input欄、v-ifで絶対に居るのが確定してないので一応getでinput見つけて、バリデートで落ちる値を代入
+    await wrapper.get('input[type="text"]').setValue('12345678901')
+    /*
+     * NOTE: NG例として下記。modelValueを見てそうなので、modelValueにテスト値いれてinputイベントを強制発火。これは動作せず
+     * await wrapper.setValue('12345678901', 'modelValue')
+     * await wrapper.get('input[type="text"]').trigger('input')
+     */
+
+    // NOTE: setValueでinput欄に値を入れたのでsettimeoutのsleep関数で1ミリ秒以上で待つ。nextTickは効かない
+    await waitEffect()
+    /*
+     * NOTE: DOMの変化を確かめたい時は下記でターミナルに表示させて確認する
+     * console.info(wrapper.html())
+     * NOTE: <p class="error-container">が存在する確認
+     */
+    expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
+    // <p class="error-container">の中の<span class="error">が存在してエラーメッセージでてること確認
+    expect(
+      wrapper
+        .get('p[class="error-container"]')
+        .find('span[class="error"]')
+        .exists(),
+    ).toBe(true)
+    // NOTE: エラー文言の照合
+    expect(
+      wrapper
+        .get('p[class="error-container"]')
+        .find('span[class="error"]')
+        .text(),
+    ).toBe('error max 10 strings')
+  })
+
+  it(':props.error', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        validatorName: 'error test',
+        error: 'error message test',
+      },
+    })
+    expect(wrapper.props('error')).toBe('error message test')
+    expect(wrapper.get('label').attributes('class')).toBe('label -error')
+    expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
+    expect(
+      wrapper
+        .get('p[class="error-container"]')
+        .find('span[class="error"]')
+        .exists(),
+    ).toBe(true)
+    expect(
+      wrapper
+        .get('p[class="error-container"]')
+        .find('span[class="error"]')
+        .text(),
+    ).toBe('error message test')
+  })
+
+  it(':hideDetails', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        validatorName: 'error test',
+        error: 'error message test',
+        hideDetails: true,
+      },
+    })
+    expect(wrapper.props('error')).toBe('error message test')
+    expect(wrapper.get('label').attributes('class')).toBe('label -error')
+    expect(wrapper.get('p[class="error-container -hide"]')).toBeTruthy()
+    expect(
+      wrapper
+        .get('p[class="error-container -hide"]')
+        .find('span[class="error"]')
+        .exists(),
+    ).toBe(true)
+    expect(
+      wrapper
+        .get('p[class="error-container -hide"]')
+        .find('span[class="error"]')
+        .text(),
+    ).toBe('error message test')
+  })
+})
+````
+
 ## File: layers/base/app/test/components/hm/HmNoteList.spec.ts
 ````typescript
 import { mount } from '@vue/test-utils'
@@ -9495,6 +9924,485 @@ describe('HmSkeletonScreen', () => {
 
     expect(wrapper.find('.skeleton-screen').exists()).toBe(false)
     expect(wrapper.find('.slot-content').text()).toBe('Slot Content')
+  })
+})
+````
+
+## File: layers/base/app/test/components/hm/HmSlider.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createI18n } from 'vue-i18n'
+import { AnyVueWrapper } from '#base/app/test/models/vue'
+import HmSlider from '#base/app/components/hm/HmSlider.vue'
+
+// i18nの設定
+const i18n = createI18n({
+  legacy: false,
+  locale: 'ja',
+  messages: {
+    ja: {},
+    en: {},
+  },
+})
+
+// HTMLElement.animate のモック
+Object.defineProperty(HTMLElement.prototype, 'animate', {
+  value: vi.fn().mockReturnValue({
+    finished: Promise.resolve(),
+  }),
+})
+
+// window.setInterval のモック
+vi.stubGlobal('setInterval', vi.fn())
+vi.stubGlobal('clearInterval', vi.fn())
+
+describe('HmSlider', () => {
+  let wrapper: AnyVueWrapper
+
+  const defaultProps = {
+    slidename: 'test-slider',
+    itemsId: ['item1', 'item2', 'item3'],
+    arrow: true,
+    pagination: true,
+    amount: 3,
+    loop: false,
+    center: false,
+    page: true,
+    autoplay: false,
+    interval: 3000,
+    gapPc: '10px',
+    gapSp: '5px',
+    widthPc: '300px',
+    widthSp: '200px',
+    duration: 300,
+    easing: 'ease' as const,
+    draggable: true,
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    wrapper?.unmount()
+  })
+
+  describe('基本的なレンダリング', () => {
+    beforeEach(() => {
+      wrapper = mount(HmSlider, {
+        props: defaultProps,
+        slots: {
+          item: '<div class="slider-item">Test Item</div>',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+    })
+
+    it('コンポーネントがレンダリングされる', () => {
+      expect(wrapper.find('.slider-wrap').exists()).toBe(true)
+    })
+
+    it('スライダーボディがレンダリングされる', () => {
+      expect(wrapper.find('.slider-body').exists()).toBe(true)
+    })
+
+    it('スライダーインナーがレンダリングされる', () => {
+      expect(wrapper.find('.slider-inner').exists()).toBe(true)
+    })
+
+    it('CSSカスタムプロパティが正しく設定される', () => {
+      const sliderWrap = wrapper.find('.slider-wrap')
+      expect(sliderWrap.attributes('style')).toContain('--slide-amount: 3')
+      expect(sliderWrap.attributes('style')).toContain('--width-pc: 300px')
+      expect(sliderWrap.attributes('style')).toContain('--width-sp: 200px')
+    })
+  })
+
+  describe('ナビゲーション要素', () => {
+    beforeEach(() => {
+      wrapper = mount(HmSlider, {
+        props: defaultProps,
+        slots: {
+          item: '<div class="slider-item">Test Item</div>',
+          navigationprevious: '<span>Previous</span>',
+          navigationnext: '<span>Next</span>',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+    })
+
+    it('矢印ナビゲーションが表示される', () => {
+      expect(wrapper.find('.button--previous').exists()).toBe(true)
+      expect(wrapper.find('.button--next').exists()).toBe(true)
+    })
+
+    it('前へボタンのaria-labelが正しく設定される', () => {
+      const prevButton = wrapper.find('.button--previous')
+      expect(prevButton.attributes('aria-label')).toBe('スライドを1枚戻す')
+    })
+
+    it('次へボタンのaria-labelが正しく設定される', () => {
+      const nextButton = wrapper.find('.button--next')
+      expect(nextButton.attributes('aria-label')).toBe('スライドを1枚進める')
+    })
+  })
+
+  describe('ページネーション', () => {
+    beforeEach(() => {
+      wrapper = mount(HmSlider, {
+        props: defaultProps,
+        slots: {
+          item: '<div class="slider-item">Test Item</div>',
+          pagination: '<span class="dot"></span>',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+    })
+
+    it('ページネーションが表示される', () => {
+      expect(wrapper.find('.slider-pagination').exists()).toBe(true)
+    })
+
+    it('指定されたamount分のページネーションアイテムが表示される', () => {
+      expect(wrapper.findAll('.slider-pagination-item')).toHaveLength(3)
+    })
+
+    it('ページネーションボタンのaria-labelが正しく設定される', () => {
+      const paginationButtons = wrapper.findAll('.slider-pagination-button')
+      expect(paginationButtons[0]?.attributes('aria-label')).toBe('スライド1枚目を表示する')
+      expect(paginationButtons[1]?.attributes('aria-label')).toBe('スライド2枚目を表示する')
+    })
+
+    it('最初のページネーションボタンがaria-selectedされている', () => {
+      const paginationButtons = wrapper.findAll('.slider-pagination-button')
+      expect(paginationButtons[0]?.attributes('aria-selected')).toBe('true')
+      expect(paginationButtons[1]?.attributes('aria-selected')).toBe('false')
+    })
+  })
+
+  describe('ページ表示', () => {
+    beforeEach(() => {
+      wrapper = mount(HmSlider, {
+        props: defaultProps,
+        global: {
+          plugins: [i18n],
+        },
+      })
+    })
+
+    it('ページ表示が表示される', () => {
+      expect(wrapper.find('.slider-page').exists()).toBe(true)
+    })
+
+    it('現在のページ番号が表示される', () => {
+      expect(wrapper.find('.slider-page-start').text()).toBe('1')
+    })
+
+    it('総ページ数が表示される', () => {
+      expect(wrapper.find('.slider-page-total').text()).toBe('3')
+    })
+
+    it('progressbarのaria属性が正しく設定される', () => {
+      const progressbar = wrapper.find('.slider-page')
+      expect(progressbar.attributes('role')).toBe('progressbar')
+      expect(progressbar.attributes('aria-valuemin')).toBe('1')
+      expect(progressbar.attributes('aria-valuemax')).toBe('3')
+      expect(progressbar.attributes('aria-valuenow')).toBe('1')
+    })
+  })
+
+  describe('自動再生機能', () => {
+    beforeEach(() => {
+      wrapper = mount(HmSlider, {
+        props: {
+          ...defaultProps,
+          autoplay: true,
+        },
+        slots: {
+          autoplaystart: '<span>Start</span>',
+          autoplaystop: '<span>Stop</span>',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+    })
+
+    it('自動再生コントロールボタンが表示される', () => {
+      const buttons = wrapper.findAll('button')
+      const startButton = buttons.find(btn => btn.text().includes('Start'))
+      const stopButton = buttons.find(btn => btn.text().includes('Stop'))
+
+      expect(startButton).toBeTruthy()
+      expect(stopButton).toBeTruthy()
+    })
+  })
+
+  describe('ループ機能', () => {
+    beforeEach(() => {
+      wrapper = mount(HmSlider, {
+        props: {
+          ...defaultProps,
+          loop: true,
+        },
+        slots: {
+          item: '<div class="slider-item">Test Item</div>',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+    })
+
+    it('ループ有効時に複製スライドが表示される', () => {
+      expect(wrapper.find('.slider.-before').exists()).toBe(true)
+      expect(wrapper.find('.slider.-after').exists()).toBe(true)
+    })
+
+    it('複製スライドにaria-hidden属性が設定される', () => {
+      expect(wrapper.find('.slider.-before').attributes('aria-hidden')).toBe('true')
+      expect(wrapper.find('.slider.-after').attributes('aria-hidden')).toBe('true')
+    })
+  })
+
+  describe('props', () => {
+    it('centerプロパティが有効時にクラスが適用される', () => {
+      wrapper = mount(HmSlider, {
+        props: {
+          ...defaultProps,
+          center: true,
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+      expect(wrapper.find('.slider.-center').exists()).toBe(true)
+    })
+
+    it('arrow=falseで矢印が非表示になる', () => {
+      wrapper = mount(HmSlider, {
+        props: {
+          ...defaultProps,
+          arrow: false,
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+      expect(wrapper.find('.button--previous').exists()).toBe(false)
+      expect(wrapper.find('.button--next').exists()).toBe(false)
+    })
+
+    it('pagination=falseでページネーションが非表示になる', () => {
+      wrapper = mount(HmSlider, {
+        props: {
+          ...defaultProps,
+          pagination: false,
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+      expect(wrapper.find('.slider-pagination').exists()).toBe(false)
+    })
+
+    it('page=falseでページ表示が非表示になる', () => {
+      wrapper = mount(HmSlider, {
+        props: {
+          ...defaultProps,
+          page: false,
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+      expect(wrapper.find('.slider-page').exists()).toBe(false)
+    })
+  })
+
+  describe('内部状態', () => {
+    beforeEach(() => {
+      wrapper = mount(HmSlider, {
+        props: defaultProps,
+        global: {
+          plugins: [i18n],
+        },
+      })
+    })
+
+    it('初期状態でcurrentSlideが0', () => {
+      expect((wrapper.vm).currentSlide).toBe(0)
+    })
+
+    it('初期状態でdisabledPreviousがtrue（ループしない場合）', () => {
+      expect((wrapper.vm).disabledPrevious).toBe(true)
+    })
+
+    it('初期状態でdisabledNextがfalse', () => {
+      expect((wrapper.vm).disabledNext).toBe(false)
+    })
+  })
+
+  describe('メソッド', () => {
+    beforeEach(() => {
+      wrapper = mount(HmSlider, {
+        props: defaultProps,
+        global: {
+          plugins: [i18n],
+        },
+      })
+    })
+
+    it('moveSlider("next")でcurrentSlideが更新される', async () => {
+      await (wrapper.vm).moveSlider('next')
+      expect((wrapper.vm).currentSlide).toBe(-1)
+    })
+
+    it('moveSlider("previous")でcurrentSlideが更新される', async () => {
+      // まず次に進めてから前に戻る
+      await (wrapper.vm).moveSlider('next')
+      await (wrapper.vm).moveSlider('previous')
+      expect((wrapper.vm).currentSlide).toBe(0)
+    })
+
+    it('jumpSliderで指定したインデックスに移動する', async () => {
+      await (wrapper.vm).jumpSlider(2)
+      expect((wrapper.vm).currentSlide).toBe(-2)
+    })
+
+    it('startAutoPlayが呼ばれるとsetIntervalが実行される', () => {
+      const setIntervalSpy = vi.spyOn(window, 'setInterval')
+      ;(wrapper.vm).startAutoPlay()
+      expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), defaultProps.interval)
+    })
+
+    it('stopAutoPlayが呼ばれるとclearIntervalが実行される', () => {
+      const clearIntervalSpy = vi.spyOn(window, 'clearInterval')
+      wrapper = mount(HmSlider, {
+        props: { ...defaultProps, autoplay: true },
+        global: { plugins: [i18n] },
+      })
+      ;(wrapper.vm).stopAutoPlay()
+      expect(clearIntervalSpy).toHaveBeenCalled()
+    })
+  })
+
+  describe('イベントハンドリング', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let moveSliderSpy: any
+
+    beforeEach(() => {
+      wrapper = mount(HmSlider, {
+        props: defaultProps,
+        slots: {
+          navigationprevious: '<span>Previous</span>',
+          navigationnext: '<span>Next</span>',
+          pagination: '<span class="dot"></span>',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+      moveSliderSpy = vi.spyOn(wrapper.vm, 'moveSlider')
+    })
+
+    it('次へボタンクリックでmoveSliderが呼ばれる', async () => {
+      const nextButton = wrapper.find('.button--next')
+      await nextButton.trigger('click')
+      expect(moveSliderSpy).toHaveBeenCalledWith('next')
+    })
+
+    it('前へボタンクリックでmoveSliderが呼ばれる', async () => {
+      // まず次に進めてから前へボタンを有効にする
+      moveSliderSpy.mockClear() // 既存の呼び出しをクリア
+      await (wrapper.vm).moveSlider('next')
+      await (wrapper.vm).$nextTick()
+
+      moveSliderSpy.mockClear() // 上記の呼び出しをクリア
+      const prevButton = wrapper.find('.button--previous')
+      await prevButton.trigger('click')
+      expect(moveSliderSpy).toHaveBeenCalledWith('previous')
+    })
+
+    it('ページネーションボタンクリックでjumpSliderが呼ばれる', async () => {
+      const jumpSliderSpy = vi.spyOn(wrapper.vm, 'jumpSlider')
+      const paginationButton = wrapper.findAll('.slider-pagination-button')[1]
+      await paginationButton?.trigger('click')
+      expect(jumpSliderSpy).toHaveBeenCalledWith(1)
+    })
+  })
+
+  describe('ドラッグ機能', () => {
+    beforeEach(() => {
+      wrapper = mount(HmSlider, {
+        props: defaultProps,
+        global: {
+          plugins: [i18n],
+        },
+      })
+    })
+
+    it('touchstartイベントがslider-innerに正しく設定される', () => {
+      const sliderInner = wrapper.find('.slider-inner')
+      expect(sliderInner.exists()).toBe(true)
+
+      // touchstartイベントをトリガーしてもエラーが発生しないことを確認
+      expect(() => {
+        void sliderInner.trigger('touchstart', {
+          touches: [{ pageX: 100 }],
+        })
+      }).not.toThrow()
+    })
+
+    it('mousedownイベントがslider-innerに正しく設定される', () => {
+      const sliderInner = wrapper.find('.slider-inner')
+      expect(sliderInner.exists()).toBe(true)
+
+      // mousedownイベントをトリガーしてもエラーが発生しないことを確認
+      expect(() => {
+        void sliderInner.trigger('mousedown', {
+          pageX: 100,
+        })
+      }).not.toThrow()
+    })
+  })
+
+  describe('国際化対応', () => {
+    it('英語ロケールでaria-labelが英語になる', () => {
+      const enI18n = createI18n({
+        legacy: false,
+        locale: 'en',
+        messages: {
+          ja: {},
+          en: {},
+        },
+      })
+
+      wrapper = mount(HmSlider, {
+        props: defaultProps,
+        slots: {
+          navigationprevious: '<span>Previous</span>',
+          navigationnext: '<span>Next</span>',
+          pagination: '<span class="dot"></span>',
+        },
+        global: {
+          plugins: [enI18n],
+        },
+      })
+
+      const prevButton = wrapper.find('.button--previous')
+      const nextButton = wrapper.find('.button--next')
+
+      expect(prevButton.attributes('aria-label')).toBe('Show previous slide')
+      expect(nextButton.attributes('aria-label')).toBe('Show next slide')
+    })
   })
 })
 ````
@@ -9817,6 +10725,204 @@ describe('locale ja', () => {
     expect(generatedShareUrl).toBe(
       'http://line.me/R/msg/text/?testText',
     )
+  })
+})
+````
+
+## File: layers/base/app/test/composables/useToast.spec.ts
+````typescript
+import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { useToast, toastInjectionKey, type ToastComposable } from '#base/app/composables/useToast'
+
+// $toastのモック - 固定インスタンス
+const mockToast = {
+  info: vi.fn(),
+  success: vi.fn(),
+  error: vi.fn(),
+  warning: vi.fn(),
+}
+
+// useNuxtAppのモック
+vi.mock('#app', () => ({
+  useNuxtApp: vi.fn(() => ({
+    $toast: mockToast,
+  })),
+}))
+
+// テストで使用するためにモックを取得
+const { useNuxtApp } = await import('#app')
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockUseNuxtApp = useNuxtApp as any
+
+describe('useToast composable', () => {
+  beforeEach(() => {
+    // 各モック関数の呼び出し履歴だけをクリア
+    mockToast.info.mockClear()
+    mockToast.success.mockClear()
+    mockToast.error.mockClear()
+    mockToast.warning.mockClear()
+    mockUseNuxtApp.mockClear()
+  })
+
+  describe('useToast', () => {
+    it('addToast関数を返す', () => {
+      const { addToast } = useToast()
+      expect(typeof addToast).toBe('function')
+    })
+
+    it('useNuxtAppから$toastを取得する', () => {
+      useToast()
+      expect(useNuxtApp).toHaveBeenCalled()
+    })
+  })
+
+  describe('addToast', () => {
+    it('デフォルトでinfoタイプのtoastを表示する', () => {
+      const { addToast } = useToast()
+      addToast('Test message')
+
+      expect(mockToast.info).toHaveBeenCalledWith('Test message', {
+        delay: undefined,
+        closeButton: false,
+      })
+    })
+
+    it('指定したタイプのtoastを表示する', () => {
+      const { addToast } = useToast()
+
+      addToast('Success message', 'success')
+      expect(mockToast.success).toHaveBeenCalledWith('Success message', {
+        delay: undefined,
+        closeButton: false,
+      })
+
+      addToast('Error message', 'error')
+      expect(mockToast.error).toHaveBeenCalledWith('Error message', {
+        delay: undefined,
+        closeButton: false,
+      })
+
+      addToast('Warning message', 'warning')
+      expect(mockToast.warning).toHaveBeenCalledWith('Warning message', {
+        delay: undefined,
+        closeButton: false,
+      })
+    })
+
+    it('時間を指定してtoastを表示する', () => {
+      const { addToast } = useToast()
+      addToast('Timed message', 'info', 5000)
+
+      expect(mockToast.info).toHaveBeenCalledWith('Timed message', {
+        delay: 5000,
+        closeButton: false,
+      })
+    })
+
+    it('閉じるボタンを有効にしてtoastを表示する', () => {
+      const { addToast } = useToast()
+      addToast('Closable message', 'info', undefined, true)
+
+      expect(mockToast.info).toHaveBeenCalledWith('Closable message', {
+        delay: undefined,
+        closeButton: true,
+      })
+    })
+
+    it('すべてのオプションを指定してtoastを表示する', () => {
+      const { addToast } = useToast()
+      addToast('Full options message', 'success', 3000, true)
+
+      expect(mockToast.success).toHaveBeenCalledWith('Full options message', {
+        delay: 3000,
+        closeButton: true,
+      })
+    })
+
+    it('各toastタイプが正しく呼ばれる', () => {
+      const { addToast } = useToast()
+
+      const types: ('info' | 'success' | 'error' | 'warning')[] = [
+        'info',
+        'success',
+        'error',
+        'warning',
+      ]
+
+      types.forEach((type) => {
+        addToast(`${type} message`, type)
+        expect(mockToast[type]).toHaveBeenCalledWith(`${type} message`, {
+          delay: undefined,
+          closeButton: false,
+        })
+      })
+    })
+
+    it('undefinedタイプの場合infoを使用', () => {
+      const { addToast } = useToast()
+      addToast('Default message', undefined)
+
+      expect(mockToast.info).toHaveBeenCalledWith('Default message', {
+        delay: undefined,
+        closeButton: false,
+      })
+    })
+
+    it('isClosableのデフォルト値はfalse', () => {
+      const { addToast } = useToast()
+      addToast('Message without closable param', 'info', 1000)
+
+      expect(mockToast.info).toHaveBeenCalledWith('Message without closable param', {
+        delay: 1000,
+        closeButton: false,
+      })
+    })
+  })
+
+  describe('型定義', () => {
+    it('ToastComposable型が正しく推論される', () => {
+      const toast: ToastComposable = useToast()
+      expect(toast).toHaveProperty('addToast')
+      expect(typeof toast.addToast).toBe('function')
+    })
+
+    it('toastInjectionKeyがSymbolである', () => {
+      expect(typeof toastInjectionKey).toBe('symbol')
+      expect(toastInjectionKey.toString()).toContain('toast')
+    })
+  })
+
+  describe('デフォルトエクスポート', () => {
+    it('useToastがデフォルトエクスポートされている', async () => {
+      const defaultExport = (await import('#base/app/composables/useToast')).default
+      expect(defaultExport).toBe(useToast)
+    })
+  })
+
+  describe('エラーハンドリング', () => {
+    it('$toastが存在しない場合でもエラーにならない', () => {
+      // useNuxtAppのモックを一時的に上書き
+      mockUseNuxtApp.mockReturnValueOnce({
+        $toast: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any)
+
+      expect(() => {
+        const { addToast } = useToast()
+        // $toastがundefinedでもエラーにならないかテスト
+        expect(addToast).toBeDefined()
+      }).not.toThrow()
+    })
+
+    it('無効なtoastタイプでもエラーにならない', () => {
+      const { addToast } = useToast()
+
+      expect(() => {
+        // 型安全でないが、ランタイムでのテスト
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        addToast('Test', 'invalid' as any)
+      }).not.toThrow()
+    })
   })
 })
 ````
@@ -10519,6 +11625,94 @@ describe('createUuidV4', () => {
 })
 ````
 
+## File: layers/base/app/test/utils/zod.spec.ts
+````typescript
+import { fc, test } from '@fast-check/vitest'
+import { describe, expect } from 'vitest'
+import { z } from 'zod/v3'
+import { ensureValueOf, getMax, isValueOf, makeRecursiveSchema } from '#base/app/utils/zod'
+
+describe('isValueOf', () => {
+  test('returns true if schema parses successfully', () => {
+    const schema = z.object({
+      a: z.number(),
+    })
+    const value = {
+      a: 42,
+    }
+    expect(isValueOf(schema, value)).toEqual(true)
+  })
+
+  test('returns false if schema failed to parse', () => {
+    const schema = z.object({
+      a: z.number().negative(),
+    })
+    const value = {
+      a: 42,
+    }
+    expect(isValueOf(schema, value)).toEqual(false)
+  })
+})
+
+describe('ensureValueOf', () => {
+  test('throws an error if schema failed to parse', () => {
+    const schema = z.object({
+      a: z.number().negative(),
+    })
+    const value = {
+      a: 42,
+    }
+    expect(() => ensureValueOf(schema, value)).toThrow()
+  })
+})
+
+describe('getMax', () => {
+  test.prop([fc.nat()])(
+    'takes the num of z.string().max(num) from the _def',
+    (n) => {
+      expect(getMax(z.string().max(n)._def)).toBe(n)
+    },
+  )
+
+  test('takes nothing from the zod schema does not have .max(num)', () => {
+    expect(getMax(z.string()._def)).toBeUndefined()
+  })
+})
+
+describe('makeRecursiveSchema', () => {
+  test('can make a recursive schema and the schema can validate values recursively', () => {
+    const treeSchema = makeRecursiveSchema(self =>
+      z.union([
+        z.object({ type: z.literal('leaf'), value: z.string() }),
+        z.object({ type: z.literal('branch'), children: self.array() }),
+      ]),
+    )
+
+    // treeSchemaは再帰構造のうち **一階層** だけバリデーションできる
+    const x: unknown = {
+      type: 'branch',
+      children: [{ type: 'leaf', value: 'foo' }],
+    }
+    const tree = treeSchema.parse(x)
+    if (tree.type !== 'branch') {
+      throw new Error('Expected a branch, but got a leaf.')
+    }
+    /*
+     * treeSchemaは一階層だけしかバリデーションできないので、yはSelf型になる
+     * Self型は実質Record<never, unknown>な型。@/utils/zodがselfKeyをexportしていないため
+     */
+    const y = tree.children[0] ?? raiseError('Fatal error')
+
+    // さらに階層を深堀したい場合は、再パースする必要がある
+    const subTree = treeSchema.parse(y)
+    if (subTree.type !== 'leaf') {
+      throw new Error('Expected a leaf, but got a branch.')
+    }
+    expect(subTree.value).toBe('foo')
+  })
+})
+````
+
 ## File: layers/base/app/test/components/hm/input/HmInputSingleImage.spec.ts
 ````typescript
 import { mount } from '@vue/test-utils'
@@ -10643,1112 +11837,6 @@ describe('props', () => {
     await waitEffect()
 
     expect(wrapper.find('.ha-dialog').exists()).toBe(true)
-  })
-})
-````
-
-## File: layers/base/app/test/components/hm/input/HmInputText.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { beforeEach, afterEach, describe, it, test, expect, vi } from 'vitest'
-import z from 'zod/v3'
-import HmInputText from '#base/app/components/hm/input/HmInputText.vue'
-import useValidationRules from '#base/app/composables/useValidationRules'
-import { waitEffect } from '#base/app/utils/sleep'
-
-// vue-i18nのモックはファイルトップレベルで定義
-vi.mock('vue-i18n', () => ({
-  useI18n: vi.fn(() => ({
-    local: {
-      value: 'ja',
-    },
-    locale: {
-      value: 'ja',
-    },
-    t: (key: string, ..._args: unknown[]) => `dummy-${key}`,
-  })),
-}))
-
-const rules = useValidationRules()
-
-beforeEach(() => {
-  vi.clearAllMocks()
-})
-
-afterEach(() => {
-  vi.restoreAllMocks()
-})
-
-test('ref component', () => {
-  expect(HmInputText).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HmInputText)
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-describe('props', () => {
-  it(':placeholder', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        placeholder: 'placeholder text',
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('placeholder')).toBe(
-      'placeholder text',
-    )
-  })
-
-  it(':type', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('type')).toBe('text')
-  })
-
-  it(':validatorName', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorName: 'testValidatorName',
-      },
-    })
-    expect(wrapper.props('validatorName' as never)).toBe('testValidatorName')
-  })
-
-  it(':validatorRules', () => {
-    const testValidatorRules = rules.required
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorName: 'testValidatorName',
-        validatorRules: testValidatorRules,
-      },
-    })
-    expect(wrapper.props('validatorRules' as never)).toStrictEqual(
-      testValidatorRules,
-    )
-  })
-
-  it(':required', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        required: true,
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('required')).toBe('')
-  })
-
-  it(':modelValue', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        modelValue: 'modelValue text',
-      },
-    })
-    expect(wrapper.props('modelValue' as never)).toBe('modelValue text')
-  })
-
-  it(':disabled', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        disabled: true,
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('disabled')).toBe('')
-  })
-
-  it(':counter:length display', async () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        counter: true,
-      },
-    })
-    await wrapper.get('input[type="text"]').setValue('1234567890')
-    await waitEffect()
-    expect(wrapper.get('span[class="counter"]').text()).toBe('10')
-  })
-
-  it(':counter:length/max display', async () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        counter: { max: 50 },
-      },
-    })
-    await wrapper.get('input[type="text"]').setValue('1234567890')
-    await waitEffect()
-    expect(wrapper.get('span[class="counter"]').text()).toBe('10/50')
-  })
-
-  it(':min', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        min: 3,
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('min')).toBe('3')
-  })
-
-  it(':keyupEnter', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        keyupEnter: true,
-      },
-    })
-    expect(wrapper.props('keyupEnter' as never)).toBe(true)
-  })
-
-  it(':isLazy', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        isLazy: true,
-      },
-    })
-    expect(wrapper.props('isLazy' as never)).toBe(true)
-  })
-
-  it(':isTrim', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        isTrim: true,
-      },
-    })
-    expect(wrapper.props('isTrim' as never)).toBe(true)
-  })
-
-  it(':small', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        small: true,
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('class')).toBe(
-      'ha-base-input input -small',
-    )
-  })
-
-  it(':name', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        name: 'testName',
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('name')).toBe(
-      'testName',
-    )
-  })
-
-  it(':error', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        error: 'testError',
-      },
-    })
-    expect(wrapper.props('error')).toBe('testError')
-  })
-
-  it(':hideDetails', () => {
-    // -hide classを確認するためには、validatorRulesが必要
-    const testValidatorRules = rules.required
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        hideDetails: true,
-        validatorRules: testValidatorRules,
-      },
-    })
-    expect(wrapper.props('hideDetails')).toBe(true)
-    // -hide classが付与されていることを確認
-    expect(wrapper.get('p').attributes('class')).toBe('error-container -hide')
-  })
-
-  it(':list', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        list: 'testList',
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('list')).toBe(
-      'testList',
-    )
-  })
-
-  it(':keepValueOnUnmount', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        keepValueOnUnmount: true,
-      },
-    })
-    expect(wrapper.props().keepValueOnUnmount).toBe(true)
-  })
-
-  it(':validateOnMount', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        validateOnMount: true,
-      },
-    })
-    expect(wrapper.props().validateOnMount).toBe(true)
-  })
-})
-
-describe('emits', () => {
-  it(':update:modelValue', async () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-      },
-    })
-    await wrapper.setValue('test', 'modelValue')
-    expect(wrapper.emitted()).toHaveProperty('update:modelValue')
-    expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
-    expect(wrapper.emitted()['update:modelValue']).toEqual([['test']])
-  })
-
-  it(':validate', async () => {
-    // NOTE: 最大10文字。超えたらエラーを出す
-    const maxRule = (maximum: number) => {
-      return rules.max(maximum)
-    }
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorRules: maxRule(10),
-        modelValue: 'test',
-      },
-    })
-    // NOTE: 最大10文字なので11文字入れてエラーを出す
-    await wrapper.get('input[type="text"]').setValue('12345678901')
-    await waitEffect()
-    expect(wrapper.emitted()).toHaveProperty('validate')
-    expect(wrapper.emitted()['validate']).toHaveLength(1)
-    /*
-     * TODO: バリデーションエラー時にZodエラーメッセージを二重否定の真偽値として送信するが、正しい値を送信しないのでコメントアウト
-     * expect(wrapper.emitted()['validate']).toStrictEqual([[true]])
-     */
-  })
-
-  it(':keyupEnter', async () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        keyupEnter: true,
-      },
-    })
-    await wrapper.get('input[type="text"]').trigger('keyup.enter')
-    expect(wrapper.emitted()).toHaveProperty('enter')
-    expect(wrapper.emitted()['enter']).toHaveLength(1)
-  })
-})
-
-describe('DOM check for error display', () => {
-  // NOTE: validatorName有りかつvalidatorRule無しをテスト
-  it(':validatorName', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorName: 'testValidatorName',
-      },
-    })
-    // NOTE: <p class="error-container">が存在する確認
-    expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
-    // NOTE: <p class="error-container">の中の<span class="error">は存在しないことを確認
-    expect(
-      wrapper
-        .get('p[class="error-container"]')
-        .find('span[class="error"]')
-        .exists(),
-    ).toBe(false)
-  })
-
-  it(':validatorRules:max 10 strings', async () => {
-    const maxRule = (maximum: number) => {
-      return z.coerce.string().max(maximum, {
-        message: 'error max ' + maximum + ' strings',
-      })
-    }
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorName: 'testValidatorName',
-        validatorRules: maxRule(10),
-      },
-    })
-    // NOTE: input欄、v-ifで絶対に居るのが確定してないので一応getでinput見つけて、バリデートで落ちる値を代入
-    await wrapper.get('input[type="text"]').setValue('12345678901')
-    /*
-     * NOTE: NG例として下記。modelValueを見てそうなので、modelValueにテスト値いれてinputイベントを強制発火。これは動作せず
-     * await wrapper.setValue('12345678901', 'modelValue')
-     * await wrapper.get('input[type="text"]').trigger('input')
-     */
-
-    // NOTE: setValueでinput欄に値を入れたのでsettimeoutのsleep関数で1ミリ秒以上で待つ。nextTickは効かない
-    await waitEffect()
-    /*
-     * NOTE: DOMの変化を確かめたい時は下記でターミナルに表示させて確認する
-     * console.info(wrapper.html())
-     * NOTE: <p class="error-container">が存在する確認
-     */
-    expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
-    // <p class="error-container">の中の<span class="error">が存在してエラーメッセージでてること確認
-    expect(
-      wrapper
-        .get('p[class="error-container"]')
-        .find('span[class="error"]')
-        .exists(),
-    ).toBe(true)
-    // NOTE: エラー文言の照合
-    expect(
-      wrapper
-        .get('p[class="error-container"]')
-        .find('span[class="error"]')
-        .text(),
-    ).toBe('error max 10 strings')
-  })
-
-  it(':props.error', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorName: 'error test',
-        error: 'error message test',
-      },
-    })
-    expect(wrapper.props('error')).toBe('error message test')
-    expect(wrapper.get('label').attributes('class')).toBe('label -error')
-    expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
-    expect(
-      wrapper
-        .get('p[class="error-container"]')
-        .find('span[class="error"]')
-        .exists(),
-    ).toBe(true)
-    expect(
-      wrapper
-        .get('p[class="error-container"]')
-        .find('span[class="error"]')
-        .text(),
-    ).toBe('error message test')
-  })
-
-  it(':hideDetails', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorName: 'error test',
-        error: 'error message test',
-        hideDetails: true,
-      },
-    })
-    expect(wrapper.props('error')).toBe('error message test')
-    expect(wrapper.get('label').attributes('class')).toBe('label -error')
-    expect(wrapper.get('p[class="error-container -hide"]')).toBeTruthy()
-    expect(
-      wrapper
-        .get('p[class="error-container -hide"]')
-        .find('span[class="error"]')
-        .exists(),
-    ).toBe(true)
-    expect(
-      wrapper
-        .get('p[class="error-container -hide"]')
-        .find('span[class="error"]')
-        .text(),
-    ).toBe('error message test')
-  })
-})
-````
-
-## File: layers/base/app/test/components/hm/HmSlider.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createI18n } from 'vue-i18n'
-import { AnyVueWrapper } from '#base/app/test/models/vue'
-import HmSlider from '#base/app/components/hm/HmSlider.vue'
-
-// i18nの設定
-const i18n = createI18n({
-  legacy: false,
-  locale: 'ja',
-  messages: {
-    ja: {},
-    en: {},
-  },
-})
-
-// HTMLElement.animate のモック
-Object.defineProperty(HTMLElement.prototype, 'animate', {
-  value: vi.fn().mockReturnValue({
-    finished: Promise.resolve(),
-  }),
-})
-
-// window.setInterval のモック
-vi.stubGlobal('setInterval', vi.fn())
-vi.stubGlobal('clearInterval', vi.fn())
-
-describe('HmSlider', () => {
-  let wrapper: AnyVueWrapper
-
-  const defaultProps = {
-    slidename: 'test-slider',
-    itemsId: ['item1', 'item2', 'item3'],
-    arrow: true,
-    pagination: true,
-    amount: 3,
-    loop: false,
-    center: false,
-    page: true,
-    autoplay: false,
-    interval: 3000,
-    gapPc: '10px',
-    gapSp: '5px',
-    widthPc: '300px',
-    widthSp: '200px',
-    duration: 300,
-    easing: 'ease' as const,
-    draggable: true,
-  }
-
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
-  afterEach(() => {
-    wrapper?.unmount()
-  })
-
-  describe('基本的なレンダリング', () => {
-    beforeEach(() => {
-      wrapper = mount(HmSlider, {
-        props: defaultProps,
-        slots: {
-          item: '<div class="slider-item">Test Item</div>',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-    })
-
-    it('コンポーネントがレンダリングされる', () => {
-      expect(wrapper.find('.slider-wrap').exists()).toBe(true)
-    })
-
-    it('スライダーボディがレンダリングされる', () => {
-      expect(wrapper.find('.slider-body').exists()).toBe(true)
-    })
-
-    it('スライダーインナーがレンダリングされる', () => {
-      expect(wrapper.find('.slider-inner').exists()).toBe(true)
-    })
-
-    it('CSSカスタムプロパティが正しく設定される', () => {
-      const sliderWrap = wrapper.find('.slider-wrap')
-      expect(sliderWrap.attributes('style')).toContain('--slide-amount: 3')
-      expect(sliderWrap.attributes('style')).toContain('--width-pc: 300px')
-      expect(sliderWrap.attributes('style')).toContain('--width-sp: 200px')
-    })
-  })
-
-  describe('ナビゲーション要素', () => {
-    beforeEach(() => {
-      wrapper = mount(HmSlider, {
-        props: defaultProps,
-        slots: {
-          item: '<div class="slider-item">Test Item</div>',
-          navigationprevious: '<span>Previous</span>',
-          navigationnext: '<span>Next</span>',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-    })
-
-    it('矢印ナビゲーションが表示される', () => {
-      expect(wrapper.find('.button--previous').exists()).toBe(true)
-      expect(wrapper.find('.button--next').exists()).toBe(true)
-    })
-
-    it('前へボタンのaria-labelが正しく設定される', () => {
-      const prevButton = wrapper.find('.button--previous')
-      expect(prevButton.attributes('aria-label')).toBe('スライドを1枚戻す')
-    })
-
-    it('次へボタンのaria-labelが正しく設定される', () => {
-      const nextButton = wrapper.find('.button--next')
-      expect(nextButton.attributes('aria-label')).toBe('スライドを1枚進める')
-    })
-  })
-
-  describe('ページネーション', () => {
-    beforeEach(() => {
-      wrapper = mount(HmSlider, {
-        props: defaultProps,
-        slots: {
-          item: '<div class="slider-item">Test Item</div>',
-          pagination: '<span class="dot"></span>',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-    })
-
-    it('ページネーションが表示される', () => {
-      expect(wrapper.find('.slider-pagination').exists()).toBe(true)
-    })
-
-    it('指定されたamount分のページネーションアイテムが表示される', () => {
-      expect(wrapper.findAll('.slider-pagination-item')).toHaveLength(3)
-    })
-
-    it('ページネーションボタンのaria-labelが正しく設定される', () => {
-      const paginationButtons = wrapper.findAll('.slider-pagination-button')
-      expect(paginationButtons[0]?.attributes('aria-label')).toBe('スライド1枚目を表示する')
-      expect(paginationButtons[1]?.attributes('aria-label')).toBe('スライド2枚目を表示する')
-    })
-
-    it('最初のページネーションボタンがaria-selectedされている', () => {
-      const paginationButtons = wrapper.findAll('.slider-pagination-button')
-      expect(paginationButtons[0]?.attributes('aria-selected')).toBe('true')
-      expect(paginationButtons[1]?.attributes('aria-selected')).toBe('false')
-    })
-  })
-
-  describe('ページ表示', () => {
-    beforeEach(() => {
-      wrapper = mount(HmSlider, {
-        props: defaultProps,
-        global: {
-          plugins: [i18n],
-        },
-      })
-    })
-
-    it('ページ表示が表示される', () => {
-      expect(wrapper.find('.slider-page').exists()).toBe(true)
-    })
-
-    it('現在のページ番号が表示される', () => {
-      expect(wrapper.find('.slider-page-start').text()).toBe('1')
-    })
-
-    it('総ページ数が表示される', () => {
-      expect(wrapper.find('.slider-page-total').text()).toBe('3')
-    })
-
-    it('progressbarのaria属性が正しく設定される', () => {
-      const progressbar = wrapper.find('.slider-page')
-      expect(progressbar.attributes('role')).toBe('progressbar')
-      expect(progressbar.attributes('aria-valuemin')).toBe('1')
-      expect(progressbar.attributes('aria-valuemax')).toBe('3')
-      expect(progressbar.attributes('aria-valuenow')).toBe('1')
-    })
-  })
-
-  describe('自動再生機能', () => {
-    beforeEach(() => {
-      wrapper = mount(HmSlider, {
-        props: {
-          ...defaultProps,
-          autoplay: true,
-        },
-        slots: {
-          autoplaystart: '<span>Start</span>',
-          autoplaystop: '<span>Stop</span>',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-    })
-
-    it('自動再生コントロールボタンが表示される', () => {
-      const buttons = wrapper.findAll('button')
-      const startButton = buttons.find(btn => btn.text().includes('Start'))
-      const stopButton = buttons.find(btn => btn.text().includes('Stop'))
-
-      expect(startButton).toBeTruthy()
-      expect(stopButton).toBeTruthy()
-    })
-  })
-
-  describe('ループ機能', () => {
-    beforeEach(() => {
-      wrapper = mount(HmSlider, {
-        props: {
-          ...defaultProps,
-          loop: true,
-        },
-        slots: {
-          item: '<div class="slider-item">Test Item</div>',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-    })
-
-    it('ループ有効時に複製スライドが表示される', () => {
-      expect(wrapper.find('.slider.-before').exists()).toBe(true)
-      expect(wrapper.find('.slider.-after').exists()).toBe(true)
-    })
-
-    it('複製スライドにaria-hidden属性が設定される', () => {
-      expect(wrapper.find('.slider.-before').attributes('aria-hidden')).toBe('true')
-      expect(wrapper.find('.slider.-after').attributes('aria-hidden')).toBe('true')
-    })
-  })
-
-  describe('props', () => {
-    it('centerプロパティが有効時にクラスが適用される', () => {
-      wrapper = mount(HmSlider, {
-        props: {
-          ...defaultProps,
-          center: true,
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-      expect(wrapper.find('.slider.-center').exists()).toBe(true)
-    })
-
-    it('arrow=falseで矢印が非表示になる', () => {
-      wrapper = mount(HmSlider, {
-        props: {
-          ...defaultProps,
-          arrow: false,
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-      expect(wrapper.find('.button--previous').exists()).toBe(false)
-      expect(wrapper.find('.button--next').exists()).toBe(false)
-    })
-
-    it('pagination=falseでページネーションが非表示になる', () => {
-      wrapper = mount(HmSlider, {
-        props: {
-          ...defaultProps,
-          pagination: false,
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-      expect(wrapper.find('.slider-pagination').exists()).toBe(false)
-    })
-
-    it('page=falseでページ表示が非表示になる', () => {
-      wrapper = mount(HmSlider, {
-        props: {
-          ...defaultProps,
-          page: false,
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-      expect(wrapper.find('.slider-page').exists()).toBe(false)
-    })
-  })
-
-  describe('内部状態', () => {
-    beforeEach(() => {
-      wrapper = mount(HmSlider, {
-        props: defaultProps,
-        global: {
-          plugins: [i18n],
-        },
-      })
-    })
-
-    it('初期状態でcurrentSlideが0', () => {
-      expect((wrapper.vm).currentSlide).toBe(0)
-    })
-
-    it('初期状態でdisabledPreviousがtrue（ループしない場合）', () => {
-      expect((wrapper.vm).disabledPrevious).toBe(true)
-    })
-
-    it('初期状態でdisabledNextがfalse', () => {
-      expect((wrapper.vm).disabledNext).toBe(false)
-    })
-  })
-
-  describe('メソッド', () => {
-    beforeEach(() => {
-      wrapper = mount(HmSlider, {
-        props: defaultProps,
-        global: {
-          plugins: [i18n],
-        },
-      })
-    })
-
-    it('moveSlider("next")でcurrentSlideが更新される', async () => {
-      await (wrapper.vm).moveSlider('next')
-      expect((wrapper.vm).currentSlide).toBe(-1)
-    })
-
-    it('moveSlider("previous")でcurrentSlideが更新される', async () => {
-      // まず次に進めてから前に戻る
-      await (wrapper.vm).moveSlider('next')
-      await (wrapper.vm).moveSlider('previous')
-      expect((wrapper.vm).currentSlide).toBe(0)
-    })
-
-    it('jumpSliderで指定したインデックスに移動する', async () => {
-      await (wrapper.vm).jumpSlider(2)
-      expect((wrapper.vm).currentSlide).toBe(-2)
-    })
-
-    it('startAutoPlayが呼ばれるとsetIntervalが実行される', () => {
-      const setIntervalSpy = vi.spyOn(window, 'setInterval')
-      ;(wrapper.vm).startAutoPlay()
-      expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), defaultProps.interval)
-    })
-
-    it('stopAutoPlayが呼ばれるとclearIntervalが実行される', () => {
-      const clearIntervalSpy = vi.spyOn(window, 'clearInterval')
-      wrapper = mount(HmSlider, {
-        props: { ...defaultProps, autoplay: true },
-        global: { plugins: [i18n] },
-      })
-      ;(wrapper.vm).stopAutoPlay()
-      expect(clearIntervalSpy).toHaveBeenCalled()
-    })
-  })
-
-  describe('イベントハンドリング', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let moveSliderSpy: any
-
-    beforeEach(() => {
-      wrapper = mount(HmSlider, {
-        props: defaultProps,
-        slots: {
-          navigationprevious: '<span>Previous</span>',
-          navigationnext: '<span>Next</span>',
-          pagination: '<span class="dot"></span>',
-        },
-        global: {
-          plugins: [i18n],
-        },
-      })
-      moveSliderSpy = vi.spyOn(wrapper.vm, 'moveSlider')
-    })
-
-    it('次へボタンクリックでmoveSliderが呼ばれる', async () => {
-      const nextButton = wrapper.find('.button--next')
-      await nextButton.trigger('click')
-      expect(moveSliderSpy).toHaveBeenCalledWith('next')
-    })
-
-    it('前へボタンクリックでmoveSliderが呼ばれる', async () => {
-      // まず次に進めてから前へボタンを有効にする
-      moveSliderSpy.mockClear() // 既存の呼び出しをクリア
-      await (wrapper.vm).moveSlider('next')
-      await (wrapper.vm).$nextTick()
-
-      moveSliderSpy.mockClear() // 上記の呼び出しをクリア
-      const prevButton = wrapper.find('.button--previous')
-      await prevButton.trigger('click')
-      expect(moveSliderSpy).toHaveBeenCalledWith('previous')
-    })
-
-    it('ページネーションボタンクリックでjumpSliderが呼ばれる', async () => {
-      const jumpSliderSpy = vi.spyOn(wrapper.vm, 'jumpSlider')
-      const paginationButton = wrapper.findAll('.slider-pagination-button')[1]
-      await paginationButton?.trigger('click')
-      expect(jumpSliderSpy).toHaveBeenCalledWith(1)
-    })
-  })
-
-  describe('ドラッグ機能', () => {
-    beforeEach(() => {
-      wrapper = mount(HmSlider, {
-        props: defaultProps,
-        global: {
-          plugins: [i18n],
-        },
-      })
-    })
-
-    it('touchstartイベントがslider-innerに正しく設定される', () => {
-      const sliderInner = wrapper.find('.slider-inner')
-      expect(sliderInner.exists()).toBe(true)
-
-      // touchstartイベントをトリガーしてもエラーが発生しないことを確認
-      expect(() => {
-        void sliderInner.trigger('touchstart', {
-          touches: [{ pageX: 100 }],
-        })
-      }).not.toThrow()
-    })
-
-    it('mousedownイベントがslider-innerに正しく設定される', () => {
-      const sliderInner = wrapper.find('.slider-inner')
-      expect(sliderInner.exists()).toBe(true)
-
-      // mousedownイベントをトリガーしてもエラーが発生しないことを確認
-      expect(() => {
-        void sliderInner.trigger('mousedown', {
-          pageX: 100,
-        })
-      }).not.toThrow()
-    })
-  })
-
-  describe('国際化対応', () => {
-    it('英語ロケールでaria-labelが英語になる', () => {
-      const enI18n = createI18n({
-        legacy: false,
-        locale: 'en',
-        messages: {
-          ja: {},
-          en: {},
-        },
-      })
-
-      wrapper = mount(HmSlider, {
-        props: defaultProps,
-        slots: {
-          navigationprevious: '<span>Previous</span>',
-          navigationnext: '<span>Next</span>',
-          pagination: '<span class="dot"></span>',
-        },
-        global: {
-          plugins: [enI18n],
-        },
-      })
-
-      const prevButton = wrapper.find('.button--previous')
-      const nextButton = wrapper.find('.button--next')
-
-      expect(prevButton.attributes('aria-label')).toBe('Show previous slide')
-      expect(nextButton.attributes('aria-label')).toBe('Show next slide')
-    })
-  })
-})
-````
-
-## File: layers/base/app/test/composables/useToast.spec.ts
-````typescript
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { useToast, toastInjectionKey, type ToastComposable } from '#base/app/composables/useToast'
-
-// $toastのモック - 固定インスタンス
-const mockToast = {
-  info: vi.fn(),
-  success: vi.fn(),
-  error: vi.fn(),
-  warning: vi.fn(),
-}
-
-// useNuxtAppのモック
-vi.mock('#app', () => ({
-  useNuxtApp: vi.fn(() => ({
-    $toast: mockToast,
-  })),
-}))
-
-// テストで使用するためにモックを取得
-const { useNuxtApp } = await import('#app')
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockUseNuxtApp = useNuxtApp as any
-
-describe('useToast composable', () => {
-  beforeEach(() => {
-    // 各モック関数の呼び出し履歴だけをクリア
-    mockToast.info.mockClear()
-    mockToast.success.mockClear()
-    mockToast.error.mockClear()
-    mockToast.warning.mockClear()
-    mockUseNuxtApp.mockClear()
-  })
-
-  describe('useToast', () => {
-    it('addToast関数を返す', () => {
-      const { addToast } = useToast()
-      expect(typeof addToast).toBe('function')
-    })
-
-    it('useNuxtAppから$toastを取得する', () => {
-      useToast()
-      expect(useNuxtApp).toHaveBeenCalled()
-    })
-  })
-
-  describe('addToast', () => {
-    it('デフォルトでinfoタイプのtoastを表示する', () => {
-      const { addToast } = useToast()
-      addToast('Test message')
-
-      expect(mockToast.info).toHaveBeenCalledWith('Test message', {
-        delay: undefined,
-        closeButton: false,
-      })
-    })
-
-    it('指定したタイプのtoastを表示する', () => {
-      const { addToast } = useToast()
-
-      addToast('Success message', 'success')
-      expect(mockToast.success).toHaveBeenCalledWith('Success message', {
-        delay: undefined,
-        closeButton: false,
-      })
-
-      addToast('Error message', 'error')
-      expect(mockToast.error).toHaveBeenCalledWith('Error message', {
-        delay: undefined,
-        closeButton: false,
-      })
-
-      addToast('Warning message', 'warning')
-      expect(mockToast.warning).toHaveBeenCalledWith('Warning message', {
-        delay: undefined,
-        closeButton: false,
-      })
-    })
-
-    it('時間を指定してtoastを表示する', () => {
-      const { addToast } = useToast()
-      addToast('Timed message', 'info', 5000)
-
-      expect(mockToast.info).toHaveBeenCalledWith('Timed message', {
-        delay: 5000,
-        closeButton: false,
-      })
-    })
-
-    it('閉じるボタンを有効にしてtoastを表示する', () => {
-      const { addToast } = useToast()
-      addToast('Closable message', 'info', undefined, true)
-
-      expect(mockToast.info).toHaveBeenCalledWith('Closable message', {
-        delay: undefined,
-        closeButton: true,
-      })
-    })
-
-    it('すべてのオプションを指定してtoastを表示する', () => {
-      const { addToast } = useToast()
-      addToast('Full options message', 'success', 3000, true)
-
-      expect(mockToast.success).toHaveBeenCalledWith('Full options message', {
-        delay: 3000,
-        closeButton: true,
-      })
-    })
-
-    it('各toastタイプが正しく呼ばれる', () => {
-      const { addToast } = useToast()
-
-      const types: ('info' | 'success' | 'error' | 'warning')[] = [
-        'info',
-        'success',
-        'error',
-        'warning',
-      ]
-
-      types.forEach((type) => {
-        addToast(`${type} message`, type)
-        expect(mockToast[type]).toHaveBeenCalledWith(`${type} message`, {
-          delay: undefined,
-          closeButton: false,
-        })
-      })
-    })
-
-    it('undefinedタイプの場合infoを使用', () => {
-      const { addToast } = useToast()
-      addToast('Default message', undefined)
-
-      expect(mockToast.info).toHaveBeenCalledWith('Default message', {
-        delay: undefined,
-        closeButton: false,
-      })
-    })
-
-    it('isClosableのデフォルト値はfalse', () => {
-      const { addToast } = useToast()
-      addToast('Message without closable param', 'info', 1000)
-
-      expect(mockToast.info).toHaveBeenCalledWith('Message without closable param', {
-        delay: 1000,
-        closeButton: false,
-      })
-    })
-  })
-
-  describe('型定義', () => {
-    it('ToastComposable型が正しく推論される', () => {
-      const toast: ToastComposable = useToast()
-      expect(toast).toHaveProperty('addToast')
-      expect(typeof toast.addToast).toBe('function')
-    })
-
-    it('toastInjectionKeyがSymbolである', () => {
-      expect(typeof toastInjectionKey).toBe('symbol')
-      expect(toastInjectionKey.toString()).toContain('toast')
-    })
-  })
-
-  describe('デフォルトエクスポート', () => {
-    it('useToastがデフォルトエクスポートされている', async () => {
-      const defaultExport = (await import('#base/app/composables/useToast')).default
-      expect(defaultExport).toBe(useToast)
-    })
-  })
-
-  describe('エラーハンドリング', () => {
-    it('$toastが存在しない場合でもエラーにならない', () => {
-      // useNuxtAppのモックを一時的に上書き
-      mockUseNuxtApp.mockReturnValueOnce({
-        $toast: undefined,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any)
-
-      expect(() => {
-        const { addToast } = useToast()
-        // $toastがundefinedでもエラーにならないかテスト
-        expect(addToast).toBeDefined()
-      }).not.toThrow()
-    })
-
-    it('無効なtoastタイプでもエラーにならない', () => {
-      const { addToast } = useToast()
-
-      expect(() => {
-        // 型安全でないが、ランタイムでのテスト
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        addToast('Test', 'invalid' as any)
-      }).not.toThrow()
-    })
   })
 })
 ````
@@ -11879,94 +11967,6 @@ describe('getBase64ByFile', () => {
     const base64 = await getBase64ByFile(file)
 
     expect(base64).toBe(mockResult)
-  })
-})
-````
-
-## File: layers/base/app/test/utils/zod.spec.ts
-````typescript
-import { fc, test } from '@fast-check/vitest'
-import { describe, expect } from 'vitest'
-import { z } from 'zod/v3'
-import { ensureValueOf, getMax, isValueOf, makeRecursiveSchema } from '#base/app/utils/zod'
-
-describe('isValueOf', () => {
-  test('returns true if schema parses successfully', () => {
-    const schema = z.object({
-      a: z.number(),
-    })
-    const value = {
-      a: 42,
-    }
-    expect(isValueOf(schema, value)).toEqual(true)
-  })
-
-  test('returns false if schema failed to parse', () => {
-    const schema = z.object({
-      a: z.number().negative(),
-    })
-    const value = {
-      a: 42,
-    }
-    expect(isValueOf(schema, value)).toEqual(false)
-  })
-})
-
-describe('ensureValueOf', () => {
-  test('throws an error if schema failed to parse', () => {
-    const schema = z.object({
-      a: z.number().negative(),
-    })
-    const value = {
-      a: 42,
-    }
-    expect(() => ensureValueOf(schema, value)).toThrow()
-  })
-})
-
-describe('getMax', () => {
-  test.prop([fc.nat()])(
-    'takes the num of z.string().max(num) from the _def',
-    (n) => {
-      expect(getMax(z.string().max(n)._def)).toBe(n)
-    },
-  )
-
-  test('takes nothing from the zod schema does not have .max(num)', () => {
-    expect(getMax(z.string()._def)).toBeUndefined()
-  })
-})
-
-describe('makeRecursiveSchema', () => {
-  test('can make a recursive schema and the schema can validate values recursively', () => {
-    const treeSchema = makeRecursiveSchema(self =>
-      z.union([
-        z.object({ type: z.literal('leaf'), value: z.string() }),
-        z.object({ type: z.literal('branch'), children: self.array() }),
-      ]),
-    )
-
-    // treeSchemaは再帰構造のうち **一階層** だけバリデーションできる
-    const x: unknown = {
-      type: 'branch',
-      children: [{ type: 'leaf', value: 'foo' }],
-    }
-    const tree = treeSchema.parse(x)
-    if (tree.type !== 'branch') {
-      throw new Error('Expected a branch, but got a leaf.')
-    }
-    /*
-     * treeSchemaは一階層だけしかバリデーションできないので、yはSelf型になる
-     * Self型は実質Record<never, unknown>な型。@/utils/zodがselfKeyをexportしていないため
-     */
-    const y = tree.children[0] ?? raiseError('Fatal error')
-
-    // さらに階層を深堀したい場合は、再パースする必要がある
-    const subTree = treeSchema.parse(y)
-    if (subTree.type !== 'leaf') {
-      throw new Error('Expected a leaf, but got a branch.')
-    }
-    expect(subTree.value).toBe('foo')
   })
 })
 ````

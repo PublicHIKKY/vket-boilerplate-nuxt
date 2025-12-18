@@ -35,16 +35,114 @@ Nuxt4プロジェクトにおける標準化されたComposablesの設計・生�
 - **注意**: バリデーションはvee-validate + zod内で管理（別Composable不要）
 
 ### 4. ルート - データ保持 + 統合層
-- **特徴**: Repository Factoryを使用したAPI疎通、データ保持、ui/form/の組み合わせ
+- **特徴**: Repository Factoryを使用したAPI通信、データ保持、ui/form/の組み合わせ
 - **命名**: 役割ごとにファイルを分ける（例：`use{機能名}List`、`use{機能名}Detail`、`use{機能名}Editor`）
 - **InjectionKey**: 必須
+
+## API呼び出しの実行場所
+
+API呼び出しは**Pages層でのみ**実行します。
+
+- **Pages層**: Composable経由でAPI呼び出しを実行
+- **コンポーネント層（Ht/Ho/Hm/Ha）**: API呼び出し禁止（emitでPages層に委譲）
+
+## リアクティブステートとv-modelの活用
+
+### 原則
+
+リアクティブステート（ref, reactive, useState, Composableの戻り値など）のデータ操作でv-modelが有効な手段となる場合は**積極的に活用**する。
+
+### パターン1: Pages層経由でv-modelバインド
+
+Pages層のリアクティブステート（ref, reactive）をHt/Hoに渡す場合。
+
+```vue
+<!-- Pages層 -->
+<template>
+  <HtSearch v-model:keyword="searchKeyword" />
+  <HtFilter v-model:category="filterState.category" />
+</template>
+
+<script setup lang="ts">
+const searchKeyword = ref('')
+const filterState = reactive({ category: 'all' })
+</script>
+```
+
+```vue
+<!-- Ht/Ho層: defineModelでv-model対応 -->
+<script setup lang="ts">
+const keyword = defineModel<string>('keyword', { default: '' })
+</script>
+```
+
+### パターン2: Composableをprovide/injectで共有し直接v-modelバインド（推奨）
+
+**Composableをprovide/injectで共有している場合**、Ht/Ho層でinjectしたComposableのステートに直接v-modelでバインド可能。Pages層での再宣言・伝達が不要になり、よりシンプルになる。
+
+```vue
+<!-- Pages層: Composableをprovide -->
+<script setup lang="ts">
+const loginForm = useLoginForm()
+provide(loginFormInjectionKey, loginForm)
+</script>
+
+<template>
+  <!-- Pages層ではHtを配置、Props/Emitsの中継は不要 -->
+  <HtLogin @submit="onSubmit" />
+</template>
+```
+
+```vue
+<!-- Ho層: injectしたComposableのステートに直接v-modelバインド -->
+<template>
+  <!-- injectしたステートをHm層にv-modelで渡す -->
+  <HmLoginInput v-model="formData.email" type="email" />
+  <HmLoginInput v-model="formData.password" type="password" />
+</template>
+
+<script setup lang="ts">
+// Ho層でinjectしてComposableのステートを直接参照
+const { formData } = inject(loginFormInjectionKey)!
+</script>
+```
+
+```vue
+<!-- Hm層: Props経由のみ（injectは禁止） -->
+<template>
+  <input :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" />
+</template>
+
+<script setup lang="ts">
+// Hm層ではinject禁止、Props/Emitsのみ
+defineProps<{ modelValue: string }>()
+defineEmits<{ (e: 'update:modelValue', value: string): void }>()
+</script>
+```
+
+**重要**:
+- この方法はComposableをprovide/injectで共有している場合に限る
+- Pages層で宣言したref/reactiveはprovide/injectの対象外
+- **injectはPages/Ht/Ho層でのみ可能、Hm/Ha層は禁止**
+
+### 非推奨パターン
+
+```vue
+<!-- ❌ 非推奨: 冗長なProps/Emitsの定義 -->
+<template>
+  <HtLogin
+    :email="formData.email ?? ''"
+    @update:email="updateField('email', $event)"
+  />
+</template>
+```
 
 ## チェックリスト
 
 ### 新規機能実装時
 
+- [ ] フォーム入力がある？ → `form/use{機能名}Form.ts`（vee-validate + zod統合）
 - [ ] UI状態管理が必要？ → `ui/use{機能名}{UI要素}.ts`
-- [ ] フォームが必要？ → `form/use{機能名}Form.ts`（vee-validate + zod統合）
 - [ ] ルートComposableを作成 → `use{機能名}List/Detail/Editor.ts`（Repository Factory使用）
 - [ ] InjectionKeyを定義（core/以外の全レイヤー）
 - [ ] データ保持用のrefを定義（ルート層）
@@ -72,13 +170,15 @@ Nuxt4プロジェクトにおける標準化されたComposablesの設計・生�
 - InjectionKeyは必ず型付き
 - エラーハンドリング（loading, error状態）を実装
 - 子composableも公開して再利用性を高める
-- vee-validate + zodでバリデーション管理
+- フォーム管理はvee-validate + zodを使用（useForm + defineField）
 
 ### ❌ DON'T
 - useStateをcore/以外で使用
 - Repository Factoryを使わずAPI呼び出し
 - InjectionKeyなしでprovide/inject
 - バリデーションを別Composableに分離（formに統合）
+- `ref<FormData>()` でフォームデータを直接管理
+- v-modelで事足りる場合に冗長なProps/Emitsを定義
 
 ## トラブルシューティング
 

@@ -382,6 +382,57 @@ export const blogModalInjectionKey: InjectionKey<BlogModalComposable> = Symbol('
 - vee-validateとzodを使用したフォーム管理
 - バリデーションロジックを内包（別Composable不要）
 - InjectionKey必須
+- **リアクティブステートはv-modelでHt/Hoに直接バインド可能**
+
+**リアクティブステートとv-modelの活用:**
+
+リアクティブステート（ref, reactive, useState, Composableの戻り値など）のデータ操作でv-modelが有効な場合は積極的に活用する。
+
+**パターン1: Pages層経由でv-modelバインド**
+
+```vue
+<!-- Pages層: ref/reactiveをv-modelでバインド -->
+<template>
+  <HtSearch v-model:keyword="searchKeyword" />
+</template>
+
+<script setup lang="ts">
+const searchKeyword = ref('')
+</script>
+```
+
+```vue
+<!-- Ht/Ho層: defineModelでv-model対応 -->
+<script setup lang="ts">
+const keyword = defineModel<string>('keyword', { default: '' })
+</script>
+```
+
+**パターン2: Composableをprovide/injectで共有し直接v-modelバインド（推奨）**
+
+Composableをprovide/injectで共有している場合、Ht/Ho層でinjectしたComposableのステートに直接v-modelでバインド可能。
+
+```vue
+<!-- Pages層: Composableをprovide -->
+<script setup lang="ts">
+const loginForm = useLoginForm()
+provide(loginFormInjectionKey, loginForm)
+</script>
+```
+
+```vue
+<!-- Ht/Ho層: injectしたComposableのステートに直接v-modelバインド -->
+<template>
+  <input v-model="formData.email" type="email" />
+</template>
+
+<script setup lang="ts">
+// Composableをinjectして利用
+const { formData } = inject(loginFormInjectionKey)!
+</script>
+```
+
+**注意**: パターン2はComposableをprovide/injectで共有している場合に限る。Pages層で宣言したref/reactiveはprovide/injectの対象外のためこの方法では利用できない。
 
 #### 実装例: 複雑なバリデーション付きフォーム
 
@@ -605,10 +656,14 @@ export const blogFormInjectionKey: InjectionKey<BlogFormComposable> = Symbol('bl
 ### 1.4 ルート層 - Repository Factory統合
 
 **特徴:**
-- Repository Factoryを使用したAPI呼び出し
+- Repository Factoryを使用したAPI通信メソッドの提供
 - データの保持とキャッシング
 - ui/form/の統合
 - InjectionKey必須
+
+**API呼び出しの実行場所:**
+ComposableはAPI通信メソッドを提供しますが、実際の呼び出しは**Pages層でのみ**実行します。
+コンポーネント層（Ht/Ho/Hm/Ha）からはAPI呼び出しを行わず、必要な場合はemitでPages層に委譲してください。
 
 #### 実装例: 一覧管理（楽観的更新対応）
 
