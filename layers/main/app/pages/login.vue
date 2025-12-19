@@ -39,7 +39,7 @@
         <!-- Form Section -->
         <form
           class="login-form"
-          @submit.prevent
+          @submit.prevent="onSubmit"
         >
           <!-- Email Field -->
           <div class="form-group">
@@ -71,9 +71,11 @@
                 />
               </svg>
               <input
+                v-model="formData.email"
                 type="email"
                 class="form-input"
                 placeholder="your.email@example.com"
+                :disabled="isLoading"
               />
             </div>
           </div>
@@ -107,9 +109,11 @@
                 />
               </svg>
               <input
+                v-model="formData.password"
                 type="password"
                 class="form-input"
                 placeholder="••••••••"
+                :disabled="isLoading"
               />
             </div>
           </div>
@@ -118,8 +122,10 @@
           <div class="options-row">
             <label class="checkbox-label">
               <input
+                v-model="formData.rememberMe"
                 type="checkbox"
                 class="checkbox-input"
+                :disabled="isLoading"
               />
               <span class="checkbox-custom"></span>
               <span class="checkbox-text">ログイン状態を保持</span>
@@ -130,12 +136,22 @@
             >パスワードを忘れた</a>
           </div>
 
+          <!-- Error Message -->
+          <p
+            v-if="errorMessage"
+            class="error-message"
+          >
+            {{ errorMessage }}
+          </p>
+
           <!-- Submit Button -->
           <button
             type="submit"
             class="submit-button"
+            :disabled="isLoading"
           >
-            ログイン
+            <span v-if="isLoading">ログイン中...</span>
+            <span v-else>ログイン</span>
           </button>
         </form>
 
@@ -157,6 +173,9 @@
 </template>
 
 <script setup lang="ts">
+import { useAuth } from '@/composables/core/useAuth'
+import { defaultLoginRequest, type LoginRequest } from '@/models/auth'
+
 definePageMeta({
   layout: false,
 })
@@ -165,6 +184,30 @@ useSeoMeta({
   title: 'ログイン | 勤怠管理システム',
   description: '勤怠管理システムへログインしてください。',
 })
+
+// Auth composable
+const { login, loading, error } = useAuth()
+
+// Form data
+const formData = reactive<LoginRequest>({ ...defaultLoginRequest })
+
+// Computed
+const isLoading = computed(() => loading.value)
+const errorMessage = computed(() => error.value)
+
+// Submit handler
+const onSubmit = async () => {
+  // Basic validation
+  if (!formData.email || !formData.password) {
+    return
+  }
+
+  const success = await login(formData)
+
+  if (success) {
+    await navigateTo('/dashboard')
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -406,6 +449,18 @@ $login-placeholder: rgb(10 10 10 / 50%);
   }
 }
 
+// Error Message
+.error-message {
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+
+  font-size: 14px;
+  color: #dc2626;
+
+  background-color: #fef2f2;
+}
+
 // Submit Button
 .submit-button {
   cursor: pointer;
@@ -431,6 +486,11 @@ $login-placeholder: rgb(10 10 10 / 50%);
 
   &:active {
     background-color: #3f2dc5;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
   }
 }
 

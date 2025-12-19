@@ -74,6 +74,8 @@ layers/
         ht/
           HtTop.vue
       composables/
+        core/
+          useAuth.ts
         useApi.ts
       layouts/
         default.vue
@@ -81,9 +83,11 @@ layers/
       middleware/
         .gitkeep
       models/
+        auth.ts
         json.ts
         todo.ts
       pages/
+        dashboard.vue
         index.vue
         login.vue
       plugins/
@@ -91,6 +95,7 @@ layers/
         runtimeConfig.ts
       repositories/
         .gitkeep
+        authRepository.ts
       test/
         composables/
           useApi.spec.ts
@@ -122,6 +127,9 @@ layers/
       _robots.txt
       favicon.ico
     server/
+      api/
+        auth/
+          login.post.ts
       tsconfig.json
     .stylelintrc.mjs
     app.config.ts
@@ -344,36 +352,6 @@ declare module '*.svg?inline'
 </g>
 <g class="border"><path d="M22.86,2.03c-1.65,0-3.19,.64-4.36,1.8l-1.57,1.57c-.78,.78-2.05,.78-2.83,0l-1.57-1.57c-1.16-1.16-2.71-1.8-4.36-1.8s-3.19,.64-4.36,1.8c-1.16,1.16-1.8,2.7-1.8,4.35s.64,3.18,1.8,4.35l11.7,11.68,11.7-11.68c1.16-1.16,1.8-2.7,1.8-4.35s-.64-3.18-1.8-4.35c-1.16-1.16-2.71-1.8-4.36-1.8m0-2c2.09,0,4.18,.8,5.77,2.39h0c3.19,3.18,3.19,8.34,0,11.52l-13.11,13.09L2.41,13.94C-.78,10.75-.78,5.6,2.41,2.41,5.59-.77,10.76-.77,13.94,2.41l1.57,1.57,1.57-1.57C18.68,.82,20.77,.03,22.86,.03Z"/></g>
 </svg>
-````
-
-## File: layers/main/app/assets/styles/_base.scss
-````scss
-@use 'variables' as v;
-@use 'mixins' as m;
-
-html,
-body {
-  overflow-x: clip;
-
-  font-family: v.$base-font-family;
-  font-variant-numeric: tabular-nums; // 数字フォントの幅を等幅にする
-  color: v.$base-font-color;
-  word-break: normal; // 単語の分割はブラウザのデフォルトであることを明記
-  line-break: strict; // 約物や小文字を置き去りにして改行させない
-  overflow-wrap: anywhere; // 行内に単語を収められない場合に折り返す
-
-  background: v.$base-background-color;
-
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-
-  text-spacing-trim: trim-start; // 英字や日本語の約物が重複した場合に全角分のスペースを確保させない
-}
-
-a {
-  color: v.$base-link-color;
-  text-decoration: none;
-}
 ````
 
 ## File: layers/main/app/assets/styles/_functions.scss
@@ -765,6 +743,98 @@ en:
 </style>
 ````
 
+## File: layers/main/app/composables/core/useAuth.ts
+````typescript
+import type { UserData, LoginRequest } from '@/models/auth'
+import useApi from '@/composables/useApi'
+
+/**
+ * 認証状態管理Composable
+ * - アプリケーション全体で使用する基盤機能
+ * - useStateを使用した永続的なグローバル状態
+ */
+export const useAuth = () => {
+  const user = useState<UserData | null>('auth-user', () => null)
+  const token = useState<string | null>('auth-token', () => null)
+  const loading = useState<boolean>('auth-loading', () => false)
+  const error = useState<string | null>('auth-error', () => null)
+
+  const { repository } = useApi('auth')
+
+  const isAuthenticated = computed(() => !!user.value && !!token.value)
+
+  /**
+   * ログイン処理
+   */
+  const login = async (credentials: LoginRequest): Promise<boolean> => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await repository.value.post.login(credentials)
+
+      if (response.success) {
+        user.value = response.data.user
+        token.value = response.data.token
+
+        // トークンをlocalStorageに保存（クライアントサイドのみ）
+        if (import.meta.client) {
+          localStorage.setItem('auth_token', response.data.token)
+        }
+
+        return true
+      } else {
+        error.value = response.message || 'ログインに失敗しました'
+        return false
+      }
+    } catch (e) {
+      error.value = 'ログインに失敗しました'
+      console.error('Login failed:', e)
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * ログアウト処理
+   */
+  const logout = () => {
+    user.value = null
+    token.value = null
+    error.value = null
+
+    if (import.meta.client) {
+      localStorage.removeItem('auth_token')
+    }
+  }
+
+  /**
+   * 認証状態のリセット
+   */
+  const reset = () => {
+    user.value = null
+    token.value = null
+    loading.value = false
+    error.value = null
+  }
+
+  return {
+    // 状態
+    user: readonly(user),
+    token: readonly(token),
+    loading: readonly(loading),
+    error: readonly(error),
+    isAuthenticated,
+
+    // メソッド
+    login,
+    logout,
+    reset,
+  }
+}
+````
+
 ## File: layers/main/app/composables/useApi.ts
 ````typescript
 /**
@@ -831,6 +901,65 @@ export default function useApi<K extends RepositoryKey>(endpoint: K) {
 </style>
 ````
 
+## File: layers/main/app/models/auth.ts
+````typescript
+import { z } from 'zod/v3'
+
+/*
+ * ============================================================================
+ * User Schema
+ * ============================================================================
+ */
+
+export const userData = z.object({
+  id: z.string(),
+  email: z.string(),
+  name: z.string(),
+})
+export type UserData = z.infer<typeof userData>
+
+export const defaultUser: UserData = {
+  id: '',
+  email: '',
+  name: '',
+}
+
+/*
+ * ============================================================================
+ * Login Request/Response
+ * ============================================================================
+ */
+
+export const loginRequest = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+  rememberMe: z.boolean().optional(),
+})
+export type LoginRequest = z.infer<typeof loginRequest>
+
+export const loginResponse = z.object({
+  success: z.boolean(),
+  data: z.object({
+    user: userData,
+    token: z.string(),
+  }),
+  message: z.string(),
+})
+export type LoginResponse = z.infer<typeof loginResponse>
+
+/*
+ * ============================================================================
+ * Default Values
+ * ============================================================================
+ */
+
+export const defaultLoginRequest: LoginRequest = {
+  email: '',
+  password: '',
+  rememberMe: false,
+}
+````
+
 ## File: layers/main/app/models/json.ts
 ````typescript
 /**
@@ -866,6 +995,244 @@ export const todoSchema = z.object({
 export type Todo = z.infer<typeof todoSchema>
 ````
 
+## File: layers/main/app/pages/dashboard.vue
+````vue
+<i18n lang="yaml">
+ja:
+  seo:
+    title: ダッシュボード
+    description: 勤怠管理システムのダッシュボードです。
+  welcome: ようこそ
+  welcomeMessage: ログインに成功しました。
+  logout: ログアウト
+en:
+  seo:
+    title: Dashboard
+    description: Attendance management system dashboard.
+  welcome: Welcome
+  welcomeMessage: Login successful.
+  logout: Logout
+</i18n>
+
+<template>
+  <div class="dashboard-page">
+    <div class="dashboard-container">
+      <div class="dashboard-card">
+        <div class="dashboard-header">
+          <div class="success-icon">
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="#10B981"
+                stroke-width="2"
+              />
+              <path
+                d="M8 12L11 15L16 9"
+                stroke="#10B981"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <h1 class="dashboard-title">
+            {{ i18n.t('welcome') }}, {{ userName }}
+          </h1>
+          <p class="dashboard-message">
+            {{ i18n.t('welcomeMessage') }}
+          </p>
+        </div>
+
+        <div class="user-info">
+          <div class="info-item">
+            <span class="info-label">Email:</span>
+            <span class="info-value">{{ userEmail }}</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="logout-button"
+          @click="onLogout"
+        >
+          {{ i18n.t('logout') }}
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { useAuth } from '@/composables/core/useAuth'
+
+definePageMeta({
+  layout: false,
+})
+
+const i18n = useI18n()
+const { user, logout } = useAuth()
+
+useSeoMeta({
+  title: `${i18n.t('seo.title')} | 勤怠管理システム`,
+  description: i18n.t('seo.description'),
+})
+
+const userName = computed(() => user.value?.name ?? '')
+const userEmail = computed(() => user.value?.email ?? '')
+
+const onLogout = async () => {
+  logout()
+  await navigateTo('/login')
+}
+</script>
+
+<style lang="scss" scoped>
+@use '@main/assets/styles/variables' as v;
+@use '@main/assets/styles/mixins' as m;
+
+$dashboard-primary: #10b981;
+$dashboard-bg-start: #ecfdf5;
+$dashboard-bg-end: #d1fae5;
+$dashboard-text-dark: #101828;
+$dashboard-text-gray: #4a5565;
+
+.dashboard-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 100vh;
+  padding: 16px;
+
+  background: linear-gradient(150deg, $dashboard-bg-start 0%, $dashboard-bg-end 100%);
+}
+
+.dashboard-container {
+  width: 100%;
+  max-width: 480px;
+}
+
+.dashboard-card {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+
+  padding: 40px;
+  border-radius: 16px;
+
+  background-color: v.$white;
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 10%),
+    0 8px 10px -6px rgb(0 0 0 / 10%);
+}
+
+.dashboard-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+
+  text-align: center;
+}
+
+.success-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+
+  background-color: $dashboard-bg-start;
+}
+
+.dashboard-title {
+  margin: 0;
+
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: $dashboard-text-dark;
+}
+
+.dashboard-message {
+  margin: 0;
+  font-size: 16px;
+  color: $dashboard-text-gray;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  padding: 20px;
+  border-radius: 12px;
+
+  background-color: #f9fafb;
+}
+
+.info-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.info-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: $dashboard-text-gray;
+}
+
+.info-value {
+  font-size: 14px;
+  color: $dashboard-text-dark;
+}
+
+.logout-button {
+  cursor: pointer;
+
+  width: 100%;
+  height: 48px;
+  padding: 0;
+  border: 1px solid #d1d5dc;
+  border-radius: 10px;
+
+  font-size: 16px;
+  font-weight: 400;
+  color: $dashboard-text-dark;
+
+  background-color: v.$white;
+
+  transition: background-color 0.2s ease;
+
+  @include m.hover {
+    background-color: #f9fafb;
+  }
+}
+
+@include m.sp {
+  .dashboard-card {
+    gap: 24px;
+    padding: 24px;
+  }
+
+  .dashboard-title {
+    font-size: 20px;
+  }
+}
+</style>
+````
+
 ## File: layers/main/app/pages/index.vue
 ````vue
 <template>
@@ -877,510 +1244,6 @@ definePageMeta({
   layout: 'top',
 })
 </script>
-````
-
-## File: layers/main/app/pages/login.vue
-````vue
-<template>
-  <div class="login-page">
-    <div class="login-container">
-      <div class="login-card">
-        <!-- Logo Section -->
-        <div class="logo-section">
-          <div class="logo-icon">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="9"
-                stroke="white"
-                stroke-width="2"
-              />
-              <polyline
-                points="12,7 12,12 16,12"
-                stroke="white"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </div>
-          <h1 class="logo-title">
-            勤怠管理システム
-          </h1>
-          <p class="logo-subtitle">
-            ログインして開始
-          </p>
-        </div>
-
-        <!-- Form Section -->
-        <form
-          class="login-form"
-          @submit.prevent
-        >
-          <!-- Email Field -->
-          <div class="form-group">
-            <label class="form-label">メールアドレス</label>
-            <div class="input-wrapper">
-              <svg
-                class="input-icon"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect
-                  x="2"
-                  y="4"
-                  width="20"
-                  height="16"
-                  rx="2"
-                  stroke="#9CA3AF"
-                  stroke-width="2"
-                />
-                <path
-                  d="M2 7L12 13L22 7"
-                  stroke="#9CA3AF"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              <input
-                type="email"
-                class="form-input"
-                placeholder="your.email@example.com"
-              />
-            </div>
-          </div>
-
-          <!-- Password Field -->
-          <div class="form-group">
-            <label class="form-label">パスワード</label>
-            <div class="input-wrapper">
-              <svg
-                class="input-icon"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect
-                  x="3"
-                  y="11"
-                  width="18"
-                  height="11"
-                  rx="2"
-                  stroke="#9CA3AF"
-                  stroke-width="2"
-                />
-                <path
-                  d="M7 11V7C7 4.23858 9.23858 2 12 2C14.7614 2 17 4.23858 17 7V11"
-                  stroke="#9CA3AF"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                />
-              </svg>
-              <input
-                type="password"
-                class="form-input"
-                placeholder="••••••••"
-              />
-            </div>
-          </div>
-
-          <!-- Options Row -->
-          <div class="options-row">
-            <label class="checkbox-label">
-              <input
-                type="checkbox"
-                class="checkbox-input"
-              />
-              <span class="checkbox-custom"></span>
-              <span class="checkbox-text">ログイン状態を保持</span>
-            </label>
-            <a
-              href="#"
-              class="forgot-link"
-            >パスワードを忘れた</a>
-          </div>
-
-          <!-- Submit Button -->
-          <button
-            type="submit"
-            class="submit-button"
-          >
-            ログイン
-          </button>
-        </form>
-
-        <!-- Register Link -->
-        <p class="register-text">
-          アカウントをお持ちでない方は<a
-            href="#"
-            class="register-link"
-          >こちら</a>
-        </p>
-      </div>
-
-      <!-- Footer -->
-      <p class="footer-text">
-        © 2025 勤怠管理システム. All rights reserved.
-      </p>
-    </div>
-  </div>
-</template>
-
-<script setup lang="ts">
-definePageMeta({
-  layout: false,
-})
-
-useSeoMeta({
-  title: 'ログイン | 勤怠管理システム',
-  description: '勤怠管理システムへログインしてください。',
-})
-</script>
-
-<style lang="scss" scoped>
-@use '@main/assets/styles/variables' as v;
-@use '@main/assets/styles/mixins' as m;
-
-// Local color variables for this design
-$login-primary: #4f39f6;
-$login-primary-hover: #4330d9;
-$login-bg-start: #eff6ff;
-$login-bg-end: #e0e7ff;
-$login-text-dark: #101828;
-$login-text-gray: #4a5565;
-$login-text-label: #364153;
-$login-border: #d1d5dc;
-$login-placeholder: rgb(10 10 10 / 50%);
-
-.login-page {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  min-height: 100vh;
-  padding: 16px;
-
-  background: linear-gradient(150deg, $login-bg-start 0%, $login-bg-end 100%);
-}
-
-.login-container {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-
-  width: 100%;
-  max-width: 448px;
-}
-
-.login-card {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-
-  padding: 32px;
-  padding-bottom: 32px;
-  border-radius: 16px;
-
-  background-color: v.$white;
-  box-shadow:
-    0 20px 25px -5px rgb(0 0 0 / 10%),
-    0 8px 10px -6px rgb(0 0 0 / 10%);
-}
-
-// Logo Section
-.logo-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  align-items: center;
-}
-
-.logo-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
-
-  background-color: $login-primary;
-}
-
-.logo-title {
-  margin: 0;
-
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  color: $login-text-dark;
-}
-
-.logo-subtitle {
-  margin: 0;
-
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  color: $login-text-gray;
-}
-
-// Form Section
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-label {
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  color: $login-text-label;
-}
-
-.input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.input-icon {
-  pointer-events: none;
-  position: absolute;
-  left: 12px;
-}
-
-.form-input {
-  width: 100%;
-  height: 49px;
-  padding: 12px 16px 12px 40px;
-  border: 1px solid $login-border;
-  border-radius: 10px;
-
-  font-size: 16px;
-  color: $login-text-dark;
-
-  background-color: v.$white;
-  outline: none;
-
-  transition: border-color 0.2s ease;
-
-  &::placeholder {
-    color: $login-placeholder;
-  }
-
-  &:focus {
-    border-color: $login-primary;
-  }
-}
-
-// Options Row
-.options-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.checkbox-label {
-  cursor: pointer;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.checkbox-input {
-  position: absolute;
-
-  overflow: hidden;
-
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  border: 0;
-
-  white-space: nowrap;
-
-  clip-path: inset(50%);
-}
-
-.checkbox-custom {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 16px;
-  height: 16px;
-  border: 1px solid $login-border;
-  border-radius: 3px;
-
-  background-color: v.$white;
-
-  transition: all 0.2s ease;
-
-  &::after {
-    content: '';
-
-    transform: rotate(45deg);
-
-    display: none;
-
-    width: 4px;
-    height: 8px;
-    margin-bottom: 2px;
-    border: solid v.$white;
-    border-width: 0 2px 2px 0;
-  }
-
-  .checkbox-input:checked + & {
-    border-color: $login-primary;
-    background-color: $login-primary;
-
-    &::after {
-      display: block;
-    }
-  }
-
-  .checkbox-input:focus + & {
-    box-shadow: 0 0 0 2px rgba($login-primary, 0.2);
-  }
-}
-
-.checkbox-text {
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  color: $login-text-label;
-}
-
-.forgot-link {
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  color: $login-primary;
-  text-decoration: none;
-
-  transition: opacity 0.2s ease;
-
-  @include m.hover {
-    opacity: 0.8;
-  }
-}
-
-// Submit Button
-.submit-button {
-  cursor: pointer;
-
-  width: 100%;
-  height: 48px;
-  padding: 0;
-  border: none;
-  border-radius: 10px;
-
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  color: v.$white;
-
-  background-color: $login-primary;
-
-  transition: background-color 0.2s ease;
-
-  @include m.hover {
-    background-color: $login-primary-hover;
-  }
-
-  &:active {
-    background-color: #3f2dc5;
-  }
-}
-
-// Register Link
-.register-text {
-  margin: 0;
-
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  color: $login-text-gray;
-  text-align: center;
-}
-
-.register-link {
-  color: $login-primary;
-  text-decoration: none;
-  transition: opacity 0.2s ease;
-
-  @include m.hover {
-    opacity: 0.8;
-  }
-}
-
-// Footer
-.footer-text {
-  margin: 0;
-
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  color: $login-text-gray;
-  text-align: center;
-}
-
-// Responsive adjustments
-@include m.sp {
-  .login-card {
-    gap: 24px;
-    padding: 24px;
-  }
-
-  .options-row {
-    flex-direction: column;
-    gap: 12px;
-    align-items: flex-start;
-  }
-}
-
-@include m.xs {
-  .login-page {
-    padding: 12px;
-  }
-
-  .login-card {
-    padding: 20px;
-  }
-
-  .form-label,
-  .checkbox-text,
-  .forgot-link,
-  .register-text,
-  .footer-text {
-    font-size: 14px;
-  }
-}
-</style>
 ````
 
 ## File: layers/main/app/plugins/gtm.client.ts
@@ -1430,6 +1293,47 @@ export const requireRuntimeConfig: () => ProcessEnv | RuntimeConfig = () => {
   }
 
   throw new TypeError('@/plugins/runtimeConfig: Not satisfied.')
+}
+````
+
+## File: layers/main/app/repositories/authRepository.ts
+````typescript
+import { requireValueOf } from '#base/app/utils/zod'
+import {
+  loginRequest,
+  loginResponse,
+  type LoginRequest,
+  type LoginResponse,
+} from '@/models/auth'
+
+/*
+ * ============================================================================
+ * Type Definitions
+ * ============================================================================
+ */
+
+export const postLoginRequestSchema = loginRequest
+export type PostLoginRequest = LoginRequest
+
+export const postLoginResponseSchema = loginResponse
+export type PostLoginResponse = LoginResponse
+
+/*
+ * ============================================================================
+ * Repository
+ * ============================================================================
+ */
+
+export default {
+  post: {
+    async login(params: PostLoginRequest): Promise<PostLoginResponse> {
+      const response = await $fetch('/api/auth/login', {
+        method: 'POST',
+        body: params,
+      })
+      return requireValueOf(postLoginResponseSchema, response)
+    },
+  } as const,
 }
 ````
 
@@ -1628,13 +1532,14 @@ export default (
 ````typescript
 import { type MakeRepository, defaultRepositories } from '#base/app/utils/default-factory'
 import { Method } from '@/utils/api'
+import authRepository from '@/repositories/authRepository'
 
 export type Repository = MakeRepository<Method>
 export type Repositories = Record<string, Repository>
 
 export const repositories = {
   ...defaultRepositories,
-  // Add non-default repositories here
+  auth: authRepository,
 } as const satisfies Repositories
 
 export type RepositoryKey = keyof typeof repositories
@@ -2264,6 +2169,48 @@ User-agent: *
 Disallow:
 ````
 
+## File: layers/main/server/api/auth/login.post.ts
+````typescript
+import { defineEventHandler, readBody } from 'h3'
+
+interface LoginRequest {
+  email: string
+  password: string
+  rememberMe?: boolean
+}
+
+interface LoginResponse {
+  success: boolean
+  data: {
+    user: {
+      id: string
+      email: string
+      name: string
+    }
+    token: string
+  }
+  message: string
+}
+
+export default defineEventHandler(async (event): Promise<LoginResponse> => {
+  const body = await readBody<LoginRequest>(event)
+
+  // Always return success (mock API)
+  return {
+    success: true,
+    data: {
+      user: {
+        id: '1',
+        email: body.email,
+        name: 'テストユーザー',
+      },
+      token: 'mock-jwt-token-' + Date.now(),
+    },
+    message: 'ログインに成功しました',
+  }
+})
+````
+
 ## File: layers/main/server/tsconfig.json
 ````json
 {
@@ -2302,6 +2249,36 @@ export default defineAppConfig(
     "../base/tsconfig.shared.json"
   ],
   "exclude": ["../base/**/*"]
+}
+````
+
+## File: layers/main/app/assets/styles/_base.scss
+````scss
+@use 'variables' as v;
+@use 'mixins' as m;
+
+html,
+body {
+  overflow-x: clip;
+
+  font-family: v.$base-font-family;
+  font-variant-numeric: tabular-nums; // 数字フォントの幅を等幅にする
+  color: v.$base-font-color;
+  word-break: normal; // 単語の分割はブラウザのデフォルトであることを明記
+  line-break: strict; // 約物や小文字を置き去りにして改行させない
+  overflow-wrap: anywhere; // 行内に単語を収められない場合に折り返す
+
+  background: v.$base-background-color;
+
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+
+  text-spacing-trim: trim-start; // 英字や日本語の約物が重複した場合に全角分のスペースを確保させない
+}
+
+a {
+  color: v.$base-link-color;
+  text-decoration: none;
 }
 ````
 
@@ -2471,6 +2448,570 @@ export default defineAppConfig(
     background-color: v.$blue;
   }
 }
+````
+
+## File: layers/main/app/pages/login.vue
+````vue
+<template>
+  <div class="login-page">
+    <div class="login-container">
+      <div class="login-card">
+        <!-- Logo Section -->
+        <div class="logo-section">
+          <div class="logo-icon">
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="9"
+                stroke="white"
+                stroke-width="2"
+              />
+              <polyline
+                points="12,7 12,12 16,12"
+                stroke="white"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <h1 class="logo-title">
+            勤怠管理システム
+          </h1>
+          <p class="logo-subtitle">
+            ログインして開始
+          </p>
+        </div>
+
+        <!-- Form Section -->
+        <form
+          class="login-form"
+          @submit.prevent="onSubmit"
+        >
+          <!-- Email Field -->
+          <div class="form-group">
+            <label class="form-label">メールアドレス</label>
+            <div class="input-wrapper">
+              <svg
+                class="input-icon"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  x="2"
+                  y="4"
+                  width="20"
+                  height="16"
+                  rx="2"
+                  stroke="#9CA3AF"
+                  stroke-width="2"
+                />
+                <path
+                  d="M2 7L12 13L22 7"
+                  stroke="#9CA3AF"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <input
+                v-model="formData.email"
+                type="email"
+                class="form-input"
+                placeholder="your.email@example.com"
+                :disabled="isLoading"
+              />
+            </div>
+          </div>
+
+          <!-- Password Field -->
+          <div class="form-group">
+            <label class="form-label">パスワード</label>
+            <div class="input-wrapper">
+              <svg
+                class="input-icon"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  x="3"
+                  y="11"
+                  width="18"
+                  height="11"
+                  rx="2"
+                  stroke="#9CA3AF"
+                  stroke-width="2"
+                />
+                <path
+                  d="M7 11V7C7 4.23858 9.23858 2 12 2C14.7614 2 17 4.23858 17 7V11"
+                  stroke="#9CA3AF"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+              <input
+                v-model="formData.password"
+                type="password"
+                class="form-input"
+                placeholder="••••••••"
+                :disabled="isLoading"
+              />
+            </div>
+          </div>
+
+          <!-- Options Row -->
+          <div class="options-row">
+            <label class="checkbox-label">
+              <input
+                v-model="formData.rememberMe"
+                type="checkbox"
+                class="checkbox-input"
+                :disabled="isLoading"
+              />
+              <span class="checkbox-custom"></span>
+              <span class="checkbox-text">ログイン状態を保持</span>
+            </label>
+            <a
+              href="#"
+              class="forgot-link"
+            >パスワードを忘れた</a>
+          </div>
+
+          <!-- Error Message -->
+          <p
+            v-if="errorMessage"
+            class="error-message"
+          >
+            {{ errorMessage }}
+          </p>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            class="submit-button"
+            :disabled="isLoading"
+          >
+            <span v-if="isLoading">ログイン中...</span>
+            <span v-else>ログイン</span>
+          </button>
+        </form>
+
+        <!-- Register Link -->
+        <p class="register-text">
+          アカウントをお持ちでない方は<a
+            href="#"
+            class="register-link"
+          >こちら</a>
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <p class="footer-text">
+        © 2025 勤怠管理システム. All rights reserved.
+      </p>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useAuth } from '@/composables/core/useAuth'
+import { defaultLoginRequest, type LoginRequest } from '@/models/auth'
+
+definePageMeta({
+  layout: false,
+})
+
+useSeoMeta({
+  title: 'ログイン | 勤怠管理システム',
+  description: '勤怠管理システムへログインしてください。',
+})
+
+// Auth composable
+const { login, loading, error } = useAuth()
+
+// Form data
+const formData = reactive<LoginRequest>({ ...defaultLoginRequest })
+
+// Computed
+const isLoading = computed(() => loading.value)
+const errorMessage = computed(() => error.value)
+
+// Submit handler
+const onSubmit = async () => {
+  // Basic validation
+  if (!formData.email || !formData.password) {
+    return
+  }
+
+  const success = await login(formData)
+
+  if (success) {
+    await navigateTo('/dashboard')
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+@use '@main/assets/styles/variables' as v;
+@use '@main/assets/styles/mixins' as m;
+
+// Local color variables for this design
+$login-primary: #4f39f6;
+$login-primary-hover: #4330d9;
+$login-bg-start: #eff6ff;
+$login-bg-end: #e0e7ff;
+$login-text-dark: #101828;
+$login-text-gray: #4a5565;
+$login-text-label: #364153;
+$login-border: #d1d5dc;
+$login-placeholder: rgb(10 10 10 / 50%);
+
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 100vh;
+  padding: 16px;
+
+  background: linear-gradient(150deg, $login-bg-start 0%, $login-bg-end 100%);
+}
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+
+  width: 100%;
+  max-width: 448px;
+}
+
+.login-card {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+
+  padding: 32px;
+  padding-bottom: 32px;
+  border-radius: 16px;
+
+  background-color: v.$white;
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 10%),
+    0 8px 10px -6px rgb(0 0 0 / 10%);
+}
+
+// Logo Section
+.logo-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+
+  background-color: $login-primary;
+}
+
+.logo-title {
+  margin: 0;
+
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: $login-text-dark;
+}
+
+.logo-subtitle {
+  margin: 0;
+
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: $login-text-gray;
+}
+
+// Form Section
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: $login-text-label;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  pointer-events: none;
+  position: absolute;
+  left: 12px;
+}
+
+.form-input {
+  width: 100%;
+  height: 49px;
+  padding: 12px 16px 12px 40px;
+  border: 1px solid $login-border;
+  border-radius: 10px;
+
+  font-size: 16px;
+  color: $login-text-dark;
+
+  background-color: v.$white;
+  outline: none;
+
+  transition: border-color 0.2s ease;
+
+  &::placeholder {
+    color: $login-placeholder;
+  }
+
+  &:focus {
+    border-color: $login-primary;
+  }
+}
+
+// Options Row
+.options-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.checkbox-label {
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.checkbox-input {
+  position: absolute;
+
+  overflow: hidden;
+
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+
+  white-space: nowrap;
+
+  clip-path: inset(50%);
+}
+
+.checkbox-custom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 16px;
+  height: 16px;
+  border: 1px solid $login-border;
+  border-radius: 3px;
+
+  background-color: v.$white;
+
+  transition: all 0.2s ease;
+
+  &::after {
+    content: '';
+
+    transform: rotate(45deg);
+
+    display: none;
+
+    width: 4px;
+    height: 8px;
+    margin-bottom: 2px;
+    border: solid v.$white;
+    border-width: 0 2px 2px 0;
+  }
+
+  .checkbox-input:checked + & {
+    border-color: $login-primary;
+    background-color: $login-primary;
+
+    &::after {
+      display: block;
+    }
+  }
+
+  .checkbox-input:focus + & {
+    box-shadow: 0 0 0 2px rgba($login-primary, 0.2);
+  }
+}
+
+.checkbox-text {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: $login-text-label;
+}
+
+.forgot-link {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: $login-primary;
+  text-decoration: none;
+
+  transition: opacity 0.2s ease;
+
+  @include m.hover {
+    opacity: 0.8;
+  }
+}
+
+// Error Message
+.error-message {
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+
+  font-size: 14px;
+  color: #dc2626;
+
+  background-color: #fef2f2;
+}
+
+// Submit Button
+.submit-button {
+  cursor: pointer;
+
+  width: 100%;
+  height: 48px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: v.$white;
+
+  background-color: $login-primary;
+
+  transition: background-color 0.2s ease;
+
+  @include m.hover {
+    background-color: $login-primary-hover;
+  }
+
+  &:active {
+    background-color: #3f2dc5;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+// Register Link
+.register-text {
+  margin: 0;
+
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: $login-text-gray;
+  text-align: center;
+}
+
+.register-link {
+  color: $login-primary;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+
+  @include m.hover {
+    opacity: 0.8;
+  }
+}
+
+// Footer
+.footer-text {
+  margin: 0;
+
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: $login-text-gray;
+  text-align: center;
+}
+
+// Responsive adjustments
+@include m.sp {
+  .login-card {
+    gap: 24px;
+    padding: 24px;
+  }
+
+  .options-row {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+}
+
+@include m.xs {
+  .login-page {
+    padding: 12px;
+  }
+
+  .login-card {
+    padding: 20px;
+  }
+
+  .form-label,
+  .checkbox-text,
+  .forgot-link,
+  .register-text,
+  .footer-text {
+    font-size: 14px;
+  }
+}
+</style>
 ````
 
 ## File: layers/main/app/test/composables/useApi.spec.ts
