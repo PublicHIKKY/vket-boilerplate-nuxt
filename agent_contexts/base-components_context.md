@@ -5775,6 +5775,44 @@ const url = computed(() => socialShareLink.getShareUrl(props.name || '', props))
 </script>
 ```
 
+## File: layers/base/app/components/hm/HmTsx.vue
+```vue
+<template>
+  <div class="hm-tsx">
+    <DefaultSlot />
+  </div>
+</template>
+
+<script lang="tsx" setup>
+import { Fragment } from 'vue'
+
+const slots = useSlots() as { default?: () => unknown }
+const defaultSlot = slots.default ? slots.default() : null
+
+const DefaultSlot = () => {
+  return <Fragment>{defaultSlot}</Fragment>
+}
+</script>
+```
+
+## File: layers/base/app/layouts/default.vue
+```vue
+<template>
+  <div class="layout -default">
+    <h1 class="heading">
+      Base App Nuxt3
+    </h1>
+    <slot />
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.layout.-default {
+  overflow-x: hidden;
+}
+</style>
+```
+
 ## File: layers/base/app/components/hm/HmTab.vue
 ```vue
 <template>
@@ -5855,44 +5893,6 @@ const changeTab = (index: number): void => {
     transition: opacity 0.3s, display 0.3s;
     transition-behavior: allow-discrete; // display:block -> noneにdurationを効かせる(transitionのショートハンドで上書きされないようにtransitionより下に書く)
   }
-}
-</style>
-```
-
-## File: layers/base/app/components/hm/HmTsx.vue
-```vue
-<template>
-  <div class="hm-tsx">
-    <DefaultSlot />
-  </div>
-</template>
-
-<script lang="tsx" setup>
-import { Fragment } from 'vue'
-
-const slots = useSlots() as { default?: () => unknown }
-const defaultSlot = slots.default ? slots.default() : null
-
-const DefaultSlot = () => {
-  return <Fragment>{defaultSlot}</Fragment>
-}
-</script>
-```
-
-## File: layers/base/app/layouts/default.vue
-```vue
-<template>
-  <div class="layout -default">
-    <h1 class="heading">
-      Base App Nuxt3
-    </h1>
-    <slot />
-  </div>
-</template>
-
-<style lang="scss" scoped>
-.layout.-default {
-  overflow-x: hidden;
 }
 </style>
 ```
