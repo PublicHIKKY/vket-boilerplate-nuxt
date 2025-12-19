@@ -68,12 +68,20 @@ layers/
           .gitkeep
         hm/
           .gitkeep
+          HmLoginCheckbox.vue
+          HmLoginInput.vue
         ho/
+          HoLoginCard.vue
+          HoLoginForm.vue
           HoTheFooter.vue
           HoTheHeader.vue
         ht/
+          HtLogin.vue
           HtTop.vue
       composables/
+        auth/
+          form/
+            useLoginForm.ts
         core/
           useAuth.ts
         useApi.ts
@@ -653,6 +661,725 @@ $zindex-loading: 400;
 @forward 'base';
 ````
 
+## File: layers/main/app/components/hm/HmLoginCheckbox.vue
+````vue
+<i18n lang="yaml">
+ja:
+  rememberMe: ログイン状態を保持
+en:
+  rememberMe: Remember me
+</i18n>
+
+<template>
+  <label class="hm-login-checkbox">
+    <input
+      :checked="modelValue"
+      type="checkbox"
+      class="checkbox-input"
+      :disabled="disabled"
+      @change="handleChange"
+    />
+    <span class="checkbox-custom"></span>
+    <span class="checkbox-text">
+      <slot>{{ label || i18n.t('rememberMe') }}</slot>
+    </span>
+  </label>
+</template>
+
+<script setup lang="ts">
+const i18n = useI18n()
+
+type Props = {
+  modelValue?: boolean
+  label?: string
+  disabled?: boolean
+}
+
+type Emits = {
+  (e: 'update:modelValue', value: boolean): void
+}
+
+withDefaults(defineProps<Props>(), {
+  modelValue: false,
+  label: undefined,
+  disabled: false,
+})
+
+const emit = defineEmits<Emits>()
+
+const handleChange = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  emit('update:modelValue', target.checked)
+}
+</script>
+
+<style scoped lang="scss">
+@use '@/assets/styles/custom/variables_new' as v;
+@use '@/assets/styles/mixins' as m;
+
+// Local color variables matching login.vue design
+$login-border: #d1d5dc;
+$login-primary: #4f39f6;
+$login-text-label: #364153;
+
+.hm-login-checkbox {
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+
+  &:has(.checkbox-input:disabled) {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.checkbox-input {
+  position: absolute;
+
+  overflow: hidden;
+
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+
+  white-space: nowrap;
+
+  clip-path: inset(50%);
+}
+
+.checkbox-custom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 16px;
+  height: 16px;
+  border: 1px solid $login-border;
+  border-radius: 3px;
+
+  background-color: white;
+
+  transition: all 0.2s ease;
+
+  &::after {
+    content: '';
+
+    transform: rotate(45deg);
+
+    display: none;
+
+    width: 4px;
+    height: 8px;
+    margin-bottom: 2px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+  }
+
+  .checkbox-input:checked + & {
+    border-color: $login-primary;
+    background-color: $login-primary;
+
+    &::after {
+      display: block;
+    }
+  }
+
+  .checkbox-input:focus + & {
+    box-shadow: 0 0 0 2px rgba($login-primary, 0.2);
+  }
+
+  .checkbox-input:disabled + & {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+.checkbox-text {
+  user-select: none;
+
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: $login-text-label;
+
+  @include m.xs {
+    font-size: 14px;
+  }
+}
+</style>
+````
+
+## File: layers/main/app/components/hm/HmLoginInput.vue
+````vue
+<i18n lang="yaml">
+ja:
+  emailPlaceholder: your.email@example.com
+  passwordPlaceholder: ••••••••
+en:
+  emailPlaceholder: your.email@example.com
+  passwordPlaceholder: ••••••••
+</i18n>
+
+<template>
+  <div class="hm-login-input">
+    <svg
+      class="input-icon"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <!-- Email Icon -->
+      <template v-if="type === 'email'">
+        <rect
+          x="2"
+          y="4"
+          width="20"
+          height="16"
+          rx="2"
+          stroke="#9CA3AF"
+          stroke-width="2"
+        />
+        <path
+          d="M2 7L12 13L22 7"
+          stroke="#9CA3AF"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </template>
+      <!-- Password Icon -->
+      <template v-else-if="type === 'password'">
+        <rect
+          x="3"
+          y="11"
+          width="18"
+          height="11"
+          rx="2"
+          stroke="#9CA3AF"
+          stroke-width="2"
+        />
+        <path
+          d="M7 11V7C7 4.23858 9.23858 2 12 2C14.7614 2 17 4.23858 17 7V11"
+          stroke="#9CA3AF"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </template>
+    </svg>
+    <input
+      :value="modelValue"
+      :type="type"
+      :placeholder="computedPlaceholder"
+      :disabled="disabled"
+      class="form-input"
+      @input="onInput"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+const i18n = useI18n()
+
+type Props = {
+  modelValue: string
+  type: 'email' | 'password'
+  placeholder?: string
+  disabled?: boolean
+}
+
+type Emits = {
+  (e: 'update:modelValue', value: string): void
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  disabled: false,
+})
+
+const emit = defineEmits<Emits>()
+
+// Computed placeholder - use custom placeholder or default i18n placeholder
+const computedPlaceholder = computed(() => {
+  if (props.placeholder) {
+    return props.placeholder
+  }
+  return props.type === 'email'
+    ? i18n.t('emailPlaceholder')
+    : i18n.t('passwordPlaceholder')
+})
+
+// Input handler
+const onInput = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  emit('update:modelValue', target.value)
+}
+</script>
+
+<style scoped lang="scss">
+@use '@main/assets/styles/variables' as v;
+@use '@main/assets/styles/mixins' as m;
+
+// Local color variables matching login.vue design
+$login-border: #d1d5dc;
+$login-placeholder: rgb(10 10 10 / 50%);
+$login-primary: #4f39f6;
+$login-text-dark: #101828;
+
+.hm-login-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  > .input-icon {
+    pointer-events: none;
+    position: absolute;
+    left: 12px;
+  }
+
+  > .form-input {
+    width: 100%;
+    height: 49px;
+    padding: 12px 16px 12px 40px;
+    border: 1px solid $login-border;
+    border-radius: 10px;
+
+    font-size: 16px;
+    color: $login-text-dark;
+
+    background-color: v.$white;
+    outline: none;
+
+    transition: border-color 0.2s ease;
+
+    &::placeholder {
+      color: $login-placeholder;
+    }
+
+    &:focus {
+      border-color: $login-primary;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  }
+}
+</style>
+````
+
+## File: layers/main/app/components/ho/HoLoginCard.vue
+````vue
+<i18n lang="yaml">
+ja:
+  logoTitle: 勤怠管理システム
+  logoSubtitle: ログインして開始
+  registerText: アカウントをお持ちでない方は
+  registerLink: こちら
+en:
+  logoTitle: Attendance Management System
+  logoSubtitle: Login to get started
+  registerText: Don't have an account?
+  registerLink: Sign up here
+</i18n>
+
+<template>
+  <div class="ho-login-card">
+    <!-- Logo Section -->
+    <div class="logo-section">
+      <div class="logo-icon">
+        <svg
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <circle
+            cx="12"
+            cy="12"
+            r="9"
+            stroke="white"
+            stroke-width="2"
+          />
+          <polyline
+            points="12,7 12,12 16,12"
+            stroke="white"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
+      <h1 class="logo-title">
+        {{ i18n.t('logoTitle') }}
+      </h1>
+      <p class="logo-subtitle">
+        {{ i18n.t('logoSubtitle') }}
+      </p>
+    </div>
+
+    <!-- Form Section -->
+    <HoLoginForm
+      :isLoading="isLoading"
+      :errorMessage="errorMessage"
+      @submit="onSubmit"
+    />
+
+    <!-- Register Link -->
+    <p class="register-text">
+      {{ i18n.t('registerText') }}<a
+        href="#"
+        class="register-link"
+      >{{ i18n.t('registerLink') }}</a>
+    </p>
+  </div>
+</template>
+
+<script setup lang="ts">
+type Props = {
+  isLoading?: boolean
+  errorMessage?: string
+}
+
+type Emits = {
+  (emit: 'submit'): void
+}
+
+const i18n = useI18n()
+withDefaults(defineProps<Props>(), {
+  isLoading: false,
+  errorMessage: undefined,
+})
+const emit = defineEmits<Emits>()
+
+const onSubmit = () => {
+  emit('submit')
+}
+</script>
+
+<style lang="scss" scoped>
+@use '@main/assets/styles/variables' as v;
+@use '@main/assets/styles/mixins' as m;
+
+// Local color variables matching login.vue design
+$login-primary: #4f39f6;
+$login-text-dark: #101828;
+$login-text-gray: #4a5565;
+
+.ho-login-card {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+
+  padding: 32px;
+  border-radius: 16px;
+
+  background-color: white;
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 10%),
+    0 8px 10px -6px rgb(0 0 0 / 10%);
+}
+
+.logo-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+
+  > .logo-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+
+    background-color: $login-primary;
+  }
+
+  > .logo-title {
+    margin: 0;
+
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+    color: $login-text-dark;
+  }
+
+  > .logo-subtitle {
+    margin: 0;
+
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+    color: $login-text-gray;
+  }
+}
+
+.register-text {
+  margin: 0;
+
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: $login-text-gray;
+  text-align: center;
+
+  > .register-link {
+    color: $login-primary;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+// Responsive
+@include m.sp {
+  .ho-login-card {
+    gap: 24px;
+    padding: 24px;
+  }
+}
+
+@include m.xs {
+  .ho-login-card {
+    padding: 20px;
+  }
+
+  .register-text {
+    font-size: 14px;
+  }
+}
+</style>
+````
+
+## File: layers/main/app/components/ho/HoLoginForm.vue
+````vue
+<i18n lang="yaml">
+ja:
+  emailLabel: メールアドレス
+  passwordLabel: パスワード
+  forgotPassword: パスワードを忘れた
+  loginButton: ログイン
+  loggingIn: ログイン中...
+en:
+  emailLabel: Email Address
+  passwordLabel: Password
+  forgotPassword: Forgot Password
+  loginButton: Login
+  loggingIn: Logging in...
+</i18n>
+
+<template>
+  <form
+    class="ho-login-form"
+    @submit.prevent="onSubmit"
+  >
+    <!-- Email Field -->
+    <div class="form-group">
+      <label class="form-label">{{ i18n.t('emailLabel') }}</label>
+      <HmLoginInput
+        v-model="formData.email"
+        type="email"
+        :disabled="isLoading"
+      />
+      <p
+        v-if="errors.email"
+        class="error-text"
+      >
+        {{ errors.email }}
+      </p>
+    </div>
+
+    <!-- Password Field -->
+    <div class="form-group">
+      <label class="form-label">{{ i18n.t('passwordLabel') }}</label>
+      <HmLoginInput
+        v-model="formData.password"
+        type="password"
+        :disabled="isLoading"
+      />
+      <p
+        v-if="errors.password"
+        class="error-text"
+      >
+        {{ errors.password }}
+      </p>
+    </div>
+
+    <!-- Options Row -->
+    <div class="options-row">
+      <HmLoginCheckbox
+        v-model="formData.rememberMe"
+        :disabled="isLoading"
+      />
+      <a
+        href="#"
+        class="forgot-link"
+      >{{ i18n.t('forgotPassword') }}</a>
+    </div>
+
+    <!-- Error Message -->
+    <p
+      v-if="errorMessage"
+      class="error-message"
+    >
+      {{ errorMessage }}
+    </p>
+
+    <!-- Submit Button -->
+    <button
+      type="submit"
+      class="submit-button"
+      :disabled="isLoading"
+    >
+      <span v-if="isLoading">{{ i18n.t('loggingIn') }}</span>
+      <span v-else>{{ i18n.t('loginButton') }}</span>
+    </button>
+  </form>
+</template>
+
+<script setup lang="ts">
+import { loginFormInjectionKey } from '#main/app/composables/auth/form/useLoginForm'
+
+type Props = {
+  isLoading?: boolean
+  errorMessage?: string
+}
+
+type Emits = {
+  (emit: 'submit'): void
+}
+
+const i18n = useI18n()
+withDefaults(defineProps<Props>(), {
+  isLoading: false,
+  errorMessage: undefined,
+})
+const emit = defineEmits<Emits>()
+
+// Inject form state from useLoginForm composable
+const loginForm = inject(loginFormInjectionKey)!
+const { formData, errors } = loginForm
+
+// Handle form submission
+const onSubmit = () => {
+  emit('submit')
+}
+</script>
+
+<style lang="scss" scoped>
+@use '@main/assets/styles/variables' as v;
+@use '@main/assets/styles/mixins' as m;
+
+// Local color variables matching login.vue design
+$login-primary: #4f39f6;
+$login-primary-hover: #4330d9;
+$login-primary-active: #3f2dc5;
+$login-text-label: #364153;
+$login-error-text: #dc2626;
+$login-error-bg: #fef2f2;
+
+.ho-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  > .form-label {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+    color: $login-text-label;
+  }
+
+  > .error-text {
+    margin: 0;
+    font-size: 14px;
+    color: $login-error-text;
+  }
+}
+
+.options-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+
+  > .forgot-link {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+    color: $login-primary;
+    text-decoration: none;
+
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+.error-message {
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+
+  font-size: 14px;
+  color: $login-error-text;
+
+  background-color: $login-error-bg;
+}
+
+.submit-button {
+  cursor: pointer;
+
+  width: 100%;
+  height: 48px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: white;
+
+  background-color: $login-primary;
+
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: $login-primary-hover;
+  }
+
+  &:active {
+    background-color: $login-primary-active;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+</style>
+````
+
 ## File: layers/main/app/components/ho/HoTheFooter.vue
 ````vue
 <i18n lang="yaml">
@@ -715,6 +1442,106 @@ en:
 </style>
 ````
 
+## File: layers/main/app/components/ht/HtLogin.vue
+````vue
+<i18n lang="yaml">
+ja:
+  footerText: © 2025 勤怠管理システム. All rights reserved.
+en:
+  footerText: © 2025 Attendance Management System. All rights reserved.
+</i18n>
+
+<template>
+  <div class="ht-login">
+    <div class="login-container">
+      <HoLoginCard
+        :isLoading="isLoading"
+        :errorMessage="errorMessage"
+        @submit="onSubmit"
+      />
+
+      <!-- Footer -->
+      <p class="footer-text">
+        {{ i18n.t('footerText') }}
+      </p>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+type Props = {
+  isLoading?: boolean
+  errorMessage?: string
+}
+
+type Emits = {
+  (emit: 'submit'): void
+}
+
+const i18n = useI18n()
+withDefaults(defineProps<Props>(), {
+  isLoading: false,
+  errorMessage: undefined,
+})
+const emit = defineEmits<Emits>()
+
+const onSubmit = () => {
+  emit('submit')
+}
+</script>
+
+<style lang="scss" scoped>
+@use '@main/assets/styles/variables' as v;
+@use '@main/assets/styles/mixins' as m;
+
+// Local color variables matching login.vue design
+$login-bg-start: #eff6ff;
+$login-bg-end: #e0e7ff;
+$login-text-gray: #4a5565;
+
+.ht-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 100vh;
+  padding: 16px;
+
+  background: linear-gradient(150deg, $login-bg-start 0%, $login-bg-end 100%);
+}
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+
+  width: 100%;
+  max-width: 448px;
+}
+
+.footer-text {
+  margin: 0;
+
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: $login-text-gray;
+  text-align: center;
+}
+
+// Responsive
+@include m.xs {
+  .ht-login {
+    padding: 12px;
+  }
+
+  .footer-text {
+    font-size: 14px;
+  }
+}
+</style>
+````
+
 ## File: layers/main/app/components/ht/HtTop.vue
 ````vue
 <i18n lang="yaml">
@@ -743,96 +1570,77 @@ en:
 </style>
 ````
 
-## File: layers/main/app/composables/core/useAuth.ts
+## File: layers/main/app/composables/auth/form/useLoginForm.ts
 ````typescript
-import type { UserData, LoginRequest } from '@/models/auth'
-import useApi from '@/composables/useApi'
+import type { InjectionKey } from 'vue'
+import { useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import { loginRequest } from '~/models/auth'
 
 /**
- * 認証状態管理Composable
- * - アプリケーション全体で使用する基盤機能
- * - useStateを使用した永続的なグローバル状態
+ * Login Form State with vee-validate
+ * ログインフォームのデータとバリデーションの統合管理
+ * 必ずInjectionKeyを定義
  */
-export const useAuth = () => {
-  const user = useState<UserData | null>('auth-user', () => null)
-  const token = useState<string | null>('auth-token', () => null)
-  const loading = useState<boolean>('auth-loading', () => false)
-  const error = useState<string | null>('auth-error', () => null)
-
-  const { repository } = useApi('auth')
-
-  const isAuthenticated = computed(() => !!user.value && !!token.value)
-
-  /**
-   * ログイン処理
-   */
-  const login = async (credentials: LoginRequest): Promise<boolean> => {
-    loading.value = true
-    error.value = null
-
-    try {
-      const response = await repository.value.post.login(credentials)
-
-      if (response.success) {
-        user.value = response.data.user
-        token.value = response.data.token
-
-        // トークンをlocalStorageに保存（クライアントサイドのみ）
-        if (import.meta.client) {
-          localStorage.setItem('auth_token', response.data.token)
-        }
-
-        return true
-      } else {
-        error.value = response.message || 'ログインに失敗しました'
-        return false
-      }
-    } catch (e) {
-      error.value = 'ログインに失敗しました'
-      console.error('Login failed:', e)
-      return false
-    } finally {
-      loading.value = false
-    }
-  }
+export const useLoginForm = () => {
+  // vee-validateのuseForm with zod schema
+  const {
+    values: formData,
+    errors,
+    isSubmitting,
+    handleSubmit,
+    resetForm,
+    setFieldValue,
+    validate,
+  } = useForm({
+    validationSchema: toTypedSchema(loginRequest),
+    initialValues: {
+      email: '',
+      password: '',
+      rememberMe: false,
+    },
+  })
 
   /**
-   * ログアウト処理
-   */
-  const logout = () => {
-    user.value = null
-    token.value = null
-    error.value = null
-
-    if (import.meta.client) {
-      localStorage.removeItem('auth_token')
-    }
-  }
-
-  /**
-   * 認証状態のリセット
+   * リセット（初期値に戻す）
    */
   const reset = () => {
-    user.value = null
-    token.value = null
-    loading.value = false
-    error.value = null
+    resetForm()
+  }
+
+  /**
+   * フィールド値の更新
+   */
+  const updateField = (field: keyof typeof formData, value: string | boolean) => {
+    setFieldValue(field, value)
+  }
+
+  /**
+   * バリデーション実行
+   */
+  const validateForm = async () => {
+    const result = await validate()
+    return result.valid
   }
 
   return {
-    // 状態
-    user: readonly(user),
-    token: readonly(token),
-    loading: readonly(loading),
-    error: readonly(error),
-    isAuthenticated,
+    // フォームデータ
+    formData,
+
+    // バリデーション
+    errors,
+    isSubmitting,
 
     // メソッド
-    login,
-    logout,
+    handleSubmit,
     reset,
+    updateField,
+    validateForm,
   }
 }
+
+export type LoginFormComposable = ReturnType<typeof useLoginForm>
+export const loginFormInjectionKey: InjectionKey<LoginFormComposable> = Symbol('login-form')
 ````
 
 ## File: layers/main/app/composables/useApi.ts
@@ -901,65 +1709,6 @@ export default function useApi<K extends RepositoryKey>(endpoint: K) {
 </style>
 ````
 
-## File: layers/main/app/models/auth.ts
-````typescript
-import { z } from 'zod/v3'
-
-/*
- * ============================================================================
- * User Schema
- * ============================================================================
- */
-
-export const userData = z.object({
-  id: z.string(),
-  email: z.string(),
-  name: z.string(),
-})
-export type UserData = z.infer<typeof userData>
-
-export const defaultUser: UserData = {
-  id: '',
-  email: '',
-  name: '',
-}
-
-/*
- * ============================================================================
- * Login Request/Response
- * ============================================================================
- */
-
-export const loginRequest = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-  rememberMe: z.boolean().optional(),
-})
-export type LoginRequest = z.infer<typeof loginRequest>
-
-export const loginResponse = z.object({
-  success: z.boolean(),
-  data: z.object({
-    user: userData,
-    token: z.string(),
-  }),
-  message: z.string(),
-})
-export type LoginResponse = z.infer<typeof loginResponse>
-
-/*
- * ============================================================================
- * Default Values
- * ============================================================================
- */
-
-export const defaultLoginRequest: LoginRequest = {
-  email: '',
-  password: '',
-  rememberMe: false,
-}
-````
-
 ## File: layers/main/app/models/json.ts
 ````typescript
 /**
@@ -993,244 +1742,6 @@ export const todoSchema = z.object({
 })
 
 export type Todo = z.infer<typeof todoSchema>
-````
-
-## File: layers/main/app/pages/dashboard.vue
-````vue
-<i18n lang="yaml">
-ja:
-  seo:
-    title: ダッシュボード
-    description: 勤怠管理システムのダッシュボードです。
-  welcome: ようこそ
-  welcomeMessage: ログインに成功しました。
-  logout: ログアウト
-en:
-  seo:
-    title: Dashboard
-    description: Attendance management system dashboard.
-  welcome: Welcome
-  welcomeMessage: Login successful.
-  logout: Logout
-</i18n>
-
-<template>
-  <div class="dashboard-page">
-    <div class="dashboard-container">
-      <div class="dashboard-card">
-        <div class="dashboard-header">
-          <div class="success-icon">
-            <svg
-              width="48"
-              height="48"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="#10B981"
-                stroke-width="2"
-              />
-              <path
-                d="M8 12L11 15L16 9"
-                stroke="#10B981"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </div>
-          <h1 class="dashboard-title">
-            {{ i18n.t('welcome') }}, {{ userName }}
-          </h1>
-          <p class="dashboard-message">
-            {{ i18n.t('welcomeMessage') }}
-          </p>
-        </div>
-
-        <div class="user-info">
-          <div class="info-item">
-            <span class="info-label">Email:</span>
-            <span class="info-value">{{ userEmail }}</span>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          class="logout-button"
-          @click="onLogout"
-        >
-          {{ i18n.t('logout') }}
-        </button>
-      </div>
-    </div>
-  </div>
-</template>
-
-<script lang="ts" setup>
-import { useAuth } from '@/composables/core/useAuth'
-
-definePageMeta({
-  layout: false,
-})
-
-const i18n = useI18n()
-const { user, logout } = useAuth()
-
-useSeoMeta({
-  title: `${i18n.t('seo.title')} | 勤怠管理システム`,
-  description: i18n.t('seo.description'),
-})
-
-const userName = computed(() => user.value?.name ?? '')
-const userEmail = computed(() => user.value?.email ?? '')
-
-const onLogout = async () => {
-  logout()
-  await navigateTo('/login')
-}
-</script>
-
-<style lang="scss" scoped>
-@use '@main/assets/styles/variables' as v;
-@use '@main/assets/styles/mixins' as m;
-
-$dashboard-primary: #10b981;
-$dashboard-bg-start: #ecfdf5;
-$dashboard-bg-end: #d1fae5;
-$dashboard-text-dark: #101828;
-$dashboard-text-gray: #4a5565;
-
-.dashboard-page {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  min-height: 100vh;
-  padding: 16px;
-
-  background: linear-gradient(150deg, $dashboard-bg-start 0%, $dashboard-bg-end 100%);
-}
-
-.dashboard-container {
-  width: 100%;
-  max-width: 480px;
-}
-
-.dashboard-card {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-
-  padding: 40px;
-  border-radius: 16px;
-
-  background-color: v.$white;
-  box-shadow:
-    0 20px 25px -5px rgb(0 0 0 / 10%),
-    0 8px 10px -6px rgb(0 0 0 / 10%);
-}
-
-.dashboard-header {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  align-items: center;
-
-  text-align: center;
-}
-
-.success-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-
-  background-color: $dashboard-bg-start;
-}
-
-.dashboard-title {
-  margin: 0;
-
-  font-size: 24px;
-  font-weight: 600;
-  line-height: 1.3;
-  color: $dashboard-text-dark;
-}
-
-.dashboard-message {
-  margin: 0;
-  font-size: 16px;
-  color: $dashboard-text-gray;
-}
-
-.user-info {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-
-  padding: 20px;
-  border-radius: 12px;
-
-  background-color: #f9fafb;
-}
-
-.info-item {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.info-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: $dashboard-text-gray;
-}
-
-.info-value {
-  font-size: 14px;
-  color: $dashboard-text-dark;
-}
-
-.logout-button {
-  cursor: pointer;
-
-  width: 100%;
-  height: 48px;
-  padding: 0;
-  border: 1px solid #d1d5dc;
-  border-radius: 10px;
-
-  font-size: 16px;
-  font-weight: 400;
-  color: $dashboard-text-dark;
-
-  background-color: v.$white;
-
-  transition: background-color 0.2s ease;
-
-  @include m.hover {
-    background-color: #f9fafb;
-  }
-}
-
-@include m.sp {
-  .dashboard-card {
-    gap: 24px;
-    padding: 24px;
-  }
-
-  .dashboard-title {
-    font-size: 20px;
-  }
-}
-</style>
 ````
 
 ## File: layers/main/app/pages/index.vue
@@ -1293,47 +1804,6 @@ export const requireRuntimeConfig: () => ProcessEnv | RuntimeConfig = () => {
   }
 
   throw new TypeError('@/plugins/runtimeConfig: Not satisfied.')
-}
-````
-
-## File: layers/main/app/repositories/authRepository.ts
-````typescript
-import { requireValueOf } from '#base/app/utils/zod'
-import {
-  loginRequest,
-  loginResponse,
-  type LoginRequest,
-  type LoginResponse,
-} from '@/models/auth'
-
-/*
- * ============================================================================
- * Type Definitions
- * ============================================================================
- */
-
-export const postLoginRequestSchema = loginRequest
-export type PostLoginRequest = LoginRequest
-
-export const postLoginResponseSchema = loginResponse
-export type PostLoginResponse = LoginResponse
-
-/*
- * ============================================================================
- * Repository
- * ============================================================================
- */
-
-export default {
-  post: {
-    async login(params: PostLoginRequest): Promise<PostLoginResponse> {
-      const response = await $fetch('/api/auth/login', {
-        method: 'POST',
-        body: params,
-      })
-      return requireValueOf(postLoginResponseSchema, response)
-    },
-  } as const,
 }
 ````
 
@@ -1525,27 +1995,6 @@ export default (
     default:
       return defaultApi.get(path, fetchOptions)
   }
-}
-````
-
-## File: layers/main/app/utils/factory.ts
-````typescript
-import { type MakeRepository, defaultRepositories } from '#base/app/utils/default-factory'
-import { Method } from '@/utils/api'
-import authRepository from '@/repositories/authRepository'
-
-export type Repository = MakeRepository<Method>
-export type Repositories = Record<string, Repository>
-
-export const repositories = {
-  ...defaultRepositories,
-  auth: authRepository,
-} as const satisfies Repositories
-
-export type RepositoryKey = keyof typeof repositories
-
-export const repositoryFactory = {
-  get: <K extends keyof typeof repositories>(name: K) => repositories[name],
 }
 ````
 
@@ -2169,48 +2618,6 @@ User-agent: *
 Disallow:
 ````
 
-## File: layers/main/server/api/auth/login.post.ts
-````typescript
-import { defineEventHandler, readBody } from 'h3'
-
-interface LoginRequest {
-  email: string
-  password: string
-  rememberMe?: boolean
-}
-
-interface LoginResponse {
-  success: boolean
-  data: {
-    user: {
-      id: string
-      email: string
-      name: string
-    }
-    token: string
-  }
-  message: string
-}
-
-export default defineEventHandler(async (event): Promise<LoginResponse> => {
-  const body = await readBody<LoginRequest>(event)
-
-  // Always return success (mock API)
-  return {
-    success: true,
-    data: {
-      user: {
-        id: '1',
-        email: body.email,
-        name: 'テストユーザー',
-      },
-      token: 'mock-jwt-token-' + Date.now(),
-    },
-    message: 'ログインに成功しました',
-  }
-})
-````
-
 ## File: layers/main/server/tsconfig.json
 ````json
 {
@@ -2450,18 +2857,185 @@ a {
 }
 ````
 
-## File: layers/main/app/pages/login.vue
+## File: layers/main/app/composables/core/useAuth.ts
+````typescript
+import type { UserData, LoginRequest } from '@/models/auth'
+import useApi from '@/composables/useApi'
+
+/**
+ * 認証状態管理Composable
+ * - アプリケーション全体で使用する基盤機能
+ * - useStateを使用した永続的なグローバル状態
+ */
+export const useAuth = () => {
+  const user = useState<UserData | null>('auth-user', () => null)
+  const token = useState<string | null>('auth-token', () => null)
+  const loading = useState<boolean>('auth-loading', () => false)
+  const error = useState<string | null>('auth-error', () => null)
+
+  const { repository } = useApi('auth')
+
+  const isAuthenticated = computed(() => !!user.value && !!token.value)
+
+  /**
+   * ログイン処理
+   */
+  const login = async (credentials: LoginRequest): Promise<boolean> => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await repository.value.post.login(credentials)
+
+      if (response.success) {
+        user.value = response.data.user
+        token.value = response.data.token
+
+        // トークンをlocalStorageに保存（クライアントサイドのみ）
+        if (import.meta.client) {
+          localStorage.setItem('auth_token', response.data.token)
+        }
+
+        return true
+      } else {
+        error.value = response.message || 'ログインに失敗しました'
+        return false
+      }
+    } catch (e) {
+      error.value = 'ログインに失敗しました'
+      console.error('Login failed:', e)
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * ログアウト処理
+   */
+  const logout = () => {
+    user.value = null
+    token.value = null
+    error.value = null
+
+    if (import.meta.client) {
+      localStorage.removeItem('auth_token')
+    }
+  }
+
+  /**
+   * 認証状態のリセット
+   */
+  const reset = () => {
+    user.value = null
+    token.value = null
+    loading.value = false
+    error.value = null
+  }
+
+  return {
+    // 状態
+    user: readonly(user),
+    token: readonly(token),
+    loading: readonly(loading),
+    error: readonly(error),
+    isAuthenticated,
+
+    // メソッド
+    login,
+    logout,
+    reset,
+  }
+}
+````
+
+## File: layers/main/app/models/auth.ts
+````typescript
+import { z } from 'zod/v3'
+
+/*
+ * ============================================================================
+ * User Schema
+ * ============================================================================
+ */
+
+export const userData = z.object({
+  id: z.string(),
+  email: z.string(),
+  name: z.string(),
+})
+export type UserData = z.infer<typeof userData>
+
+export const defaultUser: UserData = {
+  id: '',
+  email: '',
+  name: '',
+}
+
+/*
+ * ============================================================================
+ * Login Request/Response
+ * ============================================================================
+ */
+
+export const loginRequest = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+  rememberMe: z.boolean().optional(),
+})
+export type LoginRequest = z.infer<typeof loginRequest>
+
+export const loginResponse = z.object({
+  success: z.boolean(),
+  data: z.object({
+    user: userData,
+    token: z.string(),
+  }),
+  message: z.string(),
+})
+export type LoginResponse = z.infer<typeof loginResponse>
+
+/*
+ * ============================================================================
+ * Default Values
+ * ============================================================================
+ */
+
+export const defaultLoginRequest: LoginRequest = {
+  email: '',
+  password: '',
+  rememberMe: false,
+}
+````
+
+## File: layers/main/app/pages/dashboard.vue
 ````vue
+<i18n lang="yaml">
+ja:
+  seo:
+    title: ダッシュボード
+    description: 勤怠管理システムのダッシュボードです。
+  welcome: ようこそ
+  welcomeMessage: ログインに成功しました。
+  logout: ログアウト
+en:
+  seo:
+    title: Dashboard
+    description: Attendance management system dashboard.
+  welcome: Welcome
+  welcomeMessage: Login successful.
+  logout: Logout
+</i18n>
+
 <template>
-  <div class="login-page">
-    <div class="login-container">
-      <div class="login-card">
-        <!-- Logo Section -->
-        <div class="logo-section">
-          <div class="logo-icon">
+  <div class="dashboard-page">
+    <div class="dashboard-container">
+      <div class="dashboard-card">
+        <div class="dashboard-header">
+          <div class="success-icon">
             <svg
-              width="32"
-              height="32"
+              width="48"
+              height="48"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -2469,198 +3043,67 @@ a {
               <circle
                 cx="12"
                 cy="12"
-                r="9"
-                stroke="white"
+                r="10"
+                stroke="#10B981"
                 stroke-width="2"
               />
-              <polyline
-                points="12,7 12,12 16,12"
-                stroke="white"
+              <path
+                d="M8 12L11 15L16 9"
+                stroke="#10B981"
                 stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
               />
             </svg>
           </div>
-          <h1 class="logo-title">
-            勤怠管理システム
+          <h1 class="dashboard-title">
+            {{ i18n.t('welcome') }}, {{ userName }}
           </h1>
-          <p class="logo-subtitle">
-            ログインして開始
+          <p class="dashboard-message">
+            {{ i18n.t('welcomeMessage') }}
           </p>
         </div>
 
-        <!-- Form Section -->
-        <form
-          class="login-form"
-          @submit.prevent="onSubmit"
+        <div class="user-info">
+          <div class="info-item">
+            <span class="info-label">Email:</span>
+            <span class="info-value">{{ userEmail }}</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="logout-button"
+          @click="onLogout"
         >
-          <!-- Email Field -->
-          <div class="form-group">
-            <label class="form-label">メールアドレス</label>
-            <div class="input-wrapper">
-              <svg
-                class="input-icon"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect
-                  x="2"
-                  y="4"
-                  width="20"
-                  height="16"
-                  rx="2"
-                  stroke="#9CA3AF"
-                  stroke-width="2"
-                />
-                <path
-                  d="M2 7L12 13L22 7"
-                  stroke="#9CA3AF"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              <input
-                v-model="formData.email"
-                type="email"
-                class="form-input"
-                placeholder="your.email@example.com"
-                :disabled="isLoading"
-              />
-            </div>
-          </div>
-
-          <!-- Password Field -->
-          <div class="form-group">
-            <label class="form-label">パスワード</label>
-            <div class="input-wrapper">
-              <svg
-                class="input-icon"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect
-                  x="3"
-                  y="11"
-                  width="18"
-                  height="11"
-                  rx="2"
-                  stroke="#9CA3AF"
-                  stroke-width="2"
-                />
-                <path
-                  d="M7 11V7C7 4.23858 9.23858 2 12 2C14.7614 2 17 4.23858 17 7V11"
-                  stroke="#9CA3AF"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                />
-              </svg>
-              <input
-                v-model="formData.password"
-                type="password"
-                class="form-input"
-                placeholder="••••••••"
-                :disabled="isLoading"
-              />
-            </div>
-          </div>
-
-          <!-- Options Row -->
-          <div class="options-row">
-            <label class="checkbox-label">
-              <input
-                v-model="formData.rememberMe"
-                type="checkbox"
-                class="checkbox-input"
-                :disabled="isLoading"
-              />
-              <span class="checkbox-custom"></span>
-              <span class="checkbox-text">ログイン状態を保持</span>
-            </label>
-            <a
-              href="#"
-              class="forgot-link"
-            >パスワードを忘れた</a>
-          </div>
-
-          <!-- Error Message -->
-          <p
-            v-if="errorMessage"
-            class="error-message"
-          >
-            {{ errorMessage }}
-          </p>
-
-          <!-- Submit Button -->
-          <button
-            type="submit"
-            class="submit-button"
-            :disabled="isLoading"
-          >
-            <span v-if="isLoading">ログイン中...</span>
-            <span v-else>ログイン</span>
-          </button>
-        </form>
-
-        <!-- Register Link -->
-        <p class="register-text">
-          アカウントをお持ちでない方は<a
-            href="#"
-            class="register-link"
-          >こちら</a>
-        </p>
+          {{ i18n.t('logout') }}
+        </button>
       </div>
-
-      <!-- Footer -->
-      <p class="footer-text">
-        © 2025 勤怠管理システム. All rights reserved.
-      </p>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { useAuth } from '@/composables/core/useAuth'
-import { defaultLoginRequest, type LoginRequest } from '@/models/auth'
 
 definePageMeta({
   layout: false,
 })
 
+const i18n = useI18n()
+const { user, logout } = useAuth()
+
 useSeoMeta({
-  title: 'ログイン | 勤怠管理システム',
-  description: '勤怠管理システムへログインしてください。',
+  title: `${i18n.t('seo.title')} | 勤怠管理システム`,
+  description: i18n.t('seo.description'),
 })
 
-// Auth composable
-const { login, loading, error } = useAuth()
+const userName = computed(() => user.value?.name ?? '')
+const userEmail = computed(() => user.value?.email ?? '')
 
-// Form data
-const formData = reactive<LoginRequest>({ ...defaultLoginRequest })
-
-// Computed
-const isLoading = computed(() => loading.value)
-const errorMessage = computed(() => error.value)
-
-// Submit handler
-const onSubmit = async () => {
-  // Basic validation
-  if (!formData.email || !formData.password) {
-    return
-  }
-
-  const success = await login(formData)
-
-  if (success) {
-    await navigateTo('/dashboard')
-  }
+const onLogout = async () => {
+  logout()
+  await navigateTo('/login')
 }
 </script>
 
@@ -2668,18 +3111,13 @@ const onSubmit = async () => {
 @use '@main/assets/styles/variables' as v;
 @use '@main/assets/styles/mixins' as m;
 
-// Local color variables for this design
-$login-primary: #4f39f6;
-$login-primary-hover: #4330d9;
-$login-bg-start: #eff6ff;
-$login-bg-end: #e0e7ff;
-$login-text-dark: #101828;
-$login-text-gray: #4a5565;
-$login-text-label: #364153;
-$login-border: #d1d5dc;
-$login-placeholder: rgb(10 10 10 / 50%);
+$dashboard-primary: #10b981;
+$dashboard-bg-start: #ecfdf5;
+$dashboard-bg-end: #d1fae5;
+$dashboard-text-dark: #101828;
+$dashboard-text-gray: #4a5565;
 
-.login-page {
+.dashboard-page {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2687,25 +3125,20 @@ $login-placeholder: rgb(10 10 10 / 50%);
   min-height: 100vh;
   padding: 16px;
 
-  background: linear-gradient(150deg, $login-bg-start 0%, $login-bg-end 100%);
+  background: linear-gradient(150deg, $dashboard-bg-start 0%, $dashboard-bg-end 100%);
 }
 
-.login-container {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-
+.dashboard-container {
   width: 100%;
-  max-width: 448px;
+  max-width: 480px;
 }
 
-.login-card {
+.dashboard-card {
   display: flex;
   flex-direction: column;
   gap: 32px;
 
-  padding: 32px;
-  padding-bottom: 32px;
+  padding: 40px;
   border-radius: 16px;
 
   background-color: v.$white;
@@ -2714,304 +3147,144 @@ $login-placeholder: rgb(10 10 10 / 50%);
     0 8px 10px -6px rgb(0 0 0 / 10%);
 }
 
-// Logo Section
-.logo-section {
+.dashboard-header {
   display: flex;
   flex-direction: column;
   gap: 16px;
   align-items: center;
+
+  text-align: center;
 }
 
-.logo-icon {
+.success-icon {
   display: flex;
   align-items: center;
   justify-content: center;
 
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
 
-  background-color: $login-primary;
+  background-color: $dashboard-bg-start;
 }
 
-.logo-title {
+.dashboard-title {
   margin: 0;
 
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  color: $login-text-dark;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: $dashboard-text-dark;
 }
 
-.logo-subtitle {
+.dashboard-message {
   margin: 0;
-
   font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  color: $login-text-gray;
+  color: $dashboard-text-gray;
 }
 
-// Form Section
-.login-form {
+.user-info {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 12px;
+
+  padding: 20px;
+  border-radius: 12px;
+
+  background-color: #f9fafb;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-label {
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  color: $login-text-label;
-}
-
-.input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.input-icon {
-  pointer-events: none;
-  position: absolute;
-  left: 12px;
-}
-
-.form-input {
-  width: 100%;
-  height: 49px;
-  padding: 12px 16px 12px 40px;
-  border: 1px solid $login-border;
-  border-radius: 10px;
-
-  font-size: 16px;
-  color: $login-text-dark;
-
-  background-color: v.$white;
-  outline: none;
-
-  transition: border-color 0.2s ease;
-
-  &::placeholder {
-    color: $login-placeholder;
-  }
-
-  &:focus {
-    border-color: $login-primary;
-  }
-}
-
-// Options Row
-.options-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.checkbox-label {
-  cursor: pointer;
+.info-item {
   display: flex;
   gap: 8px;
   align-items: center;
 }
 
-.checkbox-input {
-  position: absolute;
-
-  overflow: hidden;
-
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  border: 0;
-
-  white-space: nowrap;
-
-  clip-path: inset(50%);
-}
-
-.checkbox-custom {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 16px;
-  height: 16px;
-  border: 1px solid $login-border;
-  border-radius: 3px;
-
-  background-color: v.$white;
-
-  transition: all 0.2s ease;
-
-  &::after {
-    content: '';
-
-    transform: rotate(45deg);
-
-    display: none;
-
-    width: 4px;
-    height: 8px;
-    margin-bottom: 2px;
-    border: solid v.$white;
-    border-width: 0 2px 2px 0;
-  }
-
-  .checkbox-input:checked + & {
-    border-color: $login-primary;
-    background-color: $login-primary;
-
-    &::after {
-      display: block;
-    }
-  }
-
-  .checkbox-input:focus + & {
-    box-shadow: 0 0 0 2px rgba($login-primary, 0.2);
-  }
-}
-
-.checkbox-text {
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  color: $login-text-label;
-}
-
-.forgot-link {
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  color: $login-primary;
-  text-decoration: none;
-
-  transition: opacity 0.2s ease;
-
-  @include m.hover {
-    opacity: 0.8;
-  }
-}
-
-// Error Message
-.error-message {
-  margin: 0;
-  padding: 12px;
-  border-radius: 8px;
-
+.info-label {
   font-size: 14px;
-  color: #dc2626;
-
-  background-color: #fef2f2;
+  font-weight: 500;
+  color: $dashboard-text-gray;
 }
 
-// Submit Button
-.submit-button {
+.info-value {
+  font-size: 14px;
+  color: $dashboard-text-dark;
+}
+
+.logout-button {
   cursor: pointer;
 
   width: 100%;
   height: 48px;
   padding: 0;
-  border: none;
+  border: 1px solid #d1d5dc;
   border-radius: 10px;
 
   font-size: 16px;
   font-weight: 400;
-  line-height: 24px;
-  color: v.$white;
+  color: $dashboard-text-dark;
 
-  background-color: $login-primary;
+  background-color: v.$white;
 
   transition: background-color 0.2s ease;
 
   @include m.hover {
-    background-color: $login-primary-hover;
-  }
-
-  &:active {
-    background-color: #3f2dc5;
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
+    background-color: #f9fafb;
   }
 }
 
-// Register Link
-.register-text {
-  margin: 0;
-
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  color: $login-text-gray;
-  text-align: center;
-}
-
-.register-link {
-  color: $login-primary;
-  text-decoration: none;
-  transition: opacity 0.2s ease;
-
-  @include m.hover {
-    opacity: 0.8;
-  }
-}
-
-// Footer
-.footer-text {
-  margin: 0;
-
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  color: $login-text-gray;
-  text-align: center;
-}
-
-// Responsive adjustments
 @include m.sp {
-  .login-card {
+  .dashboard-card {
     gap: 24px;
     padding: 24px;
   }
 
-  .options-row {
-    flex-direction: column;
-    gap: 12px;
-    align-items: flex-start;
-  }
-}
-
-@include m.xs {
-  .login-page {
-    padding: 12px;
-  }
-
-  .login-card {
-    padding: 20px;
-  }
-
-  .form-label,
-  .checkbox-text,
-  .forgot-link,
-  .register-text,
-  .footer-text {
-    font-size: 14px;
+  .dashboard-title {
+    font-size: 20px;
   }
 }
 </style>
+````
+
+## File: layers/main/app/repositories/authRepository.ts
+````typescript
+import { requireValueOf } from '#base/app/utils/zod'
+import {
+  loginRequest,
+  loginResponse,
+  type LoginRequest,
+  type LoginResponse,
+} from '@/models/auth'
+
+/*
+ * ============================================================================
+ * Type Definitions
+ * ============================================================================
+ */
+
+export const postLoginRequestSchema = loginRequest
+export type PostLoginRequest = LoginRequest
+
+export const postLoginResponseSchema = loginResponse
+export type PostLoginResponse = LoginResponse
+
+/*
+ * ============================================================================
+ * Repository
+ * ============================================================================
+ */
+
+export default {
+  post: {
+    async login(params: PostLoginRequest): Promise<PostLoginResponse> {
+      const response = await $fetch('/api/auth/login', {
+        method: 'POST',
+        body: params,
+      })
+      return requireValueOf(postLoginResponseSchema, response)
+    },
+  } as const,
+}
 ````
 
 ## File: layers/main/app/test/composables/useApi.spec.ts
@@ -3316,6 +3589,69 @@ if (!global.HTMLDialogElement) {
 }
 ````
 
+## File: layers/main/app/utils/factory.ts
+````typescript
+import { type MakeRepository, defaultRepositories } from '#base/app/utils/default-factory'
+import { Method } from '@/utils/api'
+import authRepository from '@/repositories/authRepository'
+
+export type Repository = MakeRepository<Method>
+export type Repositories = Record<string, Repository>
+
+export const repositories = {
+  ...defaultRepositories,
+  auth: authRepository,
+} as const satisfies Repositories
+
+export type RepositoryKey = keyof typeof repositories
+
+export const repositoryFactory = {
+  get: <K extends keyof typeof repositories>(name: K) => repositories[name],
+}
+````
+
+## File: layers/main/server/api/auth/login.post.ts
+````typescript
+import { defineEventHandler, readBody } from 'h3'
+
+interface LoginRequest {
+  email: string
+  password: string
+  rememberMe?: boolean
+}
+
+interface LoginResponse {
+  success: boolean
+  data: {
+    user: {
+      id: string
+      email: string
+      name: string
+    }
+    token: string
+  }
+  message: string
+}
+
+export default defineEventHandler(async (event): Promise<LoginResponse> => {
+  const body = await readBody<LoginRequest>(event)
+
+  // Always return success (mock API)
+  return {
+    success: true,
+    data: {
+      user: {
+        id: '1',
+        email: body.email,
+        name: 'テストユーザー',
+      },
+      token: 'mock-jwt-token-' + Date.now(),
+    },
+    message: 'ログインに成功しました',
+  }
+})
+````
+
 ## File: layers/main/eslint.config.mjs
 ````
 import stylistic from '@stylistic/eslint-plugin'
@@ -3430,6 +3766,84 @@ export default withNuxt(
     },
   },
 )
+````
+
+## File: layers/main/app/pages/login.vue
+````vue
+<i18n lang="yaml">
+ja:
+  seo:
+    title: ログイン
+    description: 勤怠管理システムへログインしてください。
+  error:
+    login: ログインに失敗しました。
+  success:
+    login: ログインしました。
+en:
+  seo:
+    title: Login
+    description: Login to the attendance management system.
+  error:
+    login: Login failed.
+  success:
+    login: Logged in successfully.
+</i18n>
+
+<template>
+  <HtLogin
+    :isLoading="isLoading"
+    :errorMessage="errorMessage"
+    @submit="handleLogin"
+  />
+</template>
+
+<script setup lang="ts">
+import { useLoginForm, loginFormInjectionKey } from '#main/app/composables/auth/form/useLoginForm'
+import { useAuth } from '@/composables/core/useAuth'
+
+definePageMeta({
+  layout: false,
+})
+
+const i18n = useI18n()
+
+useSeoMeta({
+  title: `${i18n.t('seo.title')} | Vket Cloud`,
+  description: i18n.t('seo.description'),
+})
+
+// Login form composable (provide for child components)
+const loginForm = useLoginForm()
+provide(loginFormInjectionKey, loginForm)
+
+// Auth composable
+const { login, loading, error } = useAuth()
+
+// Computed
+const isLoading = computed(() => loading.value)
+const errorMessage = computed(() => error.value ?? undefined)
+
+// Submit handler
+const handleLogin = async () => {
+  // Validate form
+  const isValid = await loginForm.validateForm()
+  if (!isValid) return
+
+  const success = await login({
+    email: loginForm.formData.email,
+    password: loginForm.formData.password,
+    rememberMe: loginForm.formData.rememberMe,
+  })
+
+  if (success) {
+    await navigateTo('/dashboard')
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+// スタイルはHtLoginに移動済みのため不要
+</style>
 ````
 
 ## File: layers/main/i18n/i18n.config.ts
