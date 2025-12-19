@@ -1,3 +1,40 @@
+<i18n lang="yaml">
+ja:
+  seo:
+    title: ログイン
+    description: ログインページです。
+  title: 勤怠管理システム
+  subtitle: ログインして開始
+  email: メールアドレス
+  password: パスワード
+  rememberMe: ログイン状態を保持
+  forgotPassword: パスワードを忘れた
+  login: ログイン
+  loggingIn: ログイン中...
+  register: アカウントをお持ちでない方は
+  registerLink: こちら
+  copyright: © 2025 勤怠管理システム. All rights reserved.
+  error:
+    login: ログインに失敗しました
+en:
+  seo:
+    title: Login
+    description: Login page.
+  title: Attendance Management System
+  subtitle: Login to start
+  email: Email Address
+  password: Password
+  rememberMe: Remember me
+  forgotPassword: Forgot password
+  login: Login
+  loggingIn: Logging in...
+  register: Don't have an account?
+  registerLink: Sign up
+  copyright: © 2025 Attendance Management System. All rights reserved.
+  error:
+    login: Login failed
+</i18n>
+
 <template>
   <div class="login-page">
     <div class="login-container">
@@ -25,18 +62,21 @@
             </svg>
           </div>
           <h1 class="login-title">
-            勤怠管理システム
+            {{ i18n.t('title') }}
           </h1>
           <p class="login-subtitle">
-            ログインして開始
+            {{ i18n.t('subtitle') }}
           </p>
         </div>
 
         <!-- フォーム部分 -->
-        <div class="login-form">
+        <form
+          class="login-form"
+          @submit.prevent="onSubmit"
+        >
           <!-- メールアドレス -->
           <div class="form-group">
-            <label class="form-label">メールアドレス</label>
+            <label class="form-label">{{ i18n.t('email') }}</label>
             <div class="input-wrapper">
               <svg
                 class="input-icon"
@@ -60,16 +100,24 @@
                 <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
               </svg>
               <input
+                v-model="loginComposable.form.email"
                 type="email"
                 class="form-input"
+                :class="{ 'is-error': loginComposable.form.emailError }"
                 placeholder="your.email@example.com"
               />
             </div>
+            <span
+              v-if="loginComposable.form.emailError"
+              class="error-message"
+            >
+              {{ loginComposable.form.emailError }}
+            </span>
           </div>
 
           <!-- パスワード -->
           <div class="form-group">
-            <label class="form-label">パスワード</label>
+            <label class="form-label">{{ i18n.t('password') }}</label>
             <div class="input-wrapper">
               <svg
                 class="input-icon"
@@ -94,58 +142,94 @@
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
               <input
+                v-model="loginComposable.form.password"
                 type="password"
                 class="form-input"
+                :class="{ 'is-error': loginComposable.form.passwordError }"
                 placeholder="••••••••"
               />
             </div>
+            <span
+              v-if="loginComposable.form.passwordError"
+              class="error-message"
+            >
+              {{ loginComposable.form.passwordError }}
+            </span>
           </div>
 
           <!-- チェックボックスとリンク -->
           <div class="form-options">
             <label class="checkbox-label">
               <input
+                v-model="loginComposable.form.rememberMe"
                 type="checkbox"
                 class="checkbox-input"
               />
-              <span class="checkbox-text">ログイン状態を保持</span>
+              <span class="checkbox-text">{{ i18n.t('rememberMe') }}</span>
             </label>
             <a
               href="#"
               class="forgot-link"
-            >パスワードを忘れた</a>
+            >{{ i18n.t('forgotPassword') }}</a>
+          </div>
+
+          <!-- エラーメッセージ -->
+          <div
+            v-if="loginComposable.error"
+            class="login-error"
+          >
+            {{ loginComposable.error }}
           </div>
 
           <!-- ログインボタン -->
           <button
             type="submit"
             class="login-button"
+            :disabled="loginComposable.loading"
           >
-            ログイン
+            {{ loginComposable.loading ? i18n.t('loggingIn') : i18n.t('login') }}
           </button>
-        </div>
+        </form>
 
         <!-- フッターリンク -->
         <p class="login-footer-text">
-          アカウントをお持ちでない方は<a
+          {{ i18n.t('register') }}<a
             href="#"
             class="register-link"
-          >こちら</a>
+          >{{ i18n.t('registerLink') }}</a>
         </p>
       </div>
 
       <!-- コピーライト -->
       <p class="copyright">
-        © 2025 勤怠管理システム. All rights reserved.
+        {{ i18n.t('copyright') }}
       </p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useLogin, loginInjectionKey } from '@/composables/useLogin'
+
 definePageMeta({
   layout: 'auth',
 })
+
+const i18n = useI18n()
+
+useSeoMeta({
+  title: `${i18n.t('seo.title')} | Vket Cloud`,
+  description: i18n.t('seo.description'),
+})
+
+// Composable
+const loginComposable = useLogin()
+provide(loginInjectionKey, loginComposable)
+
+// フォーム送信処理
+const onSubmit = async () => {
+  await loginComposable.login()
+}
 </script>
 
 <style lang="scss" scoped>
@@ -270,6 +354,16 @@ definePageMeta({
     border-color: #4f39f6;
     outline: none;
   }
+
+  &.is-error {
+    border-color: #ef4444;
+  }
+}
+
+.error-message {
+  font-size: 14px;
+  line-height: 20px;
+  color: #ef4444;
 }
 
 .form-options {
@@ -309,6 +403,18 @@ definePageMeta({
   }
 }
 
+.login-error {
+  padding: 12px;
+  border-radius: 8px;
+
+  font-size: 14px;
+  line-height: 20px;
+  color: #ef4444;
+  text-align: center;
+
+  background: #fef2f2;
+}
+
 .login-button {
   cursor: pointer;
 
@@ -325,8 +431,13 @@ definePageMeta({
 
   transition: background 0.2s;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: #3d2bd4;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
   }
 }
 

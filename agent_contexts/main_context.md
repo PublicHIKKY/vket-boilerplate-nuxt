@@ -74,7 +74,10 @@ layers/
         ht/
           HtTop.vue
       composables/
+        form/
+          useLoginForm.ts
         useApi.ts
+        useLogin.ts
       layouts/
         auth.vue
         default.vue
@@ -82,9 +85,11 @@ layers/
       middleware/
         .gitkeep
       models/
+        auth.ts
         json.ts
         todo.ts
       pages/
+        dashboard.vue
         index.vue
         login.vue
       plugins/
@@ -92,6 +97,7 @@ layers/
         runtimeConfig.ts
       repositories/
         .gitkeep
+        authRepository.ts
       test/
         composables/
           useApi.spec.ts
@@ -345,36 +351,6 @@ declare module '*.svg?inline'
 </g>
 <g class="border"><path d="M22.86,2.03c-1.65,0-3.19,.64-4.36,1.8l-1.57,1.57c-.78,.78-2.05,.78-2.83,0l-1.57-1.57c-1.16-1.16-2.71-1.8-4.36-1.8s-3.19,.64-4.36,1.8c-1.16,1.16-1.8,2.7-1.8,4.35s.64,3.18,1.8,4.35l11.7,11.68,11.7-11.68c1.16-1.16,1.8-2.7,1.8-4.35s-.64-3.18-1.8-4.35c-1.16-1.16-2.71-1.8-4.36-1.8m0-2c2.09,0,4.18,.8,5.77,2.39h0c3.19,3.18,3.19,8.34,0,11.52l-13.11,13.09L2.41,13.94C-.78,10.75-.78,5.6,2.41,2.41,5.59-.77,10.76-.77,13.94,2.41l1.57,1.57,1.57-1.57C18.68,.82,20.77,.03,22.86,.03Z"/></g>
 </svg>
-````
-
-## File: layers/main/app/assets/styles/_base.scss
-````scss
-@use 'variables' as v;
-@use 'mixins' as m;
-
-html,
-body {
-  overflow-x: clip;
-
-  font-family: v.$base-font-family;
-  font-variant-numeric: tabular-nums; // 数字フォントの幅を等幅にする
-  color: v.$base-font-color;
-  word-break: normal; // 単語の分割はブラウザのデフォルトであることを明記
-  line-break: strict; // 約物や小文字を置き去りにして改行させない
-  overflow-wrap: anywhere; // 行内に単語を収められない場合に折り返す
-
-  background: v.$base-background-color;
-
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-
-  text-spacing-trim: trim-start; // 英字や日本語の約物が重複した場合に全角分のスペースを確保させない
-}
-
-a {
-  color: v.$base-link-color;
-  text-decoration: none;
-}
 ````
 
 ## File: layers/main/app/assets/styles/_functions.scss
@@ -766,6 +742,106 @@ en:
 </style>
 ````
 
+## File: layers/main/app/composables/form/useLoginForm.ts
+````typescript
+import type { InjectionKey } from 'vue'
+import { useForm, useField } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import { z } from 'zod/v3'
+
+/**
+ * ログインフォーム Composable
+ * フォームデータとバリデーションの統合管理
+ */
+export const useLoginForm = () => {
+  // バリデーションスキーマ（zod）
+  const validationSchema = toTypedSchema(
+    z.object({
+      email: z
+        .string()
+        .min(1, 'メールアドレスは必須です')
+        .email('有効なメールアドレスを入力してください'),
+      password: z.string().min(1, 'パスワードは必須です'),
+      rememberMe: z.boolean().optional(),
+    }),
+  )
+
+  // vee-validateのuseForm
+  const { handleSubmit, resetForm, validate, meta } = useForm({
+    validationSchema,
+    initialValues: {
+      email: '',
+      password: '',
+      rememberMe: false,
+    },
+  })
+
+  // 個別フィールド
+  const {
+    value: email,
+    errorMessage: emailError,
+  } = useField<string>('email')
+
+  const {
+    value: password,
+    errorMessage: passwordError,
+  } = useField<string>('password')
+
+  const { value: rememberMe } = useField<boolean>('rememberMe')
+
+  // フォームデータ（リアクティブ）
+  const formData = computed(() => ({
+    email: email.value,
+    password: password.value,
+    rememberMe: rememberMe.value,
+  }))
+
+  // エラーオブジェクト
+  const errors = computed(() => ({
+    email: emailError.value,
+    password: passwordError.value,
+  }))
+
+  /**
+   * フォームをリセット
+   */
+  const reset = () => {
+    resetForm()
+  }
+
+  /**
+   * バリデーション実行
+   */
+  const validateForm = async () => {
+    const result = await validate()
+    return result.valid
+  }
+
+  return {
+    // フォームデータ
+    formData,
+    email,
+    password,
+    rememberMe,
+
+    // バリデーション
+    errors,
+    emailError,
+    passwordError,
+    isSubmitting: meta.value.pending,
+
+    // メソッド
+    handleSubmit,
+    reset,
+    validateForm,
+  }
+}
+
+export type LoginFormComposable = ReturnType<typeof useLoginForm>
+export const loginFormInjectionKey: InjectionKey<LoginFormComposable>
+  = Symbol('login-form')
+````
+
 ## File: layers/main/app/composables/useApi.ts
 ````typescript
 /**
@@ -798,19 +874,95 @@ export default function useApi<K extends RepositoryKey>(endpoint: K) {
 }
 ````
 
-## File: layers/main/app/layouts/auth.vue
-````vue
-<template>
-  <div class="layout -auth">
-    <slot />
-  </div>
-</template>
+## File: layers/main/app/composables/useLogin.ts
+````typescript
+import type { InjectionKey } from 'vue'
+import authRepository from '@/repositories/authRepository'
+import type { UserData } from '@/models/auth'
+import { useLoginForm } from '@/composables/form/useLoginForm'
 
-<style lang="scss" scoped>
-.layout.-auth {
-  min-height: 100vh;
+/**
+ * ログイン Composable
+ * 認証処理と状態管理
+ */
+export const useLogin = () => {
+  const router = useRouter()
+  const localePath = useLocalePath()
+
+  // フォーム層
+  const form = useLoginForm()
+
+  // 認証状態
+  const user = ref<UserData | null>(null)
+  const isAuthenticated = computed(() => user.value !== null)
+  const loading = ref(false)
+  const error = ref<string | null>(null)
+
+  /**
+   * ログイン処理
+   */
+  const login = async (): Promise<boolean> => {
+    // バリデーション実行
+    const isValid = await form.validateForm()
+    if (!isValid) {
+      return false
+    }
+
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await authRepository.post.login({
+        email: form.email.value,
+        password: form.password.value,
+        rememberMe: form.rememberMe.value,
+      })
+
+      if (response.success) {
+        user.value = response.data.user
+        // ダッシュボードへ遷移
+        await router.push(localePath('/dashboard'))
+        return true
+      }
+
+      error.value = 'ログインに失敗しました'
+      return false
+    } catch (_e) {
+      error.value = 'ログインに失敗しました'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * ログアウト処理
+   */
+  const logout = async () => {
+    user.value = null
+    form.reset()
+    await router.push(localePath('/login'))
+  }
+
+  return {
+    // 認証状態
+    user,
+    isAuthenticated,
+    loading,
+    error,
+
+    // フォーム
+    form,
+
+    // 操作
+    login,
+    logout,
+  }
 }
-</style>
+
+export type LoginComposable = ReturnType<typeof useLogin>
+export const loginInjectionKey: InjectionKey<LoginComposable>
+  = Symbol('login')
 ````
 
 ## File: layers/main/app/layouts/default.vue
@@ -845,6 +997,72 @@ export default function useApi<K extends RepositoryKey>(endpoint: K) {
   overflow-x: hidden;
 }
 </style>
+````
+
+## File: layers/main/app/models/auth.ts
+````typescript
+/**
+ * 認証関連のModel定義
+ *
+ * ログイン/認証に関する型定義とZodスキーマ
+ */
+
+import { z } from 'zod/v3'
+
+/*
+ * ============================================================================
+ * ユーザースキーマ
+ * ============================================================================
+ */
+
+export const userData = z.object({
+  id: z.number(),
+  email: z.string(),
+  name: z.string(),
+  createdAt: z.string(),
+})
+export type UserData = z.infer<typeof userData>
+
+/*
+ * ============================================================================
+ * ログインリクエスト/レスポンス
+ * ============================================================================
+ */
+
+export const loginRequest = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+  rememberMe: z.boolean().optional(),
+})
+export type LoginRequest = z.infer<typeof loginRequest>
+
+export const loginResponse = z.object({
+  success: z.boolean(),
+  data: z.object({
+    user: userData,
+    token: z.string(),
+  }),
+})
+export type LoginResponse = z.infer<typeof loginResponse>
+
+/*
+ * ============================================================================
+ * デフォルト値
+ * ============================================================================
+ */
+
+export const defaultUser: UserData = {
+  id: 0,
+  email: '',
+  name: '',
+  createdAt: '',
+}
+
+export const defaultLoginRequest: LoginRequest = {
+  email: '',
+  password: '',
+  rememberMe: false,
+}
 ````
 
 ## File: layers/main/app/models/json.ts
@@ -882,28 +1100,31 @@ export const todoSchema = z.object({
 export type Todo = z.infer<typeof todoSchema>
 ````
 
-## File: layers/main/app/pages/index.vue
+## File: layers/main/app/pages/dashboard.vue
 ````vue
-<template>
-  <HtTop />
-</template>
+<i18n lang="yaml">
+ja:
+  seo:
+    title: ダッシュボード
+    description: ダッシュボードページです。
+  welcome: ようこそ
+  loginSuccess: ログインに成功しました
+  logout: ログアウト
+en:
+  seo:
+    title: Dashboard
+    description: Dashboard page.
+  welcome: Welcome
+  loginSuccess: Login successful
+  logout: Logout
+</i18n>
 
-<script setup lang="ts">
-definePageMeta({
-  layout: 'top',
-})
-</script>
-````
-
-## File: layers/main/app/pages/login.vue
-````vue
 <template>
-  <div class="login-page">
-    <div class="login-container">
-      <div class="login-card">
-        <!-- ヘッダー部分 -->
-        <div class="login-header">
-          <div class="login-icon">
+  <div class="dashboard-page">
+    <div class="dashboard-container">
+      <div class="dashboard-card">
+        <div class="dashboard-header">
+          <div class="dashboard-icon">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="32"
@@ -915,140 +1136,57 @@ definePageMeta({
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <circle
-                cx="12"
-                cy="12"
-                r="10"
-              />
-              <polyline points="12 6 12 12 16 14" />
+              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
           </div>
-          <h1 class="login-title">
-            勤怠管理システム
+          <h1 class="dashboard-title">
+            {{ i18n.t('welcome') }}
           </h1>
-          <p class="login-subtitle">
-            ログインして開始
+          <p class="dashboard-subtitle">
+            {{ i18n.t('loginSuccess') }}
           </p>
         </div>
 
-        <!-- フォーム部分 -->
-        <div class="login-form">
-          <!-- メールアドレス -->
-          <div class="form-group">
-            <label class="form-label">メールアドレス</label>
-            <div class="input-wrapper">
-              <svg
-                class="input-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <rect
-                  width="20"
-                  height="16"
-                  x="2"
-                  y="4"
-                  rx="2"
-                />
-                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-              </svg>
-              <input
-                type="email"
-                class="form-input"
-                placeholder="your.email@example.com"
-              />
-            </div>
-          </div>
-
-          <!-- パスワード -->
-          <div class="form-group">
-            <label class="form-label">パスワード</label>
-            <div class="input-wrapper">
-              <svg
-                class="input-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <rect
-                  width="18"
-                  height="11"
-                  x="3"
-                  y="11"
-                  rx="2"
-                  ry="2"
-                />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
-              <input
-                type="password"
-                class="form-input"
-                placeholder="••••••••"
-              />
-            </div>
-          </div>
-
-          <!-- チェックボックスとリンク -->
-          <div class="form-options">
-            <label class="checkbox-label">
-              <input
-                type="checkbox"
-                class="checkbox-input"
-              />
-              <span class="checkbox-text">ログイン状態を保持</span>
-            </label>
-            <a
-              href="#"
-              class="forgot-link"
-            >パスワードを忘れた</a>
-          </div>
-
-          <!-- ログインボタン -->
-          <button
-            type="submit"
-            class="login-button"
-          >
-            ログイン
-          </button>
+        <div class="dashboard-content">
+          <p class="dashboard-message">
+            ダッシュボードへようこそ。ログインに成功しました。
+          </p>
         </div>
 
-        <!-- フッターリンク -->
-        <p class="login-footer-text">
-          アカウントをお持ちでない方は<a
-            href="#"
-            class="register-link"
-          >こちら</a>
-        </p>
+        <button
+          type="button"
+          class="logout-button"
+          @click="onLogout"
+        >
+          {{ i18n.t('logout') }}
+        </button>
       </div>
-
-      <!-- コピーライト -->
-      <p class="copyright">
-        © 2025 勤怠管理システム. All rights reserved.
-      </p>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 definePageMeta({
   layout: 'auth',
 })
+
+const i18n = useI18n()
+const router = useRouter()
+const localePath = useLocalePath()
+
+useSeoMeta({
+  title: `${i18n.t('seo.title')} | Vket Cloud`,
+  description: i18n.t('seo.description'),
+})
+
+const onLogout = async () => {
+  await router.push(localePath('/login'))
+}
 </script>
 
 <style lang="scss" scoped>
-.login-page {
+.dashboard-page {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1058,20 +1196,19 @@ definePageMeta({
   background: linear-gradient(150deg, #eff6ff 0%, #e0e7ff 100%);
 }
 
-.login-container {
+.dashboard-container {
   display: flex;
   flex-direction: column;
   gap: 32px;
   width: 448px;
 }
 
-.login-card {
+.dashboard-card {
   display: flex;
   flex-direction: column;
   gap: 32px;
 
   padding: 32px;
-  padding-bottom: 0;
   border-radius: 16px;
 
   background: #fff;
@@ -1080,14 +1217,14 @@ definePageMeta({
     0 8px 10px -6px rgb(0 0 0 / 10%);
 }
 
-.login-header {
+.dashboard-header {
   display: flex;
   flex-direction: column;
   gap: 16px;
   align-items: center;
 }
 
-.login-icon {
+.dashboard-icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1098,164 +1235,78 @@ definePageMeta({
 
   color: #fff;
 
-  background: #4f39f6;
+  background: #10b981;
 }
 
-.login-title {
+.dashboard-title {
   margin: 0;
 
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
   color: #101828;
 }
 
-.login-subtitle {
+.dashboard-subtitle {
   margin: 0;
   font-size: 16px;
   line-height: 24px;
   color: #4a5565;
 }
 
-.login-form {
+.dashboard-content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-label {
-  font-size: 16px;
-  line-height: 24px;
-  color: #364153;
-}
-
-.input-wrapper {
-  position: relative;
-}
-
-.input-icon {
-  position: absolute;
-  top: 50%;
-  left: 12px;
-  transform: translateY(-50%);
-
-  color: #9ca3af;
-}
-
-.form-input {
-  box-sizing: border-box;
-  width: 100%;
-  padding: 12px 16px 12px 40px;
-  border: 1px solid #d1d5dc;
-  border-radius: 10px;
-
-  font-size: 16px;
-  line-height: normal;
-  color: #0a0a0a;
-
-  background: #fff;
-
-  &::placeholder {
-    color: rgb(10 10 10 / 50%);
-  }
-
-  &:focus {
-    border-color: #4f39f6;
-    outline: none;
-  }
-}
-
-.form-options {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.checkbox-label {
-  cursor: pointer;
-  display: flex;
-  gap: 8px;
+  gap: 16px;
   align-items: center;
 }
 
-.checkbox-input {
-  cursor: pointer;
-  width: 16px;
-  height: 16px;
-  accent-color: #4f39f6;
-}
+.dashboard-message {
+  margin: 0;
 
-.checkbox-text {
   font-size: 16px;
   line-height: 24px;
   color: #364153;
+  text-align: center;
 }
 
-.forgot-link {
-  font-size: 16px;
-  line-height: 24px;
-  color: #4f39f6;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
-.login-button {
+.logout-button {
   cursor: pointer;
 
   width: 100%;
   padding: 12px;
-  border: none;
+  border: 1px solid #d1d5dc;
   border-radius: 10px;
 
   font-size: 16px;
   line-height: 24px;
-  color: #fff;
+  color: #364153;
 
-  background: #4f39f6;
+  background: #fff;
 
-  transition: background 0.2s;
-
-  &:hover {
-    background: #3d2bd4;
-  }
-}
-
-.login-footer-text {
-  margin: 0;
-
-  font-size: 16px;
-  line-height: 24px;
-  color: #4a5565;
-  text-align: center;
-}
-
-.register-link {
-  color: #4f39f6;
-  text-decoration: none;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
 
   &:hover {
-    text-decoration: underline;
+    border-color: #9ca3af;
+    background: #f9fafb;
   }
-}
-
-.copyright {
-  margin: 0;
-
-  font-size: 16px;
-  line-height: 24px;
-  color: #4a5565;
-  text-align: center;
 }
 </style>
+````
+
+## File: layers/main/app/pages/index.vue
+````vue
+<template>
+  <HtTop />
+</template>
+
+<script setup lang="ts">
+definePageMeta({
+  layout: 'top',
+})
+</script>
 ````
 
 ## File: layers/main/app/plugins/gtm.client.ts
@@ -1305,6 +1356,41 @@ export const requireRuntimeConfig: () => ProcessEnv | RuntimeConfig = () => {
   }
 
   throw new TypeError('@/plugins/runtimeConfig: Not satisfied.')
+}
+````
+
+## File: layers/main/app/repositories/authRepository.ts
+````typescript
+/**
+ * 認証Repository
+ *
+ * ログイン/認証に関するAPI通信を担当
+ */
+
+import { requireValueOf } from '#base/app/utils/zod'
+import {
+  loginResponse,
+  type LoginRequest,
+  type LoginResponse,
+} from '@/models/auth'
+
+export default {
+  post: {
+    /**
+     * ログイン
+     */
+    async login(params: LoginRequest): Promise<LoginResponse> {
+      const response = await $fetch('/api/auth/login', {
+        method: 'POST',
+        body: {
+          email: params.email,
+          password: params.password,
+          rememberMe: params.rememberMe,
+        },
+      })
+      return requireValueOf(loginResponse, response)
+    },
+  } as const,
 }
 ````
 
@@ -2180,6 +2266,36 @@ export default defineAppConfig(
 }
 ````
 
+## File: layers/main/app/assets/styles/_base.scss
+````scss
+@use 'variables' as v;
+@use 'mixins' as m;
+
+html,
+body {
+  overflow-x: clip;
+
+  font-family: v.$base-font-family;
+  font-variant-numeric: tabular-nums; // 数字フォントの幅を等幅にする
+  color: v.$base-font-color;
+  word-break: normal; // 単語の分割はブラウザのデフォルトであることを明記
+  line-break: strict; // 約物や小文字を置き去りにして改行させない
+  overflow-wrap: anywhere; // 行内に単語を収められない場合に折り返す
+
+  background: v.$base-background-color;
+
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+
+  text-spacing-trim: trim-start; // 英字や日本語の約物が重複した場合に全角分のスペースを確保させない
+}
+
+a {
+  color: v.$base-link-color;
+  text-decoration: none;
+}
+````
+
 ## File: layers/main/app/assets/styles/_markdown.scss
 ````scss
 // markdown 用スタイリング
@@ -2346,6 +2462,495 @@ export default defineAppConfig(
     background-color: v.$blue;
   }
 }
+````
+
+## File: layers/main/app/layouts/auth.vue
+````vue
+<template>
+  <div class="layout -auth">
+    <slot />
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.layout.-auth {
+  min-height: 100vh;
+}
+</style>
+````
+
+## File: layers/main/app/pages/login.vue
+````vue
+<i18n lang="yaml">
+ja:
+  seo:
+    title: ログイン
+    description: ログインページです。
+  title: 勤怠管理システム
+  subtitle: ログインして開始
+  email: メールアドレス
+  password: パスワード
+  rememberMe: ログイン状態を保持
+  forgotPassword: パスワードを忘れた
+  login: ログイン
+  loggingIn: ログイン中...
+  register: アカウントをお持ちでない方は
+  registerLink: こちら
+  copyright: © 2025 勤怠管理システム. All rights reserved.
+  error:
+    login: ログインに失敗しました
+en:
+  seo:
+    title: Login
+    description: Login page.
+  title: Attendance Management System
+  subtitle: Login to start
+  email: Email Address
+  password: Password
+  rememberMe: Remember me
+  forgotPassword: Forgot password
+  login: Login
+  loggingIn: Logging in...
+  register: Don't have an account?
+  registerLink: Sign up
+  copyright: © 2025 Attendance Management System. All rights reserved.
+  error:
+    login: Login failed
+</i18n>
+
+<template>
+  <div class="login-page">
+    <div class="login-container">
+      <div class="login-card">
+        <!-- ヘッダー部分 -->
+        <div class="login-header">
+          <div class="login-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+              />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </div>
+          <h1 class="login-title">
+            {{ i18n.t('title') }}
+          </h1>
+          <p class="login-subtitle">
+            {{ i18n.t('subtitle') }}
+          </p>
+        </div>
+
+        <!-- フォーム部分 -->
+        <form
+          class="login-form"
+          @submit.prevent="onSubmit"
+        >
+          <!-- メールアドレス -->
+          <div class="form-group">
+            <label class="form-label">{{ i18n.t('email') }}</label>
+            <div class="input-wrapper">
+              <svg
+                class="input-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect
+                  width="20"
+                  height="16"
+                  x="2"
+                  y="4"
+                  rx="2"
+                />
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+              </svg>
+              <input
+                v-model="loginComposable.form.email"
+                type="email"
+                class="form-input"
+                :class="{ 'is-error': loginComposable.form.emailError }"
+                placeholder="your.email@example.com"
+              />
+            </div>
+            <span
+              v-if="loginComposable.form.emailError"
+              class="error-message"
+            >
+              {{ loginComposable.form.emailError }}
+            </span>
+          </div>
+
+          <!-- パスワード -->
+          <div class="form-group">
+            <label class="form-label">{{ i18n.t('password') }}</label>
+            <div class="input-wrapper">
+              <svg
+                class="input-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect
+                  width="18"
+                  height="11"
+                  x="3"
+                  y="11"
+                  rx="2"
+                  ry="2"
+                />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              <input
+                v-model="loginComposable.form.password"
+                type="password"
+                class="form-input"
+                :class="{ 'is-error': loginComposable.form.passwordError }"
+                placeholder="••••••••"
+              />
+            </div>
+            <span
+              v-if="loginComposable.form.passwordError"
+              class="error-message"
+            >
+              {{ loginComposable.form.passwordError }}
+            </span>
+          </div>
+
+          <!-- チェックボックスとリンク -->
+          <div class="form-options">
+            <label class="checkbox-label">
+              <input
+                v-model="loginComposable.form.rememberMe"
+                type="checkbox"
+                class="checkbox-input"
+              />
+              <span class="checkbox-text">{{ i18n.t('rememberMe') }}</span>
+            </label>
+            <a
+              href="#"
+              class="forgot-link"
+            >{{ i18n.t('forgotPassword') }}</a>
+          </div>
+
+          <!-- エラーメッセージ -->
+          <div
+            v-if="loginComposable.error"
+            class="login-error"
+          >
+            {{ loginComposable.error }}
+          </div>
+
+          <!-- ログインボタン -->
+          <button
+            type="submit"
+            class="login-button"
+            :disabled="loginComposable.loading"
+          >
+            {{ loginComposable.loading ? i18n.t('loggingIn') : i18n.t('login') }}
+          </button>
+        </form>
+
+        <!-- フッターリンク -->
+        <p class="login-footer-text">
+          {{ i18n.t('register') }}<a
+            href="#"
+            class="register-link"
+          >{{ i18n.t('registerLink') }}</a>
+        </p>
+      </div>
+
+      <!-- コピーライト -->
+      <p class="copyright">
+        {{ i18n.t('copyright') }}
+      </p>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useLogin, loginInjectionKey } from '@/composables/useLogin'
+
+definePageMeta({
+  layout: 'auth',
+})
+
+const i18n = useI18n()
+
+useSeoMeta({
+  title: `${i18n.t('seo.title')} | Vket Cloud`,
+  description: i18n.t('seo.description'),
+})
+
+// Composable
+const loginComposable = useLogin()
+provide(loginInjectionKey, loginComposable)
+
+// フォーム送信処理
+const onSubmit = async () => {
+  await loginComposable.login()
+}
+</script>
+
+<style lang="scss" scoped>
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 100vh;
+
+  background: linear-gradient(150deg, #eff6ff 0%, #e0e7ff 100%);
+}
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 448px;
+}
+
+.login-card {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+
+  padding: 32px;
+  padding-bottom: 0;
+  border-radius: 16px;
+
+  background: #fff;
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 10%),
+    0 8px 10px -6px rgb(0 0 0 / 10%);
+}
+
+.login-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.login-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+
+  color: #fff;
+
+  background: #4f39f6;
+}
+
+.login-title {
+  margin: 0;
+
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: #101828;
+}
+
+.login-subtitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  color: #4a5565;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 16px;
+  line-height: 24px;
+  color: #364153;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+
+  color: #9ca3af;
+}
+
+.form-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px 16px 12px 40px;
+  border: 1px solid #d1d5dc;
+  border-radius: 10px;
+
+  font-size: 16px;
+  line-height: normal;
+  color: #0a0a0a;
+
+  background: #fff;
+
+  &::placeholder {
+    color: rgb(10 10 10 / 50%);
+  }
+
+  &:focus {
+    border-color: #4f39f6;
+    outline: none;
+  }
+
+  &.is-error {
+    border-color: #ef4444;
+  }
+}
+
+.error-message {
+  font-size: 14px;
+  line-height: 20px;
+  color: #ef4444;
+}
+
+.form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.checkbox-label {
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.checkbox-input {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  accent-color: #4f39f6;
+}
+
+.checkbox-text {
+  font-size: 16px;
+  line-height: 24px;
+  color: #364153;
+}
+
+.forgot-link {
+  font-size: 16px;
+  line-height: 24px;
+  color: #4f39f6;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.login-error {
+  padding: 12px;
+  border-radius: 8px;
+
+  font-size: 14px;
+  line-height: 20px;
+  color: #ef4444;
+  text-align: center;
+
+  background: #fef2f2;
+}
+
+.login-button {
+  cursor: pointer;
+
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+
+  font-size: 16px;
+  line-height: 24px;
+  color: #fff;
+
+  background: #4f39f6;
+
+  transition: background 0.2s;
+
+  &:hover:not(:disabled) {
+    background: #3d2bd4;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+}
+
+.login-footer-text {
+  margin: 0;
+
+  font-size: 16px;
+  line-height: 24px;
+  color: #4a5565;
+  text-align: center;
+}
+
+.register-link {
+  color: #4f39f6;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.copyright {
+  margin: 0;
+
+  font-size: 16px;
+  line-height: 24px;
+  color: #4a5565;
+  text-align: center;
+}
+</style>
 ````
 
 ## File: layers/main/app/test/composables/useApi.spec.ts
