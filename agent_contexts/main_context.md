@@ -67,29 +67,43 @@ layers/
         ha/
           .gitkeep
         hm/
+          login/
+            HmLoginForm.vue
+            HmLoginHeader.vue
           .gitkeep
         ho/
+          login/
+            HoLoginCard.vue
           HoTheFooter.vue
           HoTheHeader.vue
         ht/
+          HtLogin.vue
           HtTop.vue
       composables/
+        form/
+          useLoginForm.ts
         useApi.ts
+        useLogin.ts
       layouts/
+        auth.vue
         default.vue
         top.vue
       middleware/
         .gitkeep
       models/
+        auth.ts
         json.ts
         todo.ts
       pages/
+        dashboard.vue
         index.vue
+        login.vue
       plugins/
         gtm.client.ts
         runtimeConfig.ts
       repositories/
         .gitkeep
+        authRepository.ts
       test/
         composables/
           useApi.spec.ts
@@ -343,35 +357,6 @@ declare module '*.svg?inline'
 </g>
 <g class="border"><path d="M22.86,2.03c-1.65,0-3.19,.64-4.36,1.8l-1.57,1.57c-.78,.78-2.05,.78-2.83,0l-1.57-1.57c-1.16-1.16-2.71-1.8-4.36-1.8s-3.19,.64-4.36,1.8c-1.16,1.16-1.8,2.7-1.8,4.35s.64,3.18,1.8,4.35l11.7,11.68,11.7-11.68c1.16-1.16,1.8-2.7,1.8-4.35s-.64-3.18-1.8-4.35c-1.16-1.16-2.71-1.8-4.36-1.8m0-2c2.09,0,4.18,.8,5.77,2.39h0c3.19,3.18,3.19,8.34,0,11.52l-13.11,13.09L2.41,13.94C-.78,10.75-.78,5.6,2.41,2.41,5.59-.77,10.76-.77,13.94,2.41l1.57,1.57,1.57-1.57C18.68,.82,20.77,.03,22.86,.03Z"/></g>
 </svg>
-````
-
-## File: layers/main/app/assets/styles/_base.scss
-````scss
-@use 'variables' as v;
-@use 'mixins' as m;
-
-html,
-body {
-  overflow-x: clip;
-
-  font-family: v.$base-font-family;
-  font-variant-numeric: tabular-nums; // 数字フォントの幅を等幅にする
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  color: v.$base-font-color;
-  word-break: normal; // 単語の分割はブラウザのデフォルトであることを明記
-  line-break: strict; // 約物や小文字を置き去りにして改行させない
-  overflow-wrap: anywhere; // 行内に単語を収められない場合に折り返す
-
-  background: v.$base-background-color;
-
-  text-spacing-trim: trim-start; // 英字や日本語の約物が重複した場合に全角分のスペースを確保させない
-}
-
-a {
-  color: v.$base-link-color;
-  text-decoration: none;
-}
 ````
 
 ## File: layers/main/app/assets/styles/_functions.scss
@@ -673,6 +658,489 @@ $zindex-loading: 400;
 @forward 'base';
 ````
 
+## File: layers/main/app/components/hm/login/HmLoginForm.vue
+````vue
+<i18n lang="yaml">
+ja:
+  email: メールアドレス
+  password: パスワード
+  rememberMe: ログイン状態を保持
+  forgotPassword: パスワードを忘れた
+  login: ログイン
+  loggingIn: ログイン中...
+  register: アカウントをお持ちでない方は
+  registerLink: こちら
+en:
+  email: Email Address
+  password: Password
+  rememberMe: Remember me
+  forgotPassword: Forgot password
+  login: Login
+  loggingIn: Logging in...
+  register: Don't have an account?
+  registerLink: Sign up
+</i18n>
+
+<template>
+  <form
+    class="hm-login-form"
+    @submit.prevent="emit('submit')"
+  >
+    <!-- メールアドレス -->
+    <div class="form-group">
+      <label class="label">{{ i18n.t('email') }}</label>
+      <div class="input-wrapper">
+        <svg
+          class="input-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <rect
+            width="20"
+            height="16"
+            x="2"
+            y="4"
+            rx="2"
+          />
+          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+        </svg>
+        <input
+          :value="email"
+          type="email"
+          class="input"
+          :class="{ '-error': emailError }"
+          placeholder="your.email@example.com"
+          @input="emit('update:email', ($event.target as HTMLInputElement).value)"
+        />
+      </div>
+      <span
+        v-if="emailError"
+        class="error-message"
+      >
+        {{ emailError }}
+      </span>
+    </div>
+
+    <!-- パスワード -->
+    <div class="form-group">
+      <label class="label">{{ i18n.t('password') }}</label>
+      <div class="input-wrapper">
+        <svg
+          class="input-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <rect
+            width="18"
+            height="11"
+            x="3"
+            y="11"
+            rx="2"
+            ry="2"
+          />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+        <input
+          :value="password"
+          type="password"
+          class="input"
+          :class="{ '-error': passwordError }"
+          placeholder="••••••••"
+          @input="emit('update:password', ($event.target as HTMLInputElement).value)"
+        />
+      </div>
+      <span
+        v-if="passwordError"
+        class="error-message"
+      >
+        {{ passwordError }}
+      </span>
+    </div>
+
+    <!-- チェックボックスとリンク -->
+    <div class="options">
+      <label class="checkbox-label">
+        <input
+          :checked="rememberMe"
+          type="checkbox"
+          class="checkbox-input"
+          @change="emit('update:rememberMe', ($event.target as HTMLInputElement).checked)"
+        />
+        <span class="checkbox-text">{{ i18n.t('rememberMe') }}</span>
+      </label>
+      <a
+        href="#"
+        class="forgot-link"
+      >{{ i18n.t('forgotPassword') }}</a>
+    </div>
+
+    <!-- エラーメッセージ -->
+    <div
+      v-if="error"
+      class="login-error"
+    >
+      {{ error }}
+    </div>
+
+    <!-- ログインボタン -->
+    <button
+      type="submit"
+      class="submit-button"
+      :disabled="loading"
+    >
+      {{ loading ? i18n.t('loggingIn') : i18n.t('login') }}
+    </button>
+
+    <!-- フッターリンク -->
+    <p class="footer-text">
+      {{ i18n.t('register') }}<a
+        href="#"
+        class="register-link"
+      >{{ i18n.t('registerLink') }}</a>
+    </p>
+  </form>
+</template>
+
+<script setup lang="ts">
+const i18n = useI18n()
+
+type Props = {
+  email: string
+  password: string
+  rememberMe: boolean
+  emailError?: string | null
+  passwordError?: string | null
+  error?: string | null
+  loading: boolean
+}
+
+type Emits = {
+  (e: 'update:email' | 'update:password', value: string): void
+  (e: 'update:rememberMe', value: boolean): void
+  (e: 'submit'): void
+}
+
+defineProps<Props>()
+const emit = defineEmits<Emits>()
+</script>
+
+<style scoped lang="scss">
+.hm-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  > .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    > .label {
+      font-size: 16px;
+      line-height: 24px;
+      color: #364153;
+    }
+
+    > .input-wrapper {
+      position: relative;
+
+      > .input-icon {
+        position: absolute;
+        top: 50%;
+        left: 12px;
+        transform: translateY(-50%);
+
+        color: #9ca3af;
+      }
+
+      > .input {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 12px 16px 12px 40px;
+        border: 1px solid #d1d5dc;
+        border-radius: 10px;
+
+        font-size: 16px;
+        line-height: normal;
+        color: #0a0a0a;
+
+        background: #fff;
+
+        &::placeholder {
+          color: rgb(10 10 10 / 50%);
+        }
+
+        &:focus {
+          border-color: #4f39f6;
+          outline: none;
+        }
+
+        &.-error {
+          border-color: #ef4444;
+        }
+      }
+    }
+
+    > .error-message {
+      font-size: 14px;
+      line-height: 20px;
+      color: #ef4444;
+    }
+  }
+
+  > .options {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    > .checkbox-label {
+      cursor: pointer;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+
+      > .checkbox-input {
+        cursor: pointer;
+        width: 16px;
+        height: 16px;
+        accent-color: #4f39f6;
+      }
+
+      > .checkbox-text {
+        font-size: 16px;
+        line-height: 24px;
+        color: #364153;
+      }
+    }
+
+    > .forgot-link {
+      font-size: 16px;
+      line-height: 24px;
+      color: #4f39f6;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  > .login-error {
+    padding: 12px;
+    border-radius: 8px;
+
+    font-size: 14px;
+    line-height: 20px;
+    color: #ef4444;
+    text-align: center;
+
+    background: #fef2f2;
+  }
+
+  > .submit-button {
+    cursor: pointer;
+
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+
+    font-size: 16px;
+    line-height: 24px;
+    color: #fff;
+
+    background: #4f39f6;
+
+    transition: background 0.2s;
+
+    &:hover:not(:disabled) {
+      background: #3d2bd4;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+  }
+
+  > .footer-text {
+    margin: 0;
+
+    font-size: 16px;
+    line-height: 24px;
+    color: #4a5565;
+    text-align: center;
+
+    > .register-link {
+      color: #4f39f6;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+</style>
+````
+
+## File: layers/main/app/components/hm/login/HmLoginHeader.vue
+````vue
+<i18n lang="yaml">
+ja:
+  title: 勤怠管理システム
+  subtitle: ログインして開始
+en:
+  title: Attendance Management System
+  subtitle: Login to start
+</i18n>
+
+<template>
+  <div class="hm-login-header">
+    <div class="icon">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="32"
+        height="32"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle
+          cx="12"
+          cy="12"
+          r="10"
+        />
+        <polyline points="12 6 12 12 16 14" />
+      </svg>
+    </div>
+    <h1 class="title">
+      {{ i18n.t('title') }}
+    </h1>
+    <p class="subtitle">
+      {{ i18n.t('subtitle') }}
+    </p>
+  </div>
+</template>
+
+<script setup lang="ts">
+const i18n = useI18n()
+</script>
+
+<style scoped lang="scss">
+.hm-login-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+
+  > .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+
+    color: #fff;
+
+    background: #4f39f6;
+  }
+
+  > .title {
+    margin: 0;
+
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+    color: #101828;
+  }
+
+  > .subtitle {
+    margin: 0;
+    font-size: 16px;
+    line-height: 24px;
+    color: #4a5565;
+  }
+}
+</style>
+````
+
+## File: layers/main/app/components/ho/login/HoLoginCard.vue
+````vue
+<i18n lang="yaml">
+ja: {}
+en: {}
+</i18n>
+
+<template>
+  <div class="ho-login-card">
+    <HmLoginHeader />
+    <HmLoginForm
+      :email="loginComposable.form.email.value"
+      :password="loginComposable.form.password.value"
+      :rememberMe="loginComposable.form.rememberMe.value"
+      :emailError="loginComposable.form.emailError.value"
+      :passwordError="loginComposable.form.passwordError.value"
+      :error="loginComposable.error.value"
+      :loading="loginComposable.loading.value"
+      @update:email="loginComposable.form.email.value = $event"
+      @update:password="loginComposable.form.password.value = $event"
+      @update:rememberMe="loginComposable.form.rememberMe.value = $event"
+      @submit="emit('submit')"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { loginInjectionKey, type LoginComposable } from '@/composables/useLogin'
+
+type Emits = {
+  (e: 'submit'): void
+}
+
+const emit = defineEmits<Emits>()
+
+// Ho層でinject可能
+const loginComposable = inject<LoginComposable>(loginInjectionKey)!
+</script>
+
+<style lang="scss" scoped>
+.ho-login-card {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+
+  padding: 32px;
+  padding-bottom: 0;
+  border-radius: 16px;
+
+  background: #fff;
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 10%),
+    0 8px 10px -6px rgb(0 0 0 / 10%);
+}
+</style>
+````
+
 ## File: layers/main/app/components/ho/HoTheFooter.vue
 ````vue
 <i18n lang="yaml">
@@ -732,6 +1200,64 @@ en:
 
 <style scoped lang="scss">
 // .ho-the-header{}
+</style>
+````
+
+## File: layers/main/app/components/ht/HtLogin.vue
+````vue
+<i18n lang="yaml">
+ja:
+  copyright: (C) 2025 勤怠管理システム. All rights reserved.
+en:
+  copyright: (C) 2025 Attendance Management System. All rights reserved.
+</i18n>
+
+<template>
+  <div class="ht-login">
+    <div class="container">
+      <HoLoginCard @submit="emit('submit')" />
+      <p class="copyright">
+        {{ i18n.t('copyright') }}
+      </p>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+type Emits = {
+  (e: 'submit'): void
+}
+
+const i18n = useI18n()
+const emit = defineEmits<Emits>()
+</script>
+
+<style lang="scss" scoped>
+.ht-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 100vh;
+
+  background: linear-gradient(150deg, #eff6ff 0%, #e0e7ff 100%);
+
+  > .container {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    width: 448px;
+
+    > .copyright {
+      margin: 0;
+
+      font-size: 16px;
+      line-height: 24px;
+      color: #4a5565;
+      text-align: center;
+    }
+  }
+}
 </style>
 ````
 
@@ -1799,6 +2325,36 @@ export default defineAppConfig(
 }
 ````
 
+## File: layers/main/app/assets/styles/_base.scss
+````scss
+@use 'variables' as v;
+@use 'mixins' as m;
+
+html,
+body {
+  overflow-x: clip;
+
+  font-family: v.$base-font-family;
+  font-variant-numeric: tabular-nums; // 数字フォントの幅を等幅にする
+  color: v.$base-font-color;
+  word-break: normal; // 単語の分割はブラウザのデフォルトであることを明記
+  line-break: strict; // 約物や小文字を置き去りにして改行させない
+  overflow-wrap: anywhere; // 行内に単語を収められない場合に折り返す
+
+  background: v.$base-background-color;
+
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+
+  text-spacing-trim: trim-start; // 英字や日本語の約物が重複した場合に全角分のスペースを確保させない
+}
+
+a {
+  color: v.$base-link-color;
+  text-decoration: none;
+}
+````
+
 ## File: layers/main/app/assets/styles/_markdown.scss
 ````scss
 // markdown 用スタイリング
@@ -1964,6 +2520,509 @@ export default defineAppConfig(
   thead tr:first-child {
     background-color: v.$blue;
   }
+}
+````
+
+## File: layers/main/app/composables/form/useLoginForm.ts
+````typescript
+import type { InjectionKey } from 'vue'
+import { useForm, useField } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import { z } from 'zod/v3'
+
+/**
+ * ログインフォーム Composable
+ * フォームデータとバリデーションの統合管理
+ */
+export const useLoginForm = () => {
+  // バリデーションスキーマ（zod）
+  const validationSchema = toTypedSchema(
+    z.object({
+      email: z
+        .string()
+        .min(1, 'メールアドレスは必須です')
+        .email('有効なメールアドレスを入力してください'),
+      password: z.string().min(1, 'パスワードは必須です'),
+      rememberMe: z.boolean().optional(),
+    }),
+  )
+
+  // vee-validateのuseForm
+  const { handleSubmit, resetForm, validate, meta } = useForm({
+    validationSchema,
+    initialValues: {
+      email: '',
+      password: '',
+      rememberMe: false,
+    },
+  })
+
+  // 個別フィールド
+  const {
+    value: email,
+    errorMessage: emailError,
+  } = useField<string>('email')
+
+  const {
+    value: password,
+    errorMessage: passwordError,
+  } = useField<string>('password')
+
+  const { value: rememberMe } = useField<boolean>('rememberMe')
+
+  // フォームデータ（リアクティブ）
+  const formData = computed(() => ({
+    email: email.value,
+    password: password.value,
+    rememberMe: rememberMe.value,
+  }))
+
+  // エラーオブジェクト
+  const errors = computed(() => ({
+    email: emailError.value,
+    password: passwordError.value,
+  }))
+
+  /**
+   * フォームをリセット
+   */
+  const reset = () => {
+    resetForm()
+  }
+
+  /**
+   * バリデーション実行
+   */
+  const validateForm = async () => {
+    const result = await validate()
+    return result.valid
+  }
+
+  return {
+    // フォームデータ
+    formData,
+    email,
+    password,
+    rememberMe,
+
+    // バリデーション
+    errors,
+    emailError,
+    passwordError,
+    isSubmitting: meta.value.pending,
+
+    // メソッド
+    handleSubmit,
+    reset,
+    validateForm,
+  }
+}
+
+export type LoginFormComposable = ReturnType<typeof useLoginForm>
+export const loginFormInjectionKey: InjectionKey<LoginFormComposable>
+  = Symbol('login-form')
+````
+
+## File: layers/main/app/composables/useLogin.ts
+````typescript
+import type { InjectionKey } from 'vue'
+import authRepository from '@/repositories/authRepository'
+import type { UserData } from '@/models/auth'
+import { useLoginForm } from '@/composables/form/useLoginForm'
+
+/**
+ * ログイン Composable
+ * 認証処理と状態管理
+ */
+export const useLogin = () => {
+  const router = useRouter()
+  const localePath = useLocalePath()
+
+  // フォーム層
+  const form = useLoginForm()
+
+  // 認証状態
+  const user = ref<UserData | null>(null)
+  const isAuthenticated = computed(() => user.value !== null)
+  const loading = ref(false)
+  const error = ref<string | null>(null)
+
+  /**
+   * ログイン処理
+   */
+  const login = async (): Promise<boolean> => {
+    // バリデーション実行
+    const isValid = await form.validateForm()
+    if (!isValid) {
+      return false
+    }
+
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await authRepository.post.login({
+        email: form.email.value,
+        password: form.password.value,
+        rememberMe: form.rememberMe.value,
+      })
+
+      if (response.success) {
+        user.value = response.data.user
+        // ダッシュボードへ遷移
+        await router.push(localePath('/dashboard'))
+        return true
+      }
+
+      error.value = 'ログインに失敗しました'
+      return false
+    } catch (_e) {
+      error.value = 'ログインに失敗しました'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * ログアウト処理
+   */
+  const logout = async () => {
+    user.value = null
+    form.reset()
+    await router.push(localePath('/login'))
+  }
+
+  return {
+    // 認証状態
+    user,
+    isAuthenticated,
+    loading,
+    error,
+
+    // フォーム
+    form,
+
+    // 操作
+    login,
+    logout,
+  }
+}
+
+export type LoginComposable = ReturnType<typeof useLogin>
+export const loginInjectionKey: InjectionKey<LoginComposable>
+  = Symbol('login')
+````
+
+## File: layers/main/app/layouts/auth.vue
+````vue
+<template>
+  <div class="layout -auth">
+    <slot />
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.layout.-auth {
+  min-height: 100vh;
+}
+</style>
+````
+
+## File: layers/main/app/models/auth.ts
+````typescript
+/**
+ * 認証関連のModel定義
+ *
+ * ログイン/認証に関する型定義とZodスキーマ
+ */
+
+import { z } from 'zod/v3'
+
+/*
+ * ============================================================================
+ * ユーザースキーマ
+ * ============================================================================
+ */
+
+export const userData = z.object({
+  id: z.number(),
+  email: z.string(),
+  name: z.string(),
+  createdAt: z.string(),
+})
+export type UserData = z.infer<typeof userData>
+
+/*
+ * ============================================================================
+ * ログインリクエスト/レスポンス
+ * ============================================================================
+ */
+
+export const loginRequest = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+  rememberMe: z.boolean().optional(),
+})
+export type LoginRequest = z.infer<typeof loginRequest>
+
+export const loginResponse = z.object({
+  success: z.boolean(),
+  data: z.object({
+    user: userData,
+    token: z.string(),
+  }),
+})
+export type LoginResponse = z.infer<typeof loginResponse>
+
+/*
+ * ============================================================================
+ * デフォルト値
+ * ============================================================================
+ */
+
+export const defaultUser: UserData = {
+  id: 0,
+  email: '',
+  name: '',
+  createdAt: '',
+}
+
+export const defaultLoginRequest: LoginRequest = {
+  email: '',
+  password: '',
+  rememberMe: false,
+}
+````
+
+## File: layers/main/app/pages/dashboard.vue
+````vue
+<i18n lang="yaml">
+ja:
+  seo:
+    title: ダッシュボード
+    description: ダッシュボードページです。
+  welcome: ようこそ
+  loginSuccess: ログインに成功しました
+  logout: ログアウト
+en:
+  seo:
+    title: Dashboard
+    description: Dashboard page.
+  welcome: Welcome
+  loginSuccess: Login successful
+  logout: Logout
+</i18n>
+
+<template>
+  <div class="dashboard-page">
+    <div class="dashboard-container">
+      <div class="dashboard-card">
+        <div class="dashboard-header">
+          <div class="dashboard-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+          </div>
+          <h1 class="dashboard-title">
+            {{ i18n.t('welcome') }}
+          </h1>
+          <p class="dashboard-subtitle">
+            {{ i18n.t('loginSuccess') }}
+          </p>
+        </div>
+
+        <div class="dashboard-content">
+          <p class="dashboard-message">
+            ダッシュボードへようこそ。ログインに成功しました。
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="logout-button"
+          @click="onLogout"
+        >
+          {{ i18n.t('logout') }}
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+definePageMeta({
+  layout: 'auth',
+})
+
+const i18n = useI18n()
+const router = useRouter()
+const localePath = useLocalePath()
+
+useSeoMeta({
+  title: `${i18n.t('seo.title')} | Vket Cloud`,
+  description: i18n.t('seo.description'),
+})
+
+const onLogout = async () => {
+  await router.push(localePath('/login'))
+}
+</script>
+
+<style lang="scss" scoped>
+.dashboard-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 100vh;
+
+  background: linear-gradient(150deg, #eff6ff 0%, #e0e7ff 100%);
+}
+
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 448px;
+}
+
+.dashboard-card {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+
+  padding: 32px;
+  border-radius: 16px;
+
+  background: #fff;
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 10%),
+    0 8px 10px -6px rgb(0 0 0 / 10%);
+}
+
+.dashboard-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.dashboard-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+
+  color: #fff;
+
+  background: #10b981;
+}
+
+.dashboard-title {
+  margin: 0;
+
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  color: #101828;
+}
+
+.dashboard-subtitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  color: #4a5565;
+}
+
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.dashboard-message {
+  margin: 0;
+
+  font-size: 16px;
+  line-height: 24px;
+  color: #364153;
+  text-align: center;
+}
+
+.logout-button {
+  cursor: pointer;
+
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d1d5dc;
+  border-radius: 10px;
+
+  font-size: 16px;
+  line-height: 24px;
+  color: #364153;
+
+  background: #fff;
+
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+
+  &:hover {
+    border-color: #9ca3af;
+    background: #f9fafb;
+  }
+}
+</style>
+````
+
+## File: layers/main/app/repositories/authRepository.ts
+````typescript
+/**
+ * 認証Repository
+ *
+ * ログイン/認証に関するAPI通信を担当
+ */
+
+import { requireValueOf } from '#base/app/utils/zod'
+import {
+  loginResponse,
+  type LoginRequest,
+  type LoginResponse,
+} from '@/models/auth'
+
+export default {
+  post: {
+    /**
+     * ログイン
+     */
+    async login(params: LoginRequest): Promise<LoginResponse> {
+      const response = await $fetch('/api/auth/login', {
+        method: 'POST',
+        body: {
+          email: params.email,
+          password: params.password,
+          rememberMe: params.rememberMe,
+        },
+      })
+      return requireValueOf(loginResponse, response)
+    },
+  } as const,
 }
 ````
 
@@ -2383,6 +3442,48 @@ export default withNuxt(
     },
   },
 )
+````
+
+## File: layers/main/app/pages/login.vue
+````vue
+<i18n lang="yaml">
+ja:
+  seo:
+    title: ログイン
+    description: ログインページです。
+en:
+  seo:
+    title: Login
+    description: Login page.
+</i18n>
+
+<template>
+  <HtLogin @submit="onSubmit" />
+</template>
+
+<script setup lang="ts">
+import { useLogin, loginInjectionKey } from '@/composables/useLogin'
+
+definePageMeta({
+  layout: 'auth',
+})
+
+const i18n = useI18n()
+
+useSeoMeta({
+  title: `${i18n.t('seo.title')} | Vket Cloud`,
+  description: i18n.t('seo.description'),
+})
+
+// Composable
+const loginComposable = useLogin()
+provide(loginInjectionKey, loginComposable)
+
+// フォーム送信処理
+const onSubmit = async () => {
+  await loginComposable.login()
+}
+</script>
 ````
 
 ## File: layers/main/i18n/i18n.config.ts
