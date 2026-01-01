@@ -40,7 +40,7 @@
     "@nuxtjs/google-fonts": "^3.2.0",
     "@nuxtjs/i18n": "^10.1.0",
     "@nuxtjs/robots": "^5.5.5",
-    "@vueuse/nuxt": "^13.9.0",
+    "@vueuse/nuxt": "^14.1.0",
     "dayjs": "^1.11.18",
     "nuxt": "^4.1.2",
     "ress": "^5.0.2",
