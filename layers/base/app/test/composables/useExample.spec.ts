@@ -5,38 +5,41 @@ import { useExample } from '#base/app/composables/useExample'
 // Nuxtのpayloadの一部をmockする
 const useStateState: Record<string, any> = {} // eslint-disable-line @typescript-eslint/no-explicit-any
 
-vi.mock('#app', () => ({
-  defineNuxtPlugin: vi.fn(),
+vi.mock('nuxt/app', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('nuxt/app')>()
+  return {
+    ...actual,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    useState: vi.fn((key: string, init?: () => any) => {
+      useStateState[key] = { value: init?.() }
+      return useStateState[key]
+    }),
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useState: vi.fn((key: string, init?: () => any) => {
-    useStateState[key] = { value: init?.() }
-    return useStateState[key]
-  }),
-
-  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-  useFetch: vi.fn(() => ({
-    status: 'ok',
-    data: {
-      todos: [
-        {
-          userId: 0,
-          id: 0,
-          title: 'Do something!',
-          completed: true,
-        },
-        {
-          userId: '1',
-          id: '1',
-          title: 'Say hello',
-          completed: false,
-        },
-      ],
-    },
-  })),
-}))
+    // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+    useFetch: vi.fn(() => ({
+      status: 'ok',
+      data: {
+        todos: [
+          {
+            userId: 0,
+            id: 0,
+            title: 'Do something!',
+            completed: true,
+          },
+          {
+            userId: '1',
+            id: '1',
+            title: 'Say hello',
+            completed: false,
+          },
+        ],
+      },
+    })),
+  }
+})
 
 vi.mock('#base/app/plugins/runtimeConfig', () => ({
+  default: vi.fn(() => ({})),
   requireRuntimeConfig: vi.fn(() => ({
     public: {
       baseUrl: 'http://localhost:3000',
@@ -48,6 +51,7 @@ vi.mock('#base/app/plugins/runtimeConfig', () => ({
 // NOTE: 本テストにおいて実際にAPI叩くわけではなく、fetchをすげ替えたいのでダミーとなるmock作成
 vi.mock('#base/app/plugins/fetch', () => {
   return {
+    default: vi.fn(() => ({})),
     pluginFetchApi: vi.fn((_path: string, _options: NitroFetchRequest) => {
       return {
         status: 'ok',

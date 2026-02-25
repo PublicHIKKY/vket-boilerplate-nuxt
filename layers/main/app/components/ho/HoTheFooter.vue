@@ -6,7 +6,7 @@ en:
 </i18n>
 
 <template>
-  <footer class="ho-the-footer"></footer>
+  <footer class="ho-the-footer" />
 </template>
 
 <script lang="ts" setup>

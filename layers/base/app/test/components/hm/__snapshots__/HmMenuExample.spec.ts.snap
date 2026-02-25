@@ -1,8 +1,8 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`mount component 1`] = `
-"<section data-v-9543fff9="" class="hm-menu-example">
-  <div data-v-9543fff9="" data-headlessui-state="" class="menu-container"><button data-v-9543fff9="" id="headlessui-menu-button-v-0" type="button" aria-haspopup="menu" aria-expanded="false" data-headlessui-state="" class="button"> Menu </button>
+"<section data-v-76fe05f2="" class="hm-menu-example">
+  <div data-v-76fe05f2="" data-headlessui-state="" class="menu-container"><button data-v-76fe05f2="" id="headlessui-menu-button-v-0" type="button" aria-haspopup="menu" aria-expanded="false" data-headlessui-state="" class="button"> Menu </button>
     <!---->
   </div>
 </section>"

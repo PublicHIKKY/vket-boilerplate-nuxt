@@ -1,5 +1,5 @@
-import stylistic from '@stylistic/eslint-plugin'
-import typescriptEslint from '@typescript-eslint/eslint-plugin'
+// Plugins are provided by @nuxt/eslint-config; avoid importing extra instances
+// to prevent plugin duplication errors.
 import globals from 'globals'
 import sharedConfig, { basicConfig } from '../../eslint.config.shared.mjs'
 import withNuxt from './.nuxt/eslint.config.mjs'
@@ -70,8 +70,6 @@ export default withNuxt(
       },
     },
     rules: {
-      ...typescriptEslint.configs.recommended.rules,
-      ...typescriptEslint.configs['recommended-type-checked'].rules,
       ...basicConfig.rules,
       '@typescript-eslint/restrict-template-expressions': 'off', // string interpolation `${e}` のeには、任意の型の値を許す
       '@typescript-eslint/no-unsafe-call': 'off', // auto-importした関数がanyに推測されるので、off
@@ -87,13 +85,6 @@ export default withNuxt(
    * コーディングスタイルの設定（そのうちnuxt.config.tsに書けないもの）
    * https://eslint.style/rules
    */
-  {
-    plugins: {
-      '@stylistic': stylistic,
-    },
-    rules: {},
-  },
-
   // その他オーバーライド
   {
     files: ['**/test/**/*.ts'],

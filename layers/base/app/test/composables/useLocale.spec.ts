@@ -5,11 +5,16 @@ import { useLocale } from '#base/app/composables/useLocale'
 
 let globalLocale: string | null = null
 
-vi.mock('nuxt/app', () => ({
-  useRequestHeaders: vi.fn(() => 'ja'),
-}))
+vi.mock('nuxt/app', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('nuxt/app')>()
+  return {
+    ...actual,
+    useRequestHeaders: vi.fn(() => 'ja'),
+  }
+})
 
 vi.mock('vue-i18n', () => ({
+  createI18n: vi.fn(() => ({ global: {}, mode: 'composition' })),
   useI18n: vi.fn(() => ({
     locale: ref('ja') as WritableComputedRef<string>,
   })),

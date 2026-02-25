@@ -3,7 +3,26 @@
   "private": true,
   "version": "1.0.1",
   "license": "MIT",
-  "packageManager": "bun@1.2.23",
+  "packageManager": "bun@1.3.9",
+  "dependencies": {
+    "nuxt": "^4.3.1",
+    "@nuxtjs/device": "^4.0.0",
+    "@nuxtjs/google-fonts": "^3.2.0",
+    "@nuxtjs/i18n": "^10.2.3",
+    "@nuxtjs/robots": "^5.7.0",
+    "@vueuse/nuxt": "^14.2.1",
+    "unplugin-icons": "^23.0.1",
+    "unplugin-vue-components": "^31.0.0",
+    "universal-cookie": "^8.0.1",
+    "dayjs": "^1.11.19",
+    "ress": "^5.0.2",
+    "uuid": "^13.0.0",
+    "vue": "^3.5.28",
+    "vue-advanced-cropper": "^2.8.9",
+    "vue-router": "^5.0.3",
+    "vue3-toastify": "^0.2.8",
+    "@gtm-support/vue-gtm": "^3.2.0"
+  },
   "workspaces": [
     "layers/*"
   ],
@@ -20,19 +39,17 @@
     "build:local": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present build:local"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.23",
-    "bun-types": "^1.2.23",
-    "eslint": "^9.37.0",
+    "vite-plugin-eslint2": "^5.0.5",
+    "@types/bun": "^1.3.9",
+    "bun-types": "^1.3.9",
+    "eslint": "^10.0.1",
     "husky": "^9.1.7",
-    "lint-staged": "^16.2.3",
-    "stylelint": "^16.25.0"
+    "lint-staged": "^16.2.7",
+    "stylelint": "^17.3.0"
   },
   "lint-staged": {
     "layers/**/*.+(js|ts|tsx|vue)": [
       "eslint --cache --cache-strategy content"
     ]
-  },
-  "resolutions": {
-    "eslint": "9.37.0"
   }
 }

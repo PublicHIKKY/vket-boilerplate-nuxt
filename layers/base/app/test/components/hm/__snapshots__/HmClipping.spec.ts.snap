@@ -1,9 +1,9 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`mount component 1`] = `
-"<div data-v-3b269d85="" class="hm-clipping">
-  <div data-v-3b269d85="" class="cropper-container">
-    <div data-v-3b269d85="" class="vue-advanced-cropper cropper">
+"<div data-v-7cbd279a="" class="hm-clipping">
+  <div data-v-7cbd279a="" class="cropper-container">
+    <div data-v-7cbd279a="" class="vue-advanced-cropper cropper">
       <div class="vue-advanced-cropper__stretcher"></div>
       <div class="vue-advanced-cropper__boundaries" style="width: auto; height: auto; transition: opacity 300ms; pointer-events: none; opacity: 0;">
         <div class="vue-advanced-cropper__cropper-wrapper">

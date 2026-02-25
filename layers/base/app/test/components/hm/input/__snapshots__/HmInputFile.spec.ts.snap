@@ -2,9 +2,9 @@
 
 exports[`mount component 1`] = `
 "<!-- TODO: エラーメッセージの表示をする際に、必要に応じてHmInputTextBase.vue同様の修正(DOM構造とエラーmsgのstyle)を行う -->
-<label data-v-f233eea7="" class="hm-input-file"><input data-v-fc3f65b2="" data-v-f233eea7="" class="ha-base-input input" type="file" accept="" name="file">
-  <div data-v-f233eea7="" class="image-box">
-    <div data-v-f233eea7="" class="inner"><span data-v-f233eea7="" class="text"> Select file or drag it! </span></div>
+<label data-v-8323f5e3="" class="hm-input-file"><input data-v-d0a26e0a="" data-v-8323f5e3="" class="ha-base-input input" type="file" accept="" name="file">
+  <div data-v-8323f5e3="" class="image-box">
+    <div data-v-8323f5e3="" class="inner"><span data-v-8323f5e3="" class="text"> Select file or drag it! </span></div>
   </div>
 </label>"
 `;

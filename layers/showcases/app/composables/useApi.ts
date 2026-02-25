@@ -4,10 +4,12 @@
  * @packageDocumentation
  */
 
-import { useFetch, UseFetchOptions } from 'nuxt/app'
+import type { UseFetchOptions } from 'nuxt/app'
+import { useFetch } from 'nuxt/app'
 import type { FetchOptions } from 'ofetch'
 import { ref } from 'vue'
-import { repositoryFactory, RepositoryKey } from '#showcases/app/utils/factory'
+import type { RepositoryKey } from '#showcases/app/utils/factory'
+import { repositoryFactory } from '#showcases/app/utils/factory'
 
 export const fetcher = (
   path: string,

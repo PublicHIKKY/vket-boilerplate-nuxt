@@ -1,5 +1,5 @@
 #!/bin/sh
-bunx lint-staged
+bunx lint-staged --concurrent false
 bun run repomix
 
 # agent_contexts/ 以下のファイルが変更されていれば自動的にステージングする

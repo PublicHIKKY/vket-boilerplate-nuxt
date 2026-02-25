@@ -4,14 +4,16 @@ import { UseFetchOptions } from 'nuxt/app'
 import { FetchOptions } from 'ofetch'
 import useDefaultApi, { defaultFetcher } from '#base/app/composables/useDefaultApi'
 
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-  useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
-    return { path, options }
-  }),
-}))
+vi.mock('nuxt/app', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('nuxt/app')>()
+  return {
+    ...actual,
+    // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+    useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
+      return { path, options }
+    }),
+  }
+})
 
 test('useDefaultApi', () => {
   // NOTE: useDefaultApiで使用できるRepositoryKeyを入れた際にオブジェクトが返ってくること。この場合useDefaultApi('hoge')など存在しない場合はテストが落ちる

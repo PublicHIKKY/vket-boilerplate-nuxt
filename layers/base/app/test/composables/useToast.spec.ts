@@ -10,14 +10,18 @@ const mockToast = {
 }
 
 // useNuxtAppのモック
-vi.mock('#app', () => ({
-  useNuxtApp: vi.fn(() => ({
-    $toast: mockToast,
-  })),
-}))
+vi.mock('nuxt/app', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('nuxt/app')>()
+  return {
+    ...actual,
+    useNuxtApp: vi.fn(() => ({
+      $toast: mockToast,
+    })),
+  }
+})
 
 // テストで使用するためにモックを取得
-const { useNuxtApp } = await import('#app')
+const { useNuxtApp } = await import('nuxt/app')
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockUseNuxtApp = useNuxtApp as any
 

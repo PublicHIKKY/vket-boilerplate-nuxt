@@ -3,7 +3,6 @@ import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 import IconsResolver from 'unplugin-icons/resolver'
 import Icons from 'unplugin-icons/vite'
 import Components from 'unplugin-vue-components/vite'
-import eslintPlugin from 'vite-plugin-eslint2'
 import svgLoader from 'vite-svg-loader'
 import { readEnvType } from './config/models/EnvType'
 import { getRuntimeConfigOfEnvType } from './config/runtimeConfig'
@@ -11,6 +10,11 @@ import { nuxtI18nOptions } from './i18n/i18n.config'
 
 const cssUrls = [`./app/assets/styles/style.scss`]
 const srcDir = 'app'
+
+type NuxtConfigInput = Parameters<typeof defineNuxtConfig>[0]
+type NuxtVitePluginOption = NonNullable<
+  NonNullable<NonNullable<NuxtConfigInput>['vite']>['plugins']
+>[number]
 
 /**
  * Nuxt Config
@@ -24,7 +28,7 @@ export default defineNuxtConfig({
     'unplugin-icons/nuxt',
     '@nuxtjs/robots',
     '@nuxtjs/device',
-    '@nuxt/test-utils/module',
+    ...(process.env.VITEST === 'true' ? ['@nuxt/test-utils/module'] : []),
   ],
   imports: {
     dirs: ['utils/types/**'],
@@ -71,11 +75,10 @@ export default defineNuxtConfig({
       emptyOutDir: true,
     },
     plugins: [
-      eslintPlugin(),
       svgLoader({
         defaultImport: 'component', // 'component', 'url', 'raw'
         svgo: false,
-      }),
+      }) as unknown as NuxtVitePluginOption,
       Icons({
         customCollections: {
           'hikky-icons': FileSystemIconLoader(`${srcDir}/assets/icons/hikky`),
@@ -92,7 +95,7 @@ export default defineNuxtConfig({
             props.height = '1em'
           }
         },
-      }),
+      }) as unknown as NuxtVitePluginOption,
       Components({
         dts: false,
         resolvers: [
@@ -100,7 +103,7 @@ export default defineNuxtConfig({
             customCollections: ['hikky-icons', 'sns-icons'],
           }),
         ],
-      }),
+      }) as unknown as NuxtVitePluginOption,
     ],
     css: {
       preprocessorMaxWorkers: true,
@@ -114,7 +117,7 @@ export default defineNuxtConfig({
     },
   },
   eslint: {
-    checker: true,
+    checker: false,
     config: {
       stylistic: {
         semi: false,

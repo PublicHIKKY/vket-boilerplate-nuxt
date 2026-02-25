@@ -17,13 +17,47 @@ const { mockI18n, mockRoute, mockConfig } = vi.hoisted(() => {
   }
 })
 
-vi.mock('#app', () => ({
-  useRuntimeConfig: vi.fn(() => mockConfig),
-  useRoute: vi.fn(() => mockRoute),
-  useNuxtApp: vi.fn(() => ({
-    $i18n: mockI18n,
-  })),
-}))
+vi.mock('#app/nuxt', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('#app/nuxt')>()
+  return {
+    ...actual,
+    useRuntimeConfig: vi.fn(() => {
+      const runtimeConfig = actual.useRuntimeConfig?.()
+      if (!runtimeConfig) {
+        return mockConfig
+      }
+      Object.assign(runtimeConfig, mockConfig)
+      Object.assign(
+        ((runtimeConfig as Record<string, unknown>).public ??= {}),
+        mockConfig.public,
+      )
+      return runtimeConfig
+    }),
+    useNuxtApp: vi.fn(() => {
+      const nuxtApp = actual.useNuxtApp?.()
+      if (!nuxtApp) {
+        return { $i18n: mockI18n }
+      }
+      ;(nuxtApp as Record<string, unknown>).$i18n = mockI18n
+      return nuxtApp
+    }),
+  }
+})
+
+vi.mock('#app/composables/router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('#app/composables/router')>()
+  return {
+    ...actual,
+    useRoute: vi.fn(() => {
+      const route = actual.useRoute?.()
+      if (!route) {
+        return mockRoute
+      }
+      Object.assign(route, mockRoute)
+      return route
+    }),
+  }
+})
 
 beforeEach(() => {
   mockI18n.locale.value = 'ja'
@@ -33,6 +67,8 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
+const parseXShareUrl = (url: string) => new URL(url)
+
 describe('locale en', () => {
   beforeEach(() => {
     mockI18n.locale.value = 'en'
@@ -41,9 +77,13 @@ describe('locale en', () => {
   describe('X', () => {
     it('no shareProps', () => {
       const generatedShareUrl = useSocialShareLink().getShareUrl('x')
-      expect(generatedShareUrl).toBe(
-        'https://x.com/intent/tweet?url=%2Fen&text=Share%2520%252Fen%0A',
-      )
+      const parsed = parseXShareUrl(generatedShareUrl)
+      expect(parsed.origin).toBe('https://x.com')
+      expect(parsed.pathname).toBe('/intent/tweet')
+      expect(parsed.searchParams.get('url')).toBe('http://localhost:3000/test/')
+      expect(
+        decodeURIComponent(parsed.searchParams.get('text') ?? ''),
+      ).toBe('Share http://localhost:3000/test/\n')
     })
 
     it('set shareProps', () => {
@@ -74,7 +114,7 @@ describe('locale en', () => {
       shareProps,
     )
     expect(generatedShareUrl).toBe(
-      'https://www.facebook.com/sharer/sharer.php?u=/en&t=testText',
+      'https://www.facebook.com/sharer/sharer.php?u=http://localhost:3000/test/&t=testText',
     )
   })
 
@@ -100,9 +140,13 @@ describe('locale ja', () => {
   describe('X', () => {
     it('no shareProps', () => {
       const generatedShareUrl = useSocialShareLink().getShareUrl('x')
-      expect(generatedShareUrl).toBe(
-        'https://x.com/intent/tweet?url=%2Fen&text=Share%2520%252Fen%0A',
-      )
+      const parsed = parseXShareUrl(generatedShareUrl)
+      expect(parsed.origin).toBe('https://x.com')
+      expect(parsed.pathname).toBe('/intent/tweet')
+      expect(parsed.searchParams.get('url')).toBe('http://localhost:3000/test/')
+      expect(
+        decodeURIComponent(parsed.searchParams.get('text') ?? ''),
+      ).toBe('http://localhost:3000/test/ をシェア\n')
     })
 
     it('set shareProps', () => {
@@ -131,7 +175,7 @@ describe('locale ja', () => {
       shareProps,
     )
     expect(generatedShareUrl).toBe(
-      'https://www.facebook.com/sharer/sharer.php?u=/en&t=testText',
+      'https://www.facebook.com/sharer/sharer.php?u=http://localhost:3000/test/&t=testText',
     )
   })
 

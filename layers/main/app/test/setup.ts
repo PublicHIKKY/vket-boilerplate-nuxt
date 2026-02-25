@@ -25,6 +25,59 @@ vi.mock('#app/composables/useI18n', () => ({
   })),
 }))
 
+// Basic Nuxt app mocks used by plugins and middleware
+vi.mock('nuxt/app', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('nuxt/app')>()
+  const mockI18n = { locale: { value: 'ja' } }
+
+  return {
+    ...actual,
+    defineNuxtPlugin: (plugin: unknown) => plugin,
+    defineNuxtRouteMiddleware:
+      actual.defineNuxtRouteMiddleware ?? ((fn: unknown) => fn),
+    useNuxtApp: () => {
+      const nuxtApp = actual.useNuxtApp?.()
+      if (!nuxtApp) {
+        return { $i18n: mockI18n }
+      }
+      return new Proxy(nuxtApp, {
+        get(target, property, receiver) {
+          if (property === '$i18n') {
+            return mockI18n
+          }
+          return Reflect.get(target, property, receiver)
+        },
+      })
+    },
+  }
+})
+
+vi.mock('#app', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('#app')>()
+  const mockI18n = { locale: { value: 'ja' } }
+
+  return {
+    ...actual,
+    defineNuxtPlugin: (plugin: unknown) => plugin,
+    defineNuxtRouteMiddleware:
+      actual.defineNuxtRouteMiddleware ?? ((fn: unknown) => fn),
+    useNuxtApp: () => {
+      const nuxtApp = actual.useNuxtApp?.()
+      if (!nuxtApp) {
+        return { $i18n: mockI18n }
+      }
+      return new Proxy(nuxtApp, {
+        get(target, property, receiver) {
+          if (property === '$i18n') {
+            return mockI18n
+          }
+          return Reflect.get(target, property, receiver)
+        },
+      })
+    },
+  }
+})
+
 vi.mock('#app/composables/useRoute', () => ({
   useRoute: vi.fn(() => ({
     path: '/test',
@@ -62,12 +115,8 @@ if (!global.HTMLDialogElement) {
 
     requestClose = vi.fn()
 
-    override addEventListener(_event: string, _callback: (...args: unknown[]) => void) {
-      // Mock implementation
-    }
+    override addEventListener() {}
 
-    override removeEventListener(_event: string, _callback: (...args: unknown[]) => void) {
-      // Mock implementation
-    }
+    override removeEventListener() {}
   }
 }

@@ -19,6 +19,11 @@ type MetaInfo = {
   twitterCreator: string
 }
 
+type NuxtConfigInput = Parameters<typeof defineNuxtConfig>[0]
+type NuxtVitePluginOption = NonNullable<
+  NonNullable<NonNullable<NuxtConfigInput>['vite']>['plugins']
+>[number]
+
 const NUXT_ENV_OUTPUT_ENV = readEnvType(process.env)
 const runtimeConfig = getRuntimeConfigOfEnvType(
   NUXT_ENV_OUTPUT_ENV,
@@ -151,7 +156,7 @@ export default defineNuxtConfig({
             props.height = '1em'
           }
         },
-      }),
+      }) as unknown as NuxtVitePluginOption,
       Components({
         dts: false,
         resolvers: [
@@ -159,7 +164,7 @@ export default defineNuxtConfig({
             customCollections: ['hikky-icons', 'sns-icons'],
           }),
         ],
-      }),
+      }) as unknown as NuxtVitePluginOption,
     ],
   },
   typescript: {

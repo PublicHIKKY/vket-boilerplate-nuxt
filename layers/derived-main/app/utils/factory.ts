@@ -1,5 +1,5 @@
 import { type MakeRepository, defaultRepositories } from '#base/app/utils/default-factory'
-import { Method } from '#derived-main/app/utils/api'
+import type { Method } from '#derived-main/app/utils/api'
 
 export type Repository = MakeRepository<Method>
 export type Repositories = Record<string, Repository>

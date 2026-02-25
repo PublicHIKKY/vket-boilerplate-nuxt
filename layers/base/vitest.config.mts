@@ -1,4 +1,5 @@
 import { defineVitestConfig } from '@nuxt/test-utils/config'
+import path from 'path'
 
 export default defineVitestConfig({
   test: {
@@ -19,6 +20,14 @@ export default defineVitestConfig({
         'test/**',
       ],
     },
-    setupFiles: ['test/setup.ts'],
+    setupFiles: ['app/test/setup.ts'],
+    alias: {
+      '#base': path.resolve(__dirname, '.'),
+    },
+  },
+  resolve: {
+    alias: {
+      '#base': path.resolve(__dirname, '.'),
+    },
   },
 })

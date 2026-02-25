@@ -4,13 +4,6 @@ import HaLink from '#base/app/components/ha/HaLink.vue'
 
 import { isNuxtEnvironment } from '#base/app/utils/environment'
 
-// useLocalePath のモック関数をトップレベルで定義
-vi.mock('#i18n', () => ({
-  useLocalePath: vi.fn(
-    () => vi.fn(() => `/mocked-path`), // path: string, query: LocationQuery, hash: string 引数削除 (使う時だけ入れないとreviewdogに怒られる)
-  ),
-}))
-
 beforeEach(() => {
   vi.clearAllMocks()
 })
@@ -55,8 +48,8 @@ describe(':to', () => {
         },
       },
     })
-    // toで入力したpathをi18nのuseLocalPathで色々変更してpathを吐き出すので、ここではmockのuseLocalPath値が検出されればOK
-    expect(wrapper.find('a').attributes('to')).toBe('/mocked-path')
+    // 現在は useLocalePath をモックせず入力値がそのまま使われる
+    expect(wrapper.find('a').attributes('to')).toBe('/internal-path')
   })
 })
 

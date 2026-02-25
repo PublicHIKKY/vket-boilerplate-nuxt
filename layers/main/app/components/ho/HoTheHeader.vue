@@ -6,7 +6,7 @@ en:
 </i18n>
 
 <template>
-  <header class="ho-the-header"></header>
+  <header class="ho-the-header" />
 </template>
 
 <script lang="ts" setup>

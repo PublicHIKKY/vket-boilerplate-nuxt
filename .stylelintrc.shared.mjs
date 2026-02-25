@@ -19,6 +19,14 @@ export default {
     'selector-pseudo-element-no-unknown': null,
     'no-descending-specificity': null,
     'selector-class-pattern': null,
+    'at-rule-empty-line-before': [
+      'always',
+      {
+        ignore: ['first-nested', 'blockless-after-same-name-blockless', 'after-comment'],
+        ignoreAtRules: ['else'],
+        severity: 'warning',
+      },
+    ],
     'selector-no-qualifying-type': [
       true,
       {

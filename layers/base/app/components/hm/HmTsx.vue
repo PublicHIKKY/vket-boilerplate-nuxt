@@ -4,13 +4,10 @@
   </div>
 </template>
 
-<script lang="tsx" setup>
-import { Fragment } from 'vue'
+<script lang="ts" setup>
+import { Fragment, h } from 'vue'
 
-const slots = useSlots() as { default?: () => unknown }
-const defaultSlot = slots.default ? slots.default() : null
+const slots = useSlots()
 
-const DefaultSlot = () => {
-  return <Fragment>{defaultSlot}</Fragment>
-}
+const DefaultSlot = () => h(Fragment, {}, slots.default?.())
 </script>

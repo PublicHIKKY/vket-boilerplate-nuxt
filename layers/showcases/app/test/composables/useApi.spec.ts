@@ -1,16 +1,19 @@
 // NOTE: そもそももっといいテストあれば是非
-import { UseFetchOptions } from 'nuxt/app'
-import { FetchOptions } from 'ofetch'
+import { expect, test, vi } from 'vitest'
+import type { UseFetchOptions } from 'nuxt/app'
+import type { FetchOptions } from 'ofetch'
 import useApi, { fetcher } from '@/composables/useApi'
 
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-  // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-  useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
-    return { path, options }
-  }),
-}))
+vi.mock('nuxt/app', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('nuxt/app')>()
+  return {
+    ...actual,
+    // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+    useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
+      return { path, options }
+    }),
+  }
+})
 
 test('useApi', () => {
   // NOTE: useApiで使用できるRepositoryKeyを入れた際にオブジェクトが返ってくること。この場合useApi('hoge')など存在しない場合はテストが落ちる

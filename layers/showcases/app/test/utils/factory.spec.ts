@@ -5,12 +5,6 @@ import {
   defaultRepositoryFactory,
 } from '#base/app/utils/default-factory'
 
-// NOTE: mockを使う際に必要な記述
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-}))
-
 describe('defaultRepositoryFactory', () => {
   it('should return the correct repository when a valid key is provided', () => {
     const repository = defaultRepositoryFactory.get('example')

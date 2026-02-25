@@ -246,745 +246,6 @@ export const exampleInjectionKey: InjectionKey<ExampleComposable>
   = Symbol('example')
 ````
 
-## File: layers/base/app/utils/anchor.ts
-````typescript
-/**
- * @remark aタグを生成して、そのaタグをクリックすることで外部リンクをさせる
- * @param url URL
- * @param blank 新しいタブで開くかどうか(default: true)
- * @param rel rel属性(default: 'norefferer noopener')
- * @param referrerPolicy referrerPolicy属性(default: 'strict-origin-when-cross-origin')
- */
-export const makeAnchorElement = (
-  url: string,
-  blank = true,
-  rel = 'norefferer noopener',
-  referrerPolicy = 'strict-origin-when-cross-origin',
-): HTMLAnchorElement | null => {
-  if (!window || !url) return null
-  const aElement = document.createElement('a')
-  aElement.href = url
-  aElement.classList.add('link-via-element-element')
-  aElement.referrerPolicy = referrerPolicy
-  aElement.rel = rel
-  if (blank) aElement.target = '_blank'
-  return aElement
-}
-
-export const linkViaElement = (
-  url: string,
-  blank = true,
-  rel = 'norefferer noopener',
-  referrerPolicy = 'strict-origin-when-cross-origin',
-) => {
-  const aElement = makeAnchorElement(url, blank, rel, referrerPolicy)
-  if (aElement === null) {
-    throw new Error('some message')
-  }
-  aElement.click()
-  aElement.remove()
-}
-````
-
-## File: layers/base/app/utils/array.ts
-````typescript
-import { raiseError } from '#base/app/utils/error'
-
-/**
- * `start`から`stop`までの範囲の、数値の配列を生成します。
- *
- * ```ts
- * range(1, 5) // [1, 2, 3, 4, 5]
- * range(1, 5, 2) // [1, 3, 5]
- * range(5, 1, -1) // [5, 4, 3, 2, 1]
- * ```
- */
-export const range = (start: number, stop: number, step = 1) =>
-  Array.from({ length: (stop - start) / step + 1 }, (_, i) => start + i * step)
-
-/**
- * 配列を逆順にします。
- * `Array.prototype.reverse`は元の配列を書き換えてしまうので、それだと面倒なときに使います。
- *
- * ```ts
- * reversed([1, 2, 3, 4, 5]) // [5, 4, 3, 2, 1]
- * ```
- */
-export const reversed = <T>(array: T[]): T[] => [...array].reverse()
-
-/**
- * 配列に値を追加または削除します。
- * 同じ値が入っていた時、両方とも削除します。
- *
- * ```ts
- * toggleList(['a', 'b'], 'a') // ['b']
- * toggleList(['b'], 'a') // ['b', 'a']
- * toggleList(['a', 'b', 'a'], 'a') // ['b']
- * ```
- */
-export const toggleList = <T>(list: T[], item: T): T[] =>
-  list.includes(item)
-    ? list.filter(listItem => listItem !== item)
-    : [...list, item]
-
-/**
- * 2つの配列を合体します。
- * 2つの配列の長さが異なる場合、短い方に合わせます。
- *
- * ```typescript
- * zip([1,2,3], [2,3,4,5]) // [[1,2], [2,3], [3,4]]
- * ```
- */
-export const zip = <T, U>(xs: T[], ys: U[]): Readonly<[T, U]>[] => {
-  const length = xs.length >= ys.length ? ys.length : xs.length
-  return range(0, length - 1).map(
-    (_, i) =>
-      [xs[i] ?? raiseError('Invalid'), ys[i] ?? raiseError('Invalid')] as const,
-  )
-}
-
-/**
- * JSON.stringify()を利用して、配列が同じ値かを確認します。
- *
- * JSON.stringify()を利用できない値を渡した場合は、例外が出る可能性があります。
- */
-export const equal = <T>(xs: T[], ys: T[]): boolean => {
-  return JSON.stringify(xs) === JSON.stringify(ys)
-}
-````
-
-## File: layers/base/app/utils/console.ts
-````typescript
-/**
- * 制御可能なログシステム
- * 環境に応じたログレベル管理と構造化ログ出力
- */
-
-/* eslint-disable no-console */
-
-/**
- * ログレベルの定義
- */
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
-
-/**
- * コンソールメソッドの型定義
- */
-export type ConsoleMethod = 'info' | 'error' | 'warn' | 'debug' | 'table'
-
-/**
- * ログ設定
- */
-interface LogConfig {
-  enabled: boolean
-  level: LogLevel
-  prefix?: string
-  timestamp?: boolean
-  stackTrace?: boolean
-}
-
-/**
- * デフォルトのログ設定
- */
-const defaultConfig: LogConfig = {
-  enabled: true,
-  level: 'info',
-  timestamp: true,
-  stackTrace: false,
-}
-
-/**
- * 現在のログ設定
- */
-let currentConfig: LogConfig = { ...defaultConfig }
-
-/**
- * ログレベルの重要度
- */
-const logLevels: Record<LogLevel, number> = {
-  debug: 0,
-  info: 1,
-  warn: 2,
-  error: 3,
-}
-
-/**
- * ログ設定を更新
- */
-export const configureLogger = (config: Partial<LogConfig>): void => {
-  currentConfig = { ...currentConfig, ...config }
-}
-
-/**
- * 環境に基づいて自動的にログ設定を調整
- */
-export const configureLoggerForEnvironment = (): void => {
-  const isDevelopment = process.env.NODE_ENV === 'development'
-  const isProduction = process.env.NODE_ENV === 'production'
-
-  if (isProduction) {
-    configureLogger({
-      enabled: false,
-      level: 'error',
-      timestamp: false,
-      stackTrace: false,
-    })
-  } else if (isDevelopment) {
-    configureLogger({
-      enabled: true,
-      level: 'debug',
-      timestamp: true,
-      stackTrace: true,
-    })
-  }
-}
-
-/**
- * ログを出力すべきかどうかを判定
- */
-const shouldLog = (level: LogLevel): boolean => {
-  return currentConfig.enabled && logLevels[level] >= logLevels[currentConfig.level]
-}
-
-/**
- * タイムスタンプを生成
- */
-const generateTimestamp = (): string => {
-  return new Date().toISOString()
-}
-
-/**
- * ログメッセージをフォーマット
- */
-const formatMessage = (level: LogLevel, message: string): string => {
-  const parts: string[] = []
-
-  if (currentConfig.timestamp) {
-    parts.push(`[${generateTimestamp()}]`)
-  }
-
-  if (currentConfig.prefix) {
-    parts.push(`[${currentConfig.prefix}]`)
-  }
-
-  parts.push(`[${level.toUpperCase()}]`)
-  parts.push(message)
-
-  return parts.join(' ')
-}
-
-/**
- * 基本的なログ出力関数
- */
-const logMessage = (level: LogLevel, method: ConsoleMethod, message: string, ...args: unknown[]): void => {
-  if (!shouldLog(level)) return
-
-  const formattedMessage = formatMessage(level, message)
-  console[method](formattedMessage, ...args)
-
-  if (currentConfig.stackTrace && level === 'error') {
-    console.trace()
-  }
-}
-
-/**
- * デバッグログ
- */
-export const debug = (message: string, ...args: unknown[]): void => {
-  logMessage('debug', 'debug', message, ...args)
-}
-
-/**
- * 情報ログ
- */
-export const info = (message: string, ...args: unknown[]): void => {
-  logMessage('info', 'info', message, ...args)
-}
-
-/**
- * 警告ログ
- */
-export const warn = (message: string, ...args: unknown[]): void => {
-  logMessage('warn', 'warn', message, ...args)
-}
-
-/**
- * エラーログ
- */
-export const error = (message: string, ...args: unknown[]): void => {
-  logMessage('error', 'error', message, ...args)
-}
-
-/**
- * テーブル形式でのログ出力
- */
-export const table = (data: unknown, properties?: string[]): void => {
-  if (!shouldLog('info')) return
-
-  console.table(data, properties)
-}
-
-/**
- * 値をログ出力してそのまま返す（デバッグ用）
- */
-export const log = <T>(
-  value: T,
-  message: string,
-  method: ConsoleMethod = 'info',
-): T => {
-  const level: LogLevel = method === 'error' ? 'error' : method === 'warn' ? 'warn' : 'info'
-
-  if (shouldLog(level)) {
-    console[method](formatMessage(level, message), value)
-  }
-
-  return value
-}
-
-/**
- * 条件付きログ出力
- */
-export const logIf = (
-  condition: boolean,
-  level: LogLevel,
-  message: string,
-  ...args: unknown[]
-): void => {
-  if (!condition) return
-
-  const method: ConsoleMethod = level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'info'
-  logMessage(level, method, message, ...args)
-}
-
-/**
- * パフォーマンス測定用のログ
- */
-export const timeStart = (label: string): void => {
-  if (shouldLog('debug')) {
-    console.time(label)
-  }
-}
-
-/**
- * パフォーマンス測定終了
- */
-export const timeEnd = (label: string): void => {
-  if (shouldLog('debug')) {
-    console.timeEnd(label)
-  }
-}
-
-/**
- * グループ化されたログ
- */
-export const group = (label: string, collapsed = false): void => {
-  if (!shouldLog('info')) return
-
-  if (collapsed) {
-    console.groupCollapsed(formatMessage('info', label))
-  } else {
-    console.group(formatMessage('info', label))
-  }
-}
-
-/**
- * ロググループ終了
- */
-export const groupEnd = (): void => {
-  if (shouldLog('info')) {
-    console.groupEnd()
-  }
-}
-
-/**
- * 現在のログ設定を取得
- */
-export const getLoggerConfig = (): LogConfig => {
-  return { ...currentConfig }
-}
-
-/**
- * 関数の実行をログ付きで行う
- */
-export const withLogging = <T extends (...args: unknown[]) => unknown>(
-  fn: T,
-  functionName?: string,
-): T => {
-  return ((...args: unknown[]) => {
-    const name = functionName || fn.name || 'anonymous'
-
-    debug(`Calling function: ${name}`, args)
-    timeStart(name)
-
-    try {
-      const result = fn(...args)
-
-      if (result instanceof Promise) {
-        return result
-          .then((value) => {
-            debug(`Function ${name} resolved`, value)
-            timeEnd(name)
-            return value
-          })
-          .catch((err) => {
-            error(`Function ${name} rejected`, err)
-            timeEnd(name)
-            throw err
-          })
-      } else {
-        debug(`Function ${name} returned`, result)
-        timeEnd(name)
-        return result
-      }
-    } catch (err) {
-      error(`Function ${name} threw error`, err)
-      timeEnd(name)
-      throw err
-    }
-  }) as T
-}
-
-// 環境に基づく自動設定
-if (typeof window === 'undefined') {
-  // Server-side
-  configureLoggerForEnvironment()
-}
-````
-
-## File: layers/base/app/utils/constant.ts
-````typescript
-/**
- * runtimeConfig・appConfigに置けない・置かない定数を置く場所。
- * 内容がこれなのでユニットテストは必要ない。
- */
-export const constant = {
-  /**
-   * [[constant]] を{}型にしないためのダミー。
-   * 他の項目が追加されたら、これを削除してください。
-   */
-  dummy: 'dummy',
-} as const
-````
-
-## File: layers/base/app/utils/environment.ts
-````typescript
-import { getCurrentInstance } from 'vue'
-
-// 闇魔法
-/**
- * setup の中でしか呼べない
- */
-export const isNuxtEnvironment = () => !!getCurrentInstance()?.appContext?.app
-````
-
-## File: layers/base/app/utils/error.ts
-````typescript
-/**
- * ここには到達しない。
- * 適切に switch 文などが書かれているか型レベルでチェックする。
- */
-export const unreachable = (_: never): never => {
-  throw new Error('unreachable.')
-}
-
-/**
- * throw構文を式として使いたい人向けの関数。
- */
-export function raiseError(message: string): never {
-  throw new Error(message)
-}
-````
-
-## File: layers/base/app/utils/object.ts
-````typescript
-import { WritableDeep } from 'type-fest'
-
-/**
- * 不変的もしくは可変的オブジェクトを、可変的なオブジェクトにクローンします。
- * JSON.stringify()を使うため、JSON.stringify()がサポートしていないオブジェクトのクローンはできません。
- *
- * ```typescript
- * writableClone(x) // JSON.parse(JSON.stringify(x))
- * ```
- *
- * `(T | undefined)[]`型について、**型安全ではありません**。
- * `(T | undefined)[]`を含む値を**渡さないでください**。
- * NaN・Infinityについても同様です。
- *
- * ```typescript
- * const xs: (number | undefined)[] = [undefined]
- * const ys: (number | undefined)[] = writableClone(xs)
- * const y: number | undefined = ys[0] // null
- * ```
- */
-export const writableClone = <T>(object: T): WritableDeep<T> => {
-  return JSON.parse(JSON.stringify(object)) as WritableDeep<T>
-}
-````
-
-## File: layers/base/app/utils/sleep.ts
-````typescript
-import { nextTick } from 'vue'
-
-/**
- * @desc 特定のミリ秒処理を止める。testなどでDOM改変などの非同期に使用
- * @param { number } ms
- */
-export const sleep = (ms: number): Promise<void> =>
-  new Promise<void>(resolve =>
-    setTimeout(() => {
-      resolve()
-    }, ms),
-  )
-
-// NOTE: どうしてこれで直っているのかは不明
-/**
- * `await wrapper.get('input[type="text"]').setValue('12345678901')`
- * などのアクションを待った時に、後続の`expect()`が失敗する場合に使う関数。
- * ```ts
- * await wrapper.get('input[type="text"]').setValue('12345678901')
- * await waitEffect()
- * expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
- * ```
- * https://github.com/vuejs/vue-test-utils/issues/1406
- */
-export const waitEffect = async () => {
-  await nextTick()
-  await new Promise(resolve =>
-    requestAnimationFrame(resolve),
-  )
-}
-````
-
-## File: layers/base/app/utils/storage-control.ts
-````typescript
-import Cookies, { CookieGetOptions, CookieSetOptions } from 'universal-cookie'
-import { addDateTime } from './date-control'
-
-const cookie = new Cookies()
-const setCookieDefaultSettings: CookieSetOptions = {
-  expires: addDateTime(30, 'day', new Date()),
-  path: '/',
-  secure: true,
-}
-
-/**
- * @desc cookieの特定の値を返す
- * @param {string} key
- * @param {CookieGetOptions} options
- * @return {unknown}
- */
-export const getSingleCookieValue = (
-  key: string,
-  options: CookieGetOptions | null = null,
-): string | null => {
-  if (!key) return null
-  if (options === null) {
-    return cookie.get(key) ?? null
-  }
-  return cookie.get(key, options) ?? null
-}
-
-/**
- * @desc cookieに特定のkey,valueを格納する
- * @param {string} key
- * @param {string} value
- * @param {CookieSetOptions} options
- */
-export const setSingleCookieValue = (
-  key: string,
-  value: string,
-  options: CookieSetOptions = setCookieDefaultSettings,
-) => {
-  if (key) {
-    return cookie.set(key, value, options)
-  }
-  throw new Error('set cookie key is falsy')
-}
-
-/**
- * @desc cookieの特定の値を削除
- * @param {string} key
- * @param {CookieSetOptions} options
- */
-export const removeSingleCookieValue = (
-  key: string,
-  options: CookieSetOptions = setCookieDefaultSettings,
-) => {
-  if (key) {
-    return cookie.remove(key, options)
-  }
-  throw new Error('remove cookie key is falsy')
-}
-
-/**
- * @desc local storageの特定の値を返す
- * @param {string} key
- * @return {string | null}
- */
-export const getLocalStorageValue = (key: string) => {
-  return localStorage.getItem(key)
-}
-
-/**
- * @desc local storageに特定のkey,valueを格納する
- * @param {string} key
- * @param {string} value
- */
-export const setLocalStorageValue = (key: string, value: string) => {
-  localStorage.setItem(key, value)
-}
-
-/**
- * @desc local storageの特定のkeyを削除する
- * @param {string} key
- */
-export const removeLocalStorageValue = (key: string) => {
-  localStorage.removeItem(key)
-}
-
-/**
- * @desc session storageの特定の値を返す
- * @param {string} key
- * @return {string | null}
- */
-export const getSessionStorageValue = (key: string) => {
-  return sessionStorage.getItem(key)
-}
-
-/**
- * @desc session storageに特定のkey,valueを格納する
- * @param {string} key
- * @param {string} value
- */
-export const setSessionStorageValue = (key: string, value: string) => {
-  sessionStorage.setItem(key, value)
-}
-
-/**
- * @desc session storageの特定のkeyを削除する
- * @param {string} key
- */
-export const removeSessionStorageValue = (key: string) => {
-  sessionStorage.removeItem(key)
-}
-````
-
-## File: layers/base/app/utils/token.ts
-````typescript
-/**
- * JWTのデコード
- */
-export const decodeJwt = (jwt: string): unknown => {
-  try {
-    const base64Url = jwt.split('.')[1]
-    const base64 = base64Url?.replace(/-/g, '+').replace(/_/g, '/')
-    if (!base64) throw new Error('Failed to decode base64')
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map((c) => {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-        })
-        .join(''),
-    )
-    return JSON.parse(jsonPayload)
-  } catch (e) {
-    console.error(`${e}`)
-    return null
-  }
-}
-````
-
-## File: layers/base/app/utils/uuid.ts
-````typescript
-import { v4 as uuidV4 } from 'uuid'
-
-export function createUuidV4() {
-  return uuidV4()
-}
-````
-
-## File: layers/base/app/utils/vue-reactive.ts
-````typescript
-import type { DeepReadonly, Reactive } from 'vue'
-import { writableClone } from './object'
-
-/**
- * 深いリアクティブユーティリティ
- * ネストされたオブジェクトの完全なtoRaw変換とreadonly解除機能
- */
-
-/**
- * オブジェクトかどうかを判定する型ガード
- */
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value) && !(value instanceof Date) && !(value instanceof RegExp)
-}
-
-/**
- * ネストされたオブジェクトの完全なtoRaw変換
- * リアクティブプロキシを完全に除去
- */
-export const toRawDeep = <T>(refValue: T): T => {
-  const raw = toRaw(refValue)
-
-  if (raw === null || raw === undefined) {
-    return raw
-  }
-
-  if (typeof raw === 'string' || typeof raw === 'number' || typeof raw === 'boolean') {
-    return raw
-  }
-
-  if (raw instanceof Date || raw instanceof RegExp) {
-    return raw
-  }
-
-  if (Array.isArray(raw)) {
-    const mappedArray = raw.map(item => toRawDeep(item))
-    return mappedArray as unknown as T
-  }
-
-  if (isRecord(raw)) {
-    const result: Record<string, unknown> = {}
-    for (const key in raw) {
-      if (Object.prototype.hasOwnProperty.call(raw, key)) {
-        result[key] = toRawDeep(raw[key])
-      }
-    }
-    return result as unknown as T
-  }
-
-  return raw
-}
-
-/**
- * readonly オブジェクトを書き込み可能にする
- * DeepReadonly<T> → WritableDeep<T> の変換
- */
-export const unreadonly = <T>(immutable: DeepReadonly<T>): unknown =>
-  writableClone(toRawDeep(immutable))
-
-/**
- * リアクティブオブジェクトの完全な複製
- * 元のオブジェクトのリアクティブ性を保持しつつ、新しいインスタンスを作成
- */
-export const deepCloneReactive = <T>(reactiveObj: T): T => {
-  const raw = toRawDeep(reactiveObj)
-  const cloned = writableClone(raw)
-  return ref(cloned).value
-}
-
-/**
- * 条件付きリアクティブ変換
- * 条件がtrueの場合のみリアクティブにする
- */
-export const conditionalReactive = <T extends object>(value: T, condition: boolean): T | Reactive<T> => {
-  return condition ? reactive(value) : value
-}
-````
-
 ## File: layers/base/app/composables/useLocale.ts
 ````typescript
 import { getSingleCookieValue } from '#base/app/utils/storage-control'
@@ -1556,6 +817,426 @@ export type Overwrite<T, U extends { [Key in keyof T]?: unknown }> = Omit<
 & U
 ````
 
+## File: layers/base/app/utils/anchor.ts
+````typescript
+/**
+ * @remark aタグを生成して、そのaタグをクリックすることで外部リンクをさせる
+ * @param url URL
+ * @param blank 新しいタブで開くかどうか(default: true)
+ * @param rel rel属性(default: 'norefferer noopener')
+ * @param referrerPolicy referrerPolicy属性(default: 'strict-origin-when-cross-origin')
+ */
+export const makeAnchorElement = (
+  url: string,
+  blank = true,
+  rel = 'norefferer noopener',
+  referrerPolicy = 'strict-origin-when-cross-origin',
+): HTMLAnchorElement | null => {
+  if (!window || !url) return null
+  const aElement = document.createElement('a')
+  aElement.href = url
+  aElement.classList.add('link-via-element-element')
+  aElement.referrerPolicy = referrerPolicy
+  aElement.rel = rel
+  if (blank) aElement.target = '_blank'
+  return aElement
+}
+
+export const linkViaElement = (
+  url: string,
+  blank = true,
+  rel = 'norefferer noopener',
+  referrerPolicy = 'strict-origin-when-cross-origin',
+) => {
+  const aElement = makeAnchorElement(url, blank, rel, referrerPolicy)
+  if (aElement === null) {
+    throw new Error('some message')
+  }
+  aElement.click()
+  aElement.remove()
+}
+````
+
+## File: layers/base/app/utils/array.ts
+````typescript
+import { raiseError } from '#base/app/utils/error'
+
+/**
+ * `start`から`stop`までの範囲の、数値の配列を生成します。
+ *
+ * ```ts
+ * range(1, 5) // [1, 2, 3, 4, 5]
+ * range(1, 5, 2) // [1, 3, 5]
+ * range(5, 1, -1) // [5, 4, 3, 2, 1]
+ * ```
+ */
+export const range = (start: number, stop: number, step = 1) =>
+  Array.from({ length: (stop - start) / step + 1 }, (_, i) => start + i * step)
+
+/**
+ * 配列を逆順にします。
+ * `Array.prototype.reverse`は元の配列を書き換えてしまうので、それだと面倒なときに使います。
+ *
+ * ```ts
+ * reversed([1, 2, 3, 4, 5]) // [5, 4, 3, 2, 1]
+ * ```
+ */
+export const reversed = <T>(array: T[]): T[] => [...array].reverse()
+
+/**
+ * 配列に値を追加または削除します。
+ * 同じ値が入っていた時、両方とも削除します。
+ *
+ * ```ts
+ * toggleList(['a', 'b'], 'a') // ['b']
+ * toggleList(['b'], 'a') // ['b', 'a']
+ * toggleList(['a', 'b', 'a'], 'a') // ['b']
+ * ```
+ */
+export const toggleList = <T>(list: T[], item: T): T[] =>
+  list.includes(item)
+    ? list.filter(listItem => listItem !== item)
+    : [...list, item]
+
+/**
+ * 2つの配列を合体します。
+ * 2つの配列の長さが異なる場合、短い方に合わせます。
+ *
+ * ```typescript
+ * zip([1,2,3], [2,3,4,5]) // [[1,2], [2,3], [3,4]]
+ * ```
+ */
+export const zip = <T, U>(xs: T[], ys: U[]): Readonly<[T, U]>[] => {
+  const length = xs.length >= ys.length ? ys.length : xs.length
+  return range(0, length - 1).map(
+    (_, i) =>
+      [xs[i] ?? raiseError('Invalid'), ys[i] ?? raiseError('Invalid')] as const,
+  )
+}
+
+/**
+ * JSON.stringify()を利用して、配列が同じ値かを確認します。
+ *
+ * JSON.stringify()を利用できない値を渡した場合は、例外が出る可能性があります。
+ */
+export const equal = <T>(xs: T[], ys: T[]): boolean => {
+  return JSON.stringify(xs) === JSON.stringify(ys)
+}
+````
+
+## File: layers/base/app/utils/console.ts
+````typescript
+/**
+ * 制御可能なログシステム
+ * 環境に応じたログレベル管理と構造化ログ出力
+ */
+
+/* eslint-disable no-console */
+
+/**
+ * ログレベルの定義
+ */
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
+
+/**
+ * コンソールメソッドの型定義
+ */
+export type ConsoleMethod = 'info' | 'error' | 'warn' | 'debug' | 'table'
+
+/**
+ * ログ設定
+ */
+interface LogConfig {
+  enabled: boolean
+  level: LogLevel
+  prefix?: string
+  timestamp?: boolean
+  stackTrace?: boolean
+}
+
+/**
+ * デフォルトのログ設定
+ */
+const defaultConfig: LogConfig = {
+  enabled: true,
+  level: 'info',
+  timestamp: true,
+  stackTrace: false,
+}
+
+/**
+ * 現在のログ設定
+ */
+let currentConfig: LogConfig = { ...defaultConfig }
+
+/**
+ * ログレベルの重要度
+ */
+const logLevels: Record<LogLevel, number> = {
+  debug: 0,
+  info: 1,
+  warn: 2,
+  error: 3,
+}
+
+/**
+ * ログ設定を更新
+ */
+export const configureLogger = (config: Partial<LogConfig>): void => {
+  currentConfig = { ...currentConfig, ...config }
+}
+
+/**
+ * 環境に基づいて自動的にログ設定を調整
+ */
+export const configureLoggerForEnvironment = (): void => {
+  const isDevelopment = process.env.NODE_ENV === 'development'
+  const isProduction = process.env.NODE_ENV === 'production'
+
+  if (isProduction) {
+    configureLogger({
+      enabled: false,
+      level: 'error',
+      timestamp: false,
+      stackTrace: false,
+    })
+  } else if (isDevelopment) {
+    configureLogger({
+      enabled: true,
+      level: 'debug',
+      timestamp: true,
+      stackTrace: true,
+    })
+  }
+}
+
+/**
+ * ログを出力すべきかどうかを判定
+ */
+const shouldLog = (level: LogLevel): boolean => {
+  return currentConfig.enabled && logLevels[level] >= logLevels[currentConfig.level]
+}
+
+/**
+ * タイムスタンプを生成
+ */
+const generateTimestamp = (): string => {
+  return new Date().toISOString()
+}
+
+/**
+ * ログメッセージをフォーマット
+ */
+const formatMessage = (level: LogLevel, message: string): string => {
+  const parts: string[] = []
+
+  if (currentConfig.timestamp) {
+    parts.push(`[${generateTimestamp()}]`)
+  }
+
+  if (currentConfig.prefix) {
+    parts.push(`[${currentConfig.prefix}]`)
+  }
+
+  parts.push(`[${level.toUpperCase()}]`)
+  parts.push(message)
+
+  return parts.join(' ')
+}
+
+/**
+ * 基本的なログ出力関数
+ */
+const logMessage = (level: LogLevel, method: ConsoleMethod, message: string, ...args: unknown[]): void => {
+  if (!shouldLog(level)) return
+
+  const formattedMessage = formatMessage(level, message)
+  console[method](formattedMessage, ...args)
+
+  if (currentConfig.stackTrace && level === 'error') {
+    console.trace()
+  }
+}
+
+/**
+ * デバッグログ
+ */
+export const debug = (message: string, ...args: unknown[]): void => {
+  logMessage('debug', 'debug', message, ...args)
+}
+
+/**
+ * 情報ログ
+ */
+export const info = (message: string, ...args: unknown[]): void => {
+  logMessage('info', 'info', message, ...args)
+}
+
+/**
+ * 警告ログ
+ */
+export const warn = (message: string, ...args: unknown[]): void => {
+  logMessage('warn', 'warn', message, ...args)
+}
+
+/**
+ * エラーログ
+ */
+export const error = (message: string, ...args: unknown[]): void => {
+  logMessage('error', 'error', message, ...args)
+}
+
+/**
+ * テーブル形式でのログ出力
+ */
+export const table = (data: unknown, properties?: string[]): void => {
+  if (!shouldLog('info')) return
+
+  console.table(data, properties)
+}
+
+/**
+ * 値をログ出力してそのまま返す（デバッグ用）
+ */
+export const log = <T>(
+  value: T,
+  message: string,
+  method: ConsoleMethod = 'info',
+): T => {
+  const level: LogLevel = method === 'error' ? 'error' : method === 'warn' ? 'warn' : 'info'
+
+  if (shouldLog(level)) {
+    console[method](formatMessage(level, message), value)
+  }
+
+  return value
+}
+
+/**
+ * 条件付きログ出力
+ */
+export const logIf = (
+  condition: boolean,
+  level: LogLevel,
+  message: string,
+  ...args: unknown[]
+): void => {
+  if (!condition) return
+
+  const method: ConsoleMethod = level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'info'
+  logMessage(level, method, message, ...args)
+}
+
+/**
+ * パフォーマンス測定用のログ
+ */
+export const timeStart = (label: string): void => {
+  if (shouldLog('debug')) {
+    console.time(label)
+  }
+}
+
+/**
+ * パフォーマンス測定終了
+ */
+export const timeEnd = (label: string): void => {
+  if (shouldLog('debug')) {
+    console.timeEnd(label)
+  }
+}
+
+/**
+ * グループ化されたログ
+ */
+export const group = (label: string, collapsed = false): void => {
+  if (!shouldLog('info')) return
+
+  if (collapsed) {
+    console.groupCollapsed(formatMessage('info', label))
+  } else {
+    console.group(formatMessage('info', label))
+  }
+}
+
+/**
+ * ロググループ終了
+ */
+export const groupEnd = (): void => {
+  if (shouldLog('info')) {
+    console.groupEnd()
+  }
+}
+
+/**
+ * 現在のログ設定を取得
+ */
+export const getLoggerConfig = (): LogConfig => {
+  return { ...currentConfig }
+}
+
+/**
+ * 関数の実行をログ付きで行う
+ */
+export const withLogging = <T extends (...args: unknown[]) => unknown>(
+  fn: T,
+  functionName?: string,
+): T => {
+  return ((...args: unknown[]) => {
+    const name = functionName || fn.name || 'anonymous'
+
+    debug(`Calling function: ${name}`, args)
+    timeStart(name)
+
+    try {
+      const result = fn(...args)
+
+      if (result instanceof Promise) {
+        return result
+          .then((value) => {
+            debug(`Function ${name} resolved`, value)
+            timeEnd(name)
+            return value
+          })
+          .catch((err) => {
+            error(`Function ${name} rejected`, err)
+            timeEnd(name)
+            throw err
+          })
+      } else {
+        debug(`Function ${name} returned`, result)
+        timeEnd(name)
+        return result
+      }
+    } catch (err) {
+      error(`Function ${name} threw error`, err)
+      timeEnd(name)
+      throw err
+    }
+  }) as T
+}
+
+// 環境に基づく自動設定
+if (typeof window === 'undefined') {
+  // Server-side
+  configureLoggerForEnvironment()
+}
+````
+
+## File: layers/base/app/utils/constant.ts
+````typescript
+/**
+ * runtimeConfig・appConfigに置けない・置かない定数を置く場所。
+ * 内容がこれなのでユニットテストは必要ない。
+ */
+export const constant = {
+  /**
+   * [[constant]] を{}型にしないためのダミー。
+   * 他の項目が追加されたら、これを削除してください。
+   */
+  dummy: 'dummy',
+} as const
+````
+
 ## File: layers/base/app/utils/date-control.ts
 ````typescript
 import dayjs, { ManipulateType } from 'dayjs'
@@ -2057,6 +1738,109 @@ export const defaultRepositoryFactory = {
 }
 ````
 
+## File: layers/base/app/utils/environment.ts
+````typescript
+import { getCurrentInstance } from 'vue'
+
+// 闇魔法
+/**
+ * setup の中でしか呼べない
+ */
+export const isNuxtEnvironment = () => !!getCurrentInstance()?.appContext?.app
+````
+
+## File: layers/base/app/utils/error.ts
+````typescript
+/**
+ * ここには到達しない。
+ * 適切に switch 文などが書かれているか型レベルでチェックする。
+ */
+export const unreachable = (_: never): never => {
+  throw new Error('unreachable.')
+}
+
+/**
+ * throw構文を式として使いたい人向けの関数。
+ */
+export function raiseError(message: string): never {
+  throw new Error(message)
+}
+````
+
+## File: layers/base/app/utils/file-control.ts
+````typescript
+/**
+ * @param {File} file
+ * @returns {string}
+ * @description fileオブジェクトをimgタグで表示させたいときに使う
+ */
+export function readFileAsBlob(file: File): string {
+  const imgEl = new Image()
+  imgEl.src = URL.createObjectURL(file)
+  imgEl.onload = () => {
+    URL.revokeObjectURL(imgEl.src)
+  }
+  return imgEl.src
+}
+
+/**
+ * blobのtypeから拡張子取得
+ * @param {string} type - MIMEタイプ (例: "image/png")
+ * @returns {string} 拡張子 (例: ".png")
+ * @description MIMEタイプからファイル拡張子を取得する
+ */
+export const getExtFromType = (type: string): string => '.' + type.split('/')[1]
+
+/**
+ * fileからbase64取得
+ * @param {File} file - 変換するFileオブジェクト
+ * @returns {Promise<string | undefined>} base64エンコードされたデータURL、エラー時にはundefined
+ * @description Fileオブジェクトからbase64エンコードされたデータURLを取得する
+ */
+export const getBase64ByFile = (file: File): Promise<string | undefined> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    // 画像のBufferを取得してemit
+    reader.onload = (e) => {
+      const result = e?.target?.result
+      if (typeof result !== 'string') {
+        reject(new TypeError('Failed to get base64'))
+        return
+      }
+      resolve(result)
+    }
+
+    reader.readAsDataURL(file)
+  })
+}
+
+/**
+ * base64テキストからFileオブジェクトを生成
+ * @param {string} base64 - dataURL形式のbase64文字列
+ * @param {string} [fileName] - ファイル名（省略時は'file'）
+ * @returns {File | null} 生成されたFileオブジェクト、失敗時はnull
+ */
+export const getFileByBase64 = (base64: string, fileName: string = 'file'): File | null => {
+  const arr = base64.split(',')
+  if (arr.length < 2) return null
+  const mimeMatch = arr[0]?.match(/:(.*?);/)
+  const mime = mimeMatch && mimeMatch[1] ? mimeMatch[1] : 'image/png'
+  if (!arr[1]) return null
+  try {
+    const bstr = atob(arr[1])
+    let n = bstr.length
+    const u8arr = new Uint8Array(n)
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n)
+    }
+    return new File([u8arr], fileName, { type: mime })
+  } catch (error) {
+    console.error(error)
+    return null
+  }
+}
+````
+
 ## File: layers/base/app/utils/image.ts
 ````typescript
 /**
@@ -2104,6 +1888,33 @@ export function toImage(blob: File | Blob): Promise<HTMLImageElement> {
     imageElement.addEventListener('error', errorHandler)
     imageElement.src = URL.createObjectURL(blob)
   })
+}
+````
+
+## File: layers/base/app/utils/object.ts
+````typescript
+import { WritableDeep } from 'type-fest'
+
+/**
+ * 不変的もしくは可変的オブジェクトを、可変的なオブジェクトにクローンします。
+ * JSON.stringify()を使うため、JSON.stringify()がサポートしていないオブジェクトのクローンはできません。
+ *
+ * ```typescript
+ * writableClone(x) // JSON.parse(JSON.stringify(x))
+ * ```
+ *
+ * `(T | undefined)[]`型について、**型安全ではありません**。
+ * `(T | undefined)[]`を含む値を**渡さないでください**。
+ * NaN・Infinityについても同様です。
+ *
+ * ```typescript
+ * const xs: (number | undefined)[] = [undefined]
+ * const ys: (number | undefined)[] = writableClone(xs)
+ * const y: number | undefined = ys[0] // null
+ * ```
+ */
+export const writableClone = <T>(object: T): WritableDeep<T> => {
+  return JSON.parse(JSON.stringify(object)) as WritableDeep<T>
 }
 ````
 
@@ -2171,6 +1982,180 @@ export function requireAsyncDataOf<T>(
 ): AsyncDataResponse<T> {
   ensureAsyncDataOf(x, y)
   return y
+}
+````
+
+## File: layers/base/app/utils/sleep.ts
+````typescript
+import { nextTick } from 'vue'
+
+/**
+ * @desc 特定のミリ秒処理を止める。testなどでDOM改変などの非同期に使用
+ * @param { number } ms
+ */
+export const sleep = (ms: number): Promise<void> =>
+  new Promise<void>(resolve =>
+    setTimeout(() => {
+      resolve()
+    }, ms),
+  )
+
+// NOTE: どうしてこれで直っているのかは不明
+/**
+ * `await wrapper.get('input[type="text"]').setValue('12345678901')`
+ * などのアクションを待った時に、後続の`expect()`が失敗する場合に使う関数。
+ * ```ts
+ * await wrapper.get('input[type="text"]').setValue('12345678901')
+ * await waitEffect()
+ * expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
+ * ```
+ * https://github.com/vuejs/vue-test-utils/issues/1406
+ */
+export const waitEffect = async () => {
+  await nextTick()
+  await new Promise(resolve =>
+    requestAnimationFrame(resolve),
+  )
+}
+````
+
+## File: layers/base/app/utils/storage-control.ts
+````typescript
+import Cookies, { CookieGetOptions, CookieSetOptions } from 'universal-cookie'
+import { addDateTime } from './date-control'
+
+const cookie = new Cookies()
+const setCookieDefaultSettings: CookieSetOptions = {
+  expires: addDateTime(30, 'day', new Date()),
+  path: '/',
+  secure: true,
+}
+
+/**
+ * @desc cookieの特定の値を返す
+ * @param {string} key
+ * @param {CookieGetOptions} options
+ * @return {unknown}
+ */
+export const getSingleCookieValue = (
+  key: string,
+  options: CookieGetOptions | null = null,
+): string | null => {
+  if (!key) return null
+  if (options === null) {
+    return cookie.get(key) ?? null
+  }
+  return cookie.get(key, options) ?? null
+}
+
+/**
+ * @desc cookieに特定のkey,valueを格納する
+ * @param {string} key
+ * @param {string} value
+ * @param {CookieSetOptions} options
+ */
+export const setSingleCookieValue = (
+  key: string,
+  value: string,
+  options: CookieSetOptions = setCookieDefaultSettings,
+) => {
+  if (key) {
+    return cookie.set(key, value, options)
+  }
+  throw new Error('set cookie key is falsy')
+}
+
+/**
+ * @desc cookieの特定の値を削除
+ * @param {string} key
+ * @param {CookieSetOptions} options
+ */
+export const removeSingleCookieValue = (
+  key: string,
+  options: CookieSetOptions = setCookieDefaultSettings,
+) => {
+  if (key) {
+    return cookie.remove(key, options)
+  }
+  throw new Error('remove cookie key is falsy')
+}
+
+/**
+ * @desc local storageの特定の値を返す
+ * @param {string} key
+ * @return {string | null}
+ */
+export const getLocalStorageValue = (key: string) => {
+  return localStorage.getItem(key)
+}
+
+/**
+ * @desc local storageに特定のkey,valueを格納する
+ * @param {string} key
+ * @param {string} value
+ */
+export const setLocalStorageValue = (key: string, value: string) => {
+  localStorage.setItem(key, value)
+}
+
+/**
+ * @desc local storageの特定のkeyを削除する
+ * @param {string} key
+ */
+export const removeLocalStorageValue = (key: string) => {
+  localStorage.removeItem(key)
+}
+
+/**
+ * @desc session storageの特定の値を返す
+ * @param {string} key
+ * @return {string | null}
+ */
+export const getSessionStorageValue = (key: string) => {
+  return sessionStorage.getItem(key)
+}
+
+/**
+ * @desc session storageに特定のkey,valueを格納する
+ * @param {string} key
+ * @param {string} value
+ */
+export const setSessionStorageValue = (key: string, value: string) => {
+  sessionStorage.setItem(key, value)
+}
+
+/**
+ * @desc session storageの特定のkeyを削除する
+ * @param {string} key
+ */
+export const removeSessionStorageValue = (key: string) => {
+  sessionStorage.removeItem(key)
+}
+````
+
+## File: layers/base/app/utils/token.ts
+````typescript
+/**
+ * JWTのデコード
+ */
+export const decodeJwt = (jwt: string): unknown => {
+  try {
+    const base64Url = jwt.split('.')[1]
+    const base64 = base64Url?.replace(/-/g, '+').replace(/_/g, '/')
+    if (!base64) throw new Error('Failed to decode base64')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        })
+        .join(''),
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    console.error(`${e}`)
+    return null
+  }
 }
 ````
 
@@ -2409,6 +2394,95 @@ export const getRouteQueries = <T extends Record<string, unknown>>(
 }
 ````
 
+## File: layers/base/app/utils/uuid.ts
+````typescript
+import { v4 as uuidV4 } from 'uuid'
+
+export function createUuidV4() {
+  return uuidV4()
+}
+````
+
+## File: layers/base/app/utils/vue-reactive.ts
+````typescript
+import type { DeepReadonly, Reactive } from 'vue'
+import { writableClone } from './object'
+
+/**
+ * 深いリアクティブユーティリティ
+ * ネストされたオブジェクトの完全なtoRaw変換とreadonly解除機能
+ */
+
+/**
+ * オブジェクトかどうかを判定する型ガード
+ */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value) && !(value instanceof Date) && !(value instanceof RegExp)
+}
+
+/**
+ * ネストされたオブジェクトの完全なtoRaw変換
+ * リアクティブプロキシを完全に除去
+ */
+export const toRawDeep = <T>(refValue: T): T => {
+  const raw = toRaw(refValue)
+
+  if (raw === null || raw === undefined) {
+    return raw
+  }
+
+  if (typeof raw === 'string' || typeof raw === 'number' || typeof raw === 'boolean') {
+    return raw
+  }
+
+  if (raw instanceof Date || raw instanceof RegExp) {
+    return raw
+  }
+
+  if (Array.isArray(raw)) {
+    const mappedArray = raw.map(item => toRawDeep(item))
+    return mappedArray as unknown as T
+  }
+
+  if (isRecord(raw)) {
+    const result: Record<string, unknown> = {}
+    for (const key in raw) {
+      if (Object.prototype.hasOwnProperty.call(raw, key)) {
+        result[key] = toRawDeep(raw[key])
+      }
+    }
+    return result as unknown as T
+  }
+
+  return raw
+}
+
+/**
+ * readonly オブジェクトを書き込み可能にする
+ * DeepReadonly<T> → WritableDeep<T> の変換
+ */
+export const unreadonly = <T>(immutable: DeepReadonly<T>): unknown =>
+  writableClone(toRawDeep(immutable))
+
+/**
+ * リアクティブオブジェクトの完全な複製
+ * 元のオブジェクトのリアクティブ性を保持しつつ、新しいインスタンスを作成
+ */
+export const deepCloneReactive = <T>(reactiveObj: T): T => {
+  const raw = toRawDeep(reactiveObj)
+  const cloned = writableClone(raw)
+  return ref(cloned).value
+}
+
+/**
+ * 条件付きリアクティブ変換
+ * 条件がtrueの場合のみリアクティブにする
+ */
+export const conditionalReactive = <T extends object>(value: T, condition: boolean): T | Reactive<T> => {
+  return condition ? reactive(value) : value
+}
+````
+
 ## File: layers/base/app/utils/zod.ts
 ````typescript
 import { DeepReadonly } from 'vue'
@@ -2587,80 +2661,6 @@ export function makeRecursiveSchema<T>(
   // 再帰をぶん回して
   const rec = (): ZodType<R> => builder_(z.lazy(rec)) as unknown as ZodType<R>
   return rec()
-}
-````
-
-## File: layers/base/app/utils/file-control.ts
-````typescript
-/**
- * @param {File} file
- * @returns {string}
- * @description fileオブジェクトをimgタグで表示させたいときに使う
- */
-export function readFileAsBlob(file: File): string {
-  const imgEl = new Image()
-  imgEl.src = URL.createObjectURL(file)
-  imgEl.onload = () => {
-    URL.revokeObjectURL(imgEl.src)
-  }
-  return imgEl.src
-}
-
-/**
- * blobのtypeから拡張子取得
- * @param {string} type - MIMEタイプ (例: "image/png")
- * @returns {string} 拡張子 (例: ".png")
- * @description MIMEタイプからファイル拡張子を取得する
- */
-export const getExtFromType = (type: string): string => '.' + type.split('/')[1]
-
-/**
- * fileからbase64取得
- * @param {File} file - 変換するFileオブジェクト
- * @returns {Promise<string | undefined>} base64エンコードされたデータURL、エラー時にはundefined
- * @description Fileオブジェクトからbase64エンコードされたデータURLを取得する
- */
-export const getBase64ByFile = (file: File): Promise<string | undefined> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    // 画像のBufferを取得してemit
-    reader.onload = (e) => {
-      const result = e?.target?.result
-      if (typeof result !== 'string') {
-        reject(new TypeError('Failed to get base64'))
-        return
-      }
-      resolve(result)
-    }
-
-    reader.readAsDataURL(file)
-  })
-}
-
-/**
- * base64テキストからFileオブジェクトを生成
- * @param {string} base64 - dataURL形式のbase64文字列
- * @param {string} [fileName] - ファイル名（省略時は'file'）
- * @returns {File | null} 生成されたFileオブジェクト、失敗時はnull
- */
-export const getFileByBase64 = (base64: string, fileName: string = 'file'): File | null => {
-  const arr = base64.split(',')
-  if (arr.length < 2) return null
-  const mimeMatch = arr[0]?.match(/:(.*?);/)
-  const mime = mimeMatch && mimeMatch[1] ? mimeMatch[1] : 'image/png'
-  if (!arr[1]) return null
-  try {
-    const bstr = atob(arr[1])
-    let n = bstr.length
-    const u8arr = new Uint8Array(n)
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n)
-    }
-    return new File([u8arr], fileName, { type: mime })
-  } catch (error) {
-    console.error(error)
-    return null
-  }
 }
 ````
 

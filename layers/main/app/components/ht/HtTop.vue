@@ -6,7 +6,7 @@ en:
 </i18n>
 
 <template>
-  <div class="ht-top"></div>
+  <div class="ht-top" />
 </template>
 
 <script setup lang="ts">

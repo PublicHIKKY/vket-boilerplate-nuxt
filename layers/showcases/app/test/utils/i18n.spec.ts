@@ -1,5 +1,8 @@
 import { mount } from '@vue/test-utils'
-import { createI18n } from 'vue-i18n'
+import { defineComponent } from 'vue'
+import { createI18n, useI18n } from 'vue-i18n'
+import { expect, test } from 'vitest'
+import { getI18nArray } from '@/utils/i18n'
 
 test('getI18nArray takes a list from vue-i18n dict', () => {
   const i18n = createI18n({

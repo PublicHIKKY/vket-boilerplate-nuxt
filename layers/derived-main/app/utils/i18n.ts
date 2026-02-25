@@ -1,4 +1,4 @@
-import { Composer, UseI18nOptions, VueMessageType } from 'vue-i18n'
+import type { Composer, UseI18nOptions, VueMessageType } from 'vue-i18n'
 
 /**
  * 引数未指定にすると、普通に`const i18n = useI18n()`とすると入ってくる型になる。
@@ -21,4 +21,4 @@ export type UseI18nReturnType<Options extends UseI18nOptions = UseI18nOptions>
  * ```
  */
 export const getI18nArray = (i18n: UseI18nReturnType, key: string): string[] =>
-  Object.entries<VueMessageType>(i18n.tm(key)).map(([_, term]) => i18n.rt(term))
+  Object.entries<VueMessageType>(i18n.tm(key)).map(([, term]) => i18n.rt(term))

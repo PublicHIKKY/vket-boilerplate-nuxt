@@ -4,8 +4,10 @@ import useValidationRules from '#base/app/composables/useValidationRules'
 
 // vue-i18nのモックをトップレベルで定義
 vi.mock('vue-i18n', () => ({
+  createI18n: vi.fn(() => ({ global: {}, mode: 'composition' })),
   useI18n: vi.fn(() => ({
     t: (key: string, ..._args: unknown[]) => `dummy-${key}`,
+    locale: { value: 'ja' },
   })),
 }))
 

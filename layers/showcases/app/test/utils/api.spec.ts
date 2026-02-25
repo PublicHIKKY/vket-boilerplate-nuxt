@@ -1,15 +1,11 @@
+import { describe, expect, it, vi } from 'vitest'
 import type { NitroFetchRequest } from 'nitropack'
 import api from '#showcases/app/utils/api'
-
-// NOTE: mockを使う際に必要な記述
-vi.mock('#app', () => ({
-  // NOTE:  defineNuxtPluginでエラーが出るので設置
-  defineNuxtPlugin: vi.fn(),
-}))
 
 // NOTE: src/utils/api.tsのテストとして当該ファイルがimportしているファイルからの変数「requireRuntimeConfig」をモックする。
 vi.mock('#base/app/plugins/runtimeConfig', () => {
   return {
+    default: vi.fn(() => ({})),
     requireRuntimeConfig: vi.fn(() => {
       // NOTE: api.tsのテストとしてrequireRuntimeConfigが{public.baseUrl}としてダミーURLを返すだけの処理を行うようにモックする
       return {
@@ -24,6 +20,7 @@ vi.mock('#base/app/plugins/runtimeConfig', () => {
 // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
 vi.mock('#base/app/plugins/fetch', () => {
   return {
+    default: vi.fn(() => ({})),
     pluginFetchApi: vi.fn((path: string, options: NitroFetchRequest) => {
       return { path, options }
     }),

@@ -1,4 +1,4 @@
-import { FetchOptions } from 'ofetch'
+import type { FetchOptions } from 'ofetch'
 import type { Method } from '#base/app/utils/default-api'
 import { defaultApi } from '#base/app/utils/default-api'
 
