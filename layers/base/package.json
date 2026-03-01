@@ -64,7 +64,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@testing-library/vue": "^8.1.0",
     "@total-typescript/ts-reset": "^0.6.1",
-    "@types/jsdom": "^27.0.0",
+    "@types/jsdom": "^28.0.0",
     "@types/node": "^25.3.0",
     "@types/postcss-url": "^10.0.4",
     "@types/uuid": "^11.0.0",
