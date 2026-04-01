@@ -39,7 +39,7 @@
     "@nuxtjs/device": "^4.0.0",
     "@nuxtjs/google-fonts": "^3.2.0",
     "@nuxtjs/i18n": "^10.2.3",
-    "@nuxtjs/robots": "^5.7.0",
+    "@nuxtjs/robots": "^6.0.6",
     "@vueuse/nuxt": "^14.2.1",
     "dayjs": "^1.11.19",
     "nuxt": "^4.3.1",
