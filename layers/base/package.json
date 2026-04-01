@@ -55,7 +55,7 @@
     "@anatine/zod-mock": "^3.14.0",
     "@eslint/js": "^10.0.1",
     "@faker-js/faker": "^10.3.0",
-    "@fast-check/vitest": "^0.2.4",
+    "@fast-check/vitest": "^0.3.0",
     "@iconify-json/ri": "^1.2.10",
     "@nuxt/eslint": "^1.15.1",
     "@nuxt/test-utils": "^4.0.0",
