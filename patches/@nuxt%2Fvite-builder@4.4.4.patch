@@ -1,0 +1,43 @@
+diff --git a/node_modules/@nuxt/vite-builder/.bun-tag-e2197ebd15ab2136 b/.bun-tag-e2197ebd15ab2136
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/dist/vite-node.mjs b/dist/vite-node.mjs
+index 3bd4517663bc579cdfd7718e2976cc303668abe9..4d94c66a8cb6f3b97435184b9d910cef86549b96 100644
+--- a/dist/vite-node.mjs
++++ b/dist/vite-node.mjs
+@@ -12,6 +12,10 @@ function getViteNodeOptionsEnvVar() {
+ 	}
+ }
+ const viteNodeOptions = getViteNodeOptionsEnvVar();
++function refreshViteNodeOptions() {
++	Object.assign(viteNodeOptions, getViteNodeOptionsEnvVar());
++	return viteNodeOptions;
++}
+ const pendingRequests = /* @__PURE__ */ new Map();
+ let requestIdCounter = 0;
+ let clientSocket;
+@@ -28,13 +32,14 @@ function calculateRetryDelay(attempt) {
+ function connectSocket() {
+ 	if (clientSocket && !clientSocket.destroyed) return Promise.resolve(clientSocket);
+ 	if (currentConnectPromise) return currentConnectPromise;
++	const currentViteNodeOptions = refreshViteNodeOptions();
+ 	const thisPromise = new Promise((resolve, reject) => {
+-		if (!viteNodeOptions.socketPath) {
++		if (!currentViteNodeOptions.socketPath) {
+ 			console.error("vite-node-shared: NUXT_VITE_NODE_OPTIONS.socketPath is not defined.");
+ 			return reject(/* @__PURE__ */ new Error("Vite Node IPC socket path not configured."));
+ 		}
+ 		const attemptConnection = (attempt = 0) => {
+-			const socket = net.createConnection(viteNodeOptions.socketPath);
++			const socket = net.createConnection(currentViteNodeOptions.socketPath);
+ 			const INITIAL_BUFFER_SIZE = 64 * 1024;
+ 			const MAX_BUFFER_SIZE = 1024 * 1024 * 1024;
+ 			let buffer = Buffer.alloc(INITIAL_BUFFER_SIZE);
+@@ -198,6 +203,7 @@ async function sendRequest(type, payload) {
+ }
+ const viteNodeFetch = {
+ 	getManifest() {
++		if (!refreshViteNodeOptions().socketPath) return {};
+ 		return sendRequest("manifest", void 0);
+ 	},
+ 	getInvalidates() {

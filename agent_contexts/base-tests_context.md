@@ -176,28 +176,6 @@ layers/
 
 # Files
 
-## File: layers/base/app/test/components/ha/__snapshots__/HaDialog.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-8d2cdb80="" class="ha-dialog">
-  <div data-v-8d2cdb80="" class="dialog-window">no content.</div>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaHamburger.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-398903c3="" class="ha-humberger-button">
-  <div data-v-398903c3="" class="line"></div>
-</div>"
-`;
-````
-
 ## File: layers/base/app/test/components/ha/__snapshots__/HaImage.spec.ts.snap
 ````
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
@@ -219,78 +197,11 @@ exports[`mount component 1`] = `"<a class="ha-link" href="https://example.com"><
 exports[`mount component 1`] = `"<!--v-if-->"`;
 ````
 
-## File: layers/base/app/test/components/ha/__snapshots__/HaLoadingIcon.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<div data-v-c1d69a8c="" class="ha-loading-icon"></div>"`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaSelectBox.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-cb5e7ce8="" class="ha-select-box"><select data-v-cb5e7ce8="" name="" class="select">
-    <option data-v-cb5e7ce8="">---Select---</option>
-  </select>
-  <!--v-if-->
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaSkewBackground.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`HaSkewBackground > mount component 1`] = `
-"<div data-v-0570223f="" class="ha-skew" style="transform: skewX(30deg);">
-  <div data-v-0570223f="" class="content" style="transform: skewX(-30deg);"></div>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaTag.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`HaTag > mount component 1`] = `"<span data-v-c08b7397="" class="ha-tag -primary" disabled="false"></span>"`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaTextarea.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-94d1f98e="" class="ha-textarea"><label data-v-94d1f98e="" class="label">
-    <!--v-if--><textarea data-v-94d1f98e="" type="text" placeholder="Input Text" rows="5" class="input"></textarea>
-  </label>
-  <p data-v-94d1f98e="" class="error-container">
-    <!--v-if-->
-  </p>
-</div>"
-`;
-````
-
 ## File: layers/base/app/test/components/ha/__snapshots__/HaVideo.spec.ts.snap
 ````
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`HaVideo > mount component 1`] = `"<video class="ha-video" src="" autoplay="" autopictureinpicture="false" controls="" disablepictureinpicture="false" controlslist="" crossorigin="" disableremoteplayback="false" x-webkit-airplay="false" width="" height="" muted="" playsinline="false" poster="" preload=""></video>"`;
-````
-
-## File: layers/base/app/test/components/ha/base/__snapshots__/HaBaseButton.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<button data-v-0844060a="" class="ha-base-button" type="button">button label</button>"`;
-````
-
-## File: layers/base/app/test/components/ha/base/__snapshots__/HaBaseInput.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<input data-v-d0a26e0a="" class="ha-base-input" type="text" value="false">"`;
 ````
 
 ## File: layers/base/app/test/components/ha/base/HaBaseButton.spec.ts
@@ -1531,229 +1442,6 @@ test('バックグラウンドカラーをフォールバックカラーで表�
   expect(label.attributes().style).toContain(
     `background-color: ${fallbackColor}`,
   )
-})
-````
-
-## File: layers/base/app/test/components/ha/HaLink.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { beforeEach, afterEach, describe, it, expect, test, vi } from 'vitest'
-import HaLink from '#base/app/components/ha/HaLink.vue'
-
-import { isNuxtEnvironment } from '#base/app/utils/environment'
-
-beforeEach(() => {
-  vi.clearAllMocks()
-})
-
-afterEach(() => {
-  vi.restoreAllMocks()
-})
-
-test('ref component', () => {
-  expect(HaLink).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HaLink, {
-    props: {
-      to: 'https://example.com',
-    },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-describe(':to', () => {
-  // 外部サイトリンクのテスト
-  it('set external path', () => {
-    const wrapper = mount(HaLink, {
-      props: { to: 'https://example.com' },
-    })
-    expect(wrapper.find('a').attributes('href')).toBe('https://example.com')
-  })
-
-  // 内部リンクテスト (aタグ)
-  it('set internal path', () => {
-    const wrapper = mount(HaLink, {
-      props: { to: '/internal-path' },
-      // nuxt-linkはwarnとなるので、下記でaタグに置き換える。RouterLinkStubはtoを引き継げなくなるので使わない。
-      global: {
-        stubs: {
-          'nuxt-link': {
-            template: '<a><slot /></a>',
-          },
-        },
-      },
-    })
-    // 現在は useLocalePath をモックせず入力値がそのまま使われる
-    expect(wrapper.find('a').attributes('to')).toBe('/internal-path')
-  })
-})
-
-describe(':blank', () => {
-  it('not set', () => {
-    const wrapper = mount(HaLink, {
-      props: { to: '' },
-      global: {
-        stubs: {
-          'nuxt-link': {
-            template: '<a><slot /></a>',
-          },
-        },
-      },
-    })
-    expect(wrapper.find('a').attributes('target')).toBeFalsy()
-  })
-
-  it('set true', () => {
-    const wrapper = mount(HaLink, {
-      props: { to: 'https://example.com', blank: true },
-    })
-    expect(wrapper.find('a').attributes('target')).toBe('_blank')
-  })
-
-  // <HaLink blank> って書けてほしい
-  it('set `blank` with no value set target="_blank"', () => {
-    const wrapper = mount(
-      {
-        template: '<HaLink to="https://example.com" blank></HaLink>',
-        components: { HaLink },
-      },
-      {},
-    )
-    expect(wrapper.get('a').attributes('target')).toBe('_blank')
-  })
-})
-
-describe(':rel', () => {
-  it('set rel', () => {
-    const wrapper = mount(HaLink, {
-      props: {
-        to: 'https://example.com',
-        rel: 'noreferrer',
-      },
-    })
-    expect(wrapper.get('a').attributes('rel')).toBe('noreferrer')
-  })
-})
-
-describe(':forceAnchorLink', () => {
-  it('set true', () => {
-    const wrapper = mount(HaLink, {
-      props: { to: '/internal', forceAnchorLink: true },
-    })
-    expect(wrapper.find('a').exists()).toBe(true)
-  })
-})
-
-describe('slot', () => {
-  it('set simple text', () => {
-    const wrapper = mount(HaLink, {
-      props: {
-        to: 'https://example.com',
-      },
-      slots: {
-        default: 'link label',
-      },
-    })
-    // slot入れたらリンク消えたりしない？
-    expect(wrapper.html()).toContain('https://example.com')
-    // slotの中身はきちんと描画されてる？
-    expect(wrapper.text()).toContain('link label')
-  })
-})
-
-// 以下、NuxtLink系のテスト
-vi.mock('#base/app/utils/environment')
-
-/*
- * TODO: Nuxt依存部分のtoLocalePathをモックしている関係で、戻り値がmocked-pathにしかならずqueryのテストが出来ない
- * describe(':query', () => {
- *   it('appends query parameters to internal links', async () => {
- *     // 環境をNuxtとしてモック
- *     vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
- */
-
-/*
- *     const wrapper = mount(HaLink, {
- *       props: { to: '/intenal', query: { id: '123' } },
- *     })
- */
-
-/*
- *     await nextTick()
- *     // NuxtLinkを探す
- *     const nuxtLink = wrapper.find('nuxt-link');
- *     expect(nuxtLink.exists()).toBe(true);
- *     // NuxtLinkがクエリパラメータを含む適切なパスでレンダリングされているか検証
- *     expect(nuxtLink.attributes('to')).toBe('/internal?id=123');
- *     // モック関数が正しく呼び出されたことを確認
- *     expect(useLocalePath).toHaveBeenCalled()
- *   })
- * })
- */
-
-/*
- * TODO: Nuxt依存部分のtoLocalePathをモックしている関係で、戻り値がmocked-pathにしかならずhashのテストが出来ない
- * describe(':hash', () => {
- *   it('appends hash parameters to internal links', async () => {
- *     // 環境をNuxtとしてモック
- *     vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
- */
-
-/*
- *     const wrapper = mount(HaLink, {
- *       props: { to: '/intenal', hash: '#hash'},
- *     })
- */
-
-/*
- *     await nextTick()
- *     // NuxtLinkを探す
- *     const nuxtLink = wrapper.find('nuxt-link');
- *     expect(nuxtLink.exists()).toBe(true);
- *     // NuxtLinkがクエリパラメータを含む適切なパスでレンダリングされているか検証
- *     expect(nuxtLink.attributes('to')).toBe('/internal#hash');
- *     // モック関数が正しく呼び出されたことを確認
- *     expect(useLocalePath).toHaveBeenCalled()
- *   })
- * })
- */
-
-describe('<nuxt-link>', () => {
-  /*
-   * TODO : テスト自体は通るが[Vue warn]: Failed to resolve component: nuxt-link のWARNが出るのでコメントアウト
-   * it('use router-link', async () => {
-   *   vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
-   *   const wrapper = mount(HaLink, {
-   *     props: {
-   *       to: '/link',
-   *     },
-   *   })
-   *   const nuxtLink = wrapper.find('nuxt-link')
-   *   expect(nuxtLink.exists()).toBe(true)
-   * })
-   */
-  it('external link must be <a>', () => {
-    vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
-    const wrapper = mount(HaLink, {
-      props: {
-        to: 'https://example.com',
-      },
-    })
-    expect(wrapper.find('a').exists()).toBeTruthy()
-  })
-  it('force <a> link', () => {
-    vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
-    const wrapper = mount(HaLink, {
-      props: {
-        to: '/link',
-        forceAnchorLink: true,
-      },
-    })
-    expect(wrapper.find('a').exists()).toBeTruthy()
-  })
 })
 ````
 
@@ -3132,209 +2820,6 @@ describe('HaVideo', () => {
 })
 ````
 
-## File: layers/base/app/test/components/hm/__snapshots__/HmClipping.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-7cbd279a="" class="hm-clipping">
-  <div data-v-7cbd279a="" class="cropper-container">
-    <div data-v-7cbd279a="" class="vue-advanced-cropper cropper">
-      <div class="vue-advanced-cropper__stretcher"></div>
-      <div class="vue-advanced-cropper__boundaries" style="width: auto; height: auto; transition: opacity 300ms; pointer-events: none; opacity: 0;">
-        <div class="vue-advanced-cropper__cropper-wrapper">
-          <div class="vue-advanced-cropper__background" style="width: auto; height: auto; transition: opacity 300ms; pointer-events: none; opacity: 0;"></div>
-          <div class="vue-advanced-cropper__image-wrapper"><img class="vue-advanced-cropper__image" style="height: 0px; left: 0px; top: 0px; transform: translate(NaNpx, NaNpx) rotate(0deg)  scaleX(NaN)  scaleY(NaN);"></div>
-          <div class="vue-advanced-cropper__foreground" style="width: auto; height: auto; transition: opacity 300ms; pointer-events: none; opacity: 0;"></div>
-          <div class="vue-rectangle-stencil vue-rectangle-stencil--movable" style="width: 0px; height: 0px; transform: translate(0px, 0px); display: none;">
-            <div class="vue-bounding-box vue-rectangle-stencil__bounding-box">
-              <div>
-                <div class="vue-preview vue-preview--fill vue-rectangle-stencil__preview">
-                  <div class="vue-preview__wrapper" style="width: 0px; height: 0px; left: calc(50% - 0px); top: calc(50% - 0px);"><img class="vue-preview__image" style="width: 0px; height: 0px; left: 0px; top: 0px; transform: translate(
-				NaNpx,NaNpx)  rotate(0deg)  scaleX(NaN)  scaleY(NaN); display: none;"></div>
-                </div>
-              </div>
-              <div>
-                <div class="vue-line-wrapper vue-line-wrapper--east vue-simple-line-wrapper vue-simple-line-wrapper--east">
-                  <div class="vue-simple-line vue-simple-line--east"></div>
-                </div>
-                <div class="vue-line-wrapper vue-line-wrapper--west vue-simple-line-wrapper vue-simple-line-wrapper--west">
-                  <div class="vue-simple-line vue-simple-line--west"></div>
-                </div>
-                <div class="vue-line-wrapper vue-line-wrapper--south vue-simple-line-wrapper vue-simple-line-wrapper--south">
-                  <div class="vue-simple-line vue-simple-line--south"></div>
-                </div>
-                <div class="vue-line-wrapper vue-line-wrapper--north vue-simple-line-wrapper vue-simple-line-wrapper--north">
-                  <div class="vue-simple-line vue-simple-line--north"></div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--east-south">
-                <div class="vue-handler-wrapper vue-handler-wrapper--east-south vue-simple-handler-wrapper vue-simple-handler-wrapper--east vue-simple-handler-wrapper--south vue-simple-handler-wrapper--east-south vue-bounding-box__handler vue-bounding-box__handler--east-south">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--east vue-simple-handler--south vue-simple-handler--east-south"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--east-north">
-                <div class="vue-handler-wrapper vue-handler-wrapper--east-north vue-simple-handler-wrapper vue-simple-handler-wrapper--east vue-simple-handler-wrapper--north vue-simple-handler-wrapper--east-north vue-bounding-box__handler vue-bounding-box__handler--east-north">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--east vue-simple-handler--north vue-simple-handler--east-north"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--east">
-                <div class="vue-handler-wrapper vue-handler-wrapper--east vue-simple-handler-wrapper vue-simple-handler-wrapper--east vue-bounding-box__handler vue-bounding-box__handler--east">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--east"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--west-south">
-                <div class="vue-handler-wrapper vue-handler-wrapper--west-south vue-simple-handler-wrapper vue-simple-handler-wrapper--west vue-simple-handler-wrapper--south vue-simple-handler-wrapper--west-south vue-bounding-box__handler vue-bounding-box__handler--west-south">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--west vue-simple-handler--south vue-simple-handler--west-south"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--west-north">
-                <div class="vue-handler-wrapper vue-handler-wrapper--west-north vue-simple-handler-wrapper vue-simple-handler-wrapper--west vue-simple-handler-wrapper--north vue-simple-handler-wrapper--west-north vue-bounding-box__handler vue-bounding-box__handler--west-north">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--west vue-simple-handler--north vue-simple-handler--west-north"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--west">
-                <div class="vue-handler-wrapper vue-handler-wrapper--west vue-simple-handler-wrapper vue-simple-handler-wrapper--west vue-bounding-box__handler vue-bounding-box__handler--west">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--west"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--south">
-                <div class="vue-handler-wrapper vue-handler-wrapper--south vue-simple-handler-wrapper vue-simple-handler-wrapper--south vue-bounding-box__handler vue-bounding-box__handler--south">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--south"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--north">
-                <div class="vue-handler-wrapper vue-handler-wrapper--north vue-simple-handler-wrapper vue-simple-handler-wrapper--north vue-bounding-box__handler vue-bounding-box__handler--north">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--north"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div><canvas style="display: none;"></canvas><canvas style="display: none;"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!--v-if-->
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/__snapshots__/HmMenuExample.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<section data-v-76fe05f2="" class="hm-menu-example">
-  <div data-v-76fe05f2="" data-headlessui-state="" class="menu-container"><button data-v-76fe05f2="" id="headlessui-menu-button-v-0" type="button" aria-haspopup="menu" aria-expanded="false" data-headlessui-state="" class="button"> Menu </button>
-    <!---->
-  </div>
-</section>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/__snapshots__/HmNoteList.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<ul data-v-91fb3b34="" class="hm-note-list"></ul>"`;
-````
-
-## File: layers/base/app/test/components/hm/__snapshots__/HmPopup.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-8d2cdb80="" data-v-e875e4c1="" class="ha-dialog hm-popup">
-  <div data-v-8d2cdb80="" class="dialog-window"><span data-v-e875e4c1="" class="hm-popup-title">title</span>
-    <p data-v-e875e4c1="" class="hm-popup-description">description</p>
-    <div data-v-e875e4c1="" class="hm-popup-wrapper">
-      <div data-v-e875e4c1="" class="hm-popup-button"><button data-v-0844060a="" data-v-98a1ad68="" data-v-e875e4c1="" class="ha-base-button hm-button -warning -md item" type="button">cancel</button></div>
-      <div data-v-e875e4c1="" class="hm-popup-button"><button data-v-0844060a="" data-v-98a1ad68="" data-v-e875e4c1="" class="ha-base-button hm-button -primary -md item" type="button">confirm</button></div>
-    </div>
-  </div>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/__snapshots__/HmSkeletonScreen.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`HmSkeletonScreen > mount component 1`] = `
-"<div data-v-f3341911="" class="hm-skeleton-screen">
-  <div data-v-f3341911="" class="skeleton-screen">
-    <!-- NOTE: brタグはテキスト1行分の高さを確保している --><br data-v-f3341911="">
-  </div>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/button/__snapshots__/HmButton.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<button data-v-0844060a="" data-v-98a1ad68="" class="ha-base-button hm-button -primary -md" type="button">button label</button>"`;
-````
-
-## File: layers/base/app/test/components/hm/button/__snapshots__/HmButtonClose.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<button data-v-0844060a="" data-v-50f49dd3="" class="ha-base-button hm-button-close" type="button"><svg data-v-50f49dd3="" xmlns="http://www.w3.org/2000/svg" width="24.121" height="24.121" viewBox="0 0 24.121 24.121" style="width: 20px; height: 20px;">
-    <g transform="translate(-953.439 -212.439)">
-      <line x2="22" y2="22" transform="translate(954.5 213.5)" fill="none" stroke="#fff" stroke-width="3"></line>
-      <line x1="22" y2="22" transform="translate(954.5 213.5)" fill="none" stroke="#fff" stroke-width="3"></line>
-    </g>
-  </svg></button>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/button/__snapshots__/HmButtonFavorite.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-f3cd9c7d="" class="hm-button-favorite">
-  <div data-v-f3cd9c7d="" class="button"><svg data-v-f3cd9c7d="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31.02 27.03" class="favorite-icon -active">
-      <defs>
-        <style>
-          .body {
-            fill: none;
-          }
-
-          .border {
-            fill: #757575;
-          }
-        </style>
-      </defs>
-      <g class="body">
-        <path d="M28.63,2.41c-3.19-3.18-8.35-3.18-11.54,0l-1.57,1.57-1.57-1.57c-3.17-3.2-8.33-3.22-11.53-.05-3.2,3.17-3.22,8.33-.05,11.53,.01,.01,.03,.03,.04,.04l1.57,1.57,11.54,11.52,11.54-11.52,1.57-1.57c3.18-3.17,3.19-8.33,.01-11.51,0,0,0,0-.01-.01Z"></path>
-      </g>
-      <g class="border">
-        <path d="M22.86,2.03c-1.65,0-3.19,.64-4.36,1.8l-1.57,1.57c-.78,.78-2.05,.78-2.83,0l-1.57-1.57c-1.16-1.16-2.71-1.8-4.36-1.8s-3.19,.64-4.36,1.8c-1.16,1.16-1.8,2.7-1.8,4.35s.64,3.18,1.8,4.35l11.7,11.68,11.7-11.68c1.16-1.16,1.8-2.7,1.8-4.35s-.64-3.18-1.8-4.35c-1.16-1.16-2.71-1.8-4.36-1.8m0-2c2.09,0,4.18,.8,5.77,2.39h0c3.19,3.18,3.19,8.34,0,11.52l-13.11,13.09L2.41,13.94C-.78,10.75-.78,5.6,2.41,2.41,5.59-.77,10.76-.77,13.94,2.41l1.57,1.57,1.57-1.57C18.68,.82,20.77,.03,22.86,.03Z"></path>
-      </g>
-    </svg></div>
-</div>"
-`;
-````
-
 ## File: layers/base/app/test/components/hm/button/HmButton.spec.ts
 ````typescript
 import { mount } from '@vue/test-utils'
@@ -3566,13 +3051,6 @@ describe('emits', () => {
 })
 ````
 
-## File: layers/base/app/test/components/hm/icon/__snapshots__/HmIconUser.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<span data-v-232938ab="" class="hm-icon-user"><img data-v-232938ab="" class="ha-image image" loading="eager" fetchpriority="low" src="/image.png" alt="" role="presentation" decoding="auto" draggable="false"></span>"`;
-````
-
 ## File: layers/base/app/test/components/hm/icon/HmIconUser.spec.ts
 ````typescript
 import { mount } from '@vue/test-utils'
@@ -3636,105 +3114,6 @@ describe('if src error, set placeholder image', () => {
     )
   })
 })
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputCheckbox.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<label data-v-16361de7="" class="hm-input-checkbox"><input data-v-d0a26e0a="" data-v-16361de7="" class="ha-base-input button" type="checkbox" name="test name" value="false">
-  <div data-v-16361de7="" class="content"></div>
-  <!--v-if-->
-</label>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputDatetime.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-52539492="" name="dateLocal" class="hm-input-datetime"><label data-v-52539492="" class="hm-input-datetime__label"><input data-v-d0a26e0a="" data-v-52539492="" class="ha-base-input hm-input-datetime__input" type="datetime-local" value="Invalid Date"></label>
-  <p data-v-52539492="" class="error-container">
-    <!--v-if-->
-  </p>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputFile.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<!-- TODO: エラーメッセージの表示をする際に、必要に応じてHmInputTextBase.vue同様の修正(DOM構造とエラーmsgのstyle)を行う -->
-<label data-v-8323f5e3="" class="hm-input-file"><input data-v-d0a26e0a="" data-v-8323f5e3="" class="ha-base-input input" type="file" accept="" name="file">
-  <div data-v-8323f5e3="" class="image-box">
-    <div data-v-8323f5e3="" class="inner"><span data-v-8323f5e3="" class="text"> Select file or drag it! </span></div>
-  </div>
-</label>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadio.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<label data-v-d244b359="" class="hm-input-radio"><input data-v-d0a26e0a="" data-v-d244b359="" class="ha-base-input button" type="radio" name="test name" value="1">
-  <div data-v-d244b359="" class="content"></div>
-</label>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadioChangeable.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-0195f537="" class="hm-input-radio-changeable">
-  <div data-v-0195f537="" class="radio"><input data-v-d0a26e0a="" data-v-0195f537="" id="testValue" class="ha-base-input input" type="radio" name="testName" required="" value="testValue"><label data-v-0195f537="" for="testValue" class="label option-0">
-      <!--v-if--> testLabel
-      <!--v-if-->
-    </label></div>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputSingleImage.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-c9c71ad2="" class="hm-input-single-image">
-  <div data-v-c9c71ad2="" class="wrapper">
-    <!-- TODO: エラーメッセージの表示をする際に、必要に応じてHmInputTextBase.vue同様の修正(DOM構造とエラーmsgのstyle)を行う --><label data-v-8323f5e3="" data-v-c9c71ad2="" class="hm-input-file hm-single-image-uploader"><input data-v-d0a26e0a="" data-v-8323f5e3="" class="ha-base-input input" type="file" accept="image/png,image/jpeg" name="file" required="">
-      <div data-v-8323f5e3="" class="image-box">
-        <div data-v-8323f5e3="" class="inner"><span data-v-8323f5e3="" class="text"> Select file or drag it! </span></div>
-      </div>
-    </label>
-  </div>
-  <p data-v-c9c71ad2="" class="error-container">
-    <!--v-if-->
-  </p>
-  <!--v-if-->
-  <!--v-if-->
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputText.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-4a548fbf="" tag="div" class="hm-input-text"><label data-v-4a548fbf="" class="label">
-    <!--v-if--><input data-v-d0a26e0a="" data-v-4a548fbf="" class="ha-base-input input" type="text" placeholder="Input Text" value="">
-  </label>
-  <!--v-if-->
-</div>"
-`;
 ````
 
 ## File: layers/base/app/test/components/hm/input/HmInputCheckbox.spec.ts
@@ -4643,439 +4022,6 @@ describe('DOM check', () => {
       (wrapper.find('input[id="testValue3"]').element as HTMLInputElement)
         .checked,
     ).toBeFalsy()
-  })
-})
-````
-
-## File: layers/base/app/test/components/hm/input/HmInputText.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { beforeEach, afterEach, describe, it, test, expect, vi } from 'vitest'
-import z from 'zod/v3'
-import HmInputText from '#base/app/components/hm/input/HmInputText.vue'
-import useValidationRules from '#base/app/composables/useValidationRules'
-import { waitEffect } from '#base/app/utils/sleep'
-
-// vue-i18nのモックはファイルトップレベルで定義
-vi.mock('vue-i18n', () => {
-  return {
-    createI18n: vi.fn(() => ({ global: {}, mode: 'composition' })),
-    useLocaleRoute: vi.fn((path: string) => () => ({ path })),
-    useI18n: vi.fn(() => ({
-      local: {
-        value: 'ja',
-      },
-      locale: {
-        value: 'ja',
-      },
-      t: (key: string, ..._args: unknown[]) => `dummy-${key}`,
-    })),
-  }
-})
-
-const rules = useValidationRules()
-
-beforeEach(() => {
-  vi.clearAllMocks()
-})
-
-afterEach(() => {
-  vi.restoreAllMocks()
-})
-
-test('ref component', () => {
-  expect(HmInputText).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HmInputText)
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-describe('props', () => {
-  it(':placeholder', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        placeholder: 'placeholder text',
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('placeholder')).toBe(
-      'placeholder text',
-    )
-  })
-
-  it(':type', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('type')).toBe('text')
-  })
-
-  it(':validatorName', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorName: 'testValidatorName',
-      },
-    })
-    expect(wrapper.props('validatorName' as never)).toBe('testValidatorName')
-  })
-
-  it(':validatorRules', () => {
-    const testValidatorRules = rules.required
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorName: 'testValidatorName',
-        validatorRules: testValidatorRules,
-      },
-    })
-    expect(wrapper.props('validatorRules' as never)).toStrictEqual(
-      testValidatorRules,
-    )
-  })
-
-  it(':required', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        required: true,
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('required')).toBe('')
-  })
-
-  it(':modelValue', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        modelValue: 'modelValue text',
-      },
-    })
-    expect(wrapper.props('modelValue' as never)).toBe('modelValue text')
-  })
-
-  it(':disabled', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        disabled: true,
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('disabled')).toBe('')
-  })
-
-  it(':counter:length display', async () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        counter: true,
-      },
-    })
-    await wrapper.get('input[type="text"]').setValue('1234567890')
-    await waitEffect()
-    expect(wrapper.get('span[class="counter"]').text()).toBe('10')
-  })
-
-  it(':counter:length/max display', async () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        counter: { max: 50 },
-      },
-    })
-    await wrapper.get('input[type="text"]').setValue('1234567890')
-    await waitEffect()
-    expect(wrapper.get('span[class="counter"]').text()).toBe('10/50')
-  })
-
-  it(':min', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        min: 3,
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('min')).toBe('3')
-  })
-
-  it(':keyupEnter', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        keyupEnter: true,
-      },
-    })
-    expect(wrapper.props('keyupEnter' as never)).toBe(true)
-  })
-
-  it(':isLazy', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        isLazy: true,
-      },
-    })
-    expect(wrapper.props('isLazy' as never)).toBe(true)
-  })
-
-  it(':isTrim', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        isTrim: true,
-      },
-    })
-    expect(wrapper.props('isTrim' as never)).toBe(true)
-  })
-
-  it(':small', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        small: true,
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('class')).toBe(
-      'ha-base-input input -small',
-    )
-  })
-
-  it(':name', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        name: 'testName',
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('name')).toBe(
-      'testName',
-    )
-  })
-
-  it(':error', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        error: 'testError',
-      },
-    })
-    expect(wrapper.props('error')).toBe('testError')
-  })
-
-  it(':hideDetails', () => {
-    // -hide classを確認するためには、validatorRulesが必要
-    const testValidatorRules = rules.required
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        hideDetails: true,
-        validatorRules: testValidatorRules,
-      },
-    })
-    expect(wrapper.props('hideDetails')).toBe(true)
-    // -hide classが付与されていることを確認
-    expect(wrapper.get('p').attributes('class')).toBe('error-container -hide')
-  })
-
-  it(':list', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        list: 'testList',
-      },
-    })
-    expect(wrapper.get('input[type="text"]').attributes('list')).toBe(
-      'testList',
-    )
-  })
-
-  it(':keepValueOnUnmount', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        keepValueOnUnmount: true,
-      },
-    })
-    expect(wrapper.props().keepValueOnUnmount).toBe(true)
-  })
-
-  it(':validateOnMount', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        validateOnMount: true,
-      },
-    })
-    expect(wrapper.props().validateOnMount).toBe(true)
-  })
-})
-
-describe('emits', () => {
-  it(':update:modelValue', async () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-      },
-    })
-    await wrapper.setValue('test', 'modelValue')
-    expect(wrapper.emitted()).toHaveProperty('update:modelValue')
-    expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
-    expect(wrapper.emitted()['update:modelValue']).toEqual([['test']])
-  })
-
-  it(':validate', async () => {
-    // NOTE: 最大10文字。超えたらエラーを出す
-    const maxRule = (maximum: number) => {
-      return rules.max(maximum)
-    }
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorRules: maxRule(10),
-        modelValue: 'test',
-      },
-    })
-    // NOTE: 最大10文字なので11文字入れてエラーを出す
-    await wrapper.get('input[type="text"]').setValue('12345678901')
-    await waitEffect()
-    expect(wrapper.emitted()).toHaveProperty('validate')
-    expect(wrapper.emitted()['validate']).toHaveLength(1)
-    /*
-     * TODO: バリデーションエラー時にZodエラーメッセージを二重否定の真偽値として送信するが、正しい値を送信しないのでコメントアウト
-     * expect(wrapper.emitted()['validate']).toStrictEqual([[true]])
-     */
-  })
-
-  it(':keyupEnter', async () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        keyupEnter: true,
-      },
-    })
-    await wrapper.get('input[type="text"]').trigger('keyup.enter')
-    expect(wrapper.emitted()).toHaveProperty('enter')
-    expect(wrapper.emitted()['enter']).toHaveLength(1)
-  })
-})
-
-describe('DOM check for error display', () => {
-  // NOTE: validatorName有りかつvalidatorRule無しをテスト
-  it(':validatorName', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorName: 'testValidatorName',
-      },
-    })
-    // NOTE: <p class="error-container">が存在する確認
-    expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
-    // NOTE: <p class="error-container">の中の<span class="error">は存在しないことを確認
-    expect(
-      wrapper
-        .get('p[class="error-container"]')
-        .find('span[class="error"]')
-        .exists(),
-    ).toBe(false)
-  })
-
-  it(':validatorRules:max 10 strings', async () => {
-    const maxRule = (maximum: number) => {
-      return z.coerce.string().max(maximum, {
-        message: 'error max ' + maximum + ' strings',
-      })
-    }
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorName: 'testValidatorName',
-        validatorRules: maxRule(10),
-      },
-    })
-    // NOTE: input欄、v-ifで絶対に居るのが確定してないので一応getでinput見つけて、バリデートで落ちる値を代入
-    await wrapper.get('input[type="text"]').setValue('12345678901')
-    /*
-     * NOTE: NG例として下記。modelValueを見てそうなので、modelValueにテスト値いれてinputイベントを強制発火。これは動作せず
-     * await wrapper.setValue('12345678901', 'modelValue')
-     * await wrapper.get('input[type="text"]').trigger('input')
-     */
-
-    // NOTE: setValueでinput欄に値を入れたのでsettimeoutのsleep関数で1ミリ秒以上で待つ。nextTickは効かない
-    await waitEffect()
-    /*
-     * NOTE: DOMの変化を確かめたい時は下記でターミナルに表示させて確認する
-     * console.info(wrapper.html())
-     * NOTE: <p class="error-container">が存在する確認
-     */
-    expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
-    // <p class="error-container">の中の<span class="error">が存在してエラーメッセージでてること確認
-    expect(
-      wrapper
-        .get('p[class="error-container"]')
-        .find('span[class="error"]')
-        .exists(),
-    ).toBe(true)
-    // NOTE: エラー文言の照合
-    expect(
-      wrapper
-        .get('p[class="error-container"]')
-        .find('span[class="error"]')
-        .text(),
-    ).toBe('error max 10 strings')
-  })
-
-  it(':props.error', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorName: 'error test',
-        error: 'error message test',
-      },
-    })
-    expect(wrapper.props('error')).toBe('error message test')
-    expect(wrapper.get('label').attributes('class')).toBe('label -error')
-    expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
-    expect(
-      wrapper
-        .get('p[class="error-container"]')
-        .find('span[class="error"]')
-        .exists(),
-    ).toBe(true)
-    expect(
-      wrapper
-        .get('p[class="error-container"]')
-        .find('span[class="error"]')
-        .text(),
-    ).toBe('error message test')
-  })
-
-  it(':hideDetails', () => {
-    const wrapper = mount(HmInputText, {
-      props: {
-        type: 'text',
-        validatorName: 'error test',
-        error: 'error message test',
-        hideDetails: true,
-      },
-    })
-    expect(wrapper.props('error')).toBe('error message test')
-    expect(wrapper.get('label').attributes('class')).toBe('label -error')
-    expect(wrapper.get('p[class="error-container -hide"]')).toBeTruthy()
-    expect(
-      wrapper
-        .get('p[class="error-container -hide"]')
-        .find('span[class="error"]')
-        .exists(),
-    ).toBe(true)
-    expect(
-      wrapper
-        .get('p[class="error-container -hide"]')
-        .find('span[class="error"]')
-        .text(),
-    ).toBe('error message test')
   })
 })
 ````
@@ -7312,57 +6258,6 @@ describe('HmSliderItem', () => {
 })
 ````
 
-## File: layers/base/app/test/components/hm/HmSocialShareLink.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest'
-import HmSocialShareLink from '#base/app/components/hm/HmSocialShareLink.vue'
-
-const { mockGetShareUrl } = vi.hoisted(() => ({
-  mockGetShareUrl: vi.fn((name: string) => `mockedUrlFor${name}`),
-}))
-
-vi.mock('#base/app/composables/useSocialShareLink', () => ({
-  default: () => ({
-    getShareUrl: mockGetShareUrl,
-  }),
-}))
-
-beforeEach(() => {
-  vi.clearAllMocks()
-})
-
-afterEach(() => {
-  vi.restoreAllMocks()
-})
-
-describe('HmSocialShareLink', () => {
-  it('computes the correct share URL', () => {
-    mockGetShareUrl.mockImplementation((name: string) => `mockedUrlFor${name}`)
-
-    const wrapper = mount(HmSocialShareLink, {
-      props: {
-        name: 'twitter',
-        text: 'testText',
-        twitterHashtags: ['test'],
-        shareUrl: 'testShareUrl',
-      },
-      // nuxt-linkはwarnとなるので、下記でaタグに置き換える。RouterLinkStubはprops:['to']が使えず引き継げなくなるので使わない。
-      global: {
-        stubs: {
-          'nuxt-link': {
-            template: '<a><slot /></a>',
-          },
-        },
-      },
-    })
-    const link = wrapper.find('.ha-link')
-    // 現在は useSocialShareLink の戻り値をそのまま使う
-    expect(link.attributes('to')).toBe('mockedUrlFortwitter')
-  })
-})
-````
-
 ## File: layers/base/app/test/components/hm/HmTab.spec.ts
 ````typescript
 import { describe, expect, it } from 'vitest'
@@ -8165,756 +7060,6 @@ test('doObserve', () => {
     doObserve: {},
   }
   expect(doObserve()).toMatchObject(expectObj)
-})
-````
-
-## File: layers/base/app/test/composables/useDefaultApi.spec.ts
-````typescript
-// NOTE: そもそももっといいテストあれば是非
-import { test, expect, vi } from 'vitest'
-import { UseFetchOptions } from 'nuxt/app'
-import { FetchOptions } from 'ofetch'
-import useDefaultApi, { defaultFetcher } from '#base/app/composables/useDefaultApi'
-
-vi.mock('nuxt/app', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('nuxt/app')>()
-  return {
-    ...actual,
-    // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-    useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
-      return { path, options }
-    }),
-  }
-})
-
-test('useDefaultApi', () => {
-  // NOTE: useDefaultApiで使用できるRepositoryKeyを入れた際にオブジェクトが返ってくること。この場合useDefaultApi('hoge')など存在しない場合はテストが落ちる
-  const useApiExample = useDefaultApi('example').repository.value
-  const expectObj = { get: {} }
-  expect(useApiExample).toMatchObject(expectObj)
-})
-
-test('defaultFetcher', () => {
-  const path = '/example'
-  const options = {}
-  // useFetchが発火することを確認。戻り値はmockの戻り値とする
-  expect(defaultFetcher(path, options)).toStrictEqual({ path, options })
-})
-````
-
-## File: layers/base/app/test/composables/useExample.spec.ts
-````typescript
-import { describe, it, expect, vi } from 'vitest'
-import type { NitroFetchRequest } from 'nitropack'
-import { useExample } from '#base/app/composables/useExample'
-
-// Nuxtのpayloadの一部をmockする
-const useStateState: Record<string, any> = {} // eslint-disable-line @typescript-eslint/no-explicit-any
-
-vi.mock('nuxt/app', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('nuxt/app')>()
-  return {
-    ...actual,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    useState: vi.fn((key: string, init?: () => any) => {
-      useStateState[key] = { value: init?.() }
-      return useStateState[key]
-    }),
-
-    // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-    useFetch: vi.fn(() => ({
-      status: 'ok',
-      data: {
-        todos: [
-          {
-            userId: 0,
-            id: 0,
-            title: 'Do something!',
-            completed: true,
-          },
-          {
-            userId: '1',
-            id: '1',
-            title: 'Say hello',
-            completed: false,
-          },
-        ],
-      },
-    })),
-  }
-})
-
-vi.mock('#base/app/plugins/runtimeConfig', () => ({
-  default: vi.fn(() => ({})),
-  requireRuntimeConfig: vi.fn(() => ({
-    public: {
-      baseUrl: 'http://localhost:3000',
-      apiPrefix: '/mock',
-    },
-  })),
-}))
-
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、fetchをすげ替えたいのでダミーとなるmock作成
-vi.mock('#base/app/plugins/fetch', () => {
-  return {
-    default: vi.fn(() => ({})),
-    pluginFetchApi: vi.fn((_path: string, _options: NitroFetchRequest) => {
-      return {
-        status: 'ok',
-        data: {
-          todos: [
-            {
-              userId: 0,
-              id: 0,
-              title: 'Do something!',
-              completed: true,
-            },
-            {
-              userId: '1',
-              id: '1',
-              title: 'Say hello',
-              completed: false,
-            },
-          ],
-        },
-      }
-    }),
-  }
-})
-
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、 ofetch をすげ替えたいのでダミーとなるmock作成
-vi.mock('ofetch', () => {
-  return {
-    $fetch: vi.fn((_path: string, _options: NitroFetchRequest) => {
-      return {
-        status: 'ok',
-        data: {
-          todos: [
-            {
-              userId: 0,
-              id: 0,
-              title: 'Do something!',
-              completed: true,
-            },
-            {
-              userId: '1',
-              id: '1',
-              title: 'Say hello',
-              completed: false,
-            },
-          ],
-        },
-      }
-    }),
-  }
-})
-
-describe('useExample', () => {
-  it('should be able to get example', () => {
-    const { exampleRef, exampleState } = useExample()
-    expect(exampleRef.value).toEqual(undefined)
-    expect(exampleState.value).toEqual(undefined)
-  })
-
-  it('should be able to change example', async () => {
-    const { exampleRef, exampleState, getExample } = useExample()
-    const result = await getExample()
-    const checkObject = [
-      {
-        userId: 0,
-        id: 0,
-        title: 'Do something!',
-        completed: true,
-      },
-      {
-        userId: '1',
-        id: '1',
-        title: 'Say hello',
-        completed: false,
-      },
-    ]
-    expect(result).toEqual(checkObject)
-    expect(exampleState.value).toEqual(checkObject)
-    expect(exampleRef.value).toEqual(checkObject)
-  })
-
-  /*
-   * TODO: このテストはしたいけど、現状はuseStateモックのテストになってしまっているので、コメントアウトしておく。うまい方法があればコメントアウトを解除して、実装して、このコメントを削除してください
-   * it("should share example's latest state", () => {
-   *   const { example } = useExample()
-   *   expect(example.value).toEqual([
-   *     {
-   *       userId: 0,
-   *       id: 0,
-   *       title: 'Do something!',
-   *       completed: true,
-   *     },
-   *     {
-   *       userId: '1',
-   *       id: '1',
-   *       title: 'Say hello',
-   *       completed: false,
-   *     },
-   *   ])
-   * })
-   */
-})
-````
-
-## File: layers/base/app/test/composables/useLocale.spec.ts
-````typescript
-import { test, expect, vi, beforeEach, afterEach } from 'vitest'
-import { ref } from 'vue'
-import type { WritableComputedRef } from 'vue'
-import { useLocale } from '#base/app/composables/useLocale'
-
-let globalLocale: string | null = null
-
-vi.mock('nuxt/app', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('nuxt/app')>()
-  return {
-    ...actual,
-    useRequestHeaders: vi.fn(() => 'ja'),
-  }
-})
-
-vi.mock('vue-i18n', () => ({
-  createI18n: vi.fn(() => ({ global: {}, mode: 'composition' })),
-  useI18n: vi.fn(() => ({
-    locale: ref('ja') as WritableComputedRef<string>,
-  })),
-}))
-
-vi.mock('@vee-validate/i18n', () => ({
-  setLocale: vi.fn((locale: string) => {
-    globalLocale = locale
-  }),
-}))
-
-beforeEach(() => {
-  globalLocale = null
-})
-
-afterEach(() => {
-  vi.restoreAllMocks()
-  globalLocale = null
-})
-
-test('getDefaultLanguage', () => {
-  const locale = useLocale()
-  const result = locale.getDefaultLanguage()
-  expect(result).oneOf(['ja', 'en'])
-})
-
-test('changeLocale', () => {
-  const locale = useLocale()
-  locale.changeLocale('en')
-  expect(globalLocale).toBe('en')
-})
-
-test('localPath', () => {
-  const locale = useLocale()
-
-  expect(locale.localePath('')).toBe('')
-  expect(locale.localePath('/path')).toBe('/path')
-
-  locale.changeLocale('en')
-  expect(locale.localePath('')).toBe('/en')
-  expect(locale.localePath('/path')).toBe('/en/path')
-})
-````
-
-## File: layers/base/app/test/composables/useSocialShareLink.spec.ts
-````typescript
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import useSocialShareLink from '#base/app/composables/useSocialShareLink'
-
-// vi.hoisted()でモックオブジェクトを定義
-const { mockI18n, mockRoute, mockConfig } = vi.hoisted(() => {
-  return {
-    mockI18n: {
-      locale: { value: 'ja' },
-    },
-    mockRoute: { path: '/test/' },
-    mockConfig: {
-      public: {
-        NUXT_ENV_BASE_URL: 'http://localhost:3000',
-      },
-      NUXT_ENV_BASE_URL: 'http://localhost:3000',
-    },
-  }
-})
-
-vi.mock('#app/nuxt', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('#app/nuxt')>()
-  return {
-    ...actual,
-    useRuntimeConfig: vi.fn(() => {
-      const runtimeConfig = actual.useRuntimeConfig?.()
-      if (!runtimeConfig) {
-        return mockConfig
-      }
-      Object.assign(runtimeConfig, mockConfig)
-      Object.assign(
-        ((runtimeConfig as Record<string, unknown>).public ??= {}),
-        mockConfig.public,
-      )
-      return runtimeConfig
-    }),
-    useNuxtApp: vi.fn(() => {
-      const nuxtApp = actual.useNuxtApp?.()
-      if (!nuxtApp) {
-        return { $i18n: mockI18n }
-      }
-      ;(nuxtApp as Record<string, unknown>).$i18n = mockI18n
-      return nuxtApp
-    }),
-  }
-})
-
-vi.mock('#app/composables/router', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('#app/composables/router')>()
-  return {
-    ...actual,
-    useRoute: vi.fn(() => {
-      const route = actual.useRoute?.()
-      if (!route) {
-        return mockRoute
-      }
-      Object.assign(route, mockRoute)
-      return route
-    }),
-  }
-})
-
-beforeEach(() => {
-  mockI18n.locale.value = 'ja'
-})
-
-afterEach(() => {
-  vi.restoreAllMocks()
-})
-
-const parseXShareUrl = (url: string) => new URL(url)
-
-describe('locale en', () => {
-  beforeEach(() => {
-    mockI18n.locale.value = 'en'
-  })
-
-  describe('X', () => {
-    it('no shareProps', () => {
-      const generatedShareUrl = useSocialShareLink().getShareUrl('x')
-      const parsed = parseXShareUrl(generatedShareUrl)
-      expect(parsed.origin).toBe('https://x.com')
-      expect(parsed.pathname).toBe('/intent/tweet')
-      expect(parsed.searchParams.get('url')).toBe('http://localhost:3000/test/')
-      expect(
-        decodeURIComponent(parsed.searchParams.get('text') ?? ''),
-      ).toBe('Share http://localhost:3000/test/\n')
-    })
-
-    it('set shareProps', () => {
-      const shareProps = {
-        text: 'shareText',
-        twitterHashtags: ['hash1', 'hash2'],
-        shareUrl: 'shareUrlStrings',
-      }
-      const generatedShareUrl = useSocialShareLink().getShareUrl(
-        'x',
-        shareProps,
-      )
-      expect(generatedShareUrl).toBe(
-        `https://x.com/intent/tweet?url=${shareProps.shareUrl}&text=${
-          shareProps.text
-        }%0A&hashtags=${[...shareProps.twitterHashtags].join('%2C')}`,
-      )
-    })
-  })
-
-  it('Facebook', () => {
-    const shareProps = {
-      text: 'testText',
-      shareUrl: 'testShareUrl',
-    }
-    const generatedShareUrl = useSocialShareLink().getShareUrl(
-      'facebook',
-      shareProps,
-    )
-    expect(generatedShareUrl).toBe(
-      'https://www.facebook.com/sharer/sharer.php?u=http://localhost:3000/test/&t=testText',
-    )
-  })
-
-  it('LINE', () => {
-    const shareProps = {
-      text: 'testText',
-    }
-    const generatedShareUrl = useSocialShareLink().getShareUrl(
-      'line',
-      shareProps,
-    )
-    expect(generatedShareUrl).toBe(
-      'http://line.me/R/msg/text/?testText',
-    )
-  })
-})
-
-describe('locale ja', () => {
-  beforeEach(() => {
-    mockI18n.locale.value = 'ja'
-  })
-
-  describe('X', () => {
-    it('no shareProps', () => {
-      const generatedShareUrl = useSocialShareLink().getShareUrl('x')
-      const parsed = parseXShareUrl(generatedShareUrl)
-      expect(parsed.origin).toBe('https://x.com')
-      expect(parsed.pathname).toBe('/intent/tweet')
-      expect(parsed.searchParams.get('url')).toBe('http://localhost:3000/test/')
-      expect(
-        decodeURIComponent(parsed.searchParams.get('text') ?? ''),
-      ).toBe('http://localhost:3000/test/ をシェア\n')
-    })
-
-    it('set shareProps', () => {
-      const shareProps = {
-        text: 'shareText',
-        twitterHashtags: ['hash1', 'hash2'],
-        shareUrl: 'shareUrlStrings',
-      }
-      const generatedShareUrl = useSocialShareLink().getShareUrl(
-        'x',
-        shareProps,
-      )
-      expect(generatedShareUrl).toBe(
-        'https://x.com/intent/tweet?url=shareUrlStrings&text=shareText%0A&hashtags=hash1%2Chash2',
-      )
-    })
-  })
-
-  it('Facebook', () => {
-    const shareProps = {
-      text: 'testText',
-      shareUrl: 'testShareUrl',
-    }
-    const generatedShareUrl = useSocialShareLink().getShareUrl(
-      'facebook',
-      shareProps,
-    )
-    expect(generatedShareUrl).toBe(
-      'https://www.facebook.com/sharer/sharer.php?u=http://localhost:3000/test/&t=testText',
-    )
-  })
-
-  it('LINE', () => {
-    const shareProps = {
-      text: 'testText',
-    }
-    const generatedShareUrl = useSocialShareLink().getShareUrl(
-      'line',
-      shareProps,
-    )
-    expect(generatedShareUrl).toBe(
-      'http://line.me/R/msg/text/?testText',
-    )
-  })
-})
-````
-
-## File: layers/base/app/test/composables/useToast.spec.ts
-````typescript
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { useToast, toastInjectionKey, type ToastComposable } from '#base/app/composables/useToast'
-
-// $toastのモック - 固定インスタンス
-const mockToast = {
-  info: vi.fn(),
-  success: vi.fn(),
-  error: vi.fn(),
-  warning: vi.fn(),
-}
-
-// useNuxtAppのモック
-vi.mock('nuxt/app', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('nuxt/app')>()
-  return {
-    ...actual,
-    useNuxtApp: vi.fn(() => ({
-      $toast: mockToast,
-    })),
-  }
-})
-
-// テストで使用するためにモックを取得
-const { useNuxtApp } = await import('nuxt/app')
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockUseNuxtApp = useNuxtApp as any
-
-describe('useToast composable', () => {
-  beforeEach(() => {
-    // 各モック関数の呼び出し履歴だけをクリア
-    mockToast.info.mockClear()
-    mockToast.success.mockClear()
-    mockToast.error.mockClear()
-    mockToast.warning.mockClear()
-    mockUseNuxtApp.mockClear()
-  })
-
-  describe('useToast', () => {
-    it('addToast関数を返す', () => {
-      const { addToast } = useToast()
-      expect(typeof addToast).toBe('function')
-    })
-
-    it('useNuxtAppから$toastを取得する', () => {
-      useToast()
-      expect(useNuxtApp).toHaveBeenCalled()
-    })
-  })
-
-  describe('addToast', () => {
-    it('デフォルトでinfoタイプのtoastを表示する', () => {
-      const { addToast } = useToast()
-      addToast('Test message')
-
-      expect(mockToast.info).toHaveBeenCalledWith('Test message', {
-        delay: undefined,
-        closeButton: false,
-      })
-    })
-
-    it('指定したタイプのtoastを表示する', () => {
-      const { addToast } = useToast()
-
-      addToast('Success message', 'success')
-      expect(mockToast.success).toHaveBeenCalledWith('Success message', {
-        delay: undefined,
-        closeButton: false,
-      })
-
-      addToast('Error message', 'error')
-      expect(mockToast.error).toHaveBeenCalledWith('Error message', {
-        delay: undefined,
-        closeButton: false,
-      })
-
-      addToast('Warning message', 'warning')
-      expect(mockToast.warning).toHaveBeenCalledWith('Warning message', {
-        delay: undefined,
-        closeButton: false,
-      })
-    })
-
-    it('時間を指定してtoastを表示する', () => {
-      const { addToast } = useToast()
-      addToast('Timed message', 'info', 5000)
-
-      expect(mockToast.info).toHaveBeenCalledWith('Timed message', {
-        delay: 5000,
-        closeButton: false,
-      })
-    })
-
-    it('閉じるボタンを有効にしてtoastを表示する', () => {
-      const { addToast } = useToast()
-      addToast('Closable message', 'info', undefined, true)
-
-      expect(mockToast.info).toHaveBeenCalledWith('Closable message', {
-        delay: undefined,
-        closeButton: true,
-      })
-    })
-
-    it('すべてのオプションを指定してtoastを表示する', () => {
-      const { addToast } = useToast()
-      addToast('Full options message', 'success', 3000, true)
-
-      expect(mockToast.success).toHaveBeenCalledWith('Full options message', {
-        delay: 3000,
-        closeButton: true,
-      })
-    })
-
-    it('各toastタイプが正しく呼ばれる', () => {
-      const { addToast } = useToast()
-
-      const types: ('info' | 'success' | 'error' | 'warning')[] = [
-        'info',
-        'success',
-        'error',
-        'warning',
-      ]
-
-      types.forEach((type) => {
-        addToast(`${type} message`, type)
-        expect(mockToast[type]).toHaveBeenCalledWith(`${type} message`, {
-          delay: undefined,
-          closeButton: false,
-        })
-      })
-    })
-
-    it('undefinedタイプの場合infoを使用', () => {
-      const { addToast } = useToast()
-      addToast('Default message', undefined)
-
-      expect(mockToast.info).toHaveBeenCalledWith('Default message', {
-        delay: undefined,
-        closeButton: false,
-      })
-    })
-
-    it('isClosableのデフォルト値はfalse', () => {
-      const { addToast } = useToast()
-      addToast('Message without closable param', 'info', 1000)
-
-      expect(mockToast.info).toHaveBeenCalledWith('Message without closable param', {
-        delay: 1000,
-        closeButton: false,
-      })
-    })
-  })
-
-  describe('型定義', () => {
-    it('ToastComposable型が正しく推論される', () => {
-      const toast: ToastComposable = useToast()
-      expect(toast).toHaveProperty('addToast')
-      expect(typeof toast.addToast).toBe('function')
-    })
-
-    it('toastInjectionKeyがSymbolである', () => {
-      expect(typeof toastInjectionKey).toBe('symbol')
-      expect(toastInjectionKey.toString()).toContain('toast')
-    })
-  })
-
-  describe('デフォルトエクスポート', () => {
-    it('useToastがデフォルトエクスポートされている', async () => {
-      const defaultExport = (await import('#base/app/composables/useToast')).default
-      expect(defaultExport).toBe(useToast)
-    })
-  })
-
-  describe('エラーハンドリング', () => {
-    it('$toastが存在しない場合でもエラーにならない', () => {
-      // useNuxtAppのモックを一時的に上書き
-      mockUseNuxtApp.mockReturnValueOnce({
-        $toast: undefined,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any)
-
-      expect(() => {
-        const { addToast } = useToast()
-        // $toastがundefinedでもエラーにならないかテスト
-        expect(addToast).toBeDefined()
-      }).not.toThrow()
-    })
-
-    it('無効なtoastタイプでもエラーにならない', () => {
-      const { addToast } = useToast()
-
-      expect(() => {
-        // 型安全でないが、ランタイムでのテスト
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        addToast('Test', 'invalid' as any)
-      }).not.toThrow()
-    })
-  })
-})
-````
-
-## File: layers/base/app/test/composables/useValidationRules.spec.ts
-````typescript
-import { fc, test } from '@fast-check/vitest'
-import { beforeEach, afterEach, expect, vi } from 'vitest'
-import useValidationRules from '#base/app/composables/useValidationRules'
-
-// vue-i18nのモックをトップレベルで定義
-vi.mock('vue-i18n', () => ({
-  createI18n: vi.fn(() => ({ global: {}, mode: 'composition' })),
-  useI18n: vi.fn(() => ({
-    t: (key: string, ..._args: unknown[]) => `dummy-${key}`,
-    locale: { value: 'ja' },
-  })),
-}))
-
-beforeEach(() => {
-  vi.clearAllMocks()
-})
-
-afterEach(() => {
-  vi.restoreAllMocks()
-})
-
-test('validates (with trasnlate mock)', () => {
-  const rules = useValidationRules()
-
-  expect(() => rules.required.parse('')).toThrowError()
-  expect(() => rules.required.parse('a')).not.toThrowError()
-
-  expect(() => rules.stringRequired.parse(null)).toThrowError()
-  expect(() => rules.stringRequired.parse('')).not.toThrowError()
-
-  expect(() => rules.numberRequired.parse(null)).toThrowError()
-  expect(() => rules.numberRequired.parse(0)).not.toThrowError()
-
-  expect(() => rules.url.parse('')).toThrowError()
-  expect(() => rules.url.parse('a')).toThrowError()
-  expect(() => rules.url.parse('https://example.com')).not.toThrowError()
-
-  expect(() => rules.nonRequiredUrl.parse('')).not.toThrowError()
-  expect(() => rules.nonRequiredUrl.parse('a')).toThrowError()
-  expect(() =>
-    rules.nonRequiredUrl.parse('https://example.com'),
-  ).not.toThrowError()
-
-  expect(() => rules.excluded([0]).parse(0)).toThrowError()
-  expect(() => rules.excluded([0]).parse(1)).not.toThrowError()
-
-  const fileSizeIs1 = new File(['x'], 'dummy.png')
-  expect(() => rules.image({}).parse(undefined)).not.toThrowError()
-  expect(() => rules.image({}).parse(fileSizeIs1)).not.toThrowError()
-  expect(() => rules.image({ required: true }).parse(undefined)).toThrowError()
-  expect(() => rules.image({ maxSize: 0 }).parse(fileSizeIs1)).toThrowError()
-})
-
-test.prop([fc.nat(), fc.nat()])('validates minValue successfully', (n, m) => {
-  fc.pre(n <= m)
-  const rules = useValidationRules()
-  expect(() => rules.minValue(n).parse(m)).not.toThrowError()
-  expect(() => rules.minValue(n).parse(String(m))).not.toThrowError()
-})
-
-test.prop([fc.nat(), fc.nat()])('fails to validate minValue', (n, m) => {
-  fc.pre(n > m)
-  const rules = useValidationRules()
-  expect(() => rules.minValue(n).parse(m)).toThrowError()
-})
-
-test.prop([fc.nat(), fc.nat()])('validates maxValue successfully', (n, m) => {
-  fc.pre(n >= m)
-  const rules = useValidationRules()
-  expect(() => rules.maxValue(n).parse(m)).not.toThrowError()
-  expect(() => rules.maxValue(n).parse(String(m))).not.toThrowError()
-})
-
-test.prop([fc.nat(), fc.nat()])('fails to validate maxValue', (n, m) => {
-  fc.pre(n < m)
-  const rules = useValidationRules()
-  expect(() => rules.maxValue(n).parse(m)).toThrowError()
-})
-
-test.prop([fc.nat(), fc.string()])('validates max successfully', (n, s) => {
-  fc.pre(n >= s.length)
-  const rules = useValidationRules()
-  expect(() => rules.max(n).parse(s)).not.toThrowError()
-})
-
-test.prop([fc.nat(), fc.string()])('fails to validate max', (n, s) => {
-  fc.pre(n < s.length)
-  const rules = useValidationRules()
-  expect(() => rules.max(n).parse(s)).toThrowError()
 })
 ````
 
@@ -10447,150 +8592,6 @@ describe('date-control.ts', () => {
 })
 ````
 
-## File: layers/base/app/test/utils/default-api.spec.ts
-````typescript
-import { describe, it, expect, vi } from 'vitest'
-import type { NitroFetchRequest } from 'nitropack'
-import api from '#base/app/utils/default-api'
-
-// NOTE: src/utils/default-api.tsのテストとして当該ファイルがimportしているファイルからの変数「requireRuntimeConfig」をモックする。
-vi.mock('#base/app/plugins/runtimeConfig', () => {
-  return {
-    default: vi.fn(() => ({})),
-    requireRuntimeConfig: vi.fn(() => {
-      // NOTE: default-api.tsのテストとしてrequireRuntimeConfigが{public.baseUrl}としてダミーURLを返すだけの処理を行うようにモックする
-      return {
-        public: {
-          baseUrl: '/test-api',
-        },
-      }
-    }),
-  }
-})
-
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-vi.mock('#base/app/plugins/fetch', () => {
-  return {
-    default: vi.fn(() => ({})),
-    pluginFetchApi: vi.fn((path: string, options: NitroFetchRequest) => {
-      return { path, options }
-    }),
-  }
-})
-
-// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
-vi.mock('ofetch', () => {
-  return {
-    $fetch: vi.fn((path: string, options: NitroFetchRequest) => {
-      return { path, options }
-    }),
-  }
-})
-
-describe('api', () => {
-  // NOTE: default-api.getの返却値のテストとして、引数のpathやfetchOptionを入力して、返却値として期待するexpectObjと同等かテストする。その際、onRequestとonResponseは複雑化するので、空オブジェクトで省略としてtoMatchObjectで合格するか検査する。
-  it('get', () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'GET',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    expect(api('get', path, fetchOptions)).toMatchObject(expectObj)
-  })
-  it('post', () => {
-    // NOET: 以下getと同様にテストする。methodはgetではなく、相送信methodに準じた値に変化するので注意
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'POST',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    expect(api('post', path, fetchOptions)).toMatchObject(expectObj)
-  })
-  it('put', () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'PUT',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    expect(api('put', path, fetchOptions)).toMatchObject(expectObj)
-  })
-  it('patch', () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'PATCH',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    expect(api('patch', path, fetchOptions)).toMatchObject(expectObj)
-  })
-  it('delete', () => {
-    const expectObj = {
-      options: {
-        baseURL: '/test-api',
-        method: 'DELETE',
-        onRequest: {},
-        onResponse: {},
-        retry: 2,
-      },
-      path: '/example',
-    }
-    const path = '/example'
-    const fetchOptions = {}
-    expect(api('delete', path, fetchOptions)).toMatchObject(expectObj)
-  })
-})
-````
-
-## File: layers/base/app/test/utils/default-factory.spec.ts
-````typescript
-import { describe, it, expect } from 'vitest'
-import exampleRepository from '#base/app/repositories/exampleRepository'
-import {
-  defaultRepositories,
-  defaultRepositoryFactory,
-} from '#base/app/utils/default-factory'
-
-describe('defaultRepositoryFactory', () => {
-  it('should return the correct repository when a valid key is provided', () => {
-    const repository = defaultRepositoryFactory.get('example')
-    expect(repository).toBe(exampleRepository)
-  })
-})
-
-describe('defaultRepositories', () => {
-  it('should contain the example repository', () => {
-    expect(defaultRepositories.example).toBe(exampleRepository)
-  })
-})
-````
-
 ## File: layers/base/app/test/utils/environment.spec.ts
 ````typescript
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -10643,268 +8644,11 @@ test('raiseError', () => {
 })
 ````
 
-## File: layers/base/app/test/utils/file-control.spec.ts
-````typescript
-import { getBase64ByFile, getExtFromType, readFileAsBlob } from '#base/app/utils/file-control'
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-
-// NOTE: JSDOMでURL.createObjectURLはサポートされていない。その為、本来URL.createObjectURLが返してくれるURLを偽装してテストする。
-beforeEach(() => {
-  // NOTE: URL.createObjectURLが本来動作すれば次のようなドメイン配下のURLが発行される。例）62a0f348-495f-4221-b768-7b08c2759e08
-  URL.createObjectURL = vi.fn(() => 'blob:dummy-for-objectURL')
-  URL.revokeObjectURL = vi.fn()
-})
-
-afterEach(() => {
-  vi.restoreAllMocks()
-})
-
-test('readFileAsBlob', () => {
-  // NOTE: 実際にテストで画像を渡せないので、下準備としてFile型のダミーを作成する
-  const file = new File([''], 'test.png')
-  const objectUrl = readFileAsBlob(file)
-  // NOTE: readFileAsBlob(file)にて画像のオブジェクトURLが作成されるか、返される文字列がURL形式であることをテストする。
-  expect(objectUrl.startsWith('blob:')).toBe(true)
-})
-
-describe('getExtFromType', () => {
-  test('image/pngから.pngを取得できる', () => {
-    const ext = getExtFromType('image/png')
-    expect(ext).toBe('.png')
-  })
-
-  test('image/jpegから.jpegを取得できる', () => {
-    const ext = getExtFromType('image/jpeg')
-    expect(ext).toBe('.jpeg')
-  })
-
-  test('application/pdfから.pdfを取得できる', () => {
-    const ext = getExtFromType('application/pdf')
-    expect(ext).toBe('.pdf')
-  })
-
-  test('text/plainから.plainを取得できる', () => {
-    const ext = getExtFromType('text/plain')
-    expect(ext).toBe('.plain')
-  })
-
-  test('video/mp4から.mp4を取得できる', () => {
-    const ext = getExtFromType('video/mp4')
-    expect(ext).toBe('.mp4')
-  })
-})
-
-describe('getBase64ByFile', () => {
-  test('Fileオブジェクトからbase64文字列を取得できる', async () => {
-    // FileReaderのモック
-    const mockResult = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAA='
-    class MockFileReader {
-      result: string | ArrayBuffer | null = mockResult
-      onload: ((e: ProgressEvent<FileReader>) => void) | null = null
-      readAsDataURL(_file: File) {
-        setTimeout(() => {
-          this.onload?.({ target: { result: this.result } } as ProgressEvent<FileReader>)
-        }, 0)
-      }
-    }
-
-    vi.stubGlobal('FileReader', MockFileReader as unknown as typeof FileReader)
-
-    const file = new File(['test content'], 'test.png', { type: 'image/png' })
-    const base64 = await getBase64ByFile(file)
-
-    expect(base64).toBe(mockResult)
-  })
-
-  test('FileReaderのresultがstring以外の場合はエラーがthrowされる', async () => {
-    class MockFileReader {
-      result: string | ArrayBuffer | null = null
-      onload: ((e: ProgressEvent<FileReader>) => void) | null = null
-      readAsDataURL = vi.fn(() => {
-        queueMicrotask(() => {
-          this.onload?.({ target: { result: this.result } } as ProgressEvent<FileReader>)
-        })
-      })
-    }
-
-    vi.stubGlobal('FileReader', MockFileReader as unknown as typeof FileReader)
-
-    const file = new File(['test content'], 'test.png', { type: 'image/png' })
-
-    await expect(getBase64ByFile(file)).rejects.toThrow('Failed to get base64')
-  })
-
-  test('空のFileオブジェクトでも動作する', async () => {
-    const mockResult = 'data:application/octet-stream;base64,'
-    class MockFileReader {
-      result: string | ArrayBuffer | null = mockResult
-      onload: ((e: ProgressEvent<FileReader>) => void) | null = null
-      readAsDataURL = vi.fn(() => {
-        setTimeout(() => {
-          this.onload?.({ target: { result: this.result } } as ProgressEvent<FileReader>)
-        }, 0)
-      })
-    }
-
-    vi.stubGlobal('FileReader', MockFileReader as unknown as typeof FileReader)
-
-    const file = new File([''], 'empty.txt', { type: 'text/plain' })
-    const base64 = await getBase64ByFile(file)
-
-    expect(base64).toBe(mockResult)
-  })
-})
-````
-
 ## File: layers/base/app/test/utils/i18n.spec.ts
 ````typescript
 import { test } from 'vitest'
 
 test('関数のexportがないので、#base/app/utils/i18nモジュールへのテストはなし', () => {})
-````
-
-## File: layers/base/app/test/utils/image.spec.ts
-````typescript
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { getImageUrl, toImage } from '#base/app/utils/image'
-
-// HTMLImageElement mock interface
-type EventHandler = (...args: unknown[]) => void
-interface MockHTMLImageElement {
-  addEventListener: (event: string, handler: EventHandler) => void
-  removeEventListener: (event: string, handler: EventHandler) => void
-  src: string
-  onload: (() => void) | null
-  onerror: ((error: unknown) => void) | null
-}
-
-describe('image.ts', () => {
-  const mockObjectURL = 'blob:http://localhost:3000/test-blob-url'
-  let lastImage: (MockHTMLImageElement & { listeners: Record<string, EventHandler | undefined> }) | null
-
-  beforeEach(() => {
-    vi.clearAllMocks()
-    // URL.createObjectURL と URL.revokeObjectURL のモック
-    global.URL.createObjectURL = vi.fn(() => mockObjectURL)
-    global.URL.revokeObjectURL = vi.fn()
-
-    // Image クラスのモック
-    class LocalImageMock implements MockHTMLImageElement {
-      listeners: Record<string, EventHandler | undefined> = {}
-      src = ''
-      onload: (() => void) | null = null
-      onerror: ((error?: unknown) => void) | null = null
-
-      constructor() {
-        // テスト検証用に最後に生成されたインスタンスを参照する
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        lastImage = this
-      }
-
-      addEventListener = vi.fn((event: string, handler: EventHandler) => {
-        this.listeners[event] = handler
-        if (event === 'load') this.onload = handler as () => void
-        if (event === 'error') this.onerror = handler as (error?: unknown) => void
-      })
-
-      removeEventListener = vi.fn((event: string, handler: EventHandler) => {
-        if (this.listeners[event] === handler) this.listeners[event] = undefined
-        if (event === 'load' && this.onload === handler) this.onload = null
-        if (event === 'error' && this.onerror === handler) this.onerror = null
-      })
-    }
-
-    vi.stubGlobal('Image', LocalImageMock as unknown as typeof Image)
-  })
-
-  describe('getImageUrl', () => {
-    it('FileオブジェクトからURLを生成する', () => {
-      const file = new File(['test'], 'test.png', { type: 'image/png' })
-      const result = getImageUrl(file)
-
-      expect(global.URL.createObjectURL).toHaveBeenCalledWith(file)
-      expect(result).toBe(mockObjectURL)
-    })
-
-    it('BlobオブジェクトからURLを生成する', () => {
-      const blob = new Blob(['test'], { type: 'image/png' })
-      const result = getImageUrl(blob)
-
-      expect(global.URL.createObjectURL).toHaveBeenCalledWith(blob)
-      expect(result).toBe(mockObjectURL)
-    })
-
-    it('Image要素が作成され、適切なイベントリスナーが設定される', () => {
-      const file = new File(['test'], 'test.png', { type: 'image/png' })
-      getImageUrl(file)
-
-      const mockImage = lastImage!
-      expect(mockImage.addEventListener).toHaveBeenCalledWith('load', expect.any(Function))
-      expect(mockImage.addEventListener).toHaveBeenCalledWith('error', expect.any(Function))
-      expect(mockImage.src).toBe(mockObjectURL)
-    })
-  })
-
-  describe('toImage', () => {
-    it('FileからHTMLImageElementを生成する', async () => {
-      const file = new File(['test'], 'test.png', { type: 'image/png' })
-      const promise = toImage(file)
-      lastImage?.listeners['load']?.()
-      const result = await promise
-
-      expect(result).toBe(lastImage)
-      expect(global.URL.createObjectURL).toHaveBeenCalledWith(file)
-      expect(global.URL.revokeObjectURL).toHaveBeenCalledWith(mockObjectURL)
-    })
-
-    it('BlobからHTMLImageElementを生成する', async () => {
-      const blob = new Blob(['test'], { type: 'image/png' })
-      const promise = toImage(blob)
-      lastImage?.listeners['load']?.()
-      const result = await promise
-
-      expect(result).toBe(lastImage)
-      expect(global.URL.createObjectURL).toHaveBeenCalledWith(blob)
-      expect(global.URL.revokeObjectURL).toHaveBeenCalledWith(mockObjectURL)
-    })
-
-    it('画像読み込みエラー時にPromiseをrejectする', async () => {
-      const file = new File(['test'], 'test.png', { type: 'image/png' })
-      const promise = toImage(file)
-      lastImage?.listeners['error']?.('Image load failed')
-
-      await expect(promise).rejects.toThrow('Image load failed')
-      expect(global.URL.revokeObjectURL).toHaveBeenCalledWith(mockObjectURL)
-    })
-
-    it('画像のsrcにcreateObjectURLの結果が設定される', () => {
-      const file = new File(['test'], 'test.png', { type: 'image/png' })
-      void toImage(file)
-
-      expect(lastImage?.src).toBe(mockObjectURL)
-    })
-
-    it('成功時にイベントリスナーが削除される', async () => {
-      const file = new File(['test'], 'test.png', { type: 'image/png' })
-      const promise = toImage(file)
-      lastImage?.listeners['load']?.()
-      await promise
-
-      expect(lastImage?.removeEventListener).toHaveBeenCalledWith('load', expect.any(Function))
-      expect(lastImage?.removeEventListener).toHaveBeenCalledWith('error', expect.any(Function))
-    })
-
-    it('エラー時にイベントリスナーが削除される', async () => {
-      const file = new File(['test'], 'test.png', { type: 'image/png' })
-      const promise = toImage(file)
-      lastImage?.listeners['error']?.('Error')
-      await expect(promise).rejects.toThrow()
-
-      expect(lastImage?.removeEventListener).toHaveBeenCalledWith('load', expect.any(Function))
-      expect(lastImage?.removeEventListener).toHaveBeenCalledWith('error', expect.any(Function))
-    })
-  })
-})
 ````
 
 ## File: layers/base/app/test/utils/object.spec.ts
@@ -11701,6 +9445,2390 @@ export default {
 }
 ````
 
+## File: layers/base/app/test/components/ha/__snapshots__/HaDialog.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-8d2cdb80="" class="ha-dialog">
+  <div data-v-8d2cdb80="" class="dialog-window">no content.</div>
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/ha/__snapshots__/HaHamburger.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-398903c3="" class="ha-humberger-button">
+  <div data-v-398903c3="" class="line"></div>
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/ha/__snapshots__/HaLoadingIcon.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `"<div data-v-c1d69a8c="" class="ha-loading-icon"></div>"`;
+````
+
+## File: layers/base/app/test/components/ha/__snapshots__/HaSelectBox.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-cb5e7ce8="" class="ha-select-box"><select data-v-cb5e7ce8="" name="" class="select">
+    <option data-v-cb5e7ce8="">---Select---</option>
+  </select>
+  <!--v-if-->
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/ha/__snapshots__/HaSkewBackground.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HaSkewBackground > mount component 1`] = `
+"<div data-v-0570223f="" class="ha-skew" style="transform: skewX(30deg);">
+  <div data-v-0570223f="" class="content" style="transform: skewX(-30deg);"></div>
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/ha/__snapshots__/HaTag.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HaTag > mount component 1`] = `"<span data-v-c08b7397="" class="ha-tag -primary" disabled="false"></span>"`;
+````
+
+## File: layers/base/app/test/components/ha/__snapshots__/HaTextarea.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-94d1f98e="" class="ha-textarea"><label data-v-94d1f98e="" class="label">
+    <!--v-if--><textarea data-v-94d1f98e="" type="text" placeholder="Input Text" rows="5" class="input"></textarea>
+  </label>
+  <p data-v-94d1f98e="" class="error-container">
+    <!--v-if-->
+  </p>
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/ha/base/__snapshots__/HaBaseButton.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `"<button data-v-0844060a="" class="ha-base-button" type="button">button label</button>"`;
+````
+
+## File: layers/base/app/test/components/ha/base/__snapshots__/HaBaseInput.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `"<input data-v-d0a26e0a="" class="ha-base-input" type="text" value="false">"`;
+````
+
+## File: layers/base/app/test/components/ha/HaLink.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { beforeEach, afterEach, describe, it, expect, test, vi } from 'vitest'
+import HaLink from '#base/app/components/ha/HaLink.vue'
+
+import { isNuxtEnvironment } from '#base/app/utils/environment'
+
+beforeEach(() => {
+  vi.clearAllMocks()
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
+test('ref component', () => {
+  expect(HaLink).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HaLink, {
+    props: {
+      to: 'https://example.com',
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+describe(':to', () => {
+  // 外部サイトリンクのテスト
+  it('set external path', () => {
+    const wrapper = mount(HaLink, {
+      props: { to: 'https://example.com' },
+    })
+    expect(wrapper.find('a').attributes('href')).toBe('https://example.com')
+  })
+
+  // 内部リンクテスト (aタグ)
+  it('set internal path', () => {
+    const wrapper = mount(HaLink, {
+      props: { to: '/internal-path' },
+      // nuxt-linkはwarnとなるので、下記でaタグに置き換える。RouterLinkStubはtoを引き継げなくなるので使わない。
+      global: {
+        stubs: {
+          'nuxt-link': {
+            template: '<a><slot /></a>',
+          },
+        },
+      },
+    })
+    // 現在は useLocalePath をモックせず入力値がそのまま使われる
+    expect(wrapper.find('a').attributes('to')).toBe('/internal-path')
+  })
+})
+
+describe(':blank', () => {
+  it('not set', () => {
+    const wrapper = mount(HaLink, {
+      props: { to: '' },
+      global: {
+        stubs: {
+          'nuxt-link': {
+            template: '<a><slot /></a>',
+          },
+        },
+      },
+    })
+    expect(wrapper.find('a').attributes('target')).toBeFalsy()
+  })
+
+  it('set true', () => {
+    const wrapper = mount(HaLink, {
+      props: { to: 'https://example.com', blank: true },
+    })
+    expect(wrapper.find('a').attributes('target')).toBe('_blank')
+  })
+
+  // <HaLink blank> って書けてほしい
+  it('set `blank` with no value set target="_blank"', () => {
+    const wrapper = mount(
+      {
+        template: '<HaLink to="https://example.com" blank></HaLink>',
+        components: { HaLink },
+      },
+      {},
+    )
+    expect(wrapper.get('a').attributes('target')).toBe('_blank')
+  })
+})
+
+describe(':rel', () => {
+  it('set rel', () => {
+    const wrapper = mount(HaLink, {
+      props: {
+        to: 'https://example.com',
+        rel: 'noreferrer',
+      },
+    })
+    expect(wrapper.get('a').attributes('rel')).toBe('noreferrer')
+  })
+})
+
+describe(':forceAnchorLink', () => {
+  it('set true', () => {
+    const wrapper = mount(HaLink, {
+      props: { to: '/internal', forceAnchorLink: true },
+    })
+    expect(wrapper.find('a').exists()).toBe(true)
+  })
+})
+
+describe('slot', () => {
+  it('set simple text', () => {
+    const wrapper = mount(HaLink, {
+      props: {
+        to: 'https://example.com',
+      },
+      slots: {
+        default: 'link label',
+      },
+    })
+    // slot入れたらリンク消えたりしない？
+    expect(wrapper.html()).toContain('https://example.com')
+    // slotの中身はきちんと描画されてる？
+    expect(wrapper.text()).toContain('link label')
+  })
+})
+
+// 以下、NuxtLink系のテスト
+vi.mock('#base/app/utils/environment')
+
+/*
+ * TODO: Nuxt依存部分のtoLocalePathをモックしている関係で、戻り値がmocked-pathにしかならずqueryのテストが出来ない
+ * describe(':query', () => {
+ *   it('appends query parameters to internal links', async () => {
+ *     // 環境をNuxtとしてモック
+ *     vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+ */
+
+/*
+ *     const wrapper = mount(HaLink, {
+ *       props: { to: '/intenal', query: { id: '123' } },
+ *     })
+ */
+
+/*
+ *     await nextTick()
+ *     // NuxtLinkを探す
+ *     const nuxtLink = wrapper.find('nuxt-link');
+ *     expect(nuxtLink.exists()).toBe(true);
+ *     // NuxtLinkがクエリパラメータを含む適切なパスでレンダリングされているか検証
+ *     expect(nuxtLink.attributes('to')).toBe('/internal?id=123');
+ *     // モック関数が正しく呼び出されたことを確認
+ *     expect(useLocalePath).toHaveBeenCalled()
+ *   })
+ * })
+ */
+
+/*
+ * TODO: Nuxt依存部分のtoLocalePathをモックしている関係で、戻り値がmocked-pathにしかならずhashのテストが出来ない
+ * describe(':hash', () => {
+ *   it('appends hash parameters to internal links', async () => {
+ *     // 環境をNuxtとしてモック
+ *     vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+ */
+
+/*
+ *     const wrapper = mount(HaLink, {
+ *       props: { to: '/intenal', hash: '#hash'},
+ *     })
+ */
+
+/*
+ *     await nextTick()
+ *     // NuxtLinkを探す
+ *     const nuxtLink = wrapper.find('nuxt-link');
+ *     expect(nuxtLink.exists()).toBe(true);
+ *     // NuxtLinkがクエリパラメータを含む適切なパスでレンダリングされているか検証
+ *     expect(nuxtLink.attributes('to')).toBe('/internal#hash');
+ *     // モック関数が正しく呼び出されたことを確認
+ *     expect(useLocalePath).toHaveBeenCalled()
+ *   })
+ * })
+ */
+
+describe('<nuxt-link>', () => {
+  /*
+   * TODO : テスト自体は通るが[Vue warn]: Failed to resolve component: nuxt-link のWARNが出るのでコメントアウト
+   * it('use router-link', async () => {
+   *   vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+   *   const wrapper = mount(HaLink, {
+   *     props: {
+   *       to: '/link',
+   *     },
+   *   })
+   *   const nuxtLink = wrapper.find('nuxt-link')
+   *   expect(nuxtLink.exists()).toBe(true)
+   * })
+   */
+  it('external link must be <a>', () => {
+    vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+    const wrapper = mount(HaLink, {
+      props: {
+        to: 'https://example.com',
+      },
+    })
+    expect(wrapper.find('a').exists()).toBeTruthy()
+  })
+  it('force <a> link', () => {
+    vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
+    const wrapper = mount(HaLink, {
+      props: {
+        to: '/link',
+        forceAnchorLink: true,
+      },
+    })
+    expect(wrapper.find('a').exists()).toBeTruthy()
+  })
+})
+````
+
+## File: layers/base/app/test/components/hm/__snapshots__/HmClipping.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-7cbd279a="" class="hm-clipping">
+  <div data-v-7cbd279a="" class="cropper-container">
+    <div data-v-7cbd279a="" class="vue-advanced-cropper cropper">
+      <div class="vue-advanced-cropper__stretcher"></div>
+      <div class="vue-advanced-cropper__boundaries" style="width: auto; height: auto; transition: opacity 300ms; pointer-events: none; opacity: 0;">
+        <div class="vue-advanced-cropper__cropper-wrapper">
+          <div class="vue-advanced-cropper__background" style="width: auto; height: auto; transition: opacity 300ms; pointer-events: none; opacity: 0;"></div>
+          <div class="vue-advanced-cropper__image-wrapper"><img class="vue-advanced-cropper__image" style="height: 0px; left: 0px; top: 0px; transform: translate(NaNpx, NaNpx) rotate(0deg)  scaleX(NaN)  scaleY(NaN);"></div>
+          <div class="vue-advanced-cropper__foreground" style="width: auto; height: auto; transition: opacity 300ms; pointer-events: none; opacity: 0;"></div>
+          <div class="vue-rectangle-stencil vue-rectangle-stencil--movable" style="width: 0px; height: 0px; transform: translate(0px, 0px); display: none;">
+            <div class="vue-bounding-box vue-rectangle-stencil__bounding-box">
+              <div>
+                <div class="vue-preview vue-preview--fill vue-rectangle-stencil__preview">
+                  <div class="vue-preview__wrapper" style="width: 0px; height: 0px; left: calc(50% - 0px); top: calc(50% - 0px);"><img class="vue-preview__image" style="width: 0px; height: 0px; left: 0px; top: 0px; transform: translate(
+				NaNpx,NaNpx)  rotate(0deg)  scaleX(NaN)  scaleY(NaN); display: none;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="vue-line-wrapper vue-line-wrapper--east vue-simple-line-wrapper vue-simple-line-wrapper--east">
+                  <div class="vue-simple-line vue-simple-line--east"></div>
+                </div>
+                <div class="vue-line-wrapper vue-line-wrapper--west vue-simple-line-wrapper vue-simple-line-wrapper--west">
+                  <div class="vue-simple-line vue-simple-line--west"></div>
+                </div>
+                <div class="vue-line-wrapper vue-line-wrapper--south vue-simple-line-wrapper vue-simple-line-wrapper--south">
+                  <div class="vue-simple-line vue-simple-line--south"></div>
+                </div>
+                <div class="vue-line-wrapper vue-line-wrapper--north vue-simple-line-wrapper vue-simple-line-wrapper--north">
+                  <div class="vue-simple-line vue-simple-line--north"></div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--east-south">
+                <div class="vue-handler-wrapper vue-handler-wrapper--east-south vue-simple-handler-wrapper vue-simple-handler-wrapper--east vue-simple-handler-wrapper--south vue-simple-handler-wrapper--east-south vue-bounding-box__handler vue-bounding-box__handler--east-south">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--east vue-simple-handler--south vue-simple-handler--east-south"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--east-north">
+                <div class="vue-handler-wrapper vue-handler-wrapper--east-north vue-simple-handler-wrapper vue-simple-handler-wrapper--east vue-simple-handler-wrapper--north vue-simple-handler-wrapper--east-north vue-bounding-box__handler vue-bounding-box__handler--east-north">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--east vue-simple-handler--north vue-simple-handler--east-north"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--east">
+                <div class="vue-handler-wrapper vue-handler-wrapper--east vue-simple-handler-wrapper vue-simple-handler-wrapper--east vue-bounding-box__handler vue-bounding-box__handler--east">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--east"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--west-south">
+                <div class="vue-handler-wrapper vue-handler-wrapper--west-south vue-simple-handler-wrapper vue-simple-handler-wrapper--west vue-simple-handler-wrapper--south vue-simple-handler-wrapper--west-south vue-bounding-box__handler vue-bounding-box__handler--west-south">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--west vue-simple-handler--south vue-simple-handler--west-south"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--west-north">
+                <div class="vue-handler-wrapper vue-handler-wrapper--west-north vue-simple-handler-wrapper vue-simple-handler-wrapper--west vue-simple-handler-wrapper--north vue-simple-handler-wrapper--west-north vue-bounding-box__handler vue-bounding-box__handler--west-north">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--west vue-simple-handler--north vue-simple-handler--west-north"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--west">
+                <div class="vue-handler-wrapper vue-handler-wrapper--west vue-simple-handler-wrapper vue-simple-handler-wrapper--west vue-bounding-box__handler vue-bounding-box__handler--west">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--west"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--south">
+                <div class="vue-handler-wrapper vue-handler-wrapper--south vue-simple-handler-wrapper vue-simple-handler-wrapper--south vue-bounding-box__handler vue-bounding-box__handler--south">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--south"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="vue-bounding-box__handler vue-bounding-box__handler--north">
+                <div class="vue-handler-wrapper vue-handler-wrapper--north vue-simple-handler-wrapper vue-simple-handler-wrapper--north vue-bounding-box__handler vue-bounding-box__handler--north">
+                  <div class="vue-handler-wrapper__draggable">
+                    <div class="vue-simple-handler vue-simple-handler--north"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div><canvas style="display: none;"></canvas><canvas style="display: none;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--v-if-->
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/__snapshots__/HmMenuExample.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<section data-v-76fe05f2="" class="hm-menu-example">
+  <div data-v-76fe05f2="" data-headlessui-state="" class="menu-container"><button data-v-76fe05f2="" id="headlessui-menu-button-v-0" type="button" aria-haspopup="menu" aria-expanded="false" data-headlessui-state="" class="button"> Menu </button>
+    <!---->
+  </div>
+</section>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/__snapshots__/HmNoteList.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `"<ul data-v-91fb3b34="" class="hm-note-list"></ul>"`;
+````
+
+## File: layers/base/app/test/components/hm/__snapshots__/HmPopup.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-8d2cdb80="" data-v-e875e4c1="" class="ha-dialog hm-popup">
+  <div data-v-8d2cdb80="" class="dialog-window"><span data-v-e875e4c1="" class="hm-popup-title">title</span>
+    <p data-v-e875e4c1="" class="hm-popup-description">description</p>
+    <div data-v-e875e4c1="" class="hm-popup-wrapper">
+      <div data-v-e875e4c1="" class="hm-popup-button"><button data-v-0844060a="" data-v-98a1ad68="" data-v-e875e4c1="" class="ha-base-button hm-button -warning -md item" type="button">cancel</button></div>
+      <div data-v-e875e4c1="" class="hm-popup-button"><button data-v-0844060a="" data-v-98a1ad68="" data-v-e875e4c1="" class="ha-base-button hm-button -primary -md item" type="button">confirm</button></div>
+    </div>
+  </div>
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/__snapshots__/HmSkeletonScreen.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HmSkeletonScreen > mount component 1`] = `
+"<div data-v-f3341911="" class="hm-skeleton-screen">
+  <div data-v-f3341911="" class="skeleton-screen">
+    <!-- NOTE: brタグはテキスト1行分の高さを確保している --><br data-v-f3341911="">
+  </div>
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/button/__snapshots__/HmButton.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `"<button data-v-0844060a="" data-v-98a1ad68="" class="ha-base-button hm-button -primary -md" type="button">button label</button>"`;
+````
+
+## File: layers/base/app/test/components/hm/button/__snapshots__/HmButtonClose.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<button data-v-0844060a="" data-v-50f49dd3="" class="ha-base-button hm-button-close" type="button"><svg data-v-50f49dd3="" xmlns="http://www.w3.org/2000/svg" width="24.121" height="24.121" viewBox="0 0 24.121 24.121" style="width: 20px; height: 20px;">
+    <g transform="translate(-953.439 -212.439)">
+      <line x2="22" y2="22" transform="translate(954.5 213.5)" fill="none" stroke="#fff" stroke-width="3"></line>
+      <line x1="22" y2="22" transform="translate(954.5 213.5)" fill="none" stroke="#fff" stroke-width="3"></line>
+    </g>
+  </svg></button>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/button/__snapshots__/HmButtonFavorite.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-f3cd9c7d="" class="hm-button-favorite">
+  <div data-v-f3cd9c7d="" class="button"><svg data-v-f3cd9c7d="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31.02 27.03" class="favorite-icon -active">
+      <defs>
+        <style>
+          .body {
+            fill: none;
+          }
+
+          .border {
+            fill: #757575;
+          }
+        </style>
+      </defs>
+      <g class="body">
+        <path d="M28.63,2.41c-3.19-3.18-8.35-3.18-11.54,0l-1.57,1.57-1.57-1.57c-3.17-3.2-8.33-3.22-11.53-.05-3.2,3.17-3.22,8.33-.05,11.53,.01,.01,.03,.03,.04,.04l1.57,1.57,11.54,11.52,11.54-11.52,1.57-1.57c3.18-3.17,3.19-8.33,.01-11.51,0,0,0,0-.01-.01Z"></path>
+      </g>
+      <g class="border">
+        <path d="M22.86,2.03c-1.65,0-3.19,.64-4.36,1.8l-1.57,1.57c-.78,.78-2.05,.78-2.83,0l-1.57-1.57c-1.16-1.16-2.71-1.8-4.36-1.8s-3.19,.64-4.36,1.8c-1.16,1.16-1.8,2.7-1.8,4.35s.64,3.18,1.8,4.35l11.7,11.68,11.7-11.68c1.16-1.16,1.8-2.7,1.8-4.35s-.64-3.18-1.8-4.35c-1.16-1.16-2.71-1.8-4.36-1.8m0-2c2.09,0,4.18,.8,5.77,2.39h0c3.19,3.18,3.19,8.34,0,11.52l-13.11,13.09L2.41,13.94C-.78,10.75-.78,5.6,2.41,2.41,5.59-.77,10.76-.77,13.94,2.41l1.57,1.57,1.57-1.57C18.68,.82,20.77,.03,22.86,.03Z"></path>
+      </g>
+    </svg></div>
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/icon/__snapshots__/HmIconUser.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `"<span data-v-232938ab="" class="hm-icon-user"><img data-v-232938ab="" class="ha-image image" loading="eager" fetchpriority="low" src="/image.png" alt="" role="presentation" decoding="auto" draggable="false"></span>"`;
+````
+
+## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputCheckbox.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<label data-v-16361de7="" class="hm-input-checkbox"><input data-v-d0a26e0a="" data-v-16361de7="" class="ha-base-input button" type="checkbox" name="test name" value="false">
+  <div data-v-16361de7="" class="content"></div>
+  <!--v-if-->
+</label>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputDatetime.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-52539492="" name="dateLocal" class="hm-input-datetime"><label data-v-52539492="" class="hm-input-datetime__label"><input data-v-d0a26e0a="" data-v-52539492="" class="ha-base-input hm-input-datetime__input" type="datetime-local" value="Invalid Date"></label>
+  <p data-v-52539492="" class="error-container">
+    <!--v-if-->
+  </p>
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputFile.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<!-- TODO: エラーメッセージの表示をする際に、必要に応じてHmInputTextBase.vue同様の修正(DOM構造とエラーmsgのstyle)を行う -->
+<label data-v-8323f5e3="" class="hm-input-file"><input data-v-d0a26e0a="" data-v-8323f5e3="" class="ha-base-input input" type="file" accept="" name="file">
+  <div data-v-8323f5e3="" class="image-box">
+    <div data-v-8323f5e3="" class="inner"><span data-v-8323f5e3="" class="text"> Select file or drag it! </span></div>
+  </div>
+</label>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadio.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<label data-v-d244b359="" class="hm-input-radio"><input data-v-d0a26e0a="" data-v-d244b359="" class="ha-base-input button" type="radio" name="test name" value="1">
+  <div data-v-d244b359="" class="content"></div>
+</label>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadioChangeable.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-0195f537="" class="hm-input-radio-changeable">
+  <div data-v-0195f537="" class="radio"><input data-v-d0a26e0a="" data-v-0195f537="" id="testValue" class="ha-base-input input" type="radio" name="testName" required="" value="testValue"><label data-v-0195f537="" for="testValue" class="label option-0">
+      <!--v-if--> testLabel
+      <!--v-if-->
+    </label></div>
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputSingleImage.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-c9c71ad2="" class="hm-input-single-image">
+  <div data-v-c9c71ad2="" class="wrapper">
+    <!-- TODO: エラーメッセージの表示をする際に、必要に応じてHmInputTextBase.vue同様の修正(DOM構造とエラーmsgのstyle)を行う --><label data-v-8323f5e3="" data-v-c9c71ad2="" class="hm-input-file hm-single-image-uploader"><input data-v-d0a26e0a="" data-v-8323f5e3="" class="ha-base-input input" type="file" accept="image/png,image/jpeg" name="file" required="">
+      <div data-v-8323f5e3="" class="image-box">
+        <div data-v-8323f5e3="" class="inner"><span data-v-8323f5e3="" class="text"> Select file or drag it! </span></div>
+      </div>
+    </label>
+  </div>
+  <p data-v-c9c71ad2="" class="error-container">
+    <!--v-if-->
+  </p>
+  <!--v-if-->
+  <!--v-if-->
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputText.spec.ts.snap
+````
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mount component 1`] = `
+"<div data-v-4a548fbf="" tag="div" class="hm-input-text"><label data-v-4a548fbf="" class="label">
+    <!--v-if--><input data-v-d0a26e0a="" data-v-4a548fbf="" class="ha-base-input input" type="text" placeholder="Input Text" value="">
+  </label>
+  <!--v-if-->
+</div>"
+`;
+````
+
+## File: layers/base/app/test/components/hm/input/HmInputSingleImage.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { beforeEach, afterEach, describe, test, expect, vi } from 'vitest'
+import { createI18n } from 'vue-i18n'
+import HmInputSingleImage from '#base/app/components/hm/input/HmInputSingleImage.vue'
+import { waitEffect } from '#base/app/utils/sleep'
+
+// i18nのモックインスタンス
+const i18n = createI18n({
+  legacy: false,
+  locale: 'ja',
+  messages: {
+    ja: {},
+    en: {},
+  },
+})
+
+vi.mock('#base/app/utils/file-control', () => ({
+  readFileAsBlob: () => 'dummy-blob',
+}))
+
+beforeEach(() => {
+  URL.createObjectURL = vi.fn(() => 'dummy-for-objectURL')
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
+test('ref component', () => {
+  expect(HmInputSingleImage).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HmInputSingleImage, {
+    props: {
+      defaultImageUrl: null,
+    },
+    global: {
+      plugins: [i18n],
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+describe('props', () => {
+  test(':optionalAccept', () => {
+    const wrapper = mount(HmInputSingleImage, {
+      props: {
+        optionalAccept: 'image/gif',
+        defaultImageUrl: null,
+      },
+      global: {
+        plugins: [i18n],
+      },
+    })
+    expect(
+      wrapper.find('.hm-single-image-uploader > .input').attributes('accept'),
+    ).toMatch('image/gif')
+  })
+
+  test(':error', () => {
+    const wrapper = mount(HmInputSingleImage, {
+      props: {
+        error: 'test error',
+        defaultImageUrl: null,
+      },
+      global: {
+        plugins: [i18n],
+      },
+    })
+    expect(wrapper.find('p[class="error-container"]').text()).toBe('test error')
+  })
+
+  test(':isRemovable', () => {
+    const wrapper = mount(HmInputSingleImage, {
+      props: {
+        isRemovable: true,
+        defaultImageUrl: 'foo.png',
+      },
+      global: {
+        plugins: [i18n],
+      },
+    })
+    expect(wrapper.find('.remove').exists()).toBe(true)
+  })
+
+  test(':isRequired', () => {
+    const wrapper = mount(HmInputSingleImage, {
+      props: {
+        isRequired: true,
+        defaultImageUrl: null,
+      },
+      global: {
+        plugins: [i18n],
+      },
+    })
+    expect(
+      wrapper.find('.hm-single-image-uploader > .input').attributes('required'),
+    ).toBeDefined()
+  })
+
+  test(':needCropper, :cropWidth, and :cropHeight', async () => {
+    const wrapper = mount(HmInputSingleImage, {
+      props: {
+        needCropper: true,
+        cropWidth: undefined,
+        cropHeight: undefined,
+        defaultImageUrl: null,
+      },
+      global: {
+        plugins: [i18n],
+      },
+    })
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (wrapper as any).vm.changeImage([
+      new File([], 'foo.png'),
+    ] as any as FileList) // eslint-disable-line @typescript-eslint/no-explicit-any
+    await waitEffect()
+
+    expect(wrapper.find('.ha-dialog').exists()).toBe(true)
+  })
+})
+````
+
+## File: layers/base/app/test/components/hm/input/HmInputText.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { beforeEach, afterEach, describe, it, test, expect, vi } from 'vitest'
+import z from 'zod/v3'
+import HmInputText from '#base/app/components/hm/input/HmInputText.vue'
+import useValidationRules from '#base/app/composables/useValidationRules'
+import { waitEffect } from '#base/app/utils/sleep'
+
+// vue-i18nのモックはファイルトップレベルで定義
+vi.mock('vue-i18n', () => {
+  return {
+    createI18n: vi.fn(() => ({ global: {}, mode: 'composition' })),
+    useLocaleRoute: vi.fn((path: string) => () => ({ path })),
+    useI18n: vi.fn(() => ({
+      local: {
+        value: 'ja',
+      },
+      locale: {
+        value: 'ja',
+      },
+      t: (key: string, ..._args: unknown[]) => `dummy-${key}`,
+    })),
+  }
+})
+
+const rules = useValidationRules()
+
+beforeEach(() => {
+  vi.clearAllMocks()
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
+test('ref component', () => {
+  expect(HmInputText).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HmInputText)
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+describe('props', () => {
+  it(':placeholder', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        placeholder: 'placeholder text',
+      },
+    })
+    expect(wrapper.get('input[type="text"]').attributes('placeholder')).toBe(
+      'placeholder text',
+    )
+  })
+
+  it(':type', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+      },
+    })
+    expect(wrapper.get('input[type="text"]').attributes('type')).toBe('text')
+  })
+
+  it(':validatorName', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        validatorName: 'testValidatorName',
+      },
+    })
+    expect(wrapper.props('validatorName' as never)).toBe('testValidatorName')
+  })
+
+  it(':validatorRules', () => {
+    const testValidatorRules = rules.required
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        validatorName: 'testValidatorName',
+        validatorRules: testValidatorRules,
+      },
+    })
+    expect(wrapper.props('validatorRules' as never)).toStrictEqual(
+      testValidatorRules,
+    )
+  })
+
+  it(':required', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        required: true,
+      },
+    })
+    expect(wrapper.get('input[type="text"]').attributes('required')).toBe('')
+  })
+
+  it(':modelValue', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        modelValue: 'modelValue text',
+      },
+    })
+    expect(wrapper.props('modelValue' as never)).toBe('modelValue text')
+  })
+
+  it(':disabled', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        disabled: true,
+      },
+    })
+    expect(wrapper.get('input[type="text"]').attributes('disabled')).toBe('')
+  })
+
+  it(':counter:length display', async () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        counter: true,
+      },
+    })
+    await wrapper.get('input[type="text"]').setValue('1234567890')
+    await waitEffect()
+    expect(wrapper.get('span[class="counter"]').text()).toBe('10')
+  })
+
+  it(':counter:length/max display', async () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        counter: { max: 50 },
+      },
+    })
+    await wrapper.get('input[type="text"]').setValue('1234567890')
+    await waitEffect()
+    expect(wrapper.get('span[class="counter"]').text()).toBe('10/50')
+  })
+
+  it(':min', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        min: 3,
+      },
+    })
+    expect(wrapper.get('input[type="text"]').attributes('min')).toBe('3')
+  })
+
+  it(':keyupEnter', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        keyupEnter: true,
+      },
+    })
+    expect(wrapper.props('keyupEnter' as never)).toBe(true)
+  })
+
+  it(':isLazy', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        isLazy: true,
+      },
+    })
+    expect(wrapper.props('isLazy' as never)).toBe(true)
+  })
+
+  it(':isTrim', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        isTrim: true,
+      },
+    })
+    expect(wrapper.props('isTrim' as never)).toBe(true)
+  })
+
+  it(':small', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        small: true,
+      },
+    })
+    expect(wrapper.get('input[type="text"]').attributes('class')).toBe(
+      'ha-base-input input -small',
+    )
+  })
+
+  it(':name', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        name: 'testName',
+      },
+    })
+    expect(wrapper.get('input[type="text"]').attributes('name')).toBe(
+      'testName',
+    )
+  })
+
+  it(':error', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        error: 'testError',
+      },
+    })
+    expect(wrapper.props('error')).toBe('testError')
+  })
+
+  it(':hideDetails', () => {
+    // -hide classを確認するためには、validatorRulesが必要
+    const testValidatorRules = rules.required
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        hideDetails: true,
+        validatorRules: testValidatorRules,
+      },
+    })
+    expect(wrapper.props('hideDetails')).toBe(true)
+    // -hide classが付与されていることを確認
+    expect(wrapper.get('p').attributes('class')).toBe('error-container -hide')
+  })
+
+  it(':list', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        list: 'testList',
+      },
+    })
+    expect(wrapper.get('input[type="text"]').attributes('list')).toBe(
+      'testList',
+    )
+  })
+
+  it(':keepValueOnUnmount', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        keepValueOnUnmount: true,
+      },
+    })
+    expect(wrapper.props().keepValueOnUnmount).toBe(true)
+  })
+
+  it(':validateOnMount', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        validateOnMount: true,
+      },
+    })
+    expect(wrapper.props().validateOnMount).toBe(true)
+  })
+})
+
+describe('emits', () => {
+  it(':update:modelValue', async () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+      },
+    })
+    await wrapper.setValue('test', 'modelValue')
+    expect(wrapper.emitted()).toHaveProperty('update:modelValue')
+    expect(wrapper.emitted()['update:modelValue']).toHaveLength(1)
+    expect(wrapper.emitted()['update:modelValue']).toEqual([['test']])
+  })
+
+  it(':validate', async () => {
+    // NOTE: 最大10文字。超えたらエラーを出す
+    const maxRule = (maximum: number) => {
+      return rules.max(maximum)
+    }
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        validatorRules: maxRule(10),
+        modelValue: 'test',
+      },
+    })
+    // NOTE: 最大10文字なので11文字入れてエラーを出す
+    await wrapper.get('input[type="text"]').setValue('12345678901')
+    await waitEffect()
+    expect(wrapper.emitted()).toHaveProperty('validate')
+    expect(wrapper.emitted()['validate']).toHaveLength(1)
+    /*
+     * TODO: バリデーションエラー時にZodエラーメッセージを二重否定の真偽値として送信するが、正しい値を送信しないのでコメントアウト
+     * expect(wrapper.emitted()['validate']).toStrictEqual([[true]])
+     */
+  })
+
+  it(':keyupEnter', async () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        keyupEnter: true,
+      },
+    })
+    await wrapper.get('input[type="text"]').trigger('keyup.enter')
+    expect(wrapper.emitted()).toHaveProperty('enter')
+    expect(wrapper.emitted()['enter']).toHaveLength(1)
+  })
+})
+
+describe('DOM check for error display', () => {
+  // NOTE: validatorName有りかつvalidatorRule無しをテスト
+  it(':validatorName', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        validatorName: 'testValidatorName',
+      },
+    })
+    // NOTE: <p class="error-container">が存在する確認
+    expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
+    // NOTE: <p class="error-container">の中の<span class="error">は存在しないことを確認
+    expect(
+      wrapper
+        .get('p[class="error-container"]')
+        .find('span[class="error"]')
+        .exists(),
+    ).toBe(false)
+  })
+
+  it(':validatorRules:max 10 strings', async () => {
+    const maxRule = (maximum: number) => {
+      return z.coerce.string().max(maximum, {
+        message: 'error max ' + maximum + ' strings',
+      })
+    }
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        validatorName: 'testValidatorName',
+        validatorRules: maxRule(10),
+      },
+    })
+    // NOTE: input欄、v-ifで絶対に居るのが確定してないので一応getでinput見つけて、バリデートで落ちる値を代入
+    await wrapper.get('input[type="text"]').setValue('12345678901')
+    /*
+     * NOTE: NG例として下記。modelValueを見てそうなので、modelValueにテスト値いれてinputイベントを強制発火。これは動作せず
+     * await wrapper.setValue('12345678901', 'modelValue')
+     * await wrapper.get('input[type="text"]').trigger('input')
+     */
+
+    // NOTE: setValueでinput欄に値を入れたのでsettimeoutのsleep関数で1ミリ秒以上で待つ。nextTickは効かない
+    await waitEffect()
+    /*
+     * NOTE: DOMの変化を確かめたい時は下記でターミナルに表示させて確認する
+     * console.info(wrapper.html())
+     * NOTE: <p class="error-container">が存在する確認
+     */
+    expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
+    // <p class="error-container">の中の<span class="error">が存在してエラーメッセージでてること確認
+    expect(
+      wrapper
+        .get('p[class="error-container"]')
+        .find('span[class="error"]')
+        .exists(),
+    ).toBe(true)
+    // NOTE: エラー文言の照合
+    expect(
+      wrapper
+        .get('p[class="error-container"]')
+        .find('span[class="error"]')
+        .text(),
+    ).toBe('error max 10 strings')
+  })
+
+  it(':props.error', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        validatorName: 'error test',
+        error: 'error message test',
+      },
+    })
+    expect(wrapper.props('error')).toBe('error message test')
+    expect(wrapper.get('label').attributes('class')).toBe('label -error')
+    expect(wrapper.get('p[class="error-container"]')).toBeTruthy()
+    expect(
+      wrapper
+        .get('p[class="error-container"]')
+        .find('span[class="error"]')
+        .exists(),
+    ).toBe(true)
+    expect(
+      wrapper
+        .get('p[class="error-container"]')
+        .find('span[class="error"]')
+        .text(),
+    ).toBe('error message test')
+  })
+
+  it(':hideDetails', () => {
+    const wrapper = mount(HmInputText, {
+      props: {
+        type: 'text',
+        validatorName: 'error test',
+        error: 'error message test',
+        hideDetails: true,
+      },
+    })
+    expect(wrapper.props('error')).toBe('error message test')
+    expect(wrapper.get('label').attributes('class')).toBe('label -error')
+    expect(wrapper.get('p[class="error-container -hide"]')).toBeTruthy()
+    expect(
+      wrapper
+        .get('p[class="error-container -hide"]')
+        .find('span[class="error"]')
+        .exists(),
+    ).toBe(true)
+    expect(
+      wrapper
+        .get('p[class="error-container -hide"]')
+        .find('span[class="error"]')
+        .text(),
+    ).toBe('error message test')
+  })
+})
+````
+
+## File: layers/base/app/test/components/hm/HmSocialShareLink.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest'
+import HmSocialShareLink from '#base/app/components/hm/HmSocialShareLink.vue'
+
+const { mockGetShareUrl } = vi.hoisted(() => ({
+  mockGetShareUrl: vi.fn((name: string) => `mockedUrlFor${name}`),
+}))
+
+vi.mock('#base/app/composables/useSocialShareLink', () => ({
+  default: () => ({
+    getShareUrl: mockGetShareUrl,
+  }),
+}))
+
+beforeEach(() => {
+  vi.clearAllMocks()
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
+describe('HmSocialShareLink', () => {
+  it('computes the correct share URL', () => {
+    mockGetShareUrl.mockImplementation((name: string) => `mockedUrlFor${name}`)
+
+    const wrapper = mount(HmSocialShareLink, {
+      props: {
+        name: 'twitter',
+        text: 'testText',
+        twitterHashtags: ['test'],
+        shareUrl: 'testShareUrl',
+      },
+      // nuxt-linkはwarnとなるので、下記でaタグに置き換える。RouterLinkStubはprops:['to']が使えず引き継げなくなるので使わない。
+      global: {
+        stubs: {
+          'nuxt-link': {
+            template: '<a><slot /></a>',
+          },
+        },
+      },
+    })
+    const link = wrapper.find('.ha-link')
+    // 現在は useSocialShareLink の戻り値をそのまま使う
+    expect(link.attributes('to')).toBe('mockedUrlFortwitter')
+  })
+})
+````
+
+## File: layers/base/app/test/composables/useDefaultApi.spec.ts
+````typescript
+// NOTE: そもそももっといいテストあれば是非
+import { test, expect, vi } from 'vitest'
+import { UseFetchOptions } from 'nuxt/app'
+import { FetchOptions } from 'ofetch'
+import useDefaultApi, { defaultFetcher } from '#base/app/composables/useDefaultApi'
+
+vi.mock('nuxt/app', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('nuxt/app')>()
+  return {
+    ...actual,
+    // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+    useFetch: vi.fn((path: string, options: UseFetchOptions<FetchOptions>) => {
+      return { path, options }
+    }),
+  }
+})
+
+test('useDefaultApi', () => {
+  // NOTE: useDefaultApiで使用できるRepositoryKeyを入れた際にオブジェクトが返ってくること。この場合useDefaultApi('hoge')など存在しない場合はテストが落ちる
+  const useApiExample = useDefaultApi('example').repository.value
+  const expectObj = { get: {} }
+  expect(useApiExample).toMatchObject(expectObj)
+})
+
+test('defaultFetcher', () => {
+  const path = '/example'
+  const options = {}
+  // useFetchが発火することを確認。戻り値はmockの戻り値とする
+  expect(defaultFetcher(path, options)).toStrictEqual({ path, options })
+})
+````
+
+## File: layers/base/app/test/composables/useExample.spec.ts
+````typescript
+import { describe, it, expect, vi } from 'vitest'
+import type { NitroFetchRequest } from 'nitropack'
+import { useExample } from '#base/app/composables/useExample'
+
+// Nuxtのpayloadの一部をmockする
+const useStateState: Record<string, any> = {} // eslint-disable-line @typescript-eslint/no-explicit-any
+
+vi.mock('nuxt/app', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('nuxt/app')>()
+  return {
+    ...actual,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    useState: vi.fn((key: string, init?: () => any) => {
+      useStateState[key] = { value: init?.() }
+      return useStateState[key]
+    }),
+
+    // NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+    useFetch: vi.fn(() => ({
+      status: 'ok',
+      data: {
+        todos: [
+          {
+            userId: 0,
+            id: 0,
+            title: 'Do something!',
+            completed: true,
+          },
+          {
+            userId: '1',
+            id: '1',
+            title: 'Say hello',
+            completed: false,
+          },
+        ],
+      },
+    })),
+  }
+})
+
+vi.mock('#base/app/plugins/runtimeConfig', () => ({
+  default: vi.fn(() => ({})),
+  requireRuntimeConfig: vi.fn(() => ({
+    public: {
+      baseUrl: 'http://localhost:3000',
+      apiPrefix: '/mock',
+    },
+  })),
+}))
+
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、fetchをすげ替えたいのでダミーとなるmock作成
+vi.mock('#base/app/plugins/fetch', () => {
+  return {
+    default: vi.fn(() => ({})),
+    pluginFetchApi: vi.fn((_path: string, _options: NitroFetchRequest) => {
+      return {
+        status: 'ok',
+        data: {
+          todos: [
+            {
+              userId: 0,
+              id: 0,
+              title: 'Do something!',
+              completed: true,
+            },
+            {
+              userId: '1',
+              id: '1',
+              title: 'Say hello',
+              completed: false,
+            },
+          ],
+        },
+      }
+    }),
+  }
+})
+
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、 ofetch をすげ替えたいのでダミーとなるmock作成
+vi.mock('ofetch', () => {
+  return {
+    $fetch: vi.fn((_path: string, _options: NitroFetchRequest) => {
+      return {
+        status: 'ok',
+        data: {
+          todos: [
+            {
+              userId: 0,
+              id: 0,
+              title: 'Do something!',
+              completed: true,
+            },
+            {
+              userId: '1',
+              id: '1',
+              title: 'Say hello',
+              completed: false,
+            },
+          ],
+        },
+      }
+    }),
+  }
+})
+
+describe('useExample', () => {
+  it('should be able to get example', () => {
+    const { exampleRef, exampleState } = useExample()
+    expect(exampleRef.value).toEqual(undefined)
+    expect(exampleState.value).toEqual(undefined)
+  })
+
+  it('should be able to change example', async () => {
+    const { exampleRef, exampleState, getExample } = useExample()
+    const result = await getExample()
+    const checkObject = [
+      {
+        userId: 0,
+        id: 0,
+        title: 'Do something!',
+        completed: true,
+      },
+      {
+        userId: '1',
+        id: '1',
+        title: 'Say hello',
+        completed: false,
+      },
+    ]
+    expect(result).toEqual(checkObject)
+    expect(exampleState.value).toEqual(checkObject)
+    expect(exampleRef.value).toEqual(checkObject)
+  })
+
+  /*
+   * TODO: このテストはしたいけど、現状はuseStateモックのテストになってしまっているので、コメントアウトしておく。うまい方法があればコメントアウトを解除して、実装して、このコメントを削除してください
+   * it("should share example's latest state", () => {
+   *   const { example } = useExample()
+   *   expect(example.value).toEqual([
+   *     {
+   *       userId: 0,
+   *       id: 0,
+   *       title: 'Do something!',
+   *       completed: true,
+   *     },
+   *     {
+   *       userId: '1',
+   *       id: '1',
+   *       title: 'Say hello',
+   *       completed: false,
+   *     },
+   *   ])
+   * })
+   */
+})
+````
+
+## File: layers/base/app/test/composables/useLocale.spec.ts
+````typescript
+import { test, expect, vi, beforeEach, afterEach } from 'vitest'
+import { ref } from 'vue'
+import type { WritableComputedRef } from 'vue'
+import { useLocale } from '#base/app/composables/useLocale'
+
+let globalLocale: string | null = null
+
+vi.mock('nuxt/app', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('nuxt/app')>()
+  return {
+    ...actual,
+    useRequestHeaders: vi.fn(() => 'ja'),
+  }
+})
+
+vi.mock('vue-i18n', () => ({
+  createI18n: vi.fn(() => ({ global: {}, mode: 'composition' })),
+  useI18n: vi.fn(() => ({
+    locale: ref('ja') as WritableComputedRef<string>,
+  })),
+}))
+
+vi.mock('@vee-validate/i18n', () => ({
+  setLocale: vi.fn((locale: string) => {
+    globalLocale = locale
+  }),
+}))
+
+beforeEach(() => {
+  globalLocale = null
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  globalLocale = null
+})
+
+test('getDefaultLanguage', () => {
+  const locale = useLocale()
+  const result = locale.getDefaultLanguage()
+  expect(result).oneOf(['ja', 'en'])
+})
+
+test('changeLocale', () => {
+  const locale = useLocale()
+  locale.changeLocale('en')
+  expect(globalLocale).toBe('en')
+})
+
+test('localPath', () => {
+  const locale = useLocale()
+
+  expect(locale.localePath('')).toBe('')
+  expect(locale.localePath('/path')).toBe('/path')
+
+  locale.changeLocale('en')
+  expect(locale.localePath('')).toBe('/en')
+  expect(locale.localePath('/path')).toBe('/en/path')
+})
+````
+
+## File: layers/base/app/test/composables/useSocialShareLink.spec.ts
+````typescript
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import useSocialShareLink from '#base/app/composables/useSocialShareLink'
+
+// vi.hoisted()でモックオブジェクトを定義
+const { mockI18n, mockRoute, mockConfig } = vi.hoisted(() => {
+  return {
+    mockI18n: {
+      locale: { value: 'ja' },
+    },
+    mockRoute: { path: '/test/' },
+    mockConfig: {
+      public: {
+        NUXT_ENV_BASE_URL: 'http://localhost:3000',
+      },
+      NUXT_ENV_BASE_URL: 'http://localhost:3000',
+    },
+  }
+})
+
+vi.mock('#app/nuxt', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('#app/nuxt')>()
+  return {
+    ...actual,
+    useRuntimeConfig: vi.fn(() => {
+      const runtimeConfig = actual.useRuntimeConfig?.()
+      if (!runtimeConfig) {
+        return mockConfig
+      }
+      Object.assign(runtimeConfig, mockConfig)
+      Object.assign(
+        ((runtimeConfig as Record<string, unknown>).public ??= {}),
+        mockConfig.public,
+      )
+      return runtimeConfig
+    }),
+    useNuxtApp: vi.fn(() => {
+      const nuxtApp = actual.useNuxtApp?.()
+      if (!nuxtApp) {
+        return { $i18n: mockI18n }
+      }
+      ;(nuxtApp as Record<string, unknown>).$i18n = mockI18n
+      return nuxtApp
+    }),
+  }
+})
+
+vi.mock('#app/composables/router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('#app/composables/router')>()
+  return {
+    ...actual,
+    useRoute: vi.fn(() => {
+      const route = actual.useRoute?.()
+      if (!route) {
+        return mockRoute
+      }
+      Object.assign(route, mockRoute)
+      return route
+    }),
+  }
+})
+
+beforeEach(() => {
+  mockI18n.locale.value = 'ja'
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
+const parseXShareUrl = (url: string) => new URL(url)
+
+describe('locale en', () => {
+  beforeEach(() => {
+    mockI18n.locale.value = 'en'
+  })
+
+  describe('X', () => {
+    it('no shareProps', () => {
+      const generatedShareUrl = useSocialShareLink().getShareUrl('x')
+      const parsed = parseXShareUrl(generatedShareUrl)
+      expect(parsed.origin).toBe('https://x.com')
+      expect(parsed.pathname).toBe('/intent/tweet')
+      expect(parsed.searchParams.get('url')).toBe('http://localhost:3000/test/')
+      expect(
+        decodeURIComponent(parsed.searchParams.get('text') ?? ''),
+      ).toBe('Share http://localhost:3000/test/\n')
+    })
+
+    it('set shareProps', () => {
+      const shareProps = {
+        text: 'shareText',
+        twitterHashtags: ['hash1', 'hash2'],
+        shareUrl: 'shareUrlStrings',
+      }
+      const generatedShareUrl = useSocialShareLink().getShareUrl(
+        'x',
+        shareProps,
+      )
+      expect(generatedShareUrl).toBe(
+        `https://x.com/intent/tweet?url=${shareProps.shareUrl}&text=${
+          shareProps.text
+        }%0A&hashtags=${[...shareProps.twitterHashtags].join('%2C')}`,
+      )
+    })
+  })
+
+  it('Facebook', () => {
+    const shareProps = {
+      text: 'testText',
+      shareUrl: 'testShareUrl',
+    }
+    const generatedShareUrl = useSocialShareLink().getShareUrl(
+      'facebook',
+      shareProps,
+    )
+    expect(generatedShareUrl).toBe(
+      'https://www.facebook.com/sharer/sharer.php?u=http://localhost:3000/test/&t=testText',
+    )
+  })
+
+  it('LINE', () => {
+    const shareProps = {
+      text: 'testText',
+    }
+    const generatedShareUrl = useSocialShareLink().getShareUrl(
+      'line',
+      shareProps,
+    )
+    expect(generatedShareUrl).toBe(
+      'http://line.me/R/msg/text/?testText',
+    )
+  })
+})
+
+describe('locale ja', () => {
+  beforeEach(() => {
+    mockI18n.locale.value = 'ja'
+  })
+
+  describe('X', () => {
+    it('no shareProps', () => {
+      const generatedShareUrl = useSocialShareLink().getShareUrl('x')
+      const parsed = parseXShareUrl(generatedShareUrl)
+      expect(parsed.origin).toBe('https://x.com')
+      expect(parsed.pathname).toBe('/intent/tweet')
+      expect(parsed.searchParams.get('url')).toBe('http://localhost:3000/test/')
+      expect(
+        decodeURIComponent(parsed.searchParams.get('text') ?? ''),
+      ).toBe('http://localhost:3000/test/ をシェア\n')
+    })
+
+    it('set shareProps', () => {
+      const shareProps = {
+        text: 'shareText',
+        twitterHashtags: ['hash1', 'hash2'],
+        shareUrl: 'shareUrlStrings',
+      }
+      const generatedShareUrl = useSocialShareLink().getShareUrl(
+        'x',
+        shareProps,
+      )
+      expect(generatedShareUrl).toBe(
+        'https://x.com/intent/tweet?url=shareUrlStrings&text=shareText%0A&hashtags=hash1%2Chash2',
+      )
+    })
+  })
+
+  it('Facebook', () => {
+    const shareProps = {
+      text: 'testText',
+      shareUrl: 'testShareUrl',
+    }
+    const generatedShareUrl = useSocialShareLink().getShareUrl(
+      'facebook',
+      shareProps,
+    )
+    expect(generatedShareUrl).toBe(
+      'https://www.facebook.com/sharer/sharer.php?u=http://localhost:3000/test/&t=testText',
+    )
+  })
+
+  it('LINE', () => {
+    const shareProps = {
+      text: 'testText',
+    }
+    const generatedShareUrl = useSocialShareLink().getShareUrl(
+      'line',
+      shareProps,
+    )
+    expect(generatedShareUrl).toBe(
+      'http://line.me/R/msg/text/?testText',
+    )
+  })
+})
+````
+
+## File: layers/base/app/test/composables/useToast.spec.ts
+````typescript
+import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { useToast, toastInjectionKey, type ToastComposable } from '#base/app/composables/useToast'
+
+// $toastのモック - 固定インスタンス
+const mockToast = {
+  info: vi.fn(),
+  success: vi.fn(),
+  error: vi.fn(),
+  warning: vi.fn(),
+}
+
+// useNuxtAppのモック
+vi.mock('nuxt/app', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('nuxt/app')>()
+  return {
+    ...actual,
+    useNuxtApp: vi.fn(() => ({
+      $toast: mockToast,
+    })),
+  }
+})
+
+// テストで使用するためにモックを取得
+const { useNuxtApp } = await import('nuxt/app')
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockUseNuxtApp = useNuxtApp as any
+
+describe('useToast composable', () => {
+  beforeEach(() => {
+    // 各モック関数の呼び出し履歴だけをクリア
+    mockToast.info.mockClear()
+    mockToast.success.mockClear()
+    mockToast.error.mockClear()
+    mockToast.warning.mockClear()
+    mockUseNuxtApp.mockClear()
+  })
+
+  describe('useToast', () => {
+    it('addToast関数を返す', () => {
+      const { addToast } = useToast()
+      expect(typeof addToast).toBe('function')
+    })
+
+    it('useNuxtAppから$toastを取得する', () => {
+      useToast()
+      expect(useNuxtApp).toHaveBeenCalled()
+    })
+  })
+
+  describe('addToast', () => {
+    it('デフォルトでinfoタイプのtoastを表示する', () => {
+      const { addToast } = useToast()
+      addToast('Test message')
+
+      expect(mockToast.info).toHaveBeenCalledWith('Test message', {
+        delay: undefined,
+        closeButton: false,
+      })
+    })
+
+    it('指定したタイプのtoastを表示する', () => {
+      const { addToast } = useToast()
+
+      addToast('Success message', 'success')
+      expect(mockToast.success).toHaveBeenCalledWith('Success message', {
+        delay: undefined,
+        closeButton: false,
+      })
+
+      addToast('Error message', 'error')
+      expect(mockToast.error).toHaveBeenCalledWith('Error message', {
+        delay: undefined,
+        closeButton: false,
+      })
+
+      addToast('Warning message', 'warning')
+      expect(mockToast.warning).toHaveBeenCalledWith('Warning message', {
+        delay: undefined,
+        closeButton: false,
+      })
+    })
+
+    it('時間を指定してtoastを表示する', () => {
+      const { addToast } = useToast()
+      addToast('Timed message', 'info', 5000)
+
+      expect(mockToast.info).toHaveBeenCalledWith('Timed message', {
+        delay: 5000,
+        closeButton: false,
+      })
+    })
+
+    it('閉じるボタンを有効にしてtoastを表示する', () => {
+      const { addToast } = useToast()
+      addToast('Closable message', 'info', undefined, true)
+
+      expect(mockToast.info).toHaveBeenCalledWith('Closable message', {
+        delay: undefined,
+        closeButton: true,
+      })
+    })
+
+    it('すべてのオプションを指定してtoastを表示する', () => {
+      const { addToast } = useToast()
+      addToast('Full options message', 'success', 3000, true)
+
+      expect(mockToast.success).toHaveBeenCalledWith('Full options message', {
+        delay: 3000,
+        closeButton: true,
+      })
+    })
+
+    it('各toastタイプが正しく呼ばれる', () => {
+      const { addToast } = useToast()
+
+      const types: ('info' | 'success' | 'error' | 'warning')[] = [
+        'info',
+        'success',
+        'error',
+        'warning',
+      ]
+
+      types.forEach((type) => {
+        addToast(`${type} message`, type)
+        expect(mockToast[type]).toHaveBeenCalledWith(`${type} message`, {
+          delay: undefined,
+          closeButton: false,
+        })
+      })
+    })
+
+    it('undefinedタイプの場合infoを使用', () => {
+      const { addToast } = useToast()
+      addToast('Default message', undefined)
+
+      expect(mockToast.info).toHaveBeenCalledWith('Default message', {
+        delay: undefined,
+        closeButton: false,
+      })
+    })
+
+    it('isClosableのデフォルト値はfalse', () => {
+      const { addToast } = useToast()
+      addToast('Message without closable param', 'info', 1000)
+
+      expect(mockToast.info).toHaveBeenCalledWith('Message without closable param', {
+        delay: 1000,
+        closeButton: false,
+      })
+    })
+  })
+
+  describe('型定義', () => {
+    it('ToastComposable型が正しく推論される', () => {
+      const toast: ToastComposable = useToast()
+      expect(toast).toHaveProperty('addToast')
+      expect(typeof toast.addToast).toBe('function')
+    })
+
+    it('toastInjectionKeyがSymbolである', () => {
+      expect(typeof toastInjectionKey).toBe('symbol')
+      expect(toastInjectionKey.toString()).toContain('toast')
+    })
+  })
+
+  describe('デフォルトエクスポート', () => {
+    it('useToastがデフォルトエクスポートされている', async () => {
+      const defaultExport = (await import('#base/app/composables/useToast')).default
+      expect(defaultExport).toBe(useToast)
+    })
+  })
+
+  describe('エラーハンドリング', () => {
+    it('$toastが存在しない場合でもエラーにならない', () => {
+      // useNuxtAppのモックを一時的に上書き
+      mockUseNuxtApp.mockReturnValueOnce({
+        $toast: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any)
+
+      expect(() => {
+        const { addToast } = useToast()
+        // $toastがundefinedでもエラーにならないかテスト
+        expect(addToast).toBeDefined()
+      }).not.toThrow()
+    })
+
+    it('無効なtoastタイプでもエラーにならない', () => {
+      const { addToast } = useToast()
+
+      expect(() => {
+        // 型安全でないが、ランタイムでのテスト
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        addToast('Test', 'invalid' as any)
+      }).not.toThrow()
+    })
+  })
+})
+````
+
+## File: layers/base/app/test/composables/useValidationRules.spec.ts
+````typescript
+import { fc, test } from '@fast-check/vitest'
+import { beforeEach, afterEach, expect, vi } from 'vitest'
+import useValidationRules from '#base/app/composables/useValidationRules'
+
+// vue-i18nのモックをトップレベルで定義
+vi.mock('vue-i18n', () => ({
+  createI18n: vi.fn(() => ({ global: {}, mode: 'composition' })),
+  useI18n: vi.fn(() => ({
+    t: (key: string, ..._args: unknown[]) => `dummy-${key}`,
+    locale: { value: 'ja' },
+  })),
+}))
+
+beforeEach(() => {
+  vi.clearAllMocks()
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
+test('validates (with trasnlate mock)', () => {
+  const rules = useValidationRules()
+
+  expect(() => rules.required.parse('')).toThrowError()
+  expect(() => rules.required.parse('a')).not.toThrowError()
+
+  expect(() => rules.stringRequired.parse(null)).toThrowError()
+  expect(() => rules.stringRequired.parse('')).not.toThrowError()
+
+  expect(() => rules.numberRequired.parse(null)).toThrowError()
+  expect(() => rules.numberRequired.parse(0)).not.toThrowError()
+
+  expect(() => rules.url.parse('')).toThrowError()
+  expect(() => rules.url.parse('a')).toThrowError()
+  expect(() => rules.url.parse('https://example.com')).not.toThrowError()
+
+  expect(() => rules.nonRequiredUrl.parse('')).not.toThrowError()
+  expect(() => rules.nonRequiredUrl.parse('a')).toThrowError()
+  expect(() =>
+    rules.nonRequiredUrl.parse('https://example.com'),
+  ).not.toThrowError()
+
+  expect(() => rules.excluded([0]).parse(0)).toThrowError()
+  expect(() => rules.excluded([0]).parse(1)).not.toThrowError()
+
+  const fileSizeIs1 = new File(['x'], 'dummy.png')
+  expect(() => rules.image({}).parse(undefined)).not.toThrowError()
+  expect(() => rules.image({}).parse(fileSizeIs1)).not.toThrowError()
+  expect(() => rules.image({ required: true }).parse(undefined)).toThrowError()
+  expect(() => rules.image({ maxSize: 0 }).parse(fileSizeIs1)).toThrowError()
+})
+
+test.prop([fc.nat(), fc.nat()])('validates minValue successfully', (n, m) => {
+  fc.pre(n <= m)
+  const rules = useValidationRules()
+  expect(() => rules.minValue(n).parse(m)).not.toThrowError()
+  expect(() => rules.minValue(n).parse(String(m))).not.toThrowError()
+})
+
+test.prop([fc.nat(), fc.nat()])('fails to validate minValue', (n, m) => {
+  fc.pre(n > m)
+  const rules = useValidationRules()
+  expect(() => rules.minValue(n).parse(m)).toThrowError()
+})
+
+test.prop([fc.nat(), fc.nat()])('validates maxValue successfully', (n, m) => {
+  fc.pre(n >= m)
+  const rules = useValidationRules()
+  expect(() => rules.maxValue(n).parse(m)).not.toThrowError()
+  expect(() => rules.maxValue(n).parse(String(m))).not.toThrowError()
+})
+
+test.prop([fc.nat(), fc.nat()])('fails to validate maxValue', (n, m) => {
+  fc.pre(n < m)
+  const rules = useValidationRules()
+  expect(() => rules.maxValue(n).parse(m)).toThrowError()
+})
+
+test.prop([fc.nat(), fc.string()])('validates max successfully', (n, s) => {
+  fc.pre(n >= s.length)
+  const rules = useValidationRules()
+  expect(() => rules.max(n).parse(s)).not.toThrowError()
+})
+
+test.prop([fc.nat(), fc.string()])('fails to validate max', (n, s) => {
+  fc.pre(n < s.length)
+  const rules = useValidationRules()
+  expect(() => rules.max(n).parse(s)).toThrowError()
+})
+````
+
+## File: layers/base/app/test/utils/default-api.spec.ts
+````typescript
+import { describe, it, expect, vi } from 'vitest'
+import type { NitroFetchRequest } from 'nitropack'
+import api from '#base/app/utils/default-api'
+
+// NOTE: src/utils/default-api.tsのテストとして当該ファイルがimportしているファイルからの変数「requireRuntimeConfig」をモックする。
+vi.mock('#base/app/plugins/runtimeConfig', () => {
+  return {
+    default: vi.fn(() => ({})),
+    requireRuntimeConfig: vi.fn(() => {
+      // NOTE: default-api.tsのテストとしてrequireRuntimeConfigが{public.baseUrl}としてダミーURLを返すだけの処理を行うようにモックする
+      return {
+        public: {
+          baseUrl: '/test-api',
+        },
+      }
+    }),
+  }
+})
+
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+vi.mock('#base/app/plugins/fetch', () => {
+  return {
+    default: vi.fn(() => ({})),
+    pluginFetchApi: vi.fn((path: string, options: NitroFetchRequest) => {
+      return { path, options }
+    }),
+  }
+})
+
+// NOTE: 本テストにおいて実際にAPI叩くわけではなく、useFetchをすげ替えたいのでダミーとなるmock作成
+vi.mock('ofetch', () => {
+  return {
+    $fetch: vi.fn((path: string, options: NitroFetchRequest) => {
+      return { path, options }
+    }),
+  }
+})
+
+describe('api', () => {
+  // NOTE: default-api.getの返却値のテストとして、引数のpathやfetchOptionを入力して、返却値として期待するexpectObjと同等かテストする。その際、onRequestとonResponseは複雑化するので、空オブジェクトで省略としてtoMatchObjectで合格するか検査する。
+  it('get', () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'GET',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    expect(api('get', path, fetchOptions)).toMatchObject(expectObj)
+  })
+  it('post', () => {
+    // NOET: 以下getと同様にテストする。methodはgetではなく、相送信methodに準じた値に変化するので注意
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'POST',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    expect(api('post', path, fetchOptions)).toMatchObject(expectObj)
+  })
+  it('put', () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'PUT',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    expect(api('put', path, fetchOptions)).toMatchObject(expectObj)
+  })
+  it('patch', () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'PATCH',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    expect(api('patch', path, fetchOptions)).toMatchObject(expectObj)
+  })
+  it('delete', () => {
+    const expectObj = {
+      options: {
+        baseURL: '/test-api',
+        method: 'DELETE',
+        onRequest: {},
+        onResponse: {},
+        retry: 2,
+      },
+      path: '/example',
+    }
+    const path = '/example'
+    const fetchOptions = {}
+    expect(api('delete', path, fetchOptions)).toMatchObject(expectObj)
+  })
+})
+````
+
+## File: layers/base/app/test/utils/default-factory.spec.ts
+````typescript
+import { describe, it, expect } from 'vitest'
+import exampleRepository from '#base/app/repositories/exampleRepository'
+import {
+  defaultRepositories,
+  defaultRepositoryFactory,
+} from '#base/app/utils/default-factory'
+
+describe('defaultRepositoryFactory', () => {
+  it('should return the correct repository when a valid key is provided', () => {
+    const repository = defaultRepositoryFactory.get('example')
+    expect(repository).toBe(exampleRepository)
+  })
+})
+
+describe('defaultRepositories', () => {
+  it('should contain the example repository', () => {
+    expect(defaultRepositories.example).toBe(exampleRepository)
+  })
+})
+````
+
+## File: layers/base/app/test/utils/file-control.spec.ts
+````typescript
+import { getBase64ByFile, getExtFromType, readFileAsBlob } from '#base/app/utils/file-control'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
+
+// NOTE: JSDOMでURL.createObjectURLはサポートされていない。その為、本来URL.createObjectURLが返してくれるURLを偽装してテストする。
+beforeEach(() => {
+  // NOTE: URL.createObjectURLが本来動作すれば次のようなドメイン配下のURLが発行される。例）62a0f348-495f-4221-b768-7b08c2759e08
+  URL.createObjectURL = vi.fn(() => 'blob:dummy-for-objectURL')
+  URL.revokeObjectURL = vi.fn()
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
+test('readFileAsBlob', () => {
+  // NOTE: 実際にテストで画像を渡せないので、下準備としてFile型のダミーを作成する
+  const file = new File([''], 'test.png')
+  const objectUrl = readFileAsBlob(file)
+  // NOTE: readFileAsBlob(file)にて画像のオブジェクトURLが作成されるか、返される文字列がURL形式であることをテストする。
+  expect(objectUrl.startsWith('blob:')).toBe(true)
+})
+
+describe('getExtFromType', () => {
+  test('image/pngから.pngを取得できる', () => {
+    const ext = getExtFromType('image/png')
+    expect(ext).toBe('.png')
+  })
+
+  test('image/jpegから.jpegを取得できる', () => {
+    const ext = getExtFromType('image/jpeg')
+    expect(ext).toBe('.jpeg')
+  })
+
+  test('application/pdfから.pdfを取得できる', () => {
+    const ext = getExtFromType('application/pdf')
+    expect(ext).toBe('.pdf')
+  })
+
+  test('text/plainから.plainを取得できる', () => {
+    const ext = getExtFromType('text/plain')
+    expect(ext).toBe('.plain')
+  })
+
+  test('video/mp4から.mp4を取得できる', () => {
+    const ext = getExtFromType('video/mp4')
+    expect(ext).toBe('.mp4')
+  })
+})
+
+describe('getBase64ByFile', () => {
+  test('Fileオブジェクトからbase64文字列を取得できる', async () => {
+    // FileReaderのモック
+    const mockResult = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAA='
+    class MockFileReader {
+      result: string | ArrayBuffer | null = mockResult
+      onload: ((e: ProgressEvent<FileReader>) => void) | null = null
+      readAsDataURL(_file: File) {
+        setTimeout(() => {
+          this.onload?.({ target: { result: this.result } } as ProgressEvent<FileReader>)
+        }, 0)
+      }
+    }
+
+    vi.stubGlobal('FileReader', MockFileReader as unknown as typeof FileReader)
+
+    const file = new File(['test content'], 'test.png', { type: 'image/png' })
+    const base64 = await getBase64ByFile(file)
+
+    expect(base64).toBe(mockResult)
+  })
+
+  test('FileReaderのresultがstring以外の場合はエラーがthrowされる', async () => {
+    class MockFileReader {
+      result: string | ArrayBuffer | null = null
+      onload: ((e: ProgressEvent<FileReader>) => void) | null = null
+      readAsDataURL = vi.fn(() => {
+        queueMicrotask(() => {
+          this.onload?.({ target: { result: this.result } } as ProgressEvent<FileReader>)
+        })
+      })
+    }
+
+    vi.stubGlobal('FileReader', MockFileReader as unknown as typeof FileReader)
+
+    const file = new File(['test content'], 'test.png', { type: 'image/png' })
+
+    await expect(getBase64ByFile(file)).rejects.toThrow('Failed to get base64')
+  })
+
+  test('空のFileオブジェクトでも動作する', async () => {
+    const mockResult = 'data:application/octet-stream;base64,'
+    class MockFileReader {
+      result: string | ArrayBuffer | null = mockResult
+      onload: ((e: ProgressEvent<FileReader>) => void) | null = null
+      readAsDataURL = vi.fn(() => {
+        setTimeout(() => {
+          this.onload?.({ target: { result: this.result } } as ProgressEvent<FileReader>)
+        }, 0)
+      })
+    }
+
+    vi.stubGlobal('FileReader', MockFileReader as unknown as typeof FileReader)
+
+    const file = new File([''], 'empty.txt', { type: 'text/plain' })
+    const base64 = await getBase64ByFile(file)
+
+    expect(base64).toBe(mockResult)
+  })
+})
+````
+
+## File: layers/base/app/test/utils/image.spec.ts
+````typescript
+import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { getImageUrl, toImage } from '#base/app/utils/image'
+
+// HTMLImageElement mock interface
+type EventHandler = (...args: unknown[]) => void
+interface MockHTMLImageElement {
+  addEventListener: (event: string, handler: EventHandler) => void
+  removeEventListener: (event: string, handler: EventHandler) => void
+  src: string
+  onload: (() => void) | null
+  onerror: ((error: unknown) => void) | null
+}
+
+describe('image.ts', () => {
+  const mockObjectURL = 'blob:http://localhost:3000/test-blob-url'
+  let lastImage: (MockHTMLImageElement & { listeners: Record<string, EventHandler | undefined> }) | null
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    // URL.createObjectURL と URL.revokeObjectURL のモック
+    global.URL.createObjectURL = vi.fn(() => mockObjectURL)
+    global.URL.revokeObjectURL = vi.fn()
+
+    // Image クラスのモック
+    class LocalImageMock implements MockHTMLImageElement {
+      listeners: Record<string, EventHandler | undefined> = {}
+      src = ''
+      onload: (() => void) | null = null
+      onerror: ((error?: unknown) => void) | null = null
+
+      constructor() {
+        // テスト検証用に最後に生成されたインスタンスを参照する
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        lastImage = this
+      }
+
+      addEventListener = vi.fn((event: string, handler: EventHandler) => {
+        this.listeners[event] = handler
+        if (event === 'load') this.onload = handler as () => void
+        if (event === 'error') this.onerror = handler as (error?: unknown) => void
+      })
+
+      removeEventListener = vi.fn((event: string, handler: EventHandler) => {
+        if (this.listeners[event] === handler) this.listeners[event] = undefined
+        if (event === 'load' && this.onload === handler) this.onload = null
+        if (event === 'error' && this.onerror === handler) this.onerror = null
+      })
+    }
+
+    vi.stubGlobal('Image', LocalImageMock as unknown as typeof Image)
+  })
+
+  describe('getImageUrl', () => {
+    it('FileオブジェクトからURLを生成する', () => {
+      const file = new File(['test'], 'test.png', { type: 'image/png' })
+      const result = getImageUrl(file)
+
+      expect(global.URL.createObjectURL).toHaveBeenCalledWith(file)
+      expect(result).toBe(mockObjectURL)
+    })
+
+    it('BlobオブジェクトからURLを生成する', () => {
+      const blob = new Blob(['test'], { type: 'image/png' })
+      const result = getImageUrl(blob)
+
+      expect(global.URL.createObjectURL).toHaveBeenCalledWith(blob)
+      expect(result).toBe(mockObjectURL)
+    })
+
+    it('Image要素が作成され、適切なイベントリスナーが設定される', () => {
+      const file = new File(['test'], 'test.png', { type: 'image/png' })
+      getImageUrl(file)
+
+      const mockImage = lastImage!
+      expect(mockImage.addEventListener).toHaveBeenCalledWith('load', expect.any(Function))
+      expect(mockImage.addEventListener).toHaveBeenCalledWith('error', expect.any(Function))
+      expect(mockImage.src).toBe(mockObjectURL)
+    })
+  })
+
+  describe('toImage', () => {
+    it('FileからHTMLImageElementを生成する', async () => {
+      const file = new File(['test'], 'test.png', { type: 'image/png' })
+      const promise = toImage(file)
+      lastImage?.listeners['load']?.()
+      const result = await promise
+
+      expect(result).toBe(lastImage)
+      expect(global.URL.createObjectURL).toHaveBeenCalledWith(file)
+      expect(global.URL.revokeObjectURL).toHaveBeenCalledWith(mockObjectURL)
+    })
+
+    it('BlobからHTMLImageElementを生成する', async () => {
+      const blob = new Blob(['test'], { type: 'image/png' })
+      const promise = toImage(blob)
+      lastImage?.listeners['load']?.()
+      const result = await promise
+
+      expect(result).toBe(lastImage)
+      expect(global.URL.createObjectURL).toHaveBeenCalledWith(blob)
+      expect(global.URL.revokeObjectURL).toHaveBeenCalledWith(mockObjectURL)
+    })
+
+    it('画像読み込みエラー時にPromiseをrejectする', async () => {
+      const file = new File(['test'], 'test.png', { type: 'image/png' })
+      const promise = toImage(file)
+      lastImage?.listeners['error']?.('Image load failed')
+
+      await expect(promise).rejects.toThrow('Image load failed')
+      expect(global.URL.revokeObjectURL).toHaveBeenCalledWith(mockObjectURL)
+    })
+
+    it('画像のsrcにcreateObjectURLの結果が設定される', () => {
+      const file = new File(['test'], 'test.png', { type: 'image/png' })
+      void toImage(file)
+
+      expect(lastImage?.src).toBe(mockObjectURL)
+    })
+
+    it('成功時にイベントリスナーが削除される', async () => {
+      const file = new File(['test'], 'test.png', { type: 'image/png' })
+      const promise = toImage(file)
+      lastImage?.listeners['load']?.()
+      await promise
+
+      expect(lastImage?.removeEventListener).toHaveBeenCalledWith('load', expect.any(Function))
+      expect(lastImage?.removeEventListener).toHaveBeenCalledWith('error', expect.any(Function))
+    })
+
+    it('エラー時にイベントリスナーが削除される', async () => {
+      const file = new File(['test'], 'test.png', { type: 'image/png' })
+      const promise = toImage(file)
+      lastImage?.listeners['error']?.('Error')
+      await expect(promise).rejects.toThrow()
+
+      expect(lastImage?.removeEventListener).toHaveBeenCalledWith('load', expect.any(Function))
+      expect(lastImage?.removeEventListener).toHaveBeenCalledWith('error', expect.any(Function))
+    })
+  })
+})
+````
+
 ## File: layers/base/app/test/setup.ts
 ````typescript
 import { vi } from 'vitest'
@@ -11844,6 +11972,7 @@ vi.mock('vue', async (importOriginal) => {
 // HTMLDialogElement mock for jsdom
 if (!global.HTMLDialogElement) {
   global.HTMLDialogElement = class HTMLDialogElement extends HTMLElement {
+    closedBy = ''
     open = false
     returnValue = ''
 
@@ -11870,134 +11999,6 @@ if (!global.HTMLDialogElement) {
     }
   }
 }
-````
-
-## File: layers/base/app/test/components/hm/input/HmInputSingleImage.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { beforeEach, afterEach, describe, test, expect, vi } from 'vitest'
-import { createI18n } from 'vue-i18n'
-import HmInputSingleImage from '#base/app/components/hm/input/HmInputSingleImage.vue'
-import { waitEffect } from '#base/app/utils/sleep'
-
-// i18nのモックインスタンス
-const i18n = createI18n({
-  legacy: false,
-  locale: 'ja',
-  messages: {
-    ja: {},
-    en: {},
-  },
-})
-
-vi.mock('#base/app/utils/file-control', () => ({
-  readFileAsBlob: () => 'dummy-blob',
-}))
-
-beforeEach(() => {
-  URL.createObjectURL = vi.fn(() => 'dummy-for-objectURL')
-})
-
-afterEach(() => {
-  vi.restoreAllMocks()
-})
-
-test('ref component', () => {
-  expect(HmInputSingleImage).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HmInputSingleImage, {
-    props: {
-      defaultImageUrl: null,
-    },
-    global: {
-      plugins: [i18n],
-    },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-describe('props', () => {
-  test(':optionalAccept', () => {
-    const wrapper = mount(HmInputSingleImage, {
-      props: {
-        optionalAccept: 'image/gif',
-        defaultImageUrl: null,
-      },
-      global: {
-        plugins: [i18n],
-      },
-    })
-    expect(
-      wrapper.find('.hm-single-image-uploader > .input').attributes('accept'),
-    ).toMatch('image/gif')
-  })
-
-  test(':error', () => {
-    const wrapper = mount(HmInputSingleImage, {
-      props: {
-        error: 'test error',
-        defaultImageUrl: null,
-      },
-      global: {
-        plugins: [i18n],
-      },
-    })
-    expect(wrapper.find('p[class="error-container"]').text()).toBe('test error')
-  })
-
-  test(':isRemovable', () => {
-    const wrapper = mount(HmInputSingleImage, {
-      props: {
-        isRemovable: true,
-        defaultImageUrl: 'foo.png',
-      },
-      global: {
-        plugins: [i18n],
-      },
-    })
-    expect(wrapper.find('.remove').exists()).toBe(true)
-  })
-
-  test(':isRequired', () => {
-    const wrapper = mount(HmInputSingleImage, {
-      props: {
-        isRequired: true,
-        defaultImageUrl: null,
-      },
-      global: {
-        plugins: [i18n],
-      },
-    })
-    expect(
-      wrapper.find('.hm-single-image-uploader > .input').attributes('required'),
-    ).toBeDefined()
-  })
-
-  test(':needCropper, :cropWidth, and :cropHeight', async () => {
-    const wrapper = mount(HmInputSingleImage, {
-      props: {
-        needCropper: true,
-        cropWidth: undefined,
-        cropHeight: undefined,
-        defaultImageUrl: null,
-      },
-      global: {
-        plugins: [i18n],
-      },
-    })
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (wrapper as any).vm.changeImage([
-      new File([], 'foo.png'),
-    ] as any as FileList) // eslint-disable-line @typescript-eslint/no-explicit-any
-    await waitEffect()
-
-    expect(wrapper.find('.ha-dialog').exists()).toBe(true)
-  })
-})
 ````
 
 ## File: layers/base/app/test/e2e/sample.spec.ts

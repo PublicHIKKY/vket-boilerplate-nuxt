@@ -848,36 +848,6 @@ declare module '*.svg?inline'
 </svg>
 ````
 
-## File: layers/main/app/assets/styles/_base.scss
-````scss
-@use 'variables' as v;
-@use 'mixins' as m;
-
-html,
-body {
-  overflow-x: clip;
-
-  font-family: v.$base-font-family;
-  font-variant-numeric: tabular-nums; // 数字フォントの幅を等幅にする
-  color: v.$base-font-color;
-  word-break: normal; // 単語の分割はブラウザのデフォルトであることを明記
-  line-break: strict; // 約物や小文字を置き去りにして改行させない
-  overflow-wrap: anywhere; // 行内に単語を収められない場合に折り返す
-
-  background: v.$base-background-color;
-
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-
-  text-spacing-trim: trim-start; // 英字や日本語の約物が重複した場合に全角分のスペースを確保させない
-}
-
-a {
-  color: v.$base-link-color;
-  text-decoration: none;
-}
-````
-
 ## File: layers/main/app/assets/styles/_functions.scss
 ````scss
 @function strip-unit($number) {
@@ -1177,130 +1147,6 @@ $zindex-loading: 400;
 @forward 'base';
 ````
 
-## File: layers/main/app/components/ho/HoTheFooter.vue
-````vue
-<i18n lang="yaml">
-ja:
-  mainlogo: ロゴ名サービス名
-en:
-  mainlogo: logo name
-</i18n>
-
-<template>
-  <footer class="ho-the-footer" />
-</template>
-
-<script lang="ts" setup>
-/*
- * const props = withDefaults(
- *   defineProps<{
- *   hoge: boolean
- *   fuga?: string
- * }>(),
- * {
- *   hoge: false
- * })
- */
-</script>
-
-<style scoped lang="scss">
-// .ho-the-footer {}
-</style>
-````
-
-## File: layers/main/app/components/ho/HoTheHeader.vue
-````vue
-<i18n lang="yaml">
-ja:
-  mainlogo: ロゴ名サービス名
-en:
-  mainlogo: logo name
-</i18n>
-
-<template>
-  <header class="ho-the-header" />
-</template>
-
-<script lang="ts" setup>
-/*
- * const props = withDefaults(
- *   defineProps<{
- *   hoge: boolean
- *   fuga?: string
- * }>(),
- * {
- *   hoge: false
- * })
- */
-</script>
-
-<style scoped lang="scss">
-// .ho-the-header{}
-</style>
-````
-
-## File: layers/main/app/components/ht/HtTop.vue
-````vue
-<i18n lang="yaml">
-ja:
-  hoge: ほげ
-en:
-  hoge: hoge
-</i18n>
-
-<template>
-  <div class="ht-top" />
-</template>
-
-<script setup lang="ts">
-//
-</script>
-
-<style lang="scss" scoped>
-@use '@/assets/styles/variables' as v;
-@use '@/assets/styles/mixins' as m;
-
-.ht-top {
-  width: 100%;
-  height: 100%;
-}
-</style>
-````
-
-## File: layers/main/app/composables/useApi.ts
-````typescript
-/**
- * Nuxt3 FWにおける API composables。
- *
- * @packageDocumentation
- */
-
-import type { UseFetchOptions } from 'nuxt/app'
-import { useFetch } from 'nuxt/app'
-import type { FetchOptions } from 'ofetch'
-import { ref } from 'vue'
-import type { RepositoryKey } from '@/utils/factory'
-import { repositoryFactory } from '@/utils/factory'
-
-export const fetcher = (
-  path: string,
-  options: UseFetchOptions<FetchOptions>,
-) => {
-  return useFetch(path, options)
-}
-
-const _getRepo = <K extends RepositoryKey>(endpoint: K) => {
-  return repositoryFactory.get(endpoint)
-}
-
-export default function useApi<K extends RepositoryKey>(endpoint: K) {
-  const repository = ref(_getRepo(endpoint))
-  return {
-    repository,
-  }
-}
-````
-
 ## File: layers/main/app/layouts/default.vue
 ````vue
 <template>
@@ -1589,87 +1435,38 @@ declare module 'vue' {
 }
 ````
 
-## File: layers/main/app/utils/api.ts
+## File: layers/main/app/test/utils/i18n.spec.ts
 ````typescript
-import type { FetchOptions } from 'ofetch'
-import type { Method } from '#base/app/utils/default-api'
-import { defaultApi } from '#base/app/utils/default-api'
+import { test, expect } from 'vitest'
+import { mount } from '@vue/test-utils'
+import { createI18n } from 'vue-i18n'
 
-export type { Method }
+test('getI18nArray takes a list from vue-i18n dict', () => {
+  const i18n = createI18n({
+    locale: 'ja',
+    messages: {
+      ja: { list: ['a', 'b', 'c'] },
+      en: { list: ['a', 'b', 'c'] },
+    },
+  })
 
-export default (
-  method: Method,
-  path: string,
-  fetchOptions: FetchOptions = {},
-) => {
-  switch (method) {
-    case 'GET':
-    case 'get':
-      return defaultApi.get(path, fetchOptions)
-    case 'POST':
-    case 'post':
-      return defaultApi.post(path, fetchOptions)
-    case 'PUT':
-    case 'put':
-      return defaultApi.put(path, fetchOptions)
-    case 'PATCH':
-    case 'patch':
-      return defaultApi.patch(path, fetchOptions)
-    case 'DELETE':
-    case 'delete':
-      return defaultApi.delete(path, fetchOptions)
-    default:
-      return defaultApi.get(path, fetchOptions)
-  }
-}
-````
-
-## File: layers/main/app/utils/factory.ts
-````typescript
-import { type MakeRepository, defaultRepositories } from '#base/app/utils/default-factory'
-import type { Method } from '@/utils/api'
-
-export type Repository = MakeRepository<Method>
-export type Repositories = Record<string, Repository>
-
-export const repositories = {
-  ...defaultRepositories,
-  // Add non-default repositories here
-} as const satisfies Repositories
-
-export type RepositoryKey = keyof typeof repositories
-
-export const repositoryFactory = {
-  get: <K extends keyof typeof repositories>(name: K) => repositories[name],
-}
-````
-
-## File: layers/main/app/utils/i18n.ts
-````typescript
-import type { VueMessageType, Composer, UseI18nOptions } from 'vue-i18n'
-
-/**
- * 引数未指定にすると、普通に`const i18n = useI18n()`とすると入ってくる型になる。
- * 型引数の使い方については、そのままuseI18nの型引数の指定方法を参照のこと。
- */
-export type UseI18nReturnType<Options extends UseI18nOptions = UseI18nOptions>
-  = Composer<
-    NonNullable<Options['messages']>,
-    NonNullable<Options['datetimeFormats']>,
-    NonNullable<Options['numberFormats']>,
-    Options['locale'] extends unknown ? string : Options['locale']
-  >
-
-/**
- * @example
- * ```ts
- * import { useI18n } from 'vue-i18n'
- * const i18n = useI18n() // messagesは `{ [locale]: { list: ['a', 'b', 'c'] } }` とする
- * const list = getI18nArray(i18n, 'list') // ['a', 'b', 'c']
- * ```
- */
-export const getI18nArray = (i18n: UseI18nReturnType, key: string): string[] =>
-  Object.entries<VueMessageType>(i18n.tm(key)).map(([, term]) => i18n.rt(term))
+  // useI18nがコンポーネントのsetup内でのみしか動かないので、コンポーネントを介してテストをする
+  mount(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (defineComponent as any)({
+      template: '<p>Nuxt ha iizo</p>',
+      setup: () => {
+        const i18n = useI18n()
+        expect(getI18nArray(i18n, 'list')).toEqual(['a', 'b', 'c'])
+      },
+    }),
+    {
+      global: {
+        plugins: [i18n],
+      },
+    },
+  )
+})
 ````
 
 ## File: layers/main/app/app.vue
@@ -2349,11 +2146,6 @@ Disallow:
 }
 ````
 
-## File: layers/main/.nuxtrc
-````
-setups.@nuxt/test-utils="4.0.0"
-````
-
 ## File: layers/main/.stylelintrc.mjs
 ````
 export default {
@@ -2385,6 +2177,36 @@ export default defineAppConfig(
     "../base/tsconfig.shared.json"
   ],
   "exclude": ["../base/**/*"]
+}
+````
+
+## File: layers/main/app/assets/styles/_base.scss
+````scss
+@use 'variables' as v;
+@use 'mixins' as m;
+
+html,
+body {
+  overflow-x: clip;
+
+  font-family: v.$base-font-family;
+  font-variant-numeric: tabular-nums; // 数字フォントの幅を等幅にする
+  color: v.$base-font-color;
+  word-break: normal; // 単語の分割はブラウザのデフォルトであることを明記
+  line-break: strict; // 約物や小文字を置き去りにして改行させない
+  overflow-wrap: anywhere; // 行内に単語を収められない場合に折り返す
+
+  background: v.$base-background-color;
+
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+
+  text-spacing-trim: trim-start; // 英字や日本語の約物が重複した場合に全角分のスペースを確保させない
+}
+
+a {
+  color: v.$base-link-color;
+  text-decoration: none;
 }
 ````
 
@@ -2552,6 +2374,130 @@ export default defineAppConfig(
 
   thead tr:first-child {
     background-color: v.$blue;
+  }
+}
+````
+
+## File: layers/main/app/components/ho/HoTheFooter.vue
+````vue
+<i18n lang="yaml">
+ja:
+  mainlogo: ロゴ名サービス名
+en:
+  mainlogo: logo name
+</i18n>
+
+<template>
+  <footer class="ho-the-footer" />
+</template>
+
+<script lang="ts" setup>
+/*
+ * const props = withDefaults(
+ *   defineProps<{
+ *   hoge: boolean
+ *   fuga?: string
+ * }>(),
+ * {
+ *   hoge: false
+ * })
+ */
+</script>
+
+<style scoped lang="scss">
+// .ho-the-footer {}
+</style>
+````
+
+## File: layers/main/app/components/ho/HoTheHeader.vue
+````vue
+<i18n lang="yaml">
+ja:
+  mainlogo: ロゴ名サービス名
+en:
+  mainlogo: logo name
+</i18n>
+
+<template>
+  <header class="ho-the-header" />
+</template>
+
+<script lang="ts" setup>
+/*
+ * const props = withDefaults(
+ *   defineProps<{
+ *   hoge: boolean
+ *   fuga?: string
+ * }>(),
+ * {
+ *   hoge: false
+ * })
+ */
+</script>
+
+<style scoped lang="scss">
+// .ho-the-header{}
+</style>
+````
+
+## File: layers/main/app/components/ht/HtTop.vue
+````vue
+<i18n lang="yaml">
+ja:
+  hoge: ほげ
+en:
+  hoge: hoge
+</i18n>
+
+<template>
+  <div class="ht-top" />
+</template>
+
+<script setup lang="ts">
+//
+</script>
+
+<style lang="scss" scoped>
+@use '@/assets/styles/variables' as v;
+@use '@/assets/styles/mixins' as m;
+
+.ht-top {
+  width: 100%;
+  height: 100%;
+}
+</style>
+````
+
+## File: layers/main/app/composables/useApi.ts
+````typescript
+/**
+ * Nuxt3 FWにおける API composables。
+ *
+ * @packageDocumentation
+ */
+
+import type { UseFetchOptions } from 'nuxt/app'
+import { useFetch } from 'nuxt/app'
+import type { FetchOptions } from 'ofetch'
+import { ref } from 'vue'
+import type { RepositoryKey } from '@/utils/factory'
+import { repositoryFactory } from '@/utils/factory'
+
+export const fetcher = (
+  path: string,
+  options: UseFetchOptions<FetchOptions>,
+) => {
+  return useFetch(path, options)
+}
+
+const _getRepo = <K extends RepositoryKey>(endpoint: K) => {
+  return repositoryFactory.get(endpoint)
+}
+
+export default function useApi<K extends RepositoryKey>(endpoint: K) {
+  const repository = ref(_getRepo(endpoint))
+  return {
+    repository,
   }
 }
 ````
@@ -2739,174 +2685,92 @@ describe('defaultRepositories', () => {
 })
 ````
 
-## File: layers/main/app/test/utils/i18n.spec.ts
+## File: layers/main/app/utils/api.ts
 ````typescript
-import { test, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { createI18n } from 'vue-i18n'
+import type { FetchOptions } from 'ofetch'
+import type { Method } from '#base/app/utils/default-api'
+import { defaultApi } from '#base/app/utils/default-api'
 
-test('getI18nArray takes a list from vue-i18n dict', () => {
-  const i18n = createI18n({
-    locale: 'ja',
-    messages: {
-      ja: { list: ['a', 'b', 'c'] },
-      en: { list: ['a', 'b', 'c'] },
-    },
-  })
+export type { Method }
 
-  // useI18nがコンポーネントのsetup内でのみしか動かないので、コンポーネントを介してテストをする
-  mount(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (defineComponent as any)({
-      template: '<p>Nuxt ha iizo</p>',
-      setup: () => {
-        const i18n = useI18n()
-        expect(getI18nArray(i18n, 'list')).toEqual(['a', 'b', 'c'])
-      },
-    }),
-    {
-      global: {
-        plugins: [i18n],
-      },
-    },
-  )
-})
-````
-
-## File: layers/main/app/test/setup.ts
-````typescript
-import { vi } from 'vitest'
-
-// Type declarations for global mocks - range and useSlots are handled by auto-imports
-
-// Global mock for all icon imports
-vi.mock('~icons/ri/close-line', () => ({
-  default: {
-    name: 'RiCloseLine',
-    template: '<svg class="icon"><path /></svg>',
-    props: ['class'],
-  },
-}))
-
-// Mock Nuxt composables using vi.mock to avoid conflicts with auto-imports
-vi.mock('#app/composables/useI18n', () => ({
-  useI18n: vi.fn(() => ({
-    t: vi.fn((key: string) => {
-      const messages: Record<string, string> = {
-        next: 'Next',
-        prev: 'Prev',
-      }
-      return messages[key] || key
-    }),
-    locale: { value: 'ja' },
-  })),
-}))
-
-// Basic Nuxt app mocks used by plugins and middleware
-vi.mock('nuxt/app', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('nuxt/app')>()
-  const mockI18n = { locale: { value: 'ja' } }
-
-  return {
-    ...actual,
-    defineNuxtPlugin: (plugin: unknown) => plugin,
-    defineNuxtRouteMiddleware:
-      actual.defineNuxtRouteMiddleware ?? ((fn: unknown) => fn),
-    useNuxtApp: () => {
-      const nuxtApp = actual.useNuxtApp?.()
-      if (!nuxtApp) {
-        return { $i18n: mockI18n }
-      }
-      return new Proxy(nuxtApp, {
-        get(target, property, receiver) {
-          if (property === '$i18n') {
-            return mockI18n
-          }
-          return Reflect.get(target, property, receiver)
-        },
-      })
-    },
-  }
-})
-
-vi.mock('#app', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('#app')>()
-  const mockI18n = { locale: { value: 'ja' } }
-
-  return {
-    ...actual,
-    defineNuxtPlugin: (plugin: unknown) => plugin,
-    defineNuxtRouteMiddleware:
-      actual.defineNuxtRouteMiddleware ?? ((fn: unknown) => fn),
-    useNuxtApp: () => {
-      const nuxtApp = actual.useNuxtApp?.()
-      if (!nuxtApp) {
-        return { $i18n: mockI18n }
-      }
-      return new Proxy(nuxtApp, {
-        get(target, property, receiver) {
-          if (property === '$i18n') {
-            return mockI18n
-          }
-          return Reflect.get(target, property, receiver)
-        },
-      })
-    },
-  }
-})
-
-vi.mock('#app/composables/useRoute', () => ({
-  useRoute: vi.fn(() => ({
-    path: '/test',
-    query: { page: '1' },
-  })),
-}))
-
-vi.mock('vue', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('vue')>()
-  return {
-    ...actual,
-    nextTick: vi.fn().mockResolvedValue(undefined),
-  }
-})
-
-// Global utility functions for tests - range and useSlots handled by auto-imports
-
-// HTMLDialogElement mock for jsdom
-if (!global.HTMLDialogElement) {
-  global.HTMLDialogElement = class HTMLDialogElement extends HTMLElement {
-    open = false
-    returnValue = ''
-
-    showModal = vi.fn(() => {
-      this.open = true
-    })
-
-    close = vi.fn(() => {
-      this.open = false
-    })
-
-    show = vi.fn(() => {
-      this.open = true
-    })
-
-    requestClose = vi.fn()
-
-    override addEventListener() {}
-
-    override removeEventListener() {}
+export default (
+  method: Method,
+  path: string,
+  fetchOptions: FetchOptions = {},
+) => {
+  switch (method) {
+    case 'GET':
+    case 'get':
+      return defaultApi.get(path, fetchOptions)
+    case 'POST':
+    case 'post':
+      return defaultApi.post(path, fetchOptions)
+    case 'PUT':
+    case 'put':
+      return defaultApi.put(path, fetchOptions)
+    case 'PATCH':
+    case 'patch':
+      return defaultApi.patch(path, fetchOptions)
+    case 'DELETE':
+    case 'delete':
+      return defaultApi.delete(path, fetchOptions)
+    default:
+      return defaultApi.get(path, fetchOptions)
   }
 }
 ````
 
-## File: layers/main/eslint.config.mjs
-````
-import sharedConfig from '../../eslint.config.shared.mjs'
-import withNuxt from './.nuxt/eslint.config.mjs'
+## File: layers/main/app/utils/factory.ts
+````typescript
+import { type MakeRepository, defaultRepositories } from '#base/app/utils/default-factory'
+import type { Method } from '@/utils/api'
 
-export default withNuxt(
-  ...sharedConfig,
-)
+export type Repository = MakeRepository<Method>
+export type Repositories = Record<string, Repository>
+
+export const repositories = {
+  ...defaultRepositories,
+  // Add non-default repositories here
+} as const satisfies Repositories
+
+export type RepositoryKey = keyof typeof repositories
+
+export const repositoryFactory = {
+  get: <K extends keyof typeof repositories>(name: K) => repositories[name],
+}
+````
+
+## File: layers/main/app/utils/i18n.ts
+````typescript
+import type { VueMessageType, Composer, UseI18nOptions } from 'vue-i18n'
+
+/**
+ * 引数未指定にすると、普通に`const i18n = useI18n()`とすると入ってくる型になる。
+ * 型引数の使い方については、そのままuseI18nの型引数の指定方法を参照のこと。
+ */
+export type UseI18nReturnType<Options extends UseI18nOptions = UseI18nOptions>
+  = Composer<
+    NonNullable<Options['messages']>,
+    NonNullable<Options['datetimeFormats']>,
+    NonNullable<Options['numberFormats']>,
+    Options['locale'] extends unknown ? string : Options['locale']
+  >
+
+/**
+ * @example
+ * ```ts
+ * import { useI18n } from 'vue-i18n'
+ * const i18n = useI18n() // messagesは `{ [locale]: { list: ['a', 'b', 'c'] } }` とする
+ * const list = getI18nArray(i18n, 'list') // ['a', 'b', 'c']
+ * ```
+ */
+export const getI18nArray = (i18n: UseI18nReturnType, key: string): string[] =>
+  Object.entries<VueMessageType>(i18n.tm(key)).map(([, term]) => i18n.rt(term))
+````
+
+## File: layers/main/.nuxtrc
+````
+setups.@nuxt/test-utils="4.0.3"
 ````
 
 ## File: layers/main/nuxt.config.ts
@@ -3061,6 +2925,143 @@ export default defineNuxtConfig({
 })
 ````
 
+## File: layers/main/app/test/setup.ts
+````typescript
+import { vi } from 'vitest'
+
+// Type declarations for global mocks - range and useSlots are handled by auto-imports
+
+// Global mock for all icon imports
+vi.mock('~icons/ri/close-line', () => ({
+  default: {
+    name: 'RiCloseLine',
+    template: '<svg class="icon"><path /></svg>',
+    props: ['class'],
+  },
+}))
+
+// Mock Nuxt composables using vi.mock to avoid conflicts with auto-imports
+vi.mock('#app/composables/useI18n', () => ({
+  useI18n: vi.fn(() => ({
+    t: vi.fn((key: string) => {
+      const messages: Record<string, string> = {
+        next: 'Next',
+        prev: 'Prev',
+      }
+      return messages[key] || key
+    }),
+    locale: { value: 'ja' },
+  })),
+}))
+
+// Basic Nuxt app mocks used by plugins and middleware
+vi.mock('nuxt/app', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('nuxt/app')>()
+  const mockI18n = { locale: { value: 'ja' } }
+
+  return {
+    ...actual,
+    defineNuxtPlugin: (plugin: unknown) => plugin,
+    defineNuxtRouteMiddleware:
+      actual.defineNuxtRouteMiddleware ?? ((fn: unknown) => fn),
+    useNuxtApp: () => {
+      const nuxtApp = actual.useNuxtApp?.()
+      if (!nuxtApp) {
+        return { $i18n: mockI18n }
+      }
+      return new Proxy(nuxtApp, {
+        get(target, property, receiver) {
+          if (property === '$i18n') {
+            return mockI18n
+          }
+          return Reflect.get(target, property, receiver)
+        },
+      })
+    },
+  }
+})
+
+vi.mock('#app', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('#app')>()
+  const mockI18n = { locale: { value: 'ja' } }
+
+  return {
+    ...actual,
+    defineNuxtPlugin: (plugin: unknown) => plugin,
+    defineNuxtRouteMiddleware:
+      actual.defineNuxtRouteMiddleware ?? ((fn: unknown) => fn),
+    useNuxtApp: () => {
+      const nuxtApp = actual.useNuxtApp?.()
+      if (!nuxtApp) {
+        return { $i18n: mockI18n }
+      }
+      return new Proxy(nuxtApp, {
+        get(target, property, receiver) {
+          if (property === '$i18n') {
+            return mockI18n
+          }
+          return Reflect.get(target, property, receiver)
+        },
+      })
+    },
+  }
+})
+
+vi.mock('#app/composables/useRoute', () => ({
+  useRoute: vi.fn(() => ({
+    path: '/test',
+    query: { page: '1' },
+  })),
+}))
+
+vi.mock('vue', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue')>()
+  return {
+    ...actual,
+    nextTick: vi.fn().mockResolvedValue(undefined),
+  }
+})
+
+// Global utility functions for tests - range and useSlots handled by auto-imports
+
+// HTMLDialogElement mock for jsdom
+if (!global.HTMLDialogElement) {
+  global.HTMLDialogElement = class HTMLDialogElement extends HTMLElement {
+    closedBy = ''
+    open = false
+    returnValue = ''
+
+    showModal = vi.fn(() => {
+      this.open = true
+    })
+
+    close = vi.fn(() => {
+      this.open = false
+    })
+
+    show = vi.fn(() => {
+      this.open = true
+    })
+
+    requestClose = vi.fn()
+
+    override addEventListener() {}
+
+    override removeEventListener() {}
+  }
+}
+````
+
+## File: layers/main/eslint.config.mjs
+````
+import sharedConfig from '../../eslint.config.shared.mjs'
+import withNuxt from './.nuxt/eslint.config.mjs'
+
+export default withNuxt(
+  ...sharedConfig,
+)
+````
+
 ## File: layers/main/vitest.config.mts
 ````
 import { defineVitestConfig } from '@nuxt/test-utils/config'
@@ -3104,7 +3105,7 @@ export default defineVitestConfig({
   "private": true,
   "type": "module",
   "version": "1.0.1",
-  "packageManager": "bun@1.3.9",
+  "packageManager": "bun@1.3.13",
   "scripts": {
     "postinstall": "if [ -x ../base/node_modules/.bin/nuxt ]; then ../base/node_modules/.bin/nuxt prepare; elif command -v nuxt >/dev/null 2>&1; then nuxt prepare; else echo 'skip nuxt prepare: nuxt not installed'; fi",
     "dev": "cross-env VITE_OUTPUT_ENV=\"$target\" nuxt dev",

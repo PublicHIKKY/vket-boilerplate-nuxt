@@ -16,7 +16,7 @@
       >
         <path
           d="M65,35c0-16.57-13.43-30-30-30S5,18.43,5,35H0C0,15.67,15.67,0,35,0s35,15.67,35,35h-5Z"
-          style="fill: #0583f2"
+          fill="#0583f2"
         >
           <animateTransform
             attributeName="transform"
