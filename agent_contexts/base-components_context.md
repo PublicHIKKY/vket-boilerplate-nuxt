@@ -872,7 +872,7 @@ const toUrl = ({
       >
         <path
           d="M65,35c0-16.57-13.43-30-30-30S5,18.43,5,35H0C0,15.67,15.67,0,35,0s35,15.67,35,35h-5Z"
-          style="fill: #0583f2"
+          fill="#0583f2"
         >
           <animateTransform
             attributeName="transform"
@@ -5771,6 +5771,24 @@ const url = computed(() => socialShareLink.getShareUrl(props.name || '', props))
 </script>
 ```
 
+## File: layers/base/app/layouts/default.vue
+```vue
+<template>
+  <div class="layout -default">
+    <h1 class="heading">
+      Base App Nuxt3
+    </h1>
+    <slot />
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.layout.-default {
+  overflow-x: hidden;
+}
+</style>
+```
+
 ## File: layers/base/app/components/hm/HmTab.vue
 ```vue
 <template>
@@ -5870,22 +5888,4 @@ const slots = useSlots()
 
 const DefaultSlot = () => h(Fragment, {}, slots.default?.())
 </script>
-```
-
-## File: layers/base/app/layouts/default.vue
-```vue
-<template>
-  <div class="layout -default">
-    <h1 class="heading">
-      Base App Nuxt3
-    </h1>
-    <slot />
-  </div>
-</template>
-
-<style lang="scss" scoped>
-.layout.-default {
-  overflow-x: hidden;
-}
-</style>
 ```
