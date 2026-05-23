@@ -2768,11 +2768,6 @@ export const getI18nArray = (i18n: UseI18nReturnType, key: string): string[] =>
   Object.entries<VueMessageType>(i18n.tm(key)).map(([, term]) => i18n.rt(term))
 ````
 
-## File: layers/main/.nuxtrc
-````
-setups.@nuxt/test-utils="4.0.3"
-````
-
 ## File: layers/main/nuxt.config.ts
 ````typescript
 import { defineNuxtConfig } from 'nuxt/config'
@@ -2925,6 +2920,57 @@ export default defineNuxtConfig({
 })
 ````
 
+## File: layers/main/.nuxtrc
+````
+setups.@nuxt/test-utils="4.0.3"
+````
+
+## File: layers/main/eslint.config.mjs
+````
+import sharedConfig from '../../eslint.config.shared.mjs'
+import withNuxt from './.nuxt/eslint.config.mjs'
+
+export default withNuxt(
+  ...sharedConfig,
+)
+````
+
+## File: layers/main/vitest.config.mts
+````
+import { defineVitestConfig } from '@nuxt/test-utils/config'
+import path from 'path'
+
+export default defineVitestConfig({
+  test: {
+    globals: true,
+    environment: 'nuxt',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      reportsDirectory: '../coverage',
+      reportOnFailure: true,
+      allowExternal: true,
+      include: ['**/*.{vue,ts}'],
+      exclude: [
+        'plugins/**',
+        'middleware/**',
+        'layouts/**',
+        'test/**',
+      ],
+    },
+    setupFiles: ['app/test/setup.ts'],
+    alias: {
+      '#base': path.resolve(__dirname, '../base'),
+    },
+  },
+  resolve: {
+    alias: {
+      '#base': path.resolve(__dirname, '../base'),
+    },
+  },
+})
+````
+
 ## File: layers/main/app/test/setup.ts
 ````typescript
 import { vi } from 'vitest'
@@ -3050,52 +3096,6 @@ if (!global.HTMLDialogElement) {
     override removeEventListener() {}
   }
 }
-````
-
-## File: layers/main/eslint.config.mjs
-````
-import sharedConfig from '../../eslint.config.shared.mjs'
-import withNuxt from './.nuxt/eslint.config.mjs'
-
-export default withNuxt(
-  ...sharedConfig,
-)
-````
-
-## File: layers/main/vitest.config.mts
-````
-import { defineVitestConfig } from '@nuxt/test-utils/config'
-import path from 'path'
-
-export default defineVitestConfig({
-  test: {
-    globals: true,
-    environment: 'nuxt',
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      reportsDirectory: '../coverage',
-      reportOnFailure: true,
-      allowExternal: true,
-      include: ['**/*.{vue,ts}'],
-      exclude: [
-        'plugins/**',
-        'middleware/**',
-        'layouts/**',
-        'test/**',
-      ],
-    },
-    setupFiles: ['app/test/setup.ts'],
-    alias: {
-      '#base': path.resolve(__dirname, '../base'),
-    },
-  },
-  resolve: {
-    alias: {
-      '#base': path.resolve(__dirname, '../base'),
-    },
-  },
-})
 ````
 
 ## File: layers/main/package.json

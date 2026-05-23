@@ -4026,6 +4026,134 @@ describe('DOM check', () => {
 })
 ````
 
+## File: layers/base/app/test/components/hm/input/HmInputSingleImage.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { beforeEach, afterEach, describe, test, expect, vi } from 'vitest'
+import { createI18n } from 'vue-i18n'
+import HmInputSingleImage from '#base/app/components/hm/input/HmInputSingleImage.vue'
+import { waitEffect } from '#base/app/utils/sleep'
+
+// i18nのモックインスタンス
+const i18n = createI18n({
+  legacy: false,
+  locale: 'ja',
+  messages: {
+    ja: {},
+    en: {},
+  },
+})
+
+vi.mock('#base/app/utils/file-control', () => ({
+  readFileAsBlob: () => 'dummy-blob',
+}))
+
+beforeEach(() => {
+  URL.createObjectURL = vi.fn(() => 'dummy-for-objectURL')
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
+test('ref component', () => {
+  expect(HmInputSingleImage).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HmInputSingleImage, {
+    props: {
+      defaultImageUrl: null,
+    },
+    global: {
+      plugins: [i18n],
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+describe('props', () => {
+  test(':optionalAccept', () => {
+    const wrapper = mount(HmInputSingleImage, {
+      props: {
+        optionalAccept: 'image/gif',
+        defaultImageUrl: null,
+      },
+      global: {
+        plugins: [i18n],
+      },
+    })
+    expect(
+      wrapper.find('.hm-single-image-uploader > .input').attributes('accept'),
+    ).toMatch('image/gif')
+  })
+
+  test(':error', () => {
+    const wrapper = mount(HmInputSingleImage, {
+      props: {
+        error: 'test error',
+        defaultImageUrl: null,
+      },
+      global: {
+        plugins: [i18n],
+      },
+    })
+    expect(wrapper.find('p[class="error-container"]').text()).toBe('test error')
+  })
+
+  test(':isRemovable', () => {
+    const wrapper = mount(HmInputSingleImage, {
+      props: {
+        isRemovable: true,
+        defaultImageUrl: 'foo.png',
+      },
+      global: {
+        plugins: [i18n],
+      },
+    })
+    expect(wrapper.find('.remove').exists()).toBe(true)
+  })
+
+  test(':isRequired', () => {
+    const wrapper = mount(HmInputSingleImage, {
+      props: {
+        isRequired: true,
+        defaultImageUrl: null,
+      },
+      global: {
+        plugins: [i18n],
+      },
+    })
+    expect(
+      wrapper.find('.hm-single-image-uploader > .input').attributes('required'),
+    ).toBeDefined()
+  })
+
+  test(':needCropper, :cropWidth, and :cropHeight', async () => {
+    const wrapper = mount(HmInputSingleImage, {
+      props: {
+        needCropper: true,
+        cropWidth: undefined,
+        cropHeight: undefined,
+        defaultImageUrl: null,
+      },
+      global: {
+        plugins: [i18n],
+      },
+    })
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (wrapper as any).vm.changeImage([
+      new File([], 'foo.png'),
+    ] as any as FileList) // eslint-disable-line @typescript-eslint/no-explicit-any
+    await waitEffect()
+
+    expect(wrapper.find('.ha-dialog').exists()).toBe(true)
+  })
+})
+````
+
 ## File: layers/base/app/test/components/hm/HmAccordion.spec.ts
 ````typescript
 import { AnyVueWrapper } from '#base/app/test/models/vue'
@@ -10066,134 +10194,6 @@ exports[`mount component 1`] = `
 `;
 ````
 
-## File: layers/base/app/test/components/hm/input/HmInputSingleImage.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { beforeEach, afterEach, describe, test, expect, vi } from 'vitest'
-import { createI18n } from 'vue-i18n'
-import HmInputSingleImage from '#base/app/components/hm/input/HmInputSingleImage.vue'
-import { waitEffect } from '#base/app/utils/sleep'
-
-// i18nのモックインスタンス
-const i18n = createI18n({
-  legacy: false,
-  locale: 'ja',
-  messages: {
-    ja: {},
-    en: {},
-  },
-})
-
-vi.mock('#base/app/utils/file-control', () => ({
-  readFileAsBlob: () => 'dummy-blob',
-}))
-
-beforeEach(() => {
-  URL.createObjectURL = vi.fn(() => 'dummy-for-objectURL')
-})
-
-afterEach(() => {
-  vi.restoreAllMocks()
-})
-
-test('ref component', () => {
-  expect(HmInputSingleImage).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HmInputSingleImage, {
-    props: {
-      defaultImageUrl: null,
-    },
-    global: {
-      plugins: [i18n],
-    },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-describe('props', () => {
-  test(':optionalAccept', () => {
-    const wrapper = mount(HmInputSingleImage, {
-      props: {
-        optionalAccept: 'image/gif',
-        defaultImageUrl: null,
-      },
-      global: {
-        plugins: [i18n],
-      },
-    })
-    expect(
-      wrapper.find('.hm-single-image-uploader > .input').attributes('accept'),
-    ).toMatch('image/gif')
-  })
-
-  test(':error', () => {
-    const wrapper = mount(HmInputSingleImage, {
-      props: {
-        error: 'test error',
-        defaultImageUrl: null,
-      },
-      global: {
-        plugins: [i18n],
-      },
-    })
-    expect(wrapper.find('p[class="error-container"]').text()).toBe('test error')
-  })
-
-  test(':isRemovable', () => {
-    const wrapper = mount(HmInputSingleImage, {
-      props: {
-        isRemovable: true,
-        defaultImageUrl: 'foo.png',
-      },
-      global: {
-        plugins: [i18n],
-      },
-    })
-    expect(wrapper.find('.remove').exists()).toBe(true)
-  })
-
-  test(':isRequired', () => {
-    const wrapper = mount(HmInputSingleImage, {
-      props: {
-        isRequired: true,
-        defaultImageUrl: null,
-      },
-      global: {
-        plugins: [i18n],
-      },
-    })
-    expect(
-      wrapper.find('.hm-single-image-uploader > .input').attributes('required'),
-    ).toBeDefined()
-  })
-
-  test(':needCropper, :cropWidth, and :cropHeight', async () => {
-    const wrapper = mount(HmInputSingleImage, {
-      props: {
-        needCropper: true,
-        cropWidth: undefined,
-        cropHeight: undefined,
-        defaultImageUrl: null,
-      },
-      global: {
-        plugins: [i18n],
-      },
-    })
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (wrapper as any).vm.changeImage([
-      new File([], 'foo.png'),
-    ] as any as FileList) // eslint-disable-line @typescript-eslint/no-explicit-any
-    await waitEffect()
-
-    expect(wrapper.find('.ha-dialog').exists()).toBe(true)
-  })
-})
-````
-
 ## File: layers/base/app/test/components/hm/input/HmInputText.spec.ts
 ````typescript
 import { mount } from '@vue/test-utils'
@@ -11829,6 +11829,36 @@ describe('image.ts', () => {
 })
 ````
 
+## File: layers/base/app/test/e2e/sample.spec.ts
+````typescript
+import { test, expect } from '@playwright/test'
+
+test.describe('Top Page', () => {
+  test('should display top page successfully', async ({ page }) => {
+    // トップページにアクセス
+    const response = await page.goto('/')
+
+    // ページが正常にロードされることを確認
+    await expect(page).toHaveTitle(/.*/)
+
+    // ページのステータスが200であることを確認（正常にレスポンスが返ってくる）
+    expect(response?.status()).toBe(200)
+  })
+
+  test('should have accessible content', async ({ page }) => {
+    await page.goto('/')
+
+    // ページのbody要素が存在することを確認
+    const body = page.locator('body')
+    await expect(body).toBeVisible()
+
+    // HTMLドキュメントが適切にレンダリングされていることを確認
+    const htmlContent = await page.content()
+    expect(htmlContent).toContain('<!DOCTYPE html>')
+  })
+})
+````
+
 ## File: layers/base/app/test/setup.ts
 ````typescript
 import { vi } from 'vitest'
@@ -11999,34 +12029,4 @@ if (!global.HTMLDialogElement) {
     }
   }
 }
-````
-
-## File: layers/base/app/test/e2e/sample.spec.ts
-````typescript
-import { test, expect } from '@playwright/test'
-
-test.describe('Top Page', () => {
-  test('should display top page successfully', async ({ page }) => {
-    // トップページにアクセス
-    const response = await page.goto('/')
-
-    // ページが正常にロードされることを確認
-    await expect(page).toHaveTitle(/.*/)
-
-    // ページのステータスが200であることを確認（正常にレスポンスが返ってくる）
-    expect(response?.status()).toBe(200)
-  })
-
-  test('should have accessible content', async ({ page }) => {
-    await page.goto('/')
-
-    // ページのbody要素が存在することを確認
-    const body = page.locator('body')
-    await expect(body).toBeVisible()
-
-    // HTMLドキュメントが適切にレンダリングされていることを確認
-    const htmlContent = await page.content()
-    expect(htmlContent).toContain('<!DOCTYPE html>')
-  })
-})
 ````
