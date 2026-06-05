@@ -66,3 +66,4 @@ app/models/openapi.ts
 
 # AI tools
 .serena
+.codex/
