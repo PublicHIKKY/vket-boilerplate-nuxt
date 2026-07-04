@@ -3178,7 +3178,7 @@ if (!global.HTMLDialogElement) {
     "test:ui": "cmd='vitest --ui --dir ./app/test' bun exec-test",
     "test:coverage": "cmd='vitest run --dir ./app/test --coverage' bun exec-test",
     "exec-test": "baseDir='./app/test' ext='\\.spec\\.ts' bun exec-if-file-exists",
-    "exec-if-file-exists": "[ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ] && $cmd || true",
+    "exec-if-file-exists": "if [ \"$(find $baseDir | grep \"${ext}$\" | wc -l)\" -gt 0 ]; then $cmd; else true; fi",
     "package-update": "bunx npm-check-updates -i",
     "clean-install": "bun run ../../scripts/clean_install.js",
     "allclean-install": "bun run ../../scripts/clean_install.js all"

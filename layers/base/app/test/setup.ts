@@ -2,6 +2,37 @@ import { vi } from 'vitest'
 
 // Type declarations for global mocks - range and useSlots are handled by auto-imports
 
+function createStorageMock() {
+  const store = new Map<string, string>()
+
+  return {
+    get length() {
+      return store.size
+    },
+    clear: vi.fn(() => {
+      store.clear()
+    }),
+    getItem: vi.fn((key: string) => store.get(key) ?? null),
+    key: vi.fn((index: number) => Array.from(store.keys())[index] ?? null),
+    removeItem: vi.fn((key: string) => {
+      store.delete(key)
+    }),
+    setItem: vi.fn((key: string, value: string) => {
+      store.set(key, value)
+    }),
+  }
+}
+
+Object.defineProperty(globalThis, 'localStorage', {
+  configurable: true,
+  value: createStorageMock(),
+})
+
+Object.defineProperty(globalThis, 'sessionStorage', {
+  configurable: true,
+  value: createStorageMock(),
+})
+
 // Global mock for all icon imports
 vi.mock('~icons/ri/close-line', () => ({
   default: {
