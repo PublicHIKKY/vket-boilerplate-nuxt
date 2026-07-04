@@ -43,6 +43,8 @@ layers/
       models/
         json.ts
         todo.ts
+      repositories/
+        .gitkeep
       utils/
         api.ts
         factory.ts
@@ -84,6 +86,11 @@ export const todoSchema = z.object({
 })
 
 export type Todo = z.infer<typeof todoSchema>
+````
+
+## File: layers/showcases/app/repositories/.gitkeep
+````
+
 ````
 
 ## File: layers/showcases/app/composables/useApi.ts

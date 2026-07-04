@@ -472,7 +472,7 @@ if (process.argv[1] === import.meta.url) {
 ```
 
 ## File: layers/open-api/scripts/template.hbs
-```
+```handlebars
 {{!-- OpenAPI から Zod スキーマ生成用テンプレート --}}
 import { z } from 'zod/v3'
 
@@ -602,9 +602,9 @@ export const {{toCamelCase operationId}} = async (
   },
   "devDependencies": {
     "openapi-zod-client": "^1.18.3",
-    "js-yaml": "^4.1.1",
+    "js-yaml": "^5.2.1",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^25.6.2"
+    "@types/node": "^26.1.0"
   }
 }
 ```

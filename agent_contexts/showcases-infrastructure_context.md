@@ -38,6 +38,8 @@ The content is organized as follows:
 layers/
   showcases/
     app/
+      middleware/
+        .gitkeep
       plugins/
         gtm.client.ts
         runtimeConfig.ts
@@ -45,6 +47,11 @@ layers/
 ```
 
 # Files
+
+## File: layers/showcases/app/middleware/.gitkeep
+```
+
+```
 
 ## File: layers/showcases/app/plugins/gtm.client.ts
 ```typescript

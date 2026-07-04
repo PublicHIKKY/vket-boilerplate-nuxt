@@ -40,13 +40,33 @@ layers/
   showcases/
     app/
       components/
+        ha/
+          .gitkeep
+        hm/
+          .gitkeep
         ho/
+          .gitkeep
           HoCssAnimations.vue
         ht/
           HtTop.vue
 ```
 
 # Files
+
+## File: layers/showcases/app/components/ha/.gitkeep
+```
+
+```
+
+## File: layers/showcases/app/components/hm/.gitkeep
+```
+
+```
+
+## File: layers/showcases/app/components/ho/.gitkeep
+```
+
+```
 
 ## File: layers/showcases/app/components/ho/HoCssAnimations.vue
 ```vue

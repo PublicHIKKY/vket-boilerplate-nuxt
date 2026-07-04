@@ -176,34 +176,6 @@ layers/
 
 # Files
 
-## File: layers/base/app/test/components/ha/__snapshots__/HaImage.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<img class="ha-image" loading="eager" fetchpriority="low" src="img.png" alt="a great img" role="img" decoding="auto">"`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaLink.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<a class="ha-link" href="https://example.com"></a>"`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaLoading.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<!--v-if-->"`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaVideo.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`HaVideo > mount component 1`] = `"<video class="ha-video" src="" autoplay="" autopictureinpicture="false" controls="" disablepictureinpicture="false" controlslist="" crossorigin="" disableremoteplayback="false" x-webkit-airplay="false" width="" height="" muted="" playsinline="false" poster="" preload=""></video>"`;
-````
-
 ## File: layers/base/app/test/components/ha/base/HaBaseButton.spec.ts
 ````typescript
 import { mount } from '@vue/test-utils'
@@ -4022,6 +3994,134 @@ describe('DOM check', () => {
       (wrapper.find('input[id="testValue3"]').element as HTMLInputElement)
         .checked,
     ).toBeFalsy()
+  })
+})
+````
+
+## File: layers/base/app/test/components/hm/input/HmInputSingleImage.spec.ts
+````typescript
+import { mount } from '@vue/test-utils'
+import { beforeEach, afterEach, describe, test, expect, vi } from 'vitest'
+import { createI18n } from 'vue-i18n'
+import HmInputSingleImage from '#base/app/components/hm/input/HmInputSingleImage.vue'
+import { waitEffect } from '#base/app/utils/sleep'
+
+// i18nのモックインスタンス
+const i18n = createI18n({
+  legacy: false,
+  locale: 'ja',
+  messages: {
+    ja: {},
+    en: {},
+  },
+})
+
+vi.mock('#base/app/utils/file-control', () => ({
+  readFileAsBlob: () => 'dummy-blob',
+}))
+
+beforeEach(() => {
+  URL.createObjectURL = vi.fn(() => 'dummy-for-objectURL')
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
+test('ref component', () => {
+  expect(HmInputSingleImage).toBeTruthy()
+})
+
+test('mount component', () => {
+  const wrapper = mount(HmInputSingleImage, {
+    props: {
+      defaultImageUrl: null,
+    },
+    global: {
+      plugins: [i18n],
+    },
+  })
+  expect(wrapper.getCurrentComponent()).toBeTruthy()
+  expect(wrapper.html()).toMatchSnapshot()
+})
+
+describe('props', () => {
+  test(':optionalAccept', () => {
+    const wrapper = mount(HmInputSingleImage, {
+      props: {
+        optionalAccept: 'image/gif',
+        defaultImageUrl: null,
+      },
+      global: {
+        plugins: [i18n],
+      },
+    })
+    expect(
+      wrapper.find('.hm-single-image-uploader > .input').attributes('accept'),
+    ).toMatch('image/gif')
+  })
+
+  test(':error', () => {
+    const wrapper = mount(HmInputSingleImage, {
+      props: {
+        error: 'test error',
+        defaultImageUrl: null,
+      },
+      global: {
+        plugins: [i18n],
+      },
+    })
+    expect(wrapper.find('p[class="error-container"]').text()).toBe('test error')
+  })
+
+  test(':isRemovable', () => {
+    const wrapper = mount(HmInputSingleImage, {
+      props: {
+        isRemovable: true,
+        defaultImageUrl: 'foo.png',
+      },
+      global: {
+        plugins: [i18n],
+      },
+    })
+    expect(wrapper.find('.remove').exists()).toBe(true)
+  })
+
+  test(':isRequired', () => {
+    const wrapper = mount(HmInputSingleImage, {
+      props: {
+        isRequired: true,
+        defaultImageUrl: null,
+      },
+      global: {
+        plugins: [i18n],
+      },
+    })
+    expect(
+      wrapper.find('.hm-single-image-uploader > .input').attributes('required'),
+    ).toBeDefined()
+  })
+
+  test(':needCropper, :cropWidth, and :cropHeight', async () => {
+    const wrapper = mount(HmInputSingleImage, {
+      props: {
+        needCropper: true,
+        cropWidth: undefined,
+        cropHeight: undefined,
+        defaultImageUrl: null,
+      },
+      global: {
+        plugins: [i18n],
+      },
+    })
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (wrapper as any).vm.changeImage([
+      new File([], 'foo.png'),
+    ] as any as FileList) // eslint-disable-line @typescript-eslint/no-explicit-any
+    await waitEffect()
+
+    expect(wrapper.find('.ha-dialog').exists()).toBe(true)
   })
 })
 ````
@@ -9445,95 +9545,6 @@ export default {
 }
 ````
 
-## File: layers/base/app/test/components/ha/__snapshots__/HaDialog.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-8d2cdb80="" class="ha-dialog">
-  <div data-v-8d2cdb80="" class="dialog-window">no content.</div>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaHamburger.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-398903c3="" class="ha-humberger-button">
-  <div data-v-398903c3="" class="line"></div>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaLoadingIcon.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<div data-v-c1d69a8c="" class="ha-loading-icon"></div>"`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaSelectBox.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-cb5e7ce8="" class="ha-select-box"><select data-v-cb5e7ce8="" name="" class="select">
-    <option data-v-cb5e7ce8="">---Select---</option>
-  </select>
-  <!--v-if-->
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaSkewBackground.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`HaSkewBackground > mount component 1`] = `
-"<div data-v-0570223f="" class="ha-skew" style="transform: skewX(30deg);">
-  <div data-v-0570223f="" class="content" style="transform: skewX(-30deg);"></div>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaTag.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`HaTag > mount component 1`] = `"<span data-v-c08b7397="" class="ha-tag -primary" disabled="false"></span>"`;
-````
-
-## File: layers/base/app/test/components/ha/__snapshots__/HaTextarea.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-94d1f98e="" class="ha-textarea"><label data-v-94d1f98e="" class="label">
-    <!--v-if--><textarea data-v-94d1f98e="" type="text" placeholder="Input Text" rows="5" class="input"></textarea>
-  </label>
-  <p data-v-94d1f98e="" class="error-container">
-    <!--v-if-->
-  </p>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/ha/base/__snapshots__/HaBaseButton.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<button data-v-0844060a="" class="ha-base-button" type="button">button label</button>"`;
-````
-
-## File: layers/base/app/test/components/ha/base/__snapshots__/HaBaseInput.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<input data-v-d0a26e0a="" class="ha-base-input" type="text" value="false">"`;
-````
-
 ## File: layers/base/app/test/components/ha/HaLink.spec.ts
 ````typescript
 import { mount } from '@vue/test-utils'
@@ -9753,443 +9764,6 @@ describe('<nuxt-link>', () => {
       },
     })
     expect(wrapper.find('a').exists()).toBeTruthy()
-  })
-})
-````
-
-## File: layers/base/app/test/components/hm/__snapshots__/HmClipping.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-7cbd279a="" class="hm-clipping">
-  <div data-v-7cbd279a="" class="cropper-container">
-    <div data-v-7cbd279a="" class="vue-advanced-cropper cropper">
-      <div class="vue-advanced-cropper__stretcher"></div>
-      <div class="vue-advanced-cropper__boundaries" style="width: auto; height: auto; transition: opacity 300ms; pointer-events: none; opacity: 0;">
-        <div class="vue-advanced-cropper__cropper-wrapper">
-          <div class="vue-advanced-cropper__background" style="width: auto; height: auto; transition: opacity 300ms; pointer-events: none; opacity: 0;"></div>
-          <div class="vue-advanced-cropper__image-wrapper"><img class="vue-advanced-cropper__image" style="height: 0px; left: 0px; top: 0px; transform: translate(NaNpx, NaNpx) rotate(0deg)  scaleX(NaN)  scaleY(NaN);"></div>
-          <div class="vue-advanced-cropper__foreground" style="width: auto; height: auto; transition: opacity 300ms; pointer-events: none; opacity: 0;"></div>
-          <div class="vue-rectangle-stencil vue-rectangle-stencil--movable" style="width: 0px; height: 0px; transform: translate(0px, 0px); display: none;">
-            <div class="vue-bounding-box vue-rectangle-stencil__bounding-box">
-              <div>
-                <div class="vue-preview vue-preview--fill vue-rectangle-stencil__preview">
-                  <div class="vue-preview__wrapper" style="width: 0px; height: 0px; left: calc(50% - 0px); top: calc(50% - 0px);"><img class="vue-preview__image" style="width: 0px; height: 0px; left: 0px; top: 0px; transform: translate(
-				NaNpx,NaNpx)  rotate(0deg)  scaleX(NaN)  scaleY(NaN); display: none;"></div>
-                </div>
-              </div>
-              <div>
-                <div class="vue-line-wrapper vue-line-wrapper--east vue-simple-line-wrapper vue-simple-line-wrapper--east">
-                  <div class="vue-simple-line vue-simple-line--east"></div>
-                </div>
-                <div class="vue-line-wrapper vue-line-wrapper--west vue-simple-line-wrapper vue-simple-line-wrapper--west">
-                  <div class="vue-simple-line vue-simple-line--west"></div>
-                </div>
-                <div class="vue-line-wrapper vue-line-wrapper--south vue-simple-line-wrapper vue-simple-line-wrapper--south">
-                  <div class="vue-simple-line vue-simple-line--south"></div>
-                </div>
-                <div class="vue-line-wrapper vue-line-wrapper--north vue-simple-line-wrapper vue-simple-line-wrapper--north">
-                  <div class="vue-simple-line vue-simple-line--north"></div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--east-south">
-                <div class="vue-handler-wrapper vue-handler-wrapper--east-south vue-simple-handler-wrapper vue-simple-handler-wrapper--east vue-simple-handler-wrapper--south vue-simple-handler-wrapper--east-south vue-bounding-box__handler vue-bounding-box__handler--east-south">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--east vue-simple-handler--south vue-simple-handler--east-south"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--east-north">
-                <div class="vue-handler-wrapper vue-handler-wrapper--east-north vue-simple-handler-wrapper vue-simple-handler-wrapper--east vue-simple-handler-wrapper--north vue-simple-handler-wrapper--east-north vue-bounding-box__handler vue-bounding-box__handler--east-north">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--east vue-simple-handler--north vue-simple-handler--east-north"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--east">
-                <div class="vue-handler-wrapper vue-handler-wrapper--east vue-simple-handler-wrapper vue-simple-handler-wrapper--east vue-bounding-box__handler vue-bounding-box__handler--east">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--east"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--west-south">
-                <div class="vue-handler-wrapper vue-handler-wrapper--west-south vue-simple-handler-wrapper vue-simple-handler-wrapper--west vue-simple-handler-wrapper--south vue-simple-handler-wrapper--west-south vue-bounding-box__handler vue-bounding-box__handler--west-south">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--west vue-simple-handler--south vue-simple-handler--west-south"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--west-north">
-                <div class="vue-handler-wrapper vue-handler-wrapper--west-north vue-simple-handler-wrapper vue-simple-handler-wrapper--west vue-simple-handler-wrapper--north vue-simple-handler-wrapper--west-north vue-bounding-box__handler vue-bounding-box__handler--west-north">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--west vue-simple-handler--north vue-simple-handler--west-north"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--west">
-                <div class="vue-handler-wrapper vue-handler-wrapper--west vue-simple-handler-wrapper vue-simple-handler-wrapper--west vue-bounding-box__handler vue-bounding-box__handler--west">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--west"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--south">
-                <div class="vue-handler-wrapper vue-handler-wrapper--south vue-simple-handler-wrapper vue-simple-handler-wrapper--south vue-bounding-box__handler vue-bounding-box__handler--south">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--south"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="vue-bounding-box__handler vue-bounding-box__handler--north">
-                <div class="vue-handler-wrapper vue-handler-wrapper--north vue-simple-handler-wrapper vue-simple-handler-wrapper--north vue-bounding-box__handler vue-bounding-box__handler--north">
-                  <div class="vue-handler-wrapper__draggable">
-                    <div class="vue-simple-handler vue-simple-handler--north"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div><canvas style="display: none;"></canvas><canvas style="display: none;"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!--v-if-->
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/__snapshots__/HmMenuExample.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<section data-v-76fe05f2="" class="hm-menu-example">
-  <div data-v-76fe05f2="" data-headlessui-state="" class="menu-container"><button data-v-76fe05f2="" id="headlessui-menu-button-v-0" type="button" aria-haspopup="menu" aria-expanded="false" data-headlessui-state="" class="button"> Menu </button>
-    <!---->
-  </div>
-</section>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/__snapshots__/HmNoteList.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<ul data-v-91fb3b34="" class="hm-note-list"></ul>"`;
-````
-
-## File: layers/base/app/test/components/hm/__snapshots__/HmPopup.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-8d2cdb80="" data-v-e875e4c1="" class="ha-dialog hm-popup">
-  <div data-v-8d2cdb80="" class="dialog-window"><span data-v-e875e4c1="" class="hm-popup-title">title</span>
-    <p data-v-e875e4c1="" class="hm-popup-description">description</p>
-    <div data-v-e875e4c1="" class="hm-popup-wrapper">
-      <div data-v-e875e4c1="" class="hm-popup-button"><button data-v-0844060a="" data-v-98a1ad68="" data-v-e875e4c1="" class="ha-base-button hm-button -warning -md item" type="button">cancel</button></div>
-      <div data-v-e875e4c1="" class="hm-popup-button"><button data-v-0844060a="" data-v-98a1ad68="" data-v-e875e4c1="" class="ha-base-button hm-button -primary -md item" type="button">confirm</button></div>
-    </div>
-  </div>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/__snapshots__/HmSkeletonScreen.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`HmSkeletonScreen > mount component 1`] = `
-"<div data-v-f3341911="" class="hm-skeleton-screen">
-  <div data-v-f3341911="" class="skeleton-screen">
-    <!-- NOTE: brタグはテキスト1行分の高さを確保している --><br data-v-f3341911="">
-  </div>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/button/__snapshots__/HmButton.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<button data-v-0844060a="" data-v-98a1ad68="" class="ha-base-button hm-button -primary -md" type="button">button label</button>"`;
-````
-
-## File: layers/base/app/test/components/hm/button/__snapshots__/HmButtonClose.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<button data-v-0844060a="" data-v-50f49dd3="" class="ha-base-button hm-button-close" type="button"><svg data-v-50f49dd3="" xmlns="http://www.w3.org/2000/svg" width="24.121" height="24.121" viewBox="0 0 24.121 24.121" style="width: 20px; height: 20px;">
-    <g transform="translate(-953.439 -212.439)">
-      <line x2="22" y2="22" transform="translate(954.5 213.5)" fill="none" stroke="#fff" stroke-width="3"></line>
-      <line x1="22" y2="22" transform="translate(954.5 213.5)" fill="none" stroke="#fff" stroke-width="3"></line>
-    </g>
-  </svg></button>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/button/__snapshots__/HmButtonFavorite.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-f3cd9c7d="" class="hm-button-favorite">
-  <div data-v-f3cd9c7d="" class="button"><svg data-v-f3cd9c7d="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31.02 27.03" class="favorite-icon -active">
-      <defs>
-        <style>
-          .body {
-            fill: none;
-          }
-
-          .border {
-            fill: #757575;
-          }
-        </style>
-      </defs>
-      <g class="body">
-        <path d="M28.63,2.41c-3.19-3.18-8.35-3.18-11.54,0l-1.57,1.57-1.57-1.57c-3.17-3.2-8.33-3.22-11.53-.05-3.2,3.17-3.22,8.33-.05,11.53,.01,.01,.03,.03,.04,.04l1.57,1.57,11.54,11.52,11.54-11.52,1.57-1.57c3.18-3.17,3.19-8.33,.01-11.51,0,0,0,0-.01-.01Z"></path>
-      </g>
-      <g class="border">
-        <path d="M22.86,2.03c-1.65,0-3.19,.64-4.36,1.8l-1.57,1.57c-.78,.78-2.05,.78-2.83,0l-1.57-1.57c-1.16-1.16-2.71-1.8-4.36-1.8s-3.19,.64-4.36,1.8c-1.16,1.16-1.8,2.7-1.8,4.35s.64,3.18,1.8,4.35l11.7,11.68,11.7-11.68c1.16-1.16,1.8-2.7,1.8-4.35s-.64-3.18-1.8-4.35c-1.16-1.16-2.71-1.8-4.36-1.8m0-2c2.09,0,4.18,.8,5.77,2.39h0c3.19,3.18,3.19,8.34,0,11.52l-13.11,13.09L2.41,13.94C-.78,10.75-.78,5.6,2.41,2.41,5.59-.77,10.76-.77,13.94,2.41l1.57,1.57,1.57-1.57C18.68,.82,20.77,.03,22.86,.03Z"></path>
-      </g>
-    </svg></div>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/icon/__snapshots__/HmIconUser.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `"<span data-v-232938ab="" class="hm-icon-user"><img data-v-232938ab="" class="ha-image image" loading="eager" fetchpriority="low" src="/image.png" alt="" role="presentation" decoding="auto" draggable="false"></span>"`;
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputCheckbox.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<label data-v-16361de7="" class="hm-input-checkbox"><input data-v-d0a26e0a="" data-v-16361de7="" class="ha-base-input button" type="checkbox" name="test name" value="false">
-  <div data-v-16361de7="" class="content"></div>
-  <!--v-if-->
-</label>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputDatetime.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-52539492="" name="dateLocal" class="hm-input-datetime"><label data-v-52539492="" class="hm-input-datetime__label"><input data-v-d0a26e0a="" data-v-52539492="" class="ha-base-input hm-input-datetime__input" type="datetime-local" value="Invalid Date"></label>
-  <p data-v-52539492="" class="error-container">
-    <!--v-if-->
-  </p>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputFile.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<!-- TODO: エラーメッセージの表示をする際に、必要に応じてHmInputTextBase.vue同様の修正(DOM構造とエラーmsgのstyle)を行う -->
-<label data-v-8323f5e3="" class="hm-input-file"><input data-v-d0a26e0a="" data-v-8323f5e3="" class="ha-base-input input" type="file" accept="" name="file">
-  <div data-v-8323f5e3="" class="image-box">
-    <div data-v-8323f5e3="" class="inner"><span data-v-8323f5e3="" class="text"> Select file or drag it! </span></div>
-  </div>
-</label>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadio.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<label data-v-d244b359="" class="hm-input-radio"><input data-v-d0a26e0a="" data-v-d244b359="" class="ha-base-input button" type="radio" name="test name" value="1">
-  <div data-v-d244b359="" class="content"></div>
-</label>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputRadioChangeable.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-0195f537="" class="hm-input-radio-changeable">
-  <div data-v-0195f537="" class="radio"><input data-v-d0a26e0a="" data-v-0195f537="" id="testValue" class="ha-base-input input" type="radio" name="testName" required="" value="testValue"><label data-v-0195f537="" for="testValue" class="label option-0">
-      <!--v-if--> testLabel
-      <!--v-if-->
-    </label></div>
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputSingleImage.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-c9c71ad2="" class="hm-input-single-image">
-  <div data-v-c9c71ad2="" class="wrapper">
-    <!-- TODO: エラーメッセージの表示をする際に、必要に応じてHmInputTextBase.vue同様の修正(DOM構造とエラーmsgのstyle)を行う --><label data-v-8323f5e3="" data-v-c9c71ad2="" class="hm-input-file hm-single-image-uploader"><input data-v-d0a26e0a="" data-v-8323f5e3="" class="ha-base-input input" type="file" accept="image/png,image/jpeg" name="file" required="">
-      <div data-v-8323f5e3="" class="image-box">
-        <div data-v-8323f5e3="" class="inner"><span data-v-8323f5e3="" class="text"> Select file or drag it! </span></div>
-      </div>
-    </label>
-  </div>
-  <p data-v-c9c71ad2="" class="error-container">
-    <!--v-if-->
-  </p>
-  <!--v-if-->
-  <!--v-if-->
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/__snapshots__/HmInputText.spec.ts.snap
-````
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`mount component 1`] = `
-"<div data-v-4a548fbf="" tag="div" class="hm-input-text"><label data-v-4a548fbf="" class="label">
-    <!--v-if--><input data-v-d0a26e0a="" data-v-4a548fbf="" class="ha-base-input input" type="text" placeholder="Input Text" value="">
-  </label>
-  <!--v-if-->
-</div>"
-`;
-````
-
-## File: layers/base/app/test/components/hm/input/HmInputSingleImage.spec.ts
-````typescript
-import { mount } from '@vue/test-utils'
-import { beforeEach, afterEach, describe, test, expect, vi } from 'vitest'
-import { createI18n } from 'vue-i18n'
-import HmInputSingleImage from '#base/app/components/hm/input/HmInputSingleImage.vue'
-import { waitEffect } from '#base/app/utils/sleep'
-
-// i18nのモックインスタンス
-const i18n = createI18n({
-  legacy: false,
-  locale: 'ja',
-  messages: {
-    ja: {},
-    en: {},
-  },
-})
-
-vi.mock('#base/app/utils/file-control', () => ({
-  readFileAsBlob: () => 'dummy-blob',
-}))
-
-beforeEach(() => {
-  URL.createObjectURL = vi.fn(() => 'dummy-for-objectURL')
-})
-
-afterEach(() => {
-  vi.restoreAllMocks()
-})
-
-test('ref component', () => {
-  expect(HmInputSingleImage).toBeTruthy()
-})
-
-test('mount component', () => {
-  const wrapper = mount(HmInputSingleImage, {
-    props: {
-      defaultImageUrl: null,
-    },
-    global: {
-      plugins: [i18n],
-    },
-  })
-  expect(wrapper.getCurrentComponent()).toBeTruthy()
-  expect(wrapper.html()).toMatchSnapshot()
-})
-
-describe('props', () => {
-  test(':optionalAccept', () => {
-    const wrapper = mount(HmInputSingleImage, {
-      props: {
-        optionalAccept: 'image/gif',
-        defaultImageUrl: null,
-      },
-      global: {
-        plugins: [i18n],
-      },
-    })
-    expect(
-      wrapper.find('.hm-single-image-uploader > .input').attributes('accept'),
-    ).toMatch('image/gif')
-  })
-
-  test(':error', () => {
-    const wrapper = mount(HmInputSingleImage, {
-      props: {
-        error: 'test error',
-        defaultImageUrl: null,
-      },
-      global: {
-        plugins: [i18n],
-      },
-    })
-    expect(wrapper.find('p[class="error-container"]').text()).toBe('test error')
-  })
-
-  test(':isRemovable', () => {
-    const wrapper = mount(HmInputSingleImage, {
-      props: {
-        isRemovable: true,
-        defaultImageUrl: 'foo.png',
-      },
-      global: {
-        plugins: [i18n],
-      },
-    })
-    expect(wrapper.find('.remove').exists()).toBe(true)
-  })
-
-  test(':isRequired', () => {
-    const wrapper = mount(HmInputSingleImage, {
-      props: {
-        isRequired: true,
-        defaultImageUrl: null,
-      },
-      global: {
-        plugins: [i18n],
-      },
-    })
-    expect(
-      wrapper.find('.hm-single-image-uploader > .input').attributes('required'),
-    ).toBeDefined()
-  })
-
-  test(':needCropper, :cropWidth, and :cropHeight', async () => {
-    const wrapper = mount(HmInputSingleImage, {
-      props: {
-        needCropper: true,
-        cropWidth: undefined,
-        cropHeight: undefined,
-        defaultImageUrl: null,
-      },
-      global: {
-        plugins: [i18n],
-      },
-    })
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (wrapper as any).vm.changeImage([
-      new File([], 'foo.png'),
-    ] as any as FileList) // eslint-disable-line @typescript-eslint/no-explicit-any
-    await waitEffect()
-
-    expect(wrapper.find('.ha-dialog').exists()).toBe(true)
   })
 })
 ````
@@ -11829,6 +11403,36 @@ describe('image.ts', () => {
 })
 ````
 
+## File: layers/base/app/test/e2e/sample.spec.ts
+````typescript
+import { test, expect } from '@playwright/test'
+
+test.describe('Top Page', () => {
+  test('should display top page successfully', async ({ page }) => {
+    // トップページにアクセス
+    const response = await page.goto('/')
+
+    // ページが正常にロードされることを確認
+    await expect(page).toHaveTitle(/.*/)
+
+    // ページのステータスが200であることを確認（正常にレスポンスが返ってくる）
+    expect(response?.status()).toBe(200)
+  })
+
+  test('should have accessible content', async ({ page }) => {
+    await page.goto('/')
+
+    // ページのbody要素が存在することを確認
+    const body = page.locator('body')
+    await expect(body).toBeVisible()
+
+    // HTMLドキュメントが適切にレンダリングされていることを確認
+    const htmlContent = await page.content()
+    expect(htmlContent).toContain('<!DOCTYPE html>')
+  })
+})
+````
+
 ## File: layers/base/app/test/setup.ts
 ````typescript
 import { vi } from 'vitest'
@@ -11999,34 +11603,4 @@ if (!global.HTMLDialogElement) {
     }
   }
 }
-````
-
-## File: layers/base/app/test/e2e/sample.spec.ts
-````typescript
-import { test, expect } from '@playwright/test'
-
-test.describe('Top Page', () => {
-  test('should display top page successfully', async ({ page }) => {
-    // トップページにアクセス
-    const response = await page.goto('/')
-
-    // ページが正常にロードされることを確認
-    await expect(page).toHaveTitle(/.*/)
-
-    // ページのステータスが200であることを確認（正常にレスポンスが返ってくる）
-    expect(response?.status()).toBe(200)
-  })
-
-  test('should have accessible content', async ({ page }) => {
-    await page.goto('/')
-
-    // ページのbody要素が存在することを確認
-    const body = page.locator('body')
-    await expect(body).toBeVisible()
-
-    // HTMLドキュメントが適切にレンダリングされていることを確認
-    const htmlContent = await page.content()
-    expect(htmlContent).toContain('<!DOCTYPE html>')
-  })
-})
 ````
