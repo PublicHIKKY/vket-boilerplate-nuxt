@@ -81,7 +81,9 @@ const cropperOptions = computed(() => {
     : {}
 })
 
-const onChange = ({ canvas }: { canvas: HTMLCanvasElement }) => {
+const onChange = ({ canvas }: { canvas?: HTMLCanvasElement }) => {
+  if (!canvas) return
+
   /*
    * this.coordinates = coordinates
    * note: canvas to DataURI

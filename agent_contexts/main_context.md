@@ -2992,6 +2992,7 @@ export default defineVitestConfig({
   test: {
     globals: true,
     environment: 'nuxt',
+    hookTimeout: 60000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
