@@ -82,7 +82,7 @@
     "globals": "^17.7.0",
     "happy-dom": "^20.10.6",
     "humps": "^2.0.1",
-    "jsdom": "^29.1.1",
+    "jsdom": "^30.0.1",
     "ofetch": "^1.5.1",
     "postcss-html": "^1.8.1",
     "postcss-import": "^16.1.1",
