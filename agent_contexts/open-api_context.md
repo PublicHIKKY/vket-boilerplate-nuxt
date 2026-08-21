@@ -602,9 +602,9 @@ export const {{toCamelCase operationId}} = async (
   },
   "devDependencies": {
     "openapi-zod-client": "^1.18.3",
-    "js-yaml": "^5.2.1",
+    "js-yaml": "^5.3.0",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^26.1.0"
+    "@types/node": "^26.2.0"
   }
 }
 ```
