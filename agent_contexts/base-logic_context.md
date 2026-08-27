@@ -260,6 +260,25 @@ export const JA = 'ja'
 export const EN = 'en'
 export type Lang = typeof JA | typeof EN
 
+export type LocaleDetectionContext = {
+  isServer: boolean
+  isClient: boolean
+  requestLanguage?: string
+  browserLanguage?: string
+}
+
+export const detectLocale = ({
+  isServer,
+  isClient,
+  requestLanguage,
+  browserLanguage,
+}: LocaleDetectionContext) =>
+  isServer && requestLanguage
+    ? requestLanguage
+    : isClient && browserLanguage
+      ? browserLanguage
+      : JA
+
 export const useLocale = () => {
   const i18n = useI18n()
 
@@ -270,13 +289,12 @@ export const useLocale = () => {
     const reqLocale = useRequestHeaders(['accept-language'])[
       'accept-language'
     ]?.split(',')[0]
-    const locale = ref(
-      import.meta.server && reqLocale
-        ? reqLocale // サーバーサイドでの判定
-        : import.meta.client && navigator.language
-          ? navigator.language // クライアントでの判定
-          : JA,
-    )
+    const locale = ref(detectLocale({
+      isServer: import.meta.server,
+      isClient: import.meta.client,
+      requestLanguage: reqLocale,
+      browserLanguage: globalThis.navigator?.language,
+    }))
 
     const isBrowserLanguageJa = locale.value.startsWith(JA)
     const isBrowserLanguageEn = locale.value.startsWith(EN)

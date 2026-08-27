@@ -162,4 +162,16 @@ describe('HaVideo', () => {
     // Check if the pause method was called
     expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled()
   })
+
+  test('ignores play changes after the video ref is cleared', async () => {
+    const wrapper = mount(HaVideo, { props: { src: '', play: false } })
+    const vm = wrapper.vm as unknown as {
+      haVideoRef: HTMLVideoElement | null
+    }
+    vm.haVideoRef = null
+
+    await wrapper.setProps({ play: true })
+
+    expect(vm.haVideoRef).not.toBeNull()
+  })
 })

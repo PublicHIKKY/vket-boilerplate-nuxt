@@ -1,7 +1,17 @@
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect } from 'vitest'
 import { z } from 'zod/v3'
-import { ensureValueOf, getMax, isValueOf, makeRecursiveSchema } from '#base/app/utils/zod'
+import {
+  ensureValueOf,
+  getMax,
+  integral,
+  isValueOf,
+  makeRecursiveSchema,
+  makeSchemaDeepReadOnly,
+  makeSchemaReadOnly,
+  objectToValueArray,
+  requireValueOf,
+} from '#base/app/utils/zod'
 
 describe('isValueOf', () => {
   test('returns true if schema parses successfully', () => {
@@ -26,6 +36,10 @@ describe('isValueOf', () => {
 })
 
 describe('ensureValueOf', () => {
+  test('returns normally if schema parses successfully', () => {
+    expect(() => ensureValueOf(z.string(), 'valid')).not.toThrow()
+  })
+
   test('throws an error if schema failed to parse', () => {
     const schema = z.object({
       a: z.number().negative(),
@@ -34,6 +48,41 @@ describe('ensureValueOf', () => {
       a: 42,
     }
     expect(() => ensureValueOf(schema, value)).toThrow()
+  })
+})
+
+describe('requireValueOf', () => {
+  test('returns parsed values and throws validation errors', () => {
+    expect(requireValueOf(z.coerce.number(), '42')).toBe(42)
+    expect(() => requireValueOf(z.number(), '42')).toThrow()
+  })
+})
+
+describe('objectToValueArray', () => {
+  test('converts numeric-keyed constants while preserving order', () => {
+    expect(objectToValueArray({ 0: 'ja', 1: 'en', 2: 'fr' })).toEqual(['ja', 'en', 'fr'])
+  })
+
+  test('rejects objects without index zero', () => {
+    expect(() => objectToValueArray({ 1: 'en' })).toThrow('objectToValueArray: obj[0] is undefined.')
+  })
+})
+
+describe('schema helpers', () => {
+  const schema = z.object({ nested: z.object({ value: z.number() }) })
+
+  test('accept readonly/deep-readonly compatible values using the source schema', () => {
+    const value = { nested: { value: 1 } }
+    expect(makeSchemaReadOnly(schema).safeParse(value).success).toBe(true)
+    expect(makeSchemaDeepReadOnly(schema).safeParse(value).success).toBe(true)
+    expect(makeSchemaReadOnly(schema).safeParse({ nested: { value: 'x' } }).success).toBe(false)
+    expect(makeSchemaDeepReadOnly(schema).safeParse({ nested: null }).success).toBe(false)
+  })
+
+  test('integral accepts numbers and strings only', () => {
+    expect(integral.safeParse(1).success).toBe(true)
+    expect(integral.safeParse('1').success).toBe(true)
+    expect(integral.safeParse(false).success).toBe(false)
   })
 })
 
@@ -47,6 +96,17 @@ describe('getMax', () => {
 
   test('takes nothing from the zod schema does not have .max(num)', () => {
     expect(getMax(z.string()._def)).toBeUndefined()
+  })
+
+  test('takes a max constraint recursively from a union', () => {
+    expect(getMax(z.union([z.number(), z.string().max(8)])._def)).toBe(8)
+  })
+
+  test('returns undefined for absent or unrelated definitions and malformed checks', () => {
+    expect(getMax(undefined)).toBeUndefined()
+    expect(getMax(z.number()._def)).toBeUndefined()
+    expect(getMax({ typeName: 'ZodString', checks: [{ kind: 'max' }] } as never)).toBeUndefined()
+    expect(getMax({ typeName: 123 } as never)).toBeUndefined()
   })
 })
 

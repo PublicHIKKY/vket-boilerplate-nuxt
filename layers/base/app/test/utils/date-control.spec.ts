@@ -6,6 +6,18 @@ import {
   formatJapaneseDate,
   formatEnglishDateTime,
   formatJapaneseDateTime,
+  formatDateUnixTime,
+  formatJSTtoLocalTimezone,
+  formatLocalTimezoneToJST,
+  getCurrentDate,
+  getLocalTimezone,
+  addDateTime,
+  convertTimeToUtc,
+  diffDays,
+  getDiffTimeByUnit,
+  isBeforeTargetDate,
+  isBetweenTargetDates,
+  isAfterTargetDate,
   formatTimestamp,
   timestampToDate,
   dateToTimestamp,
@@ -88,6 +100,55 @@ describe('date-control.ts', () => {
     })
   })
 
+  describe('legacy date helpers', () => {
+    it('Unix時刻を明示日時と現在日時から返す', () => {
+      expect(formatDateUnixTime(testDate)).toBe(dayjs(testDate).unix())
+      expect(formatDateUnixTime()).toBe(dayjs(testDate).unix())
+    })
+
+    it('JSTとローカルtimezone間を変換する', () => {
+      expect(formatJSTtoLocalTimezone('2024-01-15T10:30')).toMatch(/^2024-01-15T/)
+      expect(formatLocalTimezoneToJST('2024-01-15T10:30')).toMatch(/^2024-01-15T/)
+    })
+
+    it('locale別の現在日とローカルtimezoneを返す', () => {
+      expect(getCurrentDate()).toBe('2024/01/15')
+      expect(getCurrentDate('ja')).toBe('2024/01/15')
+      expect(getCurrentDate('en')).toMatch(/January 15, 2024/)
+      expect(getLocalTimezone()).toMatch(/^UTC [+-]\d{2}:\d{2}$/)
+    })
+
+    it('基準日に既定単位または指定単位で加算する', () => {
+      expect(addDateTime(2, undefined, testDate)).toEqual(new Date('2024-01-17T10:30:00'))
+      expect(addDateTime(2, 'hour', testDate)).toEqual(new Date('2024-01-15T12:30:00'))
+    })
+
+    it('UTC文字列へ変換する', () => {
+      expect(convertTimeToUtc('2024-01-15T10:30:00+09:00')).toBe('2024-01-15T01:30:00Z')
+    })
+
+    it('指定日時と現在日時から単位別の差分を返す', () => {
+      const from = '2024-01-16T12:31:32'
+      const to = '2024-01-15T10:30:30'
+      expect(diffDays(to, from)).toBe(1)
+      expect(diffDays('2024-01-14T10:30:00')).toBe(1)
+      expect(getDiffTimeByUnit(to, from)).toBe(1)
+      expect(getDiffTimeByUnit(to, from, 'hour')).toBe(2)
+      expect(getDiffTimeByUnit(to, from, 'minute')).toBe(1)
+      expect(getDiffTimeByUnit(to, from, 'second')).toBe(2)
+      expect(getDiffTimeByUnit(to, from, 'month')).toBe(-1)
+    })
+
+    it('現在日時を基準に前・期間内・後を判定する', () => {
+      expect(isBeforeTargetDate('2024-01-16')).toBe(true)
+      expect(isBeforeTargetDate('2024-01-14')).toBe(false)
+      expect(isBetweenTargetDates('2024-01-14', '2024-01-16')).toBe(true)
+      expect(isBetweenTargetDates('2024-01-16', '2024-01-17')).toBe(false)
+      expect(isAfterTargetDate('2024-01-14')).toBe(true)
+      expect(isAfterTargetDate('2024-01-16')).toBe(false)
+    })
+  })
+
   describe('formatTimestamp', () => {
     it('タイムスタンプを指定フォーマットに変換', () => {
       expect(formatTimestamp(testTimestamp, 'YYYY-MM-DD')).toBe('2024-01-15')
@@ -129,6 +190,8 @@ describe('date-control.ts', () => {
 
     it('isBetween - 期間内かチェック', () => {
       expect(isBetweenDates(date2, date1, date3)).toBe(true)
+      expect(isBetweenDates(date1, date1, date3)).toBe(true)
+      expect(isBetweenDates(date3, date1, date3)).toBe(true)
       expect(isBetweenDates(date1, date2, date3)).toBe(false)
     })
 

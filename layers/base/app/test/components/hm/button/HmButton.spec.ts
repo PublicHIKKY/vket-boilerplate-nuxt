@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, test } from 'vitest'
 import HmButton from '#base/app/components/hm/button/HmButton.vue'
+import HaBaseButton from '#base/app/components/ha/base/HaBaseButton.vue'
 
 test('ref component', () => {
   expect(HmButton).toBeTruthy()
@@ -86,6 +87,13 @@ describe('emits', () => {
   test('click emits no event when disabled', async () => {
     const wrapper = mount(HmButton, { props: { disabled: true } })
     await wrapper.get('button').trigger('click')
+    expect(wrapper.emitted().click).toBeUndefined()
+  })
+  test('disabled handler suppresses a component-emitted click', () => {
+    const wrapper = mount(HmButton, { props: { disabled: true } })
+
+    wrapper.getComponent(HaBaseButton).vm.$emit('click')
+
     expect(wrapper.emitted().click).toBeUndefined()
   })
 })

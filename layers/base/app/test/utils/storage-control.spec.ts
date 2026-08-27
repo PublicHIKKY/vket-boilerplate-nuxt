@@ -69,6 +69,16 @@ describe('cookie control test', () => {
     removeSingleCookieValue(key, setOptions)
     expect(getSingleCookieValue(key, getOptions)).toBe(null)
   })
+
+  it('delete with default options', () => {
+    setSingleCookieValue('defaultOptions', 'value')
+    removeSingleCookieValue('defaultOptions')
+    expect(getSingleCookieValue('defaultOptions')).toBe(null)
+  })
+
+  it('rejects deletion with an empty key', () => {
+    expect(() => removeSingleCookieValue('')).toThrow('remove cookie key is falsy')
+  })
 })
 
 describe('local storage control test', () => {

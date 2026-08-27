@@ -133,7 +133,10 @@ layers/
           api.spec.ts
           factory.spec.ts
           i18n.spec.ts
+        config.spec.ts
+        error.spec.ts
         setup.ts
+        source.spec.ts
       utils/
         api.ts
         factory.ts
@@ -1514,6 +1517,242 @@ test('getI18nArray takes a list from vue-i18n dict', () => {
       },
     },
   )
+})
+````
+
+## File: layers/main/app/test/config.spec.ts
+````typescript
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { getAppConfigOfEnvType } from '../../config/appConfig'
+import {
+  allEnvTypes,
+  ensureEnvType,
+  isEnvType,
+  readEnvType,
+} from '../../config/models/EnvType'
+import { getRuntimeConfigOfEnvType } from '../../config/runtimeConfig'
+
+describe('main environment configuration', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('supports the four declared environments', () => {
+    expect(allEnvTypes).toEqual(['local', 'development', 'staging', 'production'])
+    for (const envType of allEnvTypes) {
+      expect(isEnvType(envType)).toBe(true)
+      expect(() => ensureEnvType(envType)).not.toThrow()
+    }
+    expect(isEnvType('preview')).toBe(false)
+    expect(isEnvType(null)).toBe(false)
+    expect(() => ensureEnvType('preview')).toThrowError(
+      new TypeError('Not an EnvType.'),
+    )
+  })
+
+  it('reads a valid environment and falls back to local when absent', () => {
+    expect(readEnvType({ VITE_OUTPUT_ENV: 'staging' })).toBe('staging')
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    expect(readEnvType({})).toBe('local')
+    expect(error).toHaveBeenCalledWith('No VITE_OUTPUT_ENV is set.')
+    expect(() => readEnvType({ VITE_OUTPUT_ENV: 'preview' })).toThrow(
+      'Not an EnvType.',
+    )
+  })
+
+  it.each(allEnvTypes)('creates app config for %s', (envType) => {
+    expect(getAppConfigOfEnvType(envType, {})).toEqual({})
+  })
+
+  it.each([
+    {
+      envType: 'local' as const,
+      url: 'http://localhost:3000',
+      httpBinUrl: 'http://localhost:3003',
+    },
+    {
+      envType: 'development' as const,
+      url: 'http://localhost:3000',
+      httpBinUrl: undefined,
+    },
+    { envType: 'staging' as const, url: '', httpBinUrl: undefined },
+    { envType: 'production' as const, url: '', httpBinUrl: undefined },
+  ])('creates runtime config for $envType', ({ envType, url, httpBinUrl }) => {
+    const config = getRuntimeConfigOfEnvType(envType, {})
+
+    expect(config.public).toMatchObject({
+      apiPrefix: process.env.NUXT_API_PREFIX ?? '/api/v1',
+      baseUrl: url,
+      gtmId: 'GTM-XXXXXXX',
+      outputEnv: envType,
+      url,
+    })
+    expect('httpBinUrl' in config.public ? config.public.httpBinUrl : undefined)
+      .toBe(httpBinUrl)
+  })
+})
+````
+
+## File: layers/main/app/test/error.spec.ts
+````typescript
+import ErrorPage from '../error.vue'
+import { mockNuxtImport } from '@nuxt/test-utils/runtime'
+import { mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createI18n } from 'vue-i18n'
+import { createError } from 'nuxt/app'
+
+const { clearErrorMock, navigateToMock } = vi.hoisted(() => ({
+  clearErrorMock: vi.fn(),
+  navigateToMock: vi.fn(),
+}))
+mockNuxtImport('clearError', () => clearErrorMock)
+mockNuxtImport('navigateTo', () => navigateToMock)
+
+const messages = {
+  ja: {
+    back_home: 'ホームに戻る',
+    back_previous: '前のページに戻る',
+    details: 'エラー内容',
+    error_404: 'ページが見つかりません',
+    error_500: 'サーバーエラー',
+    error_other: '予期しないエラー',
+    description_404: '404 description',
+    description_500: '500 description',
+    description_other: 'other description',
+  },
+  en: {
+    back_home: 'Back home',
+    back_previous: 'Back',
+    details: 'Details',
+    error_404: 'Not found',
+    error_500: 'Server error',
+    error_other: 'Unexpected error',
+    description_404: '404 description',
+    description_500: '500 description',
+    description_other: 'other description',
+  },
+}
+
+const mountError = (statusCode: number, message = '') => mount(ErrorPage, {
+  props: {
+    error: createError({
+      statusCode,
+      statusMessage: '',
+      message,
+    }),
+  },
+  global: {
+    plugins: [createI18n({ legacy: false, locale: 'ja', messages })],
+  },
+})
+
+describe('main error page', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it.each([
+    { statusCode: 404, title: 'ページが見つかりません', description: 'お探しのページは見つかりませんでした。URLをご確認いただくか、ホームページに戻ってもう一度お試しください。' },
+    { statusCode: 500, title: 'サーバーエラー', description: 'サーバーに問題が発生しています。しばらく時間をおいてから再度お試しください。' },
+    { statusCode: 418, title: '予期しないエラー', description: '申し訳ございませんが、予期しないエラーが発生しました。' },
+  ])('renders status $statusCode', ({ statusCode, title, description }) => {
+    const wrapper = mountError(statusCode, 'diagnostic')
+
+    expect(wrapper.get('.error-code').text()).toBe(String(statusCode))
+    expect(wrapper.get('.error-title').text()).toBe(title)
+    expect(wrapper.get('.error-description').text()).toBe(description)
+    expect(wrapper.get('.error-message').text()).toBe('diagnostic')
+  })
+
+  it('clears the error and redirects home', async () => {
+    const wrapper = mountError(500)
+
+    await wrapper.get('.-primary').trigger('click')
+
+    expect(clearErrorMock).toHaveBeenCalledWith({ redirect: '/' })
+    expect(wrapper.find('details').exists()).toBe(false)
+  })
+
+  it('uses browser history when a previous page exists', async () => {
+    const wrapper = mountError(404)
+    const back = vi.spyOn(window.history, 'back').mockImplementation(() => {})
+    Object.defineProperty(window.history, 'length', { configurable: true, value: 2 })
+
+    await wrapper.get('.-secondary').trigger('click')
+
+    expect(back).toHaveBeenCalledOnce()
+    expect(navigateToMock).not.toHaveBeenCalled()
+  })
+
+  it('navigates home when there is no previous page', async () => {
+    const wrapper = mountError(404)
+    Object.defineProperty(window.history, 'length', { configurable: true, value: 1 })
+
+    await wrapper.get('.-secondary').trigger('click')
+
+    expect(navigateToMock).toHaveBeenCalledWith('/')
+  })
+})
+````
+
+## File: layers/main/app/test/source.spec.ts
+````typescript
+import { shallowMount } from '@vue/test-utils'
+import { describe, expect, it } from 'vitest'
+import { createI18n } from 'vue-i18n'
+import App from '../app.vue'
+import HoTheFooter from '../components/ho/HoTheFooter.vue'
+import HoTheHeader from '../components/ho/HoTheHeader.vue'
+import HtTop from '../components/ht/HtTop.vue'
+import { jsonSchema } from '../models/json'
+import { todoSchema } from '../models/todo'
+import { repositories, repositoryFactory } from '../utils/factory'
+
+describe('main layer source', () => {
+  const i18n = createI18n({
+    legacy: false,
+    locale: 'ja',
+    messages: { ja: {}, en: {} },
+  })
+
+  it.each([HoTheHeader, HoTheFooter, HtTop])(
+    'renders a structural component',
+    (component) => {
+      expect(shallowMount(component).exists()).toBe(true)
+    },
+  )
+
+  it('renders the application shell', () => {
+    const wrapper = shallowMount(App, {
+      global: {
+        plugins: [i18n],
+        stubs: {
+          NuxtLayout: { template: '<main><slot /></main>' },
+          NuxtRouteAnnouncer: true,
+          NuxtWelcome: true,
+        },
+      },
+    })
+    expect(wrapper.find('main').exists()).toBe(true)
+  })
+
+  it('validates JSON and todos', () => {
+    expect(jsonSchema.parse({ nested: [null, true, 1, 'value'] })).toEqual({
+      nested: [null, true, 1, 'value'],
+    })
+    expect(todoSchema.parse({
+      userId: 1,
+      id: 2,
+      title: 'test',
+      completed: false,
+    })).toMatchObject({ id: 2, completed: false })
+  })
+
+  it('returns a local repository', () => {
+    expect(repositoryFactory.get('example')).toBe(repositories.example)
+  })
 })
 ````
 
@@ -3123,11 +3362,13 @@ export default defineVitestConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      reportsDirectory: '../coverage',
+      reportsDirectory: './coverage',
       reportOnFailure: true,
-      allowExternal: true,
+      allowExternal: false,
       include: ['**/*.{vue,ts}'],
       exclude: [
+        '**/.nuxt/**',
+        '**/coverage/**',
         'plugins/**',
         'middleware/**',
         'layouts/**',

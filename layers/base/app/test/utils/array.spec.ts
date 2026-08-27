@@ -91,4 +91,9 @@ describe('zip', () => {
       )
     },
   )
+
+  test('throws for sparse arrays rather than returning undefined tuple values', () => {
+    expect(() => zip(new Array<number>(1), [1])).toThrow('Invalid')
+    expect(() => zip([1], new Array<number>(1))).toThrow('Invalid')
+  })
 })

@@ -35,6 +35,7 @@
     "repomix": "./scripts/generate_context.sh",
     "typecheck": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present typecheck",
     "test:ut": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present test:ut",
+    "test:coverage": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present test:coverage",
     "fix": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present fix",
     "build:local": "bun run --recursive --filter './layers/*' --filter '!**/node_modules/**' --if-present build:local"
   },

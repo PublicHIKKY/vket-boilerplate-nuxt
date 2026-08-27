@@ -76,6 +76,21 @@ describe('image.ts', () => {
       expect(mockImage.addEventListener).toHaveBeenCalledWith('error', expect.any(Function))
       expect(mockImage.src).toBe(mockObjectURL)
     })
+
+    it('load時にObject URLを解放する', () => {
+      getImageUrl(new Blob(['test']))
+      lastImage?.listeners['load']?.()
+      expect(global.URL.revokeObjectURL).toHaveBeenCalledWith(mockObjectURL)
+    })
+
+    it('error時にObject URLを解放して原因をログ出力する', () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      getImageUrl(new Blob(['test']))
+      const cause = new Error('decode failed')
+      lastImage?.listeners['error']?.({ error: cause })
+      expect(global.URL.revokeObjectURL).toHaveBeenCalledWith(mockObjectURL)
+      expect(consoleError).toHaveBeenCalledWith(cause)
+    })
   })
 
   describe('toImage', () => {

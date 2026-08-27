@@ -328,10 +328,9 @@ const updateCurrentSlide = (
     }
   }
 
-  const slideJumpByPagination = () => {
+  const slideJumpByPagination = (paginationIndex: number) => {
     previousX.value = (100 / props.amount) * currentSlide.value
-    if (index === undefined) return
-    currentSlide.value = index * -1
+    currentSlide.value = paginationIndex * -1
     nextX.value = (100 / props.amount) * currentSlide.value
   }
 
@@ -366,7 +365,7 @@ const updateCurrentSlide = (
 
   // ページネーションによるスライド移動の場合
   if (type === 'pagination' && index !== undefined) {
-    return slideJumpByPagination()
+    return slideJumpByPagination(index)
   }
 }
 

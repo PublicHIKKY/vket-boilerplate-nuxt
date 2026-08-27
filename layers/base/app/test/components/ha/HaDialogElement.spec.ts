@@ -225,6 +225,20 @@ describe('HaDialogElement', () => {
 
       expect(closeSpy).toHaveBeenCalled()
     })
+
+    it('閉じた状態またはEscape以外のキーでは閉じない', () => {
+      const dialogElement = wrapper.get('dialog').element as HTMLDialogElement
+      const closeSpy = vi.spyOn(HTMLDialogElement.prototype, 'close')
+
+      dialogElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+      Object.defineProperty(dialogElement, 'open', {
+        configurable: true,
+        value: true,
+      })
+      dialogElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }))
+
+      expect(closeSpy).not.toHaveBeenCalled()
+    })
   })
 
   describe('フォーカス制御', () => {
@@ -326,6 +340,30 @@ describe('HaDialogElement', () => {
   })
 
   describe('エラーハンドリング', () => {
+    it('showModalを持たないdialog要素でエラーを記録する', () => {
+      wrapper = mount(HaDialogElement, {
+        props: {
+          closedby: 'any',
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+      const dialog = wrapper.get('dialog').element as HTMLDialogElement
+      Object.defineProperty(dialog, 'showModal', {
+        configurable: true,
+        value: undefined,
+      })
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      wrapper.vm.openDialog()
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        'dialog要素はHTMLDialogElementではありません (HaDialogElement openDialog)',
+      )
+      expect(wrapper.vm.isActive).toBe(true)
+    })
+
     it('dialog要素がnullの場合openDialogでエラーを投げる', () => {
       wrapper = mount(HaDialogElement, {
         props: {

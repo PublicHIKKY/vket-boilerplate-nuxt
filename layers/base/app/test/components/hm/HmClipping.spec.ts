@@ -1,6 +1,7 @@
 import { mount, shallowMount } from '@vue/test-utils'
-import { describe, it, test, expect } from 'vitest'
+import { describe, it, test, expect, vi } from 'vitest'
 import HmClipping from '#base/app/components/hm/HmClipping.vue'
+import { AnyVueWrapper } from '#base/app/test/models/vue'
 
 test('ref component', () => {
   expect(HmClipping).toBeTruthy()
@@ -63,10 +64,11 @@ describe('events', () => {
     expect(wrapper.emitted()['clipped']).toEqual([[[]]])
   })
 
-  // TODO: Cropperのchangeのテスト
-  it(':Cropper change', () => {
+  it(':Cropper changeでcanvasをFileへ変換し、clippedで渡す', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-08-26T00:00:00Z'))
     // NOTE: mountしてcomponentを展開すると、「Error: connect ECONNREFUSED」になる
-    const _wrapper = shallowMount(HmClipping, {
+    const wrapper = shallowMount(HmClipping, {
       props: {
         src: '/dummy',
         width: 256,
@@ -79,9 +81,76 @@ describe('events', () => {
         ext: 'jpeg',
       },
     })
-    /*
-     * ERROR: 発火はできるが、canvas.toDataURLが読めず、vi.importActualにてcanvas.toDataURLのみを偽装してもエラーとなったのでコメントアウトする
-     * await wrapper.find('cropper-stub').trigger('change')
-     */
+    const canvas = {
+      toDataURL: vi.fn(() => 'data:image/png;base64,AQID'),
+    } as unknown as HTMLCanvasElement
+
+    wrapper.findComponent({ name: 'Cropper' }).vm.$emit('change', { canvas })
+    await wrapper.find('ha-base-button-stub').trigger('click')
+
+    const files = wrapper.emitted('clipped')?.[0]?.[0] as File[]
+    expect(canvas.toDataURL).toHaveBeenCalledWith('image/jpeg')
+    expect(files).toHaveLength(1)
+    expect(files[0]).toMatchObject({
+      name: 'tmp-1787702400000.png',
+      type: 'image/png',
+      size: 3,
+    })
+    vi.useRealTimers()
+  })
+
+  it.each([
+    { dataUrl: 'data:image/png;base64', message: 'Invalid bytes' },
+    { dataUrl: 'invalid,AQID', message: 'Invalid mime' },
+  ])('不正なData URLを拒否する: $message', ({ dataUrl, message }) => {
+    const wrapper = shallowMount(HmClipping, { props: { src: '/dummy' } })
+    const canvas = {
+      toDataURL: vi.fn(() => dataUrl),
+    } as unknown as HTMLCanvasElement
+
+    expect(() => (wrapper as AnyVueWrapper).vm.$.setupState.onChange({ canvas })).toThrow(message)
+  })
+
+  it('切り抜きボタンのデフォルトラベルを表示する', () => {
+    const wrapper = mount(HmClipping, {
+      props: { src: '/dummy' },
+      global: {
+        stubs: {
+          Cropper: true,
+        },
+      },
+    })
+
+    expect(wrapper.get('button').text()).toBe('切り抜く')
+  })
+})
+
+describe('computed options', () => {
+  it.each([
+    { cropperAreaHeight: undefined, expected: undefined },
+    { cropperAreaHeight: 0, expected: '358.4px' },
+    { cropperAreaHeight: 480, expected: '480px' },
+  ])('cropperAreaHeight=$cropperAreaHeightのstyleを生成する', ({ cropperAreaHeight, expected }) => {
+    const wrapper = shallowMount(HmClipping, {
+      props: { src: '', cropperAreaHeight },
+    })
+
+    expect(wrapper.findComponent({ name: 'Cropper' }).attributes('style'))
+      .toBe(expected === undefined ? undefined : `height: ${expected};`)
+  })
+
+  it('doResize=falseならcanvasサイズを固定しない', () => {
+    const wrapper = shallowMount(HmClipping, {
+      props: { src: '', doResize: false },
+    })
+
+    expect((wrapper as AnyVueWrapper).vm.$.setupState.cropperOptions).toEqual({})
+  })
+
+  it('canvasが無いchangeは無視する', () => {
+    const wrapper = shallowMount(HmClipping, { props: { src: '/dummy' } })
+
+    expect(() => wrapper.findComponent({ name: 'Cropper' }).vm.$emit('change', {}))
+      .not.toThrow()
   })
 })

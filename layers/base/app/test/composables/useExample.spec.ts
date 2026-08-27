@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import type { NitroFetchRequest } from 'nitropack'
+import { ref } from 'vue'
 import { useExample } from '#base/app/composables/useExample'
 
 // Nuxtのpayloadの一部をmockする
@@ -130,6 +131,29 @@ describe('useExample', () => {
     expect(result).toEqual(checkObject)
     expect(exampleState.value).toEqual(checkObject)
     expect(exampleRef.value).toEqual(checkObject)
+  })
+
+  it('refreshes both stores from refreshed data', async () => {
+    const initial = [{ userId: 1, id: 1, title: 'before', completed: false }]
+    const refreshed = [{ userId: 2, id: 2, title: 'after', completed: true }]
+    const refresh = vi.fn(async () => {})
+    const { exampleRef, exampleState, refreshExample } = useExample(initial)
+
+    await refreshExample(refresh, ref(refreshed))
+
+    expect(refresh).toHaveBeenCalledOnce()
+    expect(exampleState.value).toEqual(refreshed)
+    expect(exampleRef.value).toEqual(refreshed)
+  })
+
+  it('normalizes a null refreshed value to undefined', async () => {
+    const refresh = vi.fn(async () => {})
+    const { exampleRef, exampleState, refreshExample } = useExample()
+
+    await refreshExample(refresh, ref(null))
+
+    expect(exampleState.value).toBeUndefined()
+    expect(exampleRef.value).toBeUndefined()
   })
 
   /*

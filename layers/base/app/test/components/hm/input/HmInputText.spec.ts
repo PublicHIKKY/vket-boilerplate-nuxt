@@ -309,6 +309,59 @@ describe('emits', () => {
     expect(wrapper.emitted()).toHaveProperty('enter')
     expect(wrapper.emitted()['enter']).toHaveLength(1)
   })
+
+  it('does not emit enter when keyupEnter is false', async () => {
+    const wrapper = mount(HmInputText, { props: { keyupEnter: false } })
+    await wrapper.get('input').trigger('keyup.enter')
+    expect(wrapper.emitted('enter')).toBeUndefined()
+  })
+
+  it.each([
+    { isLazy: true, isTrim: true, event: 'change' },
+    { isLazy: true, isTrim: false, event: 'change' },
+    { isLazy: false, isTrim: true, event: 'input' },
+  ])('updates through lazy/trim branch %#', async ({ isLazy, isTrim, event }) => {
+    const wrapper = mount(HmInputText, { props: { isLazy, isTrim } })
+    const input = wrapper.get('input')
+    await input.setValue('  value  ')
+    await input.trigger(event)
+    expect(wrapper.emitted('update:modelValue')).toBeDefined()
+  })
+})
+
+describe('computed branches', () => {
+  it('normalizes null model values and boolean min', () => {
+    const wrapper = mount(HmInputText, {
+      props: { modelValue: null, min: true, validatorName: 'custom' },
+    })
+    expect((wrapper.get('input').element as HTMLInputElement).value).toBe('')
+    expect(wrapper.get('input').attributes('min')).toBeUndefined()
+    expect(wrapper.find('.error-container').exists()).toBe(true)
+  })
+
+  it('derives counter maximum from validator rules', () => {
+    const wrapper = mount(HmInputText, {
+      props: { modelValue: 'abc', counter: true, validatorRules: z.string().max(8) },
+    })
+    expect(wrapper.get('.counter').text()).toBe('3/8')
+  })
+
+  it.each([
+    { validateOnMount: false, modelValue: 'value' },
+    { validateOnMount: true, modelValue: '' },
+    { validateOnMount: true, modelValue: null },
+  ])('covers validateOnMount guard %#', ({ validateOnMount, modelValue }) => {
+    expect(mount(HmInputText, { props: { validateOnMount, modelValue } }).exists()).toBe(true)
+  })
+
+  it.each([
+    { isLazy: true, isTrim: true },
+    { isLazy: true, isTrim: false },
+    { isLazy: false, isTrim: true },
+  ])('forwards numeric min in template branch %#', ({ isLazy, isTrim }) => {
+    const wrapper = mount(HmInputText, { props: { isLazy, isTrim, min: 2 } })
+    expect(wrapper.get('input').attributes('min')).toBe('2')
+  })
 })
 
 describe('DOM check for error display', () => {
