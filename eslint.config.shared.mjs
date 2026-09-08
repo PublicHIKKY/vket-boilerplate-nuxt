@@ -56,4 +56,36 @@ export const basicConfig =   {
 export default defineConfig(
   eslint.configs.recommended,
   // 基本ルールセットは nuxt 側 (@nuxt/eslint-config) に任せる
+
+  {
+    files: [
+      '**/*.vue',
+      '**/*.ts',
+      '**/*.mts',
+      '**/*.cts',
+    ],
+    rules: {
+      /*
+       * useAsyncData を await せずに `.then()` をぶら下げると、コールバックがマイクロタスクとして
+       * 走る。サーバー側ではその時点で Nuxt のリクエストコンテキストが失われているため、
+       * コールバック内の showError / navigateTo が `[nuxt] instance unavailable` で失敗する
+       * （nuxt.config の experimental.asyncContext を有効にしていない場合）。
+       * 加えて、初回ハイドレーションの 1 回目の描画に間に合わないので hydration mismatch も起こす。
+       *
+       * @typescript-eslint/no-floating-promises では検知できない。`.then(cb).catch(handler)` を
+       * 「ハンドル済みの Promise」と判定するためで、このパターンはその形をしている。
+       * そのため専用の selector を置いている。
+       */
+      'no-restricted-syntax': ['error', {
+        /*
+         * 危険なのは「戻り値をどこにも渡さず、式文として捨てている」形
+         * （`.then()` / `.catch()` をぶら下げているものと `void useAsyncData(...)` を含む）。
+         * `const { data } = useAsyncData(...)` や `return useAsyncData(...)` は戻り値を扱っており、
+         * `data` / `error` をリアクティブに参照する正しい宣言的パターンなので対象外にする。
+         */
+        selector: "ExpressionStatement CallExpression[callee.name='useAsyncData']:not(AwaitExpression CallExpression[callee.name='useAsyncData'])",
+        message: 'useAsyncData は await してください（未await の .then() は SSR で Nuxt コンテキストを失い、hydration mismatch も起こします）',
+      }],
+    },
+  },
 )
