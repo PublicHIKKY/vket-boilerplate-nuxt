@@ -71,7 +71,7 @@
     "@vee-validate/i18n": "^4.15.1",
     "@vitejs/plugin-vue": "^6.0.8",
     "@vitejs/plugin-vue-jsx": "^5.1.6",
-    "@vitest/coverage-v8": "4.1.9",
+    "@vitest/coverage-v8": "4.1.11",
     "@vitest/ui": "4.1.9",
     "@vue/runtime-dom": "^3.5.41",
     "@vue/test-utils": "^2.4.11",
