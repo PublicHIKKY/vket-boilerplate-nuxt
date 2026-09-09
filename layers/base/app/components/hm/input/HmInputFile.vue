@@ -94,7 +94,7 @@ onMounted(() => {
   fileInput.value.addEventListener('click', clickListener.value)
 })
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
   if (
     isValueOf(htmlInputElementAndFilesSchema, fileInput.value)
     && clickListener.value

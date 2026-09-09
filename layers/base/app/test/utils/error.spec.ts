@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest'
-import { unreachable } from '#base/app/utils/error'
+import { raiseError, unreachable } from '#base/app/utils/error'
 
 test('unreachable', () => {
   const x: number = 10
@@ -10,9 +10,13 @@ test('unreachable', () => {
   }
 })
 
+test('unreachable throws when reached at runtime', () => {
+  expect(() => unreachable('unexpected' as never)).toThrow('unreachable.')
+})
+
 test('raiseError', () => {
   const xs: number[] = []
   expect(() => {
     const _ = xs[0] ?? raiseError('0th element is nothing')
-  }).toThrow()
+  }).toThrow('0th element is nothing')
 })

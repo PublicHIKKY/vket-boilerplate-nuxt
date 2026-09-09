@@ -94,3 +94,30 @@ describe('fallback images', () => {
     expect(wrapper.get('img').attributes('src')).toContain(customNoImage)
   })
 })
+
+describe('intrinsic size', () => {
+  it('load時にnaturalWidthとnaturalHeightをwidth/heightへ反映する', async () => {
+    const wrapper = mount(HaImage, { props: { src: '/image.png' } })
+    const image = wrapper.get('img').element as HTMLImageElement
+    Object.defineProperties(image, {
+      naturalWidth: { configurable: true, value: 640 },
+      naturalHeight: { configurable: true, value: 360 },
+    })
+
+    await wrapper.get('img').trigger('load')
+
+    expect(image.width).toBe(640)
+    expect(image.height).toBe(360)
+  })
+
+  it('画像要素refがない場合は何もしない', () => {
+    const wrapper = mount(HaImage)
+    const vm = wrapper.vm as unknown as {
+      imageElement: HTMLImageElement | null
+      onImageLoad: () => void
+    }
+    vm.imageElement = null
+
+    expect(() => vm.onImageLoad()).not.toThrow()
+  })
+})

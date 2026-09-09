@@ -1,26 +1,21 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { mount } from '@vue/test-utils'
+import { defineComponent } from 'vue'
+import { describe, expect, it } from 'vitest'
+import { isNuxtEnvironment } from '#base/app/utils/environment'
 
 describe('environment.ts', () => {
-  let originalEnv: typeof process.env
-
-  beforeEach(() => {
-    originalEnv = { ...process.env }
+  it('setup外ではfalseを返す', () => {
+    expect(isNuxtEnvironment()).toBe(false)
   })
 
-  afterEach(() => {
-    process.env = originalEnv
-  })
-
-  it('環境変数関連のテスト - 実装待ち', async () => {
-    // environment.tsの内容を確認してから実装
-    const environmentModule = await import('#base/app/utils/environment')
-
-    // 基本的な確認
-    expect(environmentModule).toBeDefined()
-
-    /*
-     * 環境変数関連の関数が存在することを確認
-     * 実際の関数に応じてテストケースを追加
-     */
+  it('Vue component setup内ではapp contextを検出する', () => {
+    let result = false
+    mount(defineComponent({
+      setup() {
+        result = isNuxtEnvironment()
+        return () => null
+      },
+    }))
+    expect(result).toBe(true)
   })
 })

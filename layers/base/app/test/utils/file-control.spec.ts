@@ -1,4 +1,4 @@
-import { getBase64ByFile, getExtFromType, readFileAsBlob } from '#base/app/utils/file-control'
+import { getBase64ByFile, getExtFromType, getFileByBase64, readFileAsBlob } from '#base/app/utils/file-control'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 // NOTE: JSDOMでURL.createObjectURLはサポートされていない。その為、本来URL.createObjectURLが返してくれるURLを偽装してテストする。
@@ -18,6 +18,22 @@ test('readFileAsBlob', () => {
   const objectUrl = readFileAsBlob(file)
   // NOTE: readFileAsBlob(file)にて画像のオブジェクトURLが作成されるか、返される文字列がURL形式であることをテストする。
   expect(objectUrl.startsWith('blob:')).toBe(true)
+})
+
+test('readFileAsBlobは画像load後にObject URLを解放する', () => {
+  class MockImage {
+    static latest: MockImage | undefined
+    src = ''
+    onload: (() => void) | null = null
+    constructor() {
+      MockImage.latest = this
+    }
+  }
+  vi.stubGlobal('Image', MockImage)
+
+  expect(readFileAsBlob(new File(['image'], 'test.png'))).toBe('blob:dummy-for-objectURL')
+  MockImage.latest?.onload?.()
+  expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:dummy-for-objectURL')
 })
 
 describe('getExtFromType', () => {
@@ -105,5 +121,30 @@ describe('getBase64ByFile', () => {
     const base64 = await getBase64ByFile(file)
 
     expect(base64).toBe(mockResult)
+  })
+})
+
+describe('getFileByBase64', () => {
+  test('MIME typeとファイル名を保ったFileを生成する', async () => {
+    const file = getFileByBase64('data:text/plain;base64,SGVsbG8=', 'hello.txt')
+    expect(file).toBeInstanceOf(File)
+    expect(file).toMatchObject({ name: 'hello.txt', type: 'text/plain', size: 5 })
+    expect(await file?.text()).toBe('Hello')
+  })
+
+  test('ファイル名とMIME typeが無い場合は既定値を使う', () => {
+    const file = getFileByBase64('data;base64,QQ==')
+    expect(file).toMatchObject({ name: 'file', type: 'image/png', size: 1 })
+  })
+
+  test('data部がない入力を拒否する', () => {
+    expect(getFileByBase64('invalid')).toBeNull()
+    expect(getFileByBase64('data:image/png;base64,')).toBeNull()
+  })
+
+  test('不正なbase64を捕捉してnullを返す', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    expect(getFileByBase64('data:image/png;base64,%%%')).toBeNull()
+    expect(consoleError).toHaveBeenCalledOnce()
   })
 })

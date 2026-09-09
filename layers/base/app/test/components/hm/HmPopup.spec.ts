@@ -20,6 +20,14 @@ test('mount component', () => {
   expect(wrapper.html()).toMatchSnapshot()
 })
 
+test('optional content is omitted by default', () => {
+  const wrapper = mount(HmPopup)
+
+  expect(wrapper.find('.hm-popup-title').exists()).toBe(false)
+  expect(wrapper.find('.hm-popup-description').exists()).toBe(false)
+  expect(wrapper.find('.hm-popup-wrapper').exists()).toBe(false)
+})
+
 describe('emits', () => {
   test('@close', async () => {
     const wrapper = mount(HmPopup, {

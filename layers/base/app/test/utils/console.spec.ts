@@ -106,6 +106,15 @@ describe('console.ts', () => {
 
       process.env.NODE_ENV = originalEnv
     })
+
+    it('その他の環境では設定を変更しない', () => {
+      const originalEnv = process.env.NODE_ENV
+      process.env.NODE_ENV = 'test'
+      configureLogger({ enabled: true, level: 'warn' })
+      configureLoggerForEnvironment()
+      expect(getLoggerConfig()).toMatchObject({ enabled: true, level: 'warn' })
+      process.env.NODE_ENV = originalEnv
+    })
   })
 
   describe('ログレベル制御', () => {
@@ -163,6 +172,12 @@ describe('console.ts', () => {
         expect.stringContaining('[INFO]'),
       )
     })
+
+    it('timestampとprefixを無効にできる', () => {
+      configureLogger({ timestamp: false, prefix: undefined })
+      info('plain')
+      expect(console.info).toHaveBeenCalledWith('[INFO] plain')
+    })
   })
 
   describe('エラーログ', () => {
@@ -193,6 +208,12 @@ describe('console.ts', () => {
 
       expect(console.table).toHaveBeenCalledWith(data, properties)
     })
+
+    it('ログ無効時は出力しない', () => {
+      configureLogger({ enabled: false })
+      table([{ id: 1 }])
+      expect(console.table).not.toHaveBeenCalled()
+    })
   })
 
   describe('log', () => {
@@ -218,6 +239,14 @@ describe('console.ts', () => {
         value,
       )
     })
+
+    it('warn methodを選択でき、無効時も値を返す', () => {
+      expect(log('warning', 'Careful', 'warn')).toBe('warning')
+      expect(console.warn).toHaveBeenCalled()
+      configureLogger({ enabled: false })
+      expect(log('quiet', 'Hidden')).toBe('quiet')
+      expect(console.info).not.toHaveBeenCalledWith(expect.stringContaining('Hidden'), 'quiet')
+    })
   })
 
   describe('logIf', () => {
@@ -229,6 +258,13 @@ describe('console.ts', () => {
       expect(console.info).toHaveBeenCalledWith(
         expect.stringContaining('Condition met'),
       )
+    })
+
+    it('warnとerrorを対応するconsole methodへ送る', () => {
+      logIf(true, 'warn', 'warning')
+      logIf(true, 'error', 'failure')
+      expect(console.warn).toHaveBeenCalled()
+      expect(console.error).toHaveBeenCalled()
     })
   })
 
@@ -275,6 +311,14 @@ describe('console.ts', () => {
       groupEnd()
 
       expect(console.groupEnd).toHaveBeenCalled()
+    })
+
+    it('ログ無効時はgroup操作をしない', () => {
+      configureLogger({ enabled: false })
+      group('hidden')
+      groupEnd()
+      expect(console.group).not.toHaveBeenCalled()
+      expect(console.groupEnd).not.toHaveBeenCalled()
     })
   })
 
@@ -342,5 +386,27 @@ describe('console.ts', () => {
         expect.any(Error),
       )
     })
+
+    it('明示名がない時は関数名またはanonymousを使う', () => {
+      configureLogger({ level: 'debug' })
+      function namedFunction() {
+        return 'named'
+      }
+      expect(withLogging(namedFunction)()).toBe('named')
+      expect(console.debug).toHaveBeenCalledWith(expect.stringContaining('namedFunction'), [])
+
+      const nameless = () => 'anonymous'
+      Object.defineProperty(nameless, 'name', { value: '' })
+      expect(withLogging(nameless)()).toBe('anonymous')
+      expect(console.debug).toHaveBeenCalledWith(expect.stringContaining('anonymous'), [])
+    })
+  })
+
+  it('server-side import時に環境設定を実行する', async () => {
+    vi.resetModules()
+    vi.stubGlobal('window', undefined)
+    const serverConsole = await import('#base/app/utils/console')
+    expect(serverConsole.getLoggerConfig()).toBeDefined()
+    vi.unstubAllGlobals()
   })
 })

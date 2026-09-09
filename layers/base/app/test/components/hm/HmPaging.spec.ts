@@ -2,30 +2,10 @@ import HmPaging from '#base/app/components/hm/HmPaging.vue'
 import { AnyVueWrapper } from '#base/app/test/models/vue'
 import type { Paging } from '#base/app/utils/response'
 import { mount } from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { createI18n } from 'vue-i18n'
 
 type HmPagingWrapper = AnyVueWrapper
-
-// Nuxt自動インポートのモック
-vi.mock('#base/app/components/hm/HmPaging.vue', async () => {
-  const { ref: _ref } = await import('vue')
-  return {
-    default: {
-      name: 'HmPaging',
-      template: `
-        <nav class="pagination">
-          <a class="pagination-prev">前へ</a>
-          <a class="pagination-next">次へ</a>
-        </nav>
-      `,
-      props: ['paging'],
-      setup() {
-        return {}
-      },
-    },
-  }
-})
 
 // HaLinkのモック
 const mockHaLink = {
@@ -51,7 +31,7 @@ const i18n = createI18n({
   },
 })
 
-describe.skip('HmPaging', () => {
+describe('HmPaging', () => {
   const defaultPaging: Paging = {
     limit: 10,
     offset: 0,
@@ -239,6 +219,30 @@ describe.skip('HmPaging', () => {
 
       expect(wrapper.emitted('changed')).toBeFalsy()
     })
+
+    it('前へ・ページ番号・次へのクリックでchangedイベントを発火する', async () => {
+      const wrapper: HmPagingWrapper = mount(HmPaging, {
+        props: {
+          paging: { ...defaultPaging, offset: 20 },
+        },
+        global: {
+          components: {
+            HaLink: mockHaLink,
+          },
+          plugins: [i18n],
+        },
+      })
+
+      await wrapper.find('.pagination-prev').trigger('click')
+      await wrapper.findAll('.pagination-list > li')[3]!.trigger('click')
+      await wrapper.find('.pagination-next').trigger('click')
+
+      expect(wrapper.emitted('changed')).toEqual([
+        [{ page: 2, offset: 10 }],
+        [{ page: 4, offset: 30 }],
+        [{ page: 4, offset: 30 }],
+      ])
+    })
   })
 
   describe('ページボタンの状態', () => {
@@ -343,6 +347,59 @@ describe.skip('HmPaging', () => {
         },
       })
       expect(wrapper.vm.pages).toEqual([3])
+    })
+
+    it.each([
+      { paging: { limit: 0, offset: 0, total: 100 }, totalVisible: 7 },
+      { paging: { limit: 10, offset: Number.NaN, total: 100 }, totalVisible: 7 },
+      { paging: { limit: 1, offset: 0, total: Number.MAX_SAFE_INTEGER + 1 }, totalVisible: 7 },
+      { paging: defaultPaging, totalVisible: 0 },
+    ])('ページ範囲を作れない入力で空配列を返す: $paging / $totalVisible', ({ paging, totalVisible }) => {
+      const wrapper: HmPagingWrapper = mount(HmPaging, {
+        props: { paging, totalVisible },
+        global: {
+          components: { HaLink: mockHaLink },
+          plugins: [i18n],
+        },
+      })
+
+      expect(wrapper.vm.pages).toEqual([])
+    })
+
+    it.each([
+      { offset: 0, totalVisible: 6, expected: [1, 2, 3, 4, 5, '...', 10] },
+      { offset: 80, totalVisible: 6, expected: [1, '...', 6, 7, 8, 9, 10] },
+      { offset: 80, totalVisible: 7, expected: [1, '...', 5, 6, 7, 8, 9, 10] },
+      { offset: 40, totalVisible: 4, expected: [1, '...', 5, '...', 10] },
+      { offset: 40, totalVisible: 7, expected: [1, '...', 4, 5, 6, 7, '...', 10] },
+    ])('省略記号を含むページ範囲を生成する: offset=$offset, totalVisible=$totalVisible', ({ offset, totalVisible, expected }) => {
+      const wrapper: HmPagingWrapper = mount(HmPaging, {
+        props: {
+          paging: { ...defaultPaging, offset },
+          totalVisible,
+        },
+        global: {
+          components: { HaLink: mockHaLink },
+          plugins: [i18n],
+        },
+      })
+
+      expect(wrapper.vm.pages).toEqual(expected)
+    })
+
+    it('総ページ数が表示数以下なら全ページを表示する', () => {
+      const wrapper: HmPagingWrapper = mount(HmPaging, {
+        props: {
+          paging: { limit: 10, offset: 0, total: 30 },
+          totalVisible: 7,
+        },
+        global: {
+          components: { HaLink: mockHaLink },
+          plugins: [i18n],
+        },
+      })
+
+      expect(wrapper.vm.pages).toEqual([1, 2, 3])
     })
   })
 })

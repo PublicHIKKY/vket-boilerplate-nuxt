@@ -79,4 +79,11 @@ describe('emits', () => {
        */
     }, 1)
   })
+
+  it('ignores events whose target is not an input', () => {
+    const wrapper = mount(HmInputRadio, { props: { name: 'test', value: 1 } })
+    const vm = wrapper.vm as unknown as { onChange: (event: Event) => void }
+    vm.onChange(new Event('change'))
+    expect(wrapper.emitted('change')).toBeUndefined()
+  })
 })

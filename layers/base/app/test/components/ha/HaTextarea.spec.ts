@@ -68,7 +68,42 @@ test('props', () => {
   expect(wrapper.props().keepValueOnUnmount).toBe(true)
 })
 
+describe('counter', () => {
+  it('uses an explicit maximum', () => {
+    const wrapper = mount(HaTextarea, {
+      props: {
+        modelValue: 'abc',
+        counter: { max: 10 },
+      },
+    })
+
+    expect(wrapper.get('.counter').text()).toBe('3/10')
+  })
+
+  it('shows only the length when no maximum rule exists', () => {
+    const wrapper = mount(HaTextarea, {
+      props: {
+        modelValue: 'abc',
+        counter: true,
+      },
+    })
+
+    expect(wrapper.get('.counter').text()).toBe('3')
+  })
+})
+
 describe('emit', () => {
+  it('modelValueがnullの場合は空文字として表示する', () => {
+    const wrapper = mount(HaTextarea, {
+      props: {
+        validatorName: 'nullable-text',
+        modelValue: null as unknown as string,
+      },
+    })
+
+    expect((wrapper.get('textarea').element as HTMLTextAreaElement).value).toBe('')
+  })
+
   it(':update:modelValue, :input', async () => {
     const wrapper = mount(HaTextarea, {
       props: {

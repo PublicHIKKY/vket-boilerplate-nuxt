@@ -88,6 +88,12 @@ describe('props', () => {
       })
       expect(wrapper.attributes('capture')).toBe('environment')
     })
+    it('false does not render the attribute', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: { type: 'file', capture: false },
+      })
+      expect(wrapper.attributes('capture')).toBeUndefined()
+    })
   })
 
   describe(':checked', () => {
@@ -337,6 +343,32 @@ describe('props', () => {
       })
       expect(wrapper.props('value')).toBe(true)
     })
+
+    it('modelValueがundefinedならvalueをバインドする', async () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'text',
+          value: 'fallback value',
+        },
+      })
+      // modelValueはbooleanを含むためVueが未指定時にfalseへcastする。
+      // 外部から明示的にundefinedが渡る実行時ケースを再現する。
+      wrapper.vm.$.props.modelValue = undefined
+      await wrapper.vm.$nextTick()
+
+      expect((wrapper.element as HTMLInputElement).value).toBe('fallback value')
+    })
+
+    it('file入力のvalue=falseはvalue属性にバインドしない', () => {
+      const wrapper = mount(HaBaseInput, {
+        props: {
+          type: 'file',
+          value: false,
+        },
+      })
+
+      expect(wrapper.attributes('value')).toBeUndefined()
+    })
   })
   describe(':modelValue', () => {
     it('default is undefined (for safe)', () => {
@@ -352,6 +384,7 @@ describe('props', () => {
         },
       })
       expect(wrapper.props('modelValue')).toBe('string test')
+      expect((wrapper.element as HTMLInputElement).value).toBe('string test')
     })
 
     it('pass prop: number', () => {
@@ -439,6 +472,15 @@ describe('props', () => {
   })
 })
 describe('emits', () => {
+  it('input targetがHTMLInputElementでない場合は更新値をemitしない', () => {
+    const wrapper = mount(HaBaseInput, { props: { type: 'text' } })
+    const vm = wrapper.vm as unknown as { onInput: (event: Event) => void }
+
+    vm.onInput(new Event('input'))
+
+    expect(wrapper.emitted('input')).toHaveLength(1)
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+  })
   it(':update:modelValue', async () => {
     const wrapper = mount(HaBaseInput, {
       props: {

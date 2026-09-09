@@ -1,5 +1,5 @@
 import { test } from '@fast-check/vitest'
-import { describe, expect } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { decodeJwt } from '#base/app/utils/token'
 
 describe('decodeJwt', () => {
@@ -38,6 +38,13 @@ describe('decodeJwt', () => {
       expect(decoded, 'なんならalg無くても通る').toMatchObject({
         foo: 'bar',
       })
+    })
+
+    test('returns null and logs malformed payloads', () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      expect(decodeJwt('not-a-jwt')).toBeNull()
+      expect(decodeJwt('header.%%%.signature')).toBeNull()
+      expect(consoleError).toHaveBeenCalledTimes(2)
     })
     /*
      * ERROR: テストとして正しいが、ターミナルにエラーが出るためコメントアウト。

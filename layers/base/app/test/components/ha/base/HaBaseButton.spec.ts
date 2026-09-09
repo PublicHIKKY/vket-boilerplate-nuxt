@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, test } from 'vitest'
 import HaBaseButton from '#base/app/components/ha/base/HaBaseButton.vue'
+import { AnyVueWrapper } from '#base/app/test/models/vue'
 
 test('ref component', () => {
   expect(HaBaseButton).toBeTruthy()
@@ -48,7 +49,7 @@ describe('emits', () => {
   })
   test('click emits no event when disabled', async () => {
     const wrapper = mount(HaBaseButton, { props: { disabled: true } })
-    await wrapper.get('button').trigger('click')
+    ;(wrapper as AnyVueWrapper).vm.$.setupState.onClick(new MouseEvent('click'))
     expect(wrapper.emitted().click).toBeUndefined()
   })
 })

@@ -150,6 +150,21 @@ describe(':forceAnchorLink', () => {
     })
     expect(wrapper.find('a').exists()).toBe(true)
   })
+
+  it('アンカーリンクにqueryとhashを連結する', () => {
+    const wrapper = mount(HaLink, {
+      props: {
+        to: '/search',
+        forceAnchorLink: true,
+        query: { keyword: 'virtual market', page: '2' },
+        hash: '#results',
+      },
+    })
+
+    expect(wrapper.get('a').attributes('href')).toBe(
+      '/search?keyword=virtual+market&page=2#results',
+    )
+  })
 })
 
 describe('slot', () => {

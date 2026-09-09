@@ -9,11 +9,13 @@ export default defineVitestConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      reportsDirectory: '../coverage',
+      reportsDirectory: './coverage',
       reportOnFailure: true,
-      allowExternal: true,
+      allowExternal: false,
       include: ['**/*.{vue,ts}'],
       exclude: [
+        '**/.nuxt/**',
+        '**/coverage/**',
         'plugins/**',
         'middleware/**',
         'layouts/**',
