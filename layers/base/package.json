@@ -96,7 +96,7 @@
     "stylelint-rscss": "^0.4.0",
     "tsx": "^4.23.12",
     "type-fest": "^5.8.0",
-    "typescript": "6.0.3",
+    "typescript": "7.0.2",
     "typescript-eslint": "^8.67.0",
     "unplugin-auto-import": "^21.1.0",
     "unplugin-icons": "^23.0.1",
