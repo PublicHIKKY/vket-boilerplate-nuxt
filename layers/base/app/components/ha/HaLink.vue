@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { LocationQuery, stringifyQuery } from 'vue-router'
+import { LocationQuery, parseQuery, stringifyQuery } from 'vue-router'
 
 const props = withDefaults(
   defineProps<{
@@ -20,12 +20,9 @@ const props = withDefaults(
     rel?: HTMLAnchorElement['rel']
     forceAnchorLink?: boolean
     noLocale?: boolean
-    // toにqueryパラメータを入れてしまうと、localePathで消えるため、こちらのパラメータを使用してリンクを生成
+    // to に ?query / #hash を直接書ける。以下 2 つは後方互換のために残してある
     query?: LocationQuery
-    /*
-     * toにhashパラメータを入れてしまうと、localePathで消えるため、こちらのパラメータを使用してリンクを生成
-     * 使う場合は「#」を先頭につけること
-     */
+    // 「#」を先頭につけること
     hash?: string
   }>(),
   {
@@ -53,7 +50,8 @@ const linkTo = computed(() => {
   }
 
   const localePath = useLocalePath()
-  return localePath({ path: props.to, query: props.query, hash: props.hash })
+  // 文字列を渡せば ufo の parsePath が query / hash を分離し、ロケール prefix も正しく付く
+  return localePath(toUrl(props))
 })
 const toUrl = ({
   to,
@@ -64,7 +62,21 @@ const toUrl = ({
   query?: LocationQuery
   hash?: string
 }) => {
-  const queryStr = query ? `?${stringifyQuery(query)}` : ''
-  return `${to}${queryStr}${hash ?? ''}`
+  // prop の指定が無ければ to をそのまま返す。既存の to を再エンコードしない
+  if (!query && hash === undefined) {
+    return to
+  }
+
+  const [beforeHash = '', ...hashParts] = to.split('#')
+  const embeddedHash = hashParts.length > 0 ? `#${hashParts.join('#')}` : ''
+  const [path = '', ...queryParts] = beforeHash.split('?')
+  const embeddedQuery = queryParts.join('?')
+
+  // 同じキーは prop 側を優先する
+  const mergedQuery = { ...parseQuery(embeddedQuery), ...query }
+  const queryStr
+    = Object.keys(mergedQuery).length > 0 ? `?${stringifyQuery(mergedQuery)}` : ''
+
+  return `${path}${queryStr}${hash ?? embeddedHash}`
 }
 </script>

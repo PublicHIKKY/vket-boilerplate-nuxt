@@ -26,6 +26,21 @@ test('mount component', () => {
   expect(wrapper.html()).toMatchSnapshot()
 })
 
+// nuxt-linkはwarnとなるので、aタグに置き換えて to 属性を読む
+const mountInternal = (props: InstanceType<typeof HaLink>['$props']) =>
+  mount(HaLink, {
+    props,
+    global: {
+      stubs: {
+        'nuxt-link': {
+          template: '<a><slot /></a>',
+        },
+      },
+    },
+  })
+    .find('a')
+    .attributes('to')
+
 describe(':to', () => {
   // 外部サイトリンクのテスト
   it('set external path', () => {
@@ -50,6 +65,34 @@ describe(':to', () => {
     })
     // 現在は useLocalePath をモックせず入力値がそのまま使われる
     expect(wrapper.find('a').attributes('to')).toBe('/internal-path')
+  })
+
+  // to に埋め込まれた query / hash が落ちないこと
+  it('keeps query embedded in internal path', () => {
+    expect(mountInternal({ to: '/internal-path?id=123' })).toBe(
+      '/internal-path?id=123',
+    )
+  })
+
+  it('keeps hash embedded in internal path', () => {
+    expect(mountInternal({ to: '/internal-path#about' })).toBe(
+      '/internal-path#about',
+    )
+  })
+
+  it('keeps query and hash embedded in internal path', () => {
+    expect(mountInternal({ to: '/internal-path?id=123#about' })).toBe(
+      '/internal-path?id=123#about',
+    )
+  })
+
+  it('keeps query and hash embedded in external path', () => {
+    const wrapper = mount(HaLink, {
+      props: { to: 'https://example.com/?id=123#about' },
+    })
+    expect(wrapper.find('a').attributes('href')).toBe(
+      'https://example.com/?id=123#about',
+    )
   })
 })
 
@@ -129,59 +172,53 @@ describe('slot', () => {
 // 以下、NuxtLink系のテスト
 vi.mock('#base/app/utils/environment')
 
-/*
- * TODO: Nuxt依存部分のtoLocalePathをモックしている関係で、戻り値がmocked-pathにしかならずqueryのテストが出来ない
- * describe(':query', () => {
- *   it('appends query parameters to internal links', async () => {
- *     // 環境をNuxtとしてモック
- *     vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
- */
+describe(':query', () => {
+  it('appends query parameters to internal links', () => {
+    expect(mountInternal({ to: '/internal', query: { id: '123' } })).toBe(
+      '/internal?id=123',
+    )
+  })
 
-/*
- *     const wrapper = mount(HaLink, {
- *       props: { to: '/intenal', query: { id: '123' } },
- *     })
- */
+  // to 側と prop 側の両方を指定しても「?」が二重に付かないこと
+  it('merges with query embedded in to', () => {
+    expect(
+      mountInternal({ to: '/internal?page=2', query: { id: '123' } }),
+    ).toBe('/internal?page=2&id=123')
+  })
 
-/*
- *     await nextTick()
- *     // NuxtLinkを探す
- *     const nuxtLink = wrapper.find('nuxt-link');
- *     expect(nuxtLink.exists()).toBe(true);
- *     // NuxtLinkがクエリパラメータを含む適切なパスでレンダリングされているか検証
- *     expect(nuxtLink.attributes('to')).toBe('/internal?id=123');
- *     // モック関数が正しく呼び出されたことを確認
- *     expect(useLocalePath).toHaveBeenCalled()
- *   })
- * })
- */
+  it('prefers prop over the same key embedded in to', () => {
+    expect(mountInternal({ to: '/internal?id=1', query: { id: '123' } })).toBe(
+      '/internal?id=123',
+    )
+  })
 
-/*
- * TODO: Nuxt依存部分のtoLocalePathをモックしている関係で、戻り値がmocked-pathにしかならずhashのテストが出来ない
- * describe(':hash', () => {
- *   it('appends hash parameters to internal links', async () => {
- *     // 環境をNuxtとしてモック
- *     vi.mocked(isNuxtEnvironment).mockReturnValueOnce(true)
- */
+  it('keeps hash embedded in to', () => {
+    expect(
+      mountInternal({ to: '/internal#about', query: { id: '123' } }),
+    ).toBe('/internal?id=123#about')
+  })
+})
 
-/*
- *     const wrapper = mount(HaLink, {
- *       props: { to: '/intenal', hash: '#hash'},
- *     })
- */
+describe(':hash', () => {
+  it('appends hash parameters to internal links', () => {
+    expect(mountInternal({ to: '/internal', hash: '#hash' })).toBe(
+      '/internal#hash',
+    )
+  })
 
-/*
- *     await nextTick()
- *     // NuxtLinkを探す
- *     const nuxtLink = wrapper.find('nuxt-link');
- *     expect(nuxtLink.exists()).toBe(true);
- *     // NuxtLinkがクエリパラメータを含む適切なパスでレンダリングされているか検証
- *     expect(nuxtLink.attributes('to')).toBe('/internal#hash');
- *     // モック関数が正しく呼び出されたことを確認
- *     expect(useLocalePath).toHaveBeenCalled()
- *   })
- * })
- */
+  // to 側と prop 側の両方を指定しても「#」が二重に付かないこと
+  it('prefers prop over the hash embedded in to', () => {
+    expect(mountInternal({ to: '/internal#about', hash: '#hash' })).toBe(
+      '/internal#hash',
+    )
+  })
+
+  it('keeps query embedded in to', () => {
+    expect(mountInternal({ to: '/internal?id=123', hash: '#hash' })).toBe(
+      '/internal?id=123#hash',
+    )
+  })
+})
 
 describe('<nuxt-link>', () => {
   /*
