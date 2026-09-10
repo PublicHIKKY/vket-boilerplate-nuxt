@@ -22,7 +22,7 @@ Object.defineProperty(HTMLElement.prototype, 'animate', {
 })
 
 // window.setInterval のモック
-vi.stubGlobal('setInterval', vi.fn())
+vi.stubGlobal('setInterval', vi.fn(() => 1))
 vi.stubGlobal('clearInterval', vi.fn())
 
 describe('HmSlider', () => {
