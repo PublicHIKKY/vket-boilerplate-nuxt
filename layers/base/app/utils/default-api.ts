@@ -55,6 +55,8 @@ const defaultFetchOptions: FetchOptions = {
   // onRequestError: async (ctx) => {},
   onResponse: async (ctx) => {
     if (!ctx.response._data || typeof ctx.response._data !== 'object') return
+    // Blob/ArrayBufferなどのバイナリレスポンス（CSVダウンロード等）はcamelcaseKeysの対象外
+    if (ctx.response._data instanceof Blob || ctx.response._data instanceof ArrayBuffer) return
     ctx.response._data = await camelcaseKeys(ctx.response._data, { deep: true })
   },
   // onResponseError: async (ctx) => {},

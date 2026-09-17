@@ -504,21 +504,26 @@ const endDragging = async (event: MouseEvent | TouchEvent) => {
 let timer: number | undefined
 const startAutoPlay = () => {
   timer = window.setInterval(() => {
-    void moveSlider('next')
+    if (slider.value) {
+      void moveSlider('next')
+    } else {
+      stopAutoPlay()
+    }
   }, props.interval)
 }
 
 // スライダーの自動再生を停止する関数
 const stopAutoPlay = () => {
-  if (!props.autoplay) return
-  clearInterval(timer)
+  if (timer !== undefined) {
+    clearInterval(timer)
+    timer = undefined
+  }
 }
 
 // スライダーを初期化
-onMounted(async () => {
+onMounted(() => {
   setActiveSlide()
   removeId()
-  await nextTick()
   controlButton()
   if (props.autoplay) {
     startAutoPlay()
