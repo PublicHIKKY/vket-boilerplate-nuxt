@@ -17,7 +17,7 @@
     "dayjs": "^1.11.23",
     "ress": "^6.0.0",
     "uuid": "^14.0.2",
-    "vue": "^3.5.41",
+    "vue": "^3.5.43",
     "vue-advanced-cropper": "^2.8.9",
     "vue-router": "^5.2.0",
     "vue3-toastify": "^0.2.9",
