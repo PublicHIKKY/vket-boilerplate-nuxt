@@ -60,33 +60,40 @@ const emit = defineEmits<{
 
 // dialogを開く関数
 const openDialog = () => {
-  isActive.value = true
   if (!dialog.value) {
     throw new Error('dialog要素はnull (HaDialogElement openDialog)')
   }
-  dialog.value.addEventListener('keydown', (e) => {
-    if (dialog.value?.open && e.key === 'Escape') {
-      e.stopPropagation()
-      closeDialog()
-    }
-  })
   if (typeof dialog.value.showModal === 'function') {
     dialog.value.showModal()
   } else {
     console.error('dialog要素はHTMLDialogElementではありません (HaDialogElement openDialog)')
   }
-  dialog.value.addEventListener('close', resetPageScrolling)
+  isActive.value = true
   onOpen()
 }
 
 // dialogを閉じる関数
+// 実際の状態同期(isActive / resetPageScrolling / close emit)はネイティブのcloseイベント
+// (handleNativeClose)側で行う。closedby="any"による背景クリックでの light-dismiss は
+// このcloseDialog()を経由せずブラウザが直接dialogを閉じるため、close側のロジックは
+// closeDialog経由かどうかにかかわらず必ずネイティブcloseイベントに一本化する
 const closeDialog = () => {
   if (!dialog.value) {
     throw new Error('dialog要素はnull (HaDialogElement closeDialog)')
   }
   dialog.value.close()
-  onClose()
+}
+
+const handleNativeClose = () => {
   isActive.value = false
+  onClose()
+}
+
+const handleKeydown = (e: KeyboardEvent) => {
+  if (dialog.value?.open && e.key === 'Escape') {
+    e.stopPropagation()
+    closeDialog()
+  }
 }
 
 const stopPageScrolling = () => {
@@ -116,6 +123,11 @@ const close = ref<HTMLElement>()
 const handleEndFocus = () => {
   close.value?.focus()
 }
+
+onMounted(() => {
+  dialog.value?.addEventListener('keydown', handleKeydown)
+  dialog.value?.addEventListener('close', handleNativeClose)
+})
 
 onBeforeUnmount(resetPageScrolling)
 
