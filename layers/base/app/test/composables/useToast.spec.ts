@@ -180,9 +180,17 @@ describe('useToast composable', () => {
 
       expect(() => {
         const { addToast } = useToast()
-        // $toastがundefinedでもエラーにならないかテスト
-        expect(addToast).toBeDefined()
+        addToast('not displayed')
       }).not.toThrow()
+    })
+
+    it('対象メソッドが存在しない場合は何もしない', () => {
+      mockUseNuxtApp.mockReturnValueOnce({
+        $toast: {},
+      })
+      const { addToast } = useToast()
+
+      expect(() => addToast('not displayed')).not.toThrow()
     })
 
     it('無効なtoastタイプでもエラーにならない', () => {

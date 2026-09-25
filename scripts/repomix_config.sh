@@ -20,6 +20,7 @@ AGENTS=(
     ["base-logic"]="layers/base/app/utils/**/*,layers/base/app/composables/**/*,layers/base/app/models/**/*,layers/base/app/repositories/**/*"
     ["base-infrastructure"]="layers/base/app/plugins/**/*,layers/base/app/middleware/**/*,layers/base/app/app.vue"
     ["base-tests"]="layers/base/app/test/**/*"
+    ["base-tests-components"]="layers/base/app/test/components/**/*"
     ["base-config"]="layers/base/@types/**/*,layers/base/config/**/*,layers/base/i18n/**/*,layers/base/*.ts,layers/base/*.json,layers/base/server/**/*"
 
     # showcasesレイヤーの分割（論理的4分割）
@@ -43,6 +44,7 @@ AGENTS=(
 # showcases の animista コンポーネント群は1ファイルずつ context を出力する。
 # 既存の showcases-components からは除外して重複とサイズ超過を防ぐ。
 IGNORES["showcases-components"]="layers/showcases/app/components/ho/animista/**/*"
+IGNORES["base-tests"]="layers/base/app/test/components/**/*"
 
 shopt -s nullglob
 for animista_file in layers/showcases/app/components/ho/animista/*.vue; do

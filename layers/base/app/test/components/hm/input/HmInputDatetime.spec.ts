@@ -221,6 +221,12 @@ describe('emits', () => {
     }, 1)
   })
 
+  it('does not emit enter when keyupEnter is false', async () => {
+    const wrapper = mount(HmInputDatetime, { props: { keyupEnter: false } })
+    await wrapper.get('input').trigger('keyup.enter')
+    expect(wrapper.emitted('enter')).toBeUndefined()
+  })
+
   it(':validation', async () => {
     const dateValue = '2023-09-28T14:48withErrorString'
     const datetimeLocalSchema = z.string().refine(
@@ -248,6 +254,28 @@ describe('emits', () => {
        */
     }, 1)
   })
+})
+
+test('formats each supported input type and handles an unsupported runtime type', async () => {
+  const wrapper = mount(HmInputDatetime, {
+    props: { type: 'datetime-local', modelValue: '2024-01-02T03:04:00' },
+  })
+  expect((wrapper.get('input').element as HTMLInputElement).value).toContain('2024-01-02')
+  await wrapper.setProps({ type: 'date' })
+  expect((wrapper.get('input').element as HTMLInputElement).value).toBe('2024-01-02')
+  await wrapper.setProps({ type: 'time', modelValue: '03:04' })
+  expect((wrapper.get('input').element as HTMLInputElement).value).toBe('03:04')
+  await wrapper.setProps({ type: 'unsupported' as never })
+  expect((wrapper.get('input').element as HTMLInputElement).value).toBe('')
+})
+
+test('normalizes a runtime undefined model value', async () => {
+  const wrapper = mount(HmInputDatetime, { props: { modelValue: '2024-01-02' } })
+  const internal = wrapper.vm as unknown as { $: { props: Record<string, unknown> } }
+  internal.$.props.modelValue = undefined
+  wrapper.vm.$forceUpdate()
+  await wrapper.vm.$nextTick()
+  expect((wrapper.get('input').element as HTMLInputElement).value).toBe('')
 })
 test('DOM check for error display', async () => {
   const dateValue = '2023-09-28T14:48withErrorString'

@@ -26,9 +26,11 @@ test('validates (with trasnlate mock)', () => {
   expect(() => rules.required.parse('a')).not.toThrowError()
 
   expect(() => rules.stringRequired.parse(null)).toThrowError()
+  expect(() => rules.stringRequired.parse(undefined)).toThrowError()
   expect(() => rules.stringRequired.parse('')).not.toThrowError()
 
   expect(() => rules.numberRequired.parse(null)).toThrowError()
+  expect(() => rules.numberRequired.parse(undefined)).toThrowError()
   expect(() => rules.numberRequired.parse(0)).not.toThrowError()
 
   expect(() => rules.url.parse('')).toThrowError()
@@ -49,6 +51,8 @@ test('validates (with trasnlate mock)', () => {
   expect(() => rules.image({}).parse(fileSizeIs1)).not.toThrowError()
   expect(() => rules.image({ required: true }).parse(undefined)).toThrowError()
   expect(() => rules.image({ maxSize: 0 }).parse(fileSizeIs1)).toThrowError()
+  expect(() => rules.image({ maxSize: 1 }).parse(undefined)).not.toThrowError()
+  expect(() => rules.image({ maxSize: 1 }).parse(fileSizeIs1)).not.toThrowError()
 })
 
 test.prop([fc.nat(), fc.nat()])('validates minValue successfully', (n, m) => {
