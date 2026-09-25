@@ -18,10 +18,10 @@ export default defineVitestConfig({
       exclude: [
         '**/.nuxt/**',
         '**/coverage/**',
-        'plugins/**',
-        'middleware/**',
-        'layouts/**',
-        'test/**',
+        '**/plugins/**',
+        '**/middleware/**',
+        '**/layouts/**',
+        '**/test/**',
       ],
       thresholds: {
         statements: 100,
