@@ -34,8 +34,11 @@ describe('HaDialogElement', () => {
       value: vi.fn(),
       writable: true,
     })
+    // HaDialogElementは状態の同期をネイティブのcloseイベントで行うため、モックでもcloseイベントを発火させる
     Object.defineProperty(HTMLDialogElement.prototype, 'close', {
-      value: vi.fn(),
+      value: vi.fn(function (this: HTMLDialogElement) {
+        this.dispatchEvent(new Event('close'))
+      }),
       writable: true,
     })
     Object.defineProperty(HTMLDialogElement.prototype, 'open', {
