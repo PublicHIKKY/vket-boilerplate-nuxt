@@ -13,6 +13,21 @@ test('mount component', () => {
 })
 
 describe('rendering test', () => {
+  it('applies active classes from menu item slots', () => {
+    const wrapper = mount(HmMenuExample, {
+      global: {
+        stubs: {
+          Menu: { template: '<div><slot /></div>' },
+          MenuButton: { template: '<button><slot /></button>' },
+          MenuItems: { template: '<div><slot /></div>' },
+          MenuItem: { template: '<div><slot :active="true" /></div>' },
+        },
+      },
+    })
+
+    expect(wrapper.findAll('.span.-active')).toHaveLength(3)
+  })
+
   it(':menu', () => {
     const wrapper = mount(HmMenuExample)
     expect(wrapper.find('div[class="menu-container"]').exists()).toBe(true)

@@ -44,4 +44,19 @@ describe('HmSocialShareLink', () => {
     // 現在は useSocialShareLink の戻り値をそのまま使う
     expect(link.attributes('to')).toBe('mockedUrlFortwitter')
   })
+
+  it('uses an empty target for null name', () => {
+    mount(HmSocialShareLink, {
+      props: { name: null },
+      global: {
+        stubs: {
+          'nuxt-link': { template: '<a><slot /></a>' },
+        },
+      },
+    })
+
+    expect(mockGetShareUrl).toHaveBeenCalledWith('', expect.objectContaining({
+      name: null,
+    }))
+  })
 })

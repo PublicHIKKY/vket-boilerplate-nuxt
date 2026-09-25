@@ -1,6 +1,23 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, test, expect } from 'vitest'
+import { afterEach, describe, it, test, expect, vi } from 'vitest'
+import { defineComponent, h, ref } from 'vue'
 import HmInputFile from '#base/app/components/hm/input/HmInputFile.vue'
+
+afterEach(() => {
+  vi.useRealTimers()
+  window.onfocus = null
+})
+
+vi.mock('#base/app/utils/zod', async (importOriginal) => {
+  const original = await importOriginal<typeof import('#base/app/utils/zod')>()
+  return {
+    ...original,
+    isValueOf: (_schema: unknown, value: unknown) =>
+      typeof (value as { addEventListener?: unknown } | undefined)?.addEventListener === 'function'
+        ? true
+        : original.isValueOf(_schema as never, value),
+  }
+})
 
 /*
  * NOTE: 下準備としてFileList型のダミーを作成する
@@ -189,5 +206,145 @@ describe('event test', () => {
       // NOTE: ドロップイベントが検知できないが、初期値の状態なのでテストは通る。また、JSDOMはdataTransferを扱えない
       expect(wrapper.get('label').attributes('class')).toBe('hm-input-file')
     }, 1)
+  })
+})
+
+type FileVm = {
+  files: FileList | undefined
+  fileInput: HTMLInputElement | undefined
+  clickListener: ((event: Event) => void) | null
+  toggleDragOver: (value: boolean) => void
+  onDrop: (event: DragEvent) => void
+  onChange: (event: Event) => void
+  onClick: () => void
+}
+
+const fileList = (...files: File[]): FileList => {
+  const list = Object.create(FileList.prototype) as FileList
+  Object.defineProperty(list, 'length', { value: files.length })
+  Object.defineProperty(list, 'item', { value: (index: number) => files[index] ?? null })
+  files.forEach((file, index) => Object.defineProperty(list, index, { value: file }))
+  return list
+}
+
+describe('functional file interactions', () => {
+  it('emits single and multiple selections through the computed setter', () => {
+    const selected = fileList(new File(['a'], 'a.txt'))
+    const single = mount(HmInputFile)
+    ;(single.vm as unknown as FileVm).files = selected
+    expect(single.emitted('input:single')).toEqual([[selected]])
+
+    const multiple = mount(HmInputFile, { props: { multiple: true } })
+    ;(multiple.vm as unknown as FileVm).files = selected
+    expect(multiple.emitted('input:multiple')).toEqual([[selected]])
+    ;(multiple.vm as unknown as FileVm).files = undefined
+    expect(multiple.emitted('input:multiple')).toHaveLength(1)
+  })
+
+  it('handles drag state, drops with and without dataTransfer', async () => {
+    const wrapper = mount(HmInputFile)
+    const vm = wrapper.vm as unknown as FileVm
+    vm.toggleDragOver(true)
+    await wrapper.vm.$nextTick()
+    expect(wrapper.get('label').classes()).toContain('-dragover')
+
+    const selected = fileList(new File(['a'], 'a.txt'))
+    vm.onDrop({ dataTransfer: { files: selected } } as DragEvent)
+    expect(wrapper.emitted('input:single')).toEqual([[selected]])
+    vm.onDrop({ dataTransfer: null } as DragEvent)
+    await wrapper.vm.$nextTick()
+    expect(wrapper.get('label').classes()).not.toContain('-dragover')
+  })
+
+  it('routes DOM drag, drop, click, and change handlers', async () => {
+    const wrapper = mount(HmInputFile)
+    const label = wrapper.get('label')
+    await label.trigger('dragenter')
+    expect(label.classes()).toContain('-dragover')
+    await label.trigger('dragleave')
+    expect(label.classes()).not.toContain('-dragover')
+    await label.trigger('dragover')
+    await label.trigger('drop', { dataTransfer: null })
+
+    const input = wrapper.get('input[type="file"]')
+    await input.trigger('click')
+    const selected = fileList(new File(['a'], 'a.txt'))
+    Object.defineProperty(input.element, 'files', { configurable: true, value: selected })
+    await input.trigger('change')
+    expect(wrapper.emitted('input:single')).toEqual([[selected]])
+  })
+
+  it('accepts file input changes and rejects invalid targets', () => {
+    const wrapper = mount(HmInputFile)
+    const vm = wrapper.vm as unknown as FileVm
+    const selected = fileList(new File(['a'], 'a.txt'))
+    vm.onChange({ target: { files: selected } } as unknown as Event)
+    expect(wrapper.emitted('input:single')).toEqual([[selected]])
+    vm.onChange({ target: null } as unknown as Event)
+    expect(() => vm.onChange({ target: { files: [] } } as unknown as Event)).toThrow(
+      'Illegal. This functions is only for file input elements',
+    )
+    vm.onChange({ target: { files: fileList() } } as unknown as Event)
+  })
+
+  it('clears an actual file input on click and ignores missing/non-input refs', () => {
+    const wrapper = mount(HmInputFile)
+    const vm = wrapper.vm as unknown as FileVm
+    vm.fileInput = undefined
+    expect(() => vm.onClick()).not.toThrow()
+    const input = document.createElement('input')
+    input.value = 'value'
+    vm.fileInput = input
+    vm.onClick()
+    expect(input.value).toBe('')
+  })
+
+  it('registers cancel detection and removes its listener during unmount', () => {
+    vi.useFakeTimers()
+    const add = vi.fn()
+    const remove = vi.fn()
+    const exposedFiles = ref(fileList())
+    const StubInput = defineComponent({
+      setup(_, { expose }) {
+        expose({
+          files: exposedFiles,
+          value: '',
+          addEventListener: add,
+          removeEventListener: remove,
+        })
+        return () => h('input', { type: 'file' })
+      },
+    })
+    const wrapper = mount(HmInputFile, { global: { stubs: { HaBaseInput: StubInput } } })
+    expect(add).toHaveBeenCalledWith('click', expect.any(Function))
+    const listener = add.mock.calls[0]?.[1] as (event: Event) => void
+    listener(new Event('click'))
+    window.onfocus?.(new FocusEvent('focus'))
+    vi.advanceTimersByTime(500)
+    expect(wrapper.emitted('cancel')).toHaveLength(1)
+    exposedFiles.value = fileList(new File(['selected'], 'selected.txt'))
+    listener(new Event('click'))
+    window.onfocus?.(new FocusEvent('focus'))
+    vi.advanceTimersByTime(500)
+    expect(wrapper.emitted('cancel')).toHaveLength(1)
+    wrapper.unmount()
+    expect(remove).toHaveBeenCalledWith('click', listener)
+  })
+
+  it('does not remove a listener when setup ended before registration', () => {
+    const StubInput = defineComponent({
+      setup(_, { expose }) {
+        expose({
+          files: fileList(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+        })
+        return () => h('input', { type: 'file' })
+      },
+    })
+    const wrapper = mount(HmInputFile, { global: { stubs: { HaBaseInput: StubInput } } })
+    const internal = wrapper.vm as unknown as { $: { setupState: Record<string, unknown> } }
+    internal.$.setupState.clickListener = null
+    expect(() => wrapper.unmount()).not.toThrow()
   })
 })

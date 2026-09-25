@@ -472,4 +472,338 @@ describe('HmSlider', () => {
       expect(nextButton.attributes('aria-label')).toBe('Show next slide')
     })
   })
+
+  describe('境界値とエラー経路', () => {
+    const mountSlider = (props: Partial<typeof defaultProps> = {}) => {
+      wrapper = mount(HmSlider, {
+        props: { ...defaultProps, ...props },
+        slots: {
+          item: `
+            <div id="slide-1" class="slider-item">1</div>
+            <div id="slide-2" class="slider-item">2</div>
+            <div id="slide-3" class="slider-item">3</div>
+          `,
+        },
+        global: { plugins: [i18n] },
+      })
+      return wrapper
+    }
+
+    it('ループ無しの最後からnextで先頭へ戻る', async () => {
+      const wrapper = mountSlider()
+      await wrapper.vm.jumpSlider(2)
+
+      await wrapper.vm.moveSlider('next')
+
+      expect(wrapper.vm.currentSlide).toBe(0)
+      expect(wrapper.vm.disabledPrevious).toBe(true)
+    })
+
+    it('ループ時のnextは通常進行と末尾からの復帰を行う', async () => {
+      const wrapper = mountSlider({ loop: true })
+
+      await wrapper.vm.moveSlider('next')
+      expect(wrapper.vm.currentSlide).toBe(-1)
+      await wrapper.vm.jumpSlider(2)
+      await wrapper.vm.moveSlider('next')
+      expect(wrapper.vm.currentSlide).toBe(0)
+    })
+
+    it('ループ時のpreviousは先頭から末尾へ移動し、通常は1つ戻る', async () => {
+      const wrapper = mountSlider({ loop: true })
+
+      await wrapper.vm.moveSlider('previous')
+      expect(wrapper.vm.currentSlide).toBe(-2)
+      await wrapper.vm.moveSlider('previous')
+      expect(wrapper.vm.currentSlide).toBe(-1)
+    })
+
+    it('pagination indexが無い場合は現在位置を保つ', () => {
+      const wrapper = mountSlider()
+
+      Reflect.apply(wrapper.vm.$.setupState.updateCurrentSlide, undefined, ['pagination'])
+
+      expect(wrapper.vm.currentSlide).toBe(0)
+    })
+
+    it('slider refがnullならmove/jump/controlが明示的に失敗する', async () => {
+      const wrapper = mountSlider()
+      await Promise.resolve()
+      wrapper.vm.$.setupState.slider = null
+
+      await expect(wrapper.vm.moveSlider('next')).rejects.toThrow('slider要素はnull')
+      wrapper.vm.$.setupState.slider = null
+      await expect(wrapper.vm.jumpSlider(1)).rejects.toThrow('slider要素はnull')
+      wrapper.vm.$.setupState.slider = null
+      expect(() => wrapper.vm.$.setupState.controlButton()).toThrow('slider要素はnull')
+    })
+
+    it('slider refがHTMLElementでなければmove/jumpを拒否する', async () => {
+      const wrapper = mountSlider()
+      wrapper.vm.$.setupState.slider = {}
+
+      await expect(wrapper.vm.moveSlider('next')).rejects.toThrow(
+        'slider要素はHTMLElementではありません',
+      )
+      wrapper.vm.$.setupState.slider = {}
+      await expect(wrapper.vm.jumpSlider(1)).rejects.toThrow(
+        'slider要素はHTMLElementではありません',
+      )
+    })
+
+    it('未知のdirectionでは位置を変更しない', async () => {
+      const wrapper = mountSlider()
+
+      await wrapper.vm.moveSlider('unknown')
+
+      expect(wrapper.vm.currentSlide).toBe(0)
+    })
+
+    it('jump処理中にsliderがHTMLElementでなくなった場合はanimateしない', async () => {
+      const wrapper = mountSlider()
+      const originalHTMLElement = globalThis.HTMLElement
+      let checks = 0
+      const ChangingHTMLElement = function ChangingHTMLElementMock() {}
+      Object.defineProperty(ChangingHTMLElement, Symbol.hasInstance, {
+        value: () => {
+          checks += 1
+          return checks === 1
+        },
+      })
+      vi.stubGlobal('HTMLElement', ChangingHTMLElement)
+
+      await wrapper.vm.jumpSlider(1)
+
+      expect(wrapper.vm.currentSlide).toBe(-1)
+      vi.stubGlobal('HTMLElement', originalHTMLElement)
+    })
+
+    it('現在スライドのみactiveにし、他をアクセシビリティツリーから外す', async () => {
+      const wrapper = mountSlider()
+
+      await wrapper.vm.jumpSlider(1)
+
+      const items = wrapper.find('#test-slider').findAll('.slider-item')
+      expect(items[0]!.classes()).not.toContain('-active')
+      expect(items[0]!.attributes('aria-hidden')).toBe('true')
+      expect(items[1]!.classes()).toContain('-active')
+      expect(items[1]!.attributes('aria-hidden')).toBeUndefined()
+    })
+
+    it('スライドアイテムコンテナが無い場合はactive更新を無視する', () => {
+      const wrapper = mountSlider()
+      wrapper.vm.$.setupState.receivedSlideItemsContainer = null
+
+      expect(() => wrapper.vm.$.setupState.setActiveSlide()).not.toThrow()
+    })
+
+    it('ループ用複製スライドからidを除去する', () => {
+      const wrapper = mountSlider({ loop: true })
+
+      expect(wrapper.find('.slider.-before .slider-item').attributes('id')).toBeUndefined()
+      expect(wrapper.find('.slider.-after .slider-item').attributes('id')).toBeUndefined()
+    })
+
+    it('center指定を複製スライドにも適用する', () => {
+      const wrapper = mountSlider({ loop: true, center: true })
+
+      expect(wrapper.get('.slider.-before').classes()).toContain('-center')
+      expect(wrapper.get('.slider.-after').classes()).toContain('-center')
+    })
+
+    it.each(['clonedSlideBefore', 'clonedSlideAfter'])(
+      '%s refがnullならremoveIdが明示的に失敗する',
+      (refName) => {
+        const wrapper = mountSlider({ loop: true })
+        wrapper.vm.$.setupState[refName] = null
+
+        expect(() => wrapper.vm.$.setupState.removeId()).toThrow(
+          'clonedSlideBefore要素はnull',
+        )
+      },
+    )
+
+    it('autoplayのinterval callbackで次のスライドへ進む', async () => {
+      const wrapper = mountSlider({ autoplay: true })
+      await Promise.resolve()
+      const intervalMock = vi.mocked(window.setInterval)
+      const callback = intervalMock.mock.calls.at(-1)?.[0]
+
+      expect(callback).toBeTypeOf('function')
+      if (typeof callback === 'function') callback()
+      await wrapper.vm.$nextTick()
+
+      expect(wrapper.vm.currentSlide).toBe(-1)
+    })
+
+    it('自動再生の英語aria-labelを表示する', () => {
+      const enI18n = createI18n({
+        legacy: false,
+        locale: 'en',
+        messages: { ja: {}, en: {} },
+      })
+      wrapper = mount(HmSlider, {
+        props: { ...defaultProps, autoplay: true },
+        global: { plugins: [enI18n] },
+      })
+      const autoplayButtons = wrapper.findAll('button').slice(-2)
+
+      expect(autoplayButtons[0]!.attributes('aria-label')).toBe(
+        'Start automatic playback of slides',
+      )
+      expect(autoplayButtons[1]!.attributes('aria-label')).toBe(
+        'Stop automatic playback of slides',
+      )
+    })
+  })
+
+  describe('ドラッグとスワイプの状態遷移', () => {
+    const mountSlider = (props: Partial<typeof defaultProps> = {}) => {
+      wrapper = mount(HmSlider, {
+        props: { ...defaultProps, ...props },
+        global: { plugins: [i18n] },
+      })
+      return wrapper
+    }
+    const mouse = (type: string, pageX: number) => {
+      const event = new MouseEvent(type, { bubbles: true, cancelable: true })
+      Object.defineProperty(event, 'pageX', { value: pageX })
+      return event
+    }
+    const touch = (type: string, pageX?: number) => {
+      const event = new TouchEvent(type, { bubbles: true, cancelable: true })
+      Object.defineProperty(event, 'touches', {
+        value: pageX === undefined ? [] : [{ pageX }],
+      })
+      return event
+    }
+
+    it('draggable=falseならdrag処理を行わない', async () => {
+      const wrapper = mountSlider({ draggable: false })
+
+      wrapper.vm.$.setupState.startDragging(mouse('mousedown', 100))
+      wrapper.vm.$.setupState.inDragging(mouse('mousemove', 0))
+      await wrapper.vm.$.setupState.endDragging(mouse('mouseup', 0))
+
+      expect(wrapper.vm.currentSlide).toBe(0)
+    })
+
+    it('左へ50px超ドラッグで次へ進む', async () => {
+      const wrapper = mountSlider()
+      const slider = wrapper.get('.slider-inner').element as HTMLElement
+
+      wrapper.vm.$.setupState.startDragging(mouse('mousedown', 100))
+      wrapper.vm.$.setupState.inDragging(mouse('mousemove', 0))
+      expect(slider.style.translate).toBe('-30px')
+      await wrapper.vm.$.setupState.endDragging(mouse('mouseup', 0))
+
+      expect(wrapper.vm.currentSlide).toBe(-1)
+      expect(slider.style.translate).toBe('0px')
+    })
+
+    it('右へ50px超ドラッグで前へ戻る', async () => {
+      const wrapper = mountSlider({ loop: true })
+
+      await wrapper.vm.jumpSlider(1)
+      wrapper.vm.$.setupState.startDragging(mouse('mousedown', 0))
+      wrapper.vm.$.setupState.inDragging(mouse('mousemove', 100))
+      await wrapper.vm.$.setupState.endDragging(mouse('mouseup', 100))
+
+      expect(wrapper.vm.currentSlide).toBe(0)
+    })
+
+    it('タッチスワイプで次へ進む', async () => {
+      const wrapper = mountSlider()
+
+      wrapper.vm.$.setupState.startDragging(touch('touchstart', 100))
+      wrapper.vm.$.setupState.inDragging(touch('touchmove', 0))
+      await wrapper.vm.$.setupState.endDragging(touch('touchend'))
+
+      expect(wrapper.vm.currentSlide).toBe(-1)
+    })
+
+    it('非ループの先頭と末尾では範囲外へドラッグしない', async () => {
+      const wrapper = mountSlider()
+      const slider = wrapper.get('.slider-inner').element as HTMLElement
+
+      wrapper.vm.$.setupState.startDragging(mouse('mousedown', 0))
+      wrapper.vm.$.setupState.inDragging(mouse('mousemove', 100))
+      await wrapper.vm.$.setupState.endDragging(mouse('mouseup', 100))
+      expect(wrapper.vm.currentSlide).toBe(0)
+      expect(slider.style.translate).toBe('0px')
+
+      await wrapper.vm.jumpSlider(2)
+      wrapper.vm.$.setupState.startDragging(mouse('mousedown', 100))
+      wrapper.vm.$.setupState.inDragging(mouse('mousemove', 0))
+      await wrapper.vm.$.setupState.endDragging(mouse('mouseup', 0))
+      expect(wrapper.vm.currentSlide).toBe(-2)
+      expect(slider.style.translate).toBe('0px')
+    })
+
+    it('50px以下のドラッグではスライドを変えない', async () => {
+      const wrapper = mountSlider()
+
+      wrapper.vm.$.setupState.startDragging(mouse('mousedown', 100))
+      wrapper.vm.$.setupState.inDragging(mouse('mousemove', 80))
+      await wrapper.vm.$.setupState.endDragging(mouse('mouseup', 80))
+
+      expect(wrapper.vm.currentSlide).toBe(0)
+    })
+
+    it('ドラッグ開始前のmove/endと未知のイベントを無視する', async () => {
+      const wrapper = mountSlider()
+      const unknownEvent = new Event('unknown')
+
+      wrapper.vm.$.setupState.inDragging(mouse('mousemove', 10))
+      await wrapper.vm.$.setupState.endDragging(mouse('mouseup', 10))
+      wrapper.vm.$.setupState.startDragging(unknownEvent)
+
+      expect(wrapper.vm.currentSlide).toBe(0)
+    })
+
+    it('ドラッグ中の未知のイベントを無視する', () => {
+      const wrapper = mountSlider()
+      wrapper.vm.$.setupState.startDragging(mouse('mousedown', 100))
+
+      wrapper.vm.$.setupState.inDragging(new Event('unknown'))
+
+      expect(wrapper.vm.currentSlide).toBe(0)
+    })
+
+    it('drag中にslider refが消失したら明示的に失敗する', async () => {
+      const wrapper = mountSlider()
+      await Promise.resolve()
+      wrapper.vm.$.setupState.startDragging(mouse('mousedown', 100))
+      wrapper.vm.$.setupState.slider = null
+
+      expect(() => wrapper.vm.$.setupState.inDragging(mouse('mousemove', 0)))
+        .toThrow('slider要素はnull')
+    })
+
+    it.each([
+      { boundary: 'first', start: 0, end: 100 },
+      { boundary: 'last', start: 100, end: 0 },
+    ])('$boundaryの範囲外drag終了時にslider refが無ければ失敗する', async ({ boundary, start, end }) => {
+      const wrapper = mountSlider()
+      await Promise.resolve()
+      if (boundary === 'last') await wrapper.vm.jumpSlider(2)
+      wrapper.vm.$.setupState.startDragging(mouse('mousedown', start))
+      wrapper.vm.$.setupState.inDragging(mouse('mousemove', end))
+      wrapper.vm.$.setupState.slider = null
+
+      await expect(wrapper.vm.$.setupState.endDragging(mouse('mouseup', end)))
+        .rejects.toThrow('slider要素はnull')
+    })
+
+    it('drag終了時にslider refが消失したら失敗する', async () => {
+      const wrapper = mountSlider()
+      await Promise.resolve()
+      wrapper.vm.$.setupState.startDragging(mouse('mousedown', 100))
+      wrapper.vm.$.setupState.inDragging(mouse('mousemove', 80))
+      wrapper.vm.$.setupState.slider = null
+
+      await expect(wrapper.vm.$.setupState.endDragging(mouse('mouseup', 80)))
+        .rejects.toThrow('slider要素はnull')
+    })
+  })
 })

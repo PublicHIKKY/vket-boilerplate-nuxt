@@ -1,53 +1,104 @@
-import { test, expect, vi, beforeEach, afterEach } from 'vitest'
-import doObserve from '#base/app/composables/useCustomIntersectionObserver'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import useCustomIntersectionObserver from '#base/app/composables/useCustomIntersectionObserver'
 
-/**
- * @privateRemarks
- * # IntersectionObserverは動かない
- * 公式でIntersectionObserverが動かないからmockする例をあげている
- * 参考：https://vitest.dev/guide/mocking.html#globals
- */
-const IntersectionObserverMock = vi.fn(() => ({
-  disconnect: vi.fn(),
-  observe: vi.fn(),
-  takeRecords: vi.fn(),
-  unobserve: vi.fn(),
-}))
+type ObserverCallback = ConstructorParameters<typeof IntersectionObserver>[0]
+
+const callbacks: ObserverCallback[] = []
+const observe = vi.fn()
+const unobserve = vi.fn()
+const IntersectionObserverMock = vi.fn(class {
+  disconnect = vi.fn()
+  observe = observe
+  takeRecords = vi.fn()
+  unobserve = unobserve
+
+  constructor(callback: ObserverCallback) {
+    callbacks.push(callback)
+  }
+})
+
+const entry = (target: Element, isIntersecting: boolean) => ({
+  target,
+  isIntersecting,
+}) as IntersectionObserverEntry
 
 beforeEach(() => {
-  /**
-   * @privateRemarks
-   * # vi.stubGlobalが使える理由
-   * useRouteなどcomposablesのauto-import絡みでvi.stubGlobalを使用するとエラーとなるが、
-   * IntersectionObserverはただのjsなのでエラーにならない。
-   */
+  callbacks.length = 0
+  observe.mockClear()
+  unobserve.mockClear()
+  IntersectionObserverMock.mockClear()
+  vi.useFakeTimers()
   vi.stubGlobal('IntersectionObserver', IntersectionObserverMock)
 })
 
-/**
- * @privateRemarks
- * # テスト後はvi.stubGlobalを修復
- * vi.stubGlobalしたものを、テスト後（affterAll or afterEach）は元に戻す
- * https://vitest.dev/api/vi.html#vi-unstuballglobals
- */
 afterEach(() => {
+  vi.useRealTimers()
   vi.unstubAllGlobals()
 })
 
-/**
- * @privateRemarks
- * # テスト内容に関して
- * doObserveが返却する値もなく、
- * IntersectionObserverでDOMを監視するcomposablesだが、
- * 上記公式の通りIntersectionObserverはモックする前提であり、テストでは動作しない。
- * しかし、テストが出来ないだけではカバレッジ確保の観点から望ましくなく、
- * 一種のラパリサード、自明の理たる俗称エンブレス構文によるテストを証左として示し、経緯を後世に残す。
- *
- * composablesの「doObserve」doObserve()はdoObserveのオブジェクトです
- */
-test('doObserve', () => {
-  const expectObj = {
-    doObserve: {},
-  }
-  expect(doObserve()).toMatchObject(expectObj)
+describe('doObserve', () => {
+  it('observes with defaults and performs the default delayed in action', () => {
+    const element = document.createElement('div')
+    const inAction = vi.fn()
+
+    useCustomIntersectionObserver().doObserve([{ element, inAction }])
+    callbacks[0]?.([entry(element, true)], {} as IntersectionObserver)
+
+    expect(IntersectionObserverMock).toHaveBeenCalledWith(
+      expect.any(Function),
+      { root: null, rootMargin: '0px', threshold: 0.1 },
+    )
+    expect(observe).toHaveBeenCalledWith(element)
+    expect(inAction).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(300)
+    expect(inAction).toHaveBeenCalledOnce()
+    expect(element.classList.contains('-intersecting')).toBe(true)
+    expect(unobserve).not.toHaveBeenCalled()
+  })
+
+  it('supports custom options, staggered delay, class, once, and exit action', () => {
+    const first = document.createElement('div')
+    const second = document.createElement('div')
+    const firstIn = vi.fn()
+    const secondIn = vi.fn()
+    const outAction = vi.fn()
+    const options = { root: first, rootMargin: '2px', threshold: 1 }
+
+    useCustomIntersectionObserver().doObserve([
+      { element: first, once: true, delay: 0, inAction: firstIn },
+      {
+        element: second,
+        once: true,
+        delay: 20,
+        inAction: secondIn,
+        outAction,
+        intersectingClass: 'visible',
+      },
+    ], options)
+
+    callbacks[0]?.([entry(first, true)], {} as IntersectionObserver)
+    callbacks[1]?.([entry(second, true)], {} as IntersectionObserver)
+    vi.advanceTimersByTime(0)
+    expect(firstIn).toHaveBeenCalledOnce()
+    expect(unobserve).toHaveBeenCalledWith(first)
+    expect(secondIn).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(20)
+    expect(secondIn).toHaveBeenCalledOnce()
+    expect(second.classList.contains('visible')).toBe(true)
+    expect(unobserve).toHaveBeenCalledWith(second)
+
+    callbacks[1]?.([entry(second, false)], {} as IntersectionObserver)
+    expect(outAction).toHaveBeenCalledOnce()
+    expect(second.classList.contains('visible')).toBe(false)
+  })
+
+  it('allows omitted actions when leaving the viewport', () => {
+    const element = document.createElement('div')
+    element.classList.add('-intersecting')
+    useCustomIntersectionObserver().doObserve([{ element }])
+
+    callbacks[0]?.([entry(element, false)], {} as IntersectionObserver)
+
+    expect(element.classList.contains('-intersecting')).toBe(false)
+  })
 })

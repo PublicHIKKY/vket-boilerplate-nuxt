@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { sleep } from '#base/app/utils/sleep'
+import { describe, it, expect, vi } from 'vitest'
+import { sleep, waitEffect } from '#base/app/utils/sleep'
 
 describe('sleep test', () => {
   it('diff of start time and end time', async () => {
@@ -17,5 +17,17 @@ describe('sleep test', () => {
      * 「この API は、タイマーがスケジュールどおりに正確に実行されることを保証しません。CPU 負荷や他のタスクなどによる遅延が予想されます。」
      */
     expect(diffTime).toBeGreaterThanOrEqual(90)
+  })
+})
+
+describe('waitEffect', () => {
+  it('Vue tickの後にanimation frameを待つ', async () => {
+    const requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
+      callback(16)
+      return 1
+    })
+    vi.stubGlobal('requestAnimationFrame', requestAnimationFrame)
+    await expect(waitEffect()).resolves.toBeUndefined()
+    expect(requestAnimationFrame).toHaveBeenCalledOnce()
   })
 })

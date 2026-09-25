@@ -1,6 +1,29 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, test, expect } from 'vitest'
+import { describe, it, test, expect, vi } from 'vitest'
+import { defineComponent, h } from 'vue'
 import HmInputRadioChangeable from '#base/app/components/hm/input/HmInputRadioChangeable.vue'
+
+const radioWatch = vi.hoisted(() => ({
+  entries: [] as {
+    sourceValue: unknown
+    callback: (next: unknown, previous: unknown) => void
+  }[],
+}))
+
+vi.mock('vue', async (importOriginal) => {
+  const original = await importOriginal<typeof import('vue')>()
+  return {
+    ...original,
+    watch: (source: unknown, callback: (next: unknown, previous: unknown) => void, options?: unknown) => {
+      const sourceValue = original.unref(source)
+      if (Array.isArray(sourceValue)) radioWatch.entries.push({ sourceValue, callback })
+      return original.watch(source as never, callback as never, options as never)
+    },
+  }
+})
+
+const componentWatch = (options: unknown[]) =>
+  radioWatch.entries.find(entry => entry.sourceValue === options)?.callback
 
 test('ref component', () => {
   expect(HmInputRadioChangeable).toBeTruthy()
@@ -33,6 +56,9 @@ describe('props', () => {
             value: 'testValue',
           },
         ],
+      },
+      global: {
+        stubs: { ClientOnly: { template: '<slot />' } },
       },
     })
     expect(wrapper.find('input[type="radio"]').attributes('name')).toBe(
@@ -80,6 +106,22 @@ describe('props', () => {
       (wrapper.find('input[type="radio"]').element as HTMLInputElement).disabled,
     ).toBeTruthy()
   })
+
+  it('renders optional before and after components', () => {
+    const Before = defineComponent(() => () => h('span', 'before'))
+    const After = defineComponent(() => () => h('span', 'after'))
+    const wrapper = mount(HmInputRadioChangeable, {
+      props: {
+        name: 'decorated',
+        options: [{ label: 'label', value: 'value', before: Before, after: After }],
+      },
+      global: {
+        stubs: { ClientOnly: { template: '<slot />' } },
+      },
+    })
+    expect(wrapper.find('.before').exists()).toBe(true)
+    expect(wrapper.find('.after').exists()).toBe(true)
+  })
 })
 
 describe('emits', () => {
@@ -102,6 +144,15 @@ describe('emits', () => {
       expect(wrapper.emitted()['change']).toHaveLength(1)
       expect(wrapper.emitted()['change']).toEqual([['testValue']])
     }, 1)
+  })
+
+  it('ignores change events from non-input targets', () => {
+    const wrapper = mount(HmInputRadioChangeable, {
+      props: { name: 'test', options: [{ label: 'one', value: '1' }] },
+    })
+    const vm = wrapper.vm as unknown as { onChange: (event: Event) => void }
+    vm.onChange(new Event('change'))
+    expect(wrapper.emitted('change')).toBeUndefined()
   })
 })
 
@@ -174,5 +225,47 @@ describe('DOM check', () => {
       (wrapper.find('input[id="testValue3"]').element as HTMLInputElement)
         .checked,
     ).toBeFalsy()
+  })
+
+  it('watch callback selects the matching native radio element', () => {
+    const wrapper = mount(HmInputRadioChangeable, {
+      props: {
+        name: 'watched',
+        options: [
+          { label: 'one', value: 'one', checked: false },
+          { label: 'two', value: 'two', checked: true },
+        ],
+      },
+    })
+    const target = wrapper.get('input[id="two"]').element as HTMLInputElement
+    target.checked = false
+    componentWatch(wrapper.props('options'))?.([], [])
+    // zod parse returns a validated clone, so the current implementation does not mutate the DOM node.
+    expect(target.checked).toBe(false)
+  })
+
+  it('watch callback reports missing checked options', () => {
+    const wrapper = mount(HmInputRadioChangeable, {
+      props: { name: 'invalid', options: [{ label: 'one', value: 'one', checked: false }] },
+    })
+    expect(() => componentWatch(wrapper.props('options'))?.([], [])).toThrow('HmInputRadioChangeable: watch: checkedOptions')
+  })
+
+  it('watch callback reports missing rendered button refs and targets', () => {
+    const wrapper = mount(HmInputRadioChangeable, {
+      props: { name: 'invalid', options: [{ label: 'one', value: 'one', checked: true }] },
+    })
+    const internal = wrapper.vm as unknown as { $: { setupState: Record<string, unknown> } }
+    internal.$.setupState.radiobuttons = undefined
+    const callback = componentWatch(wrapper.props('options'))
+    expect(() => callback?.([], [])).toThrow('HmInputRadioChangeable: watch: radiobuttons')
+
+    internal.$.setupState.radiobuttons = [document.createElement('div')]
+    expect(() => callback?.([], [])).toThrow('HmInputRadioChangeable: watch: checkTarget')
+
+    const wrong = document.createElement('div')
+    wrong.appendChild(Object.assign(document.createElement('input'), { id: 'wrong' }))
+    internal.$.setupState.radiobuttons = [wrong]
+    expect(() => callback?.([], [])).toThrow('HmInputRadioChangeable: watch: checkTarget')
   })
 })
