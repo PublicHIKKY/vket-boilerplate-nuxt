@@ -28,9 +28,12 @@ Use this file to understand existing patterns before creating new components or 
 - Run `bun install` at the root to install all workspace dependencies
 
 ### Layer Architecture Commands
-- `bun --filter vket-boilerplate-nuxt-base dev` - Start base layer dev server
-- `bun --filter vket-boilerplate-nuxt-main dev` - Start main layer dev server
-- `bun --filter vket-boilerplate-nuxt-showcases dev` - Start showcases dev server
+
+Use each layer's `package.json` as the source of truth for package names and available scripts.
+
+- `bun --filter vket-boilerplate-nuxt-base dev:local` - Start base layer dev server
+- `bun --filter vket-boilerplate-nuxt-main dev:local` - Start main layer dev server
+- `bun --filter vket-boilerplate-nuxt-showcases dev:local` - Start showcases dev server
 - `bun --filter vket-boilerplate-nuxt-open-api generate` - Generate OpenAPI models
 
 ## Development Guidelines
@@ -80,7 +83,7 @@ Use this file to understand existing patterns before creating new components or 
 
 ### Pre-commit Checklist
 1. Run `bun typecheck` - Must have 0 TypeScript errors
-2. Run `bun lint` - Must have 0 lint errors
+2. Run `bun --filter <layer-name> lint` for each layer you touched - Must have 0 lint errors (there is no root `lint` script)
 3. Run `bun test:ut` - All tests must pass
 4. Update i18n translations if UI text was added
 5. Add/update tests for modified code
@@ -179,7 +182,7 @@ This project uses a sophisticated environment management system:
 
 ### Local Development
 ```bash
-cross-env VITE_OUTPUT_ENV=local bun dev
+bun --filter vket-boilerplate-nuxt-main dev:local
 ```
 
 ## Debugging Tips
