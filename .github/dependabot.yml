@@ -6,7 +6,9 @@
 version: 2
 enable-beta-ecosystems: true
 updates:
-  - package-ecosystem: "npm" # See documentation for possible values
+  # 依存は bun で管理している（lockfile は bun.lock のみ）。
+  # "npm" を指定すると Dependabot は bun.lock を更新できず、更新ジョブが misconfigured_tooling で失敗する
+  - package-ecosystem: "bun" # See documentation for possible values
     directory: "/" # Location of package manifests
     schedule:
       interval: "monthly"
