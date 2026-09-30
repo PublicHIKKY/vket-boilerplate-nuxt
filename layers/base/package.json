@@ -69,7 +69,7 @@
     "@types/postcss-url": "^10.0.4",
     "@types/uuid": "^11.0.0",
     "@vee-validate/i18n": "^4.15.1",
-    "@vitejs/plugin-vue": "^6.0.8",
+    "@vitejs/plugin-vue": "^6.0.9",
     "@vitejs/plugin-vue-jsx": "^5.1.6",
     "@vitest/coverage-v8": "4.1.9",
     "@vitest/ui": "4.1.9",
