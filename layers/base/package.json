@@ -74,7 +74,7 @@
     "@vitest/coverage-v8": "4.1.9",
     "@vitest/ui": "4.1.9",
     "@vue/runtime-dom": "^3.5.41",
-    "@vue/test-utils": "^2.4.11",
+    "@vue/test-utils": "^2.5.1",
     "camelcase-keys": "^10.0.2",
     "cross-env": "^10.1.0",
     "eslint": "^10.8.1",
